@@ -1,11 +1,13 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/bmizerany/pat"
 	"github.com/codegangsta/cli"
 	"github.com/fukata/golang-stats-api-handler"
-	"nashio-lab.info/elton/fs"
-	"net/http"
+
+	elton "nashio-lab.info/elton/http"
 )
 
 var Commands = []cli.Command{
@@ -83,15 +85,15 @@ func doClient(c *cli.Context) {
 }
 
 func doServer(c *cli.Context) {
-	fs.ServerInitialize(c.String("dir"), c.String("proxy"))
+	elton.InitServer(c.String("dir"), c.String("proxy"))
 
 	if c.Bool("migration") {
-		fs.ServerMigration()
+		elton.ServerMigration()
 	}
 
 	mux := pat.New()
-	mux.Get("/:dir/:key/:version", http.HandlerFunc(fs.ServerGet))
-	mux.Put("/:dir/:key/:version", http.HandlerFunc(fs.ServerPut))
+	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ServerGetHandler))
+	mux.Put("/:dir/:key/:version", http.HandlerFunc(elton.ServerPutHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
 	http.Handle("/", mux)
 
@@ -99,13 +101,13 @@ func doServer(c *cli.Context) {
 }
 
 func doProxy(c *cli.Context) {
-	fs.ProxyInitialize(c.String("dbpath"))
-	defer fs.ProxyDestory()
+	elton.InitProxy(c.String("dbpath"))
+	defer elton.DestoryProxy()
 
 	mux := pat.New()
-	mux.Get("/:dir/:key/:version", http.HandlerFunc(fs.ProxyGet))
-	mux.Post("/api/migration", http.HandlerFunc(fs.ProxyMigration))
-	mux.Put("/:dir/:key", http.HandlerFunc(fs.ProxyPut))
+	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ProxyGetHandler))
+	mux.Post("/api/migration", http.HandlerFunc(elton.ProxyMigrationHandler))
+	mux.Put("/:dir/:key", http.HandlerFunc(elton.ProxyPutHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
 	http.Handle("/", mux)
 
