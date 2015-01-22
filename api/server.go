@@ -20,6 +20,8 @@ type server struct {
 }
 
 type Server interface {
+	GetDir() string
+	GetHost() string
 	Read(string, string, string) (string, error)
 	Create(string, string, string, multipart.File) error
 	Delete(string, string) error
@@ -28,6 +30,14 @@ type Server interface {
 
 func NewServer(dir string, host string) Server {
 	return &server{dir, host}
+}
+
+func (s *server) GetDir() string {
+	return s.Dir
+}
+
+func (s *server) GetHost() string {
+	return s.Host
 }
 
 func (s *server) Read(dir string, key string, version string) (string, error) {

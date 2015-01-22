@@ -23,11 +23,20 @@ var commandClient = cli.Command{
 `,
 	Action: doClient,
 	Flags: []cli.Flag{
+		cli.IntFlag{
+			Name:  "port, p",
+			Value: 65432,
+			Usage: "port number",
+		},
 		cli.StringFlag{
-			Name:   "lang, l",
-			Value:  "english",
-			Usage:  "language for the greeting",
-			EnvVar: "LEGACY_COMPAT_LANG,APP_LANG,LANG",
+			Name:  "dir, d",
+			Value: "./",
+			Usage: "target directory",
+		},
+		cli.StringFlag{
+			Name:  "proxy",
+			Value: "http://localhost:56789",
+			Usage: "proxy host",
 		},
 	},
 }
@@ -82,6 +91,16 @@ var commandProxy = cli.Command{
 }
 
 func doClient(c *cli.Context) {
+	elton.InitClient(c.String("dir"), c.String("proxy"))
+
+	mux := pat.New()
+	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ClientGetHandler))
+	mux.Put("/:dir/:key", http.HandlerFunc(elton.ClientPutHandler))
+	mux.Del("/:dir/:key", http.HandlerFunc(elton.ClientDeleteHandler))
+	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
+	http.Handle("/", mux)
+
+	http.ListenAndServe(":"+c.String("port"), nil)
 }
 
 func doServer(c *cli.Context) {
