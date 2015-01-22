@@ -2,6 +2,7 @@ package http
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -16,6 +17,7 @@ func InitClient(dir string, host string) {
 }
 
 func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("1")
 	params := r.URL.Query()
 	dir := params.Get(":dir")
 	key := params.Get(":key")
@@ -23,9 +25,11 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	target, err := client.Read(dir, key, version)
 	if err != nil {
+		log.Println("1")
 		res, err := http.Get(client.GetHost() + "/" + dir + "/" + key + "/" + version)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			log.Println("1")
 		}
 
 		if _, err := os.Stat(client.GetDir() + "/" + dir); os.IsNotExist(err) {
