@@ -26,6 +26,7 @@ func ProxyGetHandler(w http.ResponseWriter, r *http.Request) {
 	host, err := proxy.GetHost(dir, key, version)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
 	}
 
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
@@ -43,6 +44,7 @@ func ProxyPutHandler(w http.ResponseWriter, r *http.Request) {
 	version, err := proxy.GetNewVersion(dir, key)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
@@ -62,6 +64,7 @@ func ProxyDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	err := proxy.Delete(dir, key)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
 	//ここforで回して複数クライアントにデリート送らないとね

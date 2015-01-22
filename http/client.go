@@ -29,7 +29,7 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 		res, err := http.Get(client.GetHost() + "/" + dir + "/" + key + "/" + version)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-			log.Println("1")
+			return
 		}
 
 		if _, err := os.Stat(client.GetDir() + "/" + dir); os.IsNotExist(err) {
@@ -39,6 +39,7 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
 
 		defer out.Close()

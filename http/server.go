@@ -27,6 +27,7 @@ func ServerGetHandler(w http.ResponseWriter, r *http.Request) {
 	target, err := server.Read(dir, key, version)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
 	}
 
 	http.ServeFile(w, r, target)
@@ -42,6 +43,7 @@ func ServerPutHandler(w http.ResponseWriter, r *http.Request) {
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
 	}
 	defer file.Close()
 
@@ -62,6 +64,7 @@ func ServerDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	err := server.Delete(dir, key)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 }
 
