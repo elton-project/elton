@@ -2,7 +2,6 @@ package http
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
