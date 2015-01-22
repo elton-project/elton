@@ -24,7 +24,6 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	target, err := client.Read(dir, key, version)
 	if err != nil {
-		log.Println(client.GetHost() + "/" + dir + "/" + key + "/" + version)
 		res, err := http.Get(client.GetHost() + "/" + dir + "/" + key + "/" + version)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -34,6 +33,7 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 		if _, err := os.Stat(client.GetDir() + "/" + dir); os.IsNotExist(err) {
 			os.Mkdir(client.GetDir()+"/"+dir, 0700)
 		}
+		log.Println(target)
 		out, err := os.Create(target)
 
 		if err != nil {
