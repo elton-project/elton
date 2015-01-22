@@ -1,28 +1,12 @@
-charlotte
+elton
 ====
-
-## Description
-
-## Usage
 
 ## Install
 
 To install, use `go get`:
 
 ```bash
-$ go get -d github.com/nashio/elton
+$ git config --global url."git@[git.t-lab.cs.teu.ac.jp(your ssh config setting)]:".insteadOf "https://gitlab.t-lab.cs.teu.ac.jp/"
+
+$ go get -d git.t-lab.cs.teu.ac.jp/nashio/elton.git && mv $GOPATH/src/git.t-lab.cs.teu.ac.jp/nashio/elton.git $GOPATH/src/git.t-lab.cs.teu.ac.jp/nashio/elton && go install
 ```
-
-## Contribution
-
-1. Fork ([https://github.com/nashio/elton/fork](https://github.com/nashio/elton/fork))
-1. Create a feature branch
-1. Commit your changes
-1. Rebase your local changes against the master branch
-1. Run test suite with the `go test ./...` command and confirm that it passes
-1. Run `gofmt -s`
-1. Create new Pull Request
-
-## Author
-
-[nashio](https://github.com/nashio)
