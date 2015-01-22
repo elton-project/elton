@@ -33,8 +33,8 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 		if _, err := os.Stat(client.GetDir() + "/" + dir); os.IsNotExist(err) {
 			os.Mkdir(client.GetDir()+"/"+dir, 0700)
 		}
-		log.Println(target)
-		out, err := os.Create(target)
+
+		out, err := os.Create(client.FormatPath(dir, key, version))
 
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

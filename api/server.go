@@ -26,6 +26,7 @@ type Server interface {
 	Create(string, string, string, multipart.File) error
 	Delete(string, string) error
 	Migration()
+	FormatPath(string, string, string) string
 }
 
 func NewServer(dir string, host string) Server {
@@ -41,7 +42,7 @@ func (s *server) GetHost() string {
 }
 
 func (s *server) Read(dir string, key string, version string) (string, error) {
-	target := s.formatPath(dir, key, version)
+	target := s.FormatPath(dir, key, version)
 
 	if _, err := os.Stat(target); os.IsNotExist(err) {
 		return "", errors.New("No such file: " + target)
@@ -99,9 +100,10 @@ func (s *server) Migration() {
 	})
 }
 
-func (s *server) formatPath(dir string, key string, version string) string {
+func (s *server) FormatPath(dir string, key string, version string) string {
 	if version == "0" {
 		return s.Dir + "/" + dir + "/" + key
 	}
 	return s.Dir + "/" + dir + "/" + key + "-" + version
+
 }
