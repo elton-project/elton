@@ -35,7 +35,7 @@ var commandClient = cli.Command{
 		},
 		cli.StringFlag{
 			Name:  "proxy",
-			Value: "http://localhost:56789",
+			Value: "localhost:56789",
 			Usage: "proxy host",
 		},
 	},
@@ -60,7 +60,7 @@ var commandServer = cli.Command{
 		},
 		cli.StringFlag{
 			Name:  "proxy",
-			Value: "http://localhost:56789",
+			Value: "localhost:56789",
 			Usage: "proxy host",
 		},
 		cli.BoolFlag{

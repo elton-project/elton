@@ -23,7 +23,7 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	target, err := client.Read(dir, key, version)
 	if err != nil {
-		res, err := http.Get(client.GetHost() + "/" + dir + "/" + key + "/" + version)
+		res, err := http.Get("http://" + client.GetHost() + "/" + dir + "/" + key + "/" + version)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
