@@ -55,9 +55,9 @@ func (s *server) Create(dir string, key string, version string, file multipart.F
 		os.Mkdir(s.Dir+"/"+dir, 0700)
 	}
 
-	out, err := os.Create(s.formatPath(dir, key, version))
+	out, err := os.Create(s.FormatPath(dir, key, version))
 	if err != nil {
-		return errors.New("Can not create file: " + s.formatPath(dir, key, version))
+		return errors.New("Can not create file: " + s.FormatPath(dir, key, version))
 	}
 	defer out.Close()
 
