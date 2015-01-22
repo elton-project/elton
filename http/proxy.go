@@ -54,6 +54,24 @@ func ProxyPutHandler(w http.ResponseWriter, r *http.Request) {
 	rp.ServeHTTP(w, r)
 }
 
+func ProxyDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	dir := params.Get(":dir")
+	key := params.Get(":key")
+
+	err := proxy.Delete(dir, key)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	//ここforで回して複数クライアントにデリート送らないとね
+	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
+		request.URL.Scheme = "http"
+		request.URL.Host = "localhost:12345"
+	}}
+	rp.ServeHTTP(w, r)
+}
+
 func ProxyMigrationHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL.Path)
 	key := r.FormValue("key")

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -17,6 +18,7 @@ type Proxy interface {
 	GetHost(string, string, string) (string, error)
 	GetNewVersion(string, string) (string, error)
 	SetHost(string, string) error
+	Delete(string, string) error
 	Migration()
 	Close()
 }
@@ -34,10 +36,13 @@ func (p *proxy) GetHost(dir string, key string, version string) (string, error) 
 	err := p.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("hosts"))
 		host = bucket.Get([]byte(dir + "/" + key + "/" + version))
+		if host == nil {
+			return errors.New("Not found: " + dir + "/" + key + "/" + version)
+		}
 		return nil
 	})
 
-	if err != nil || host == nil {
+	if err != nil {
 		return "", errors.New("No such file: " + dir + "/" + key + "/" + version)
 	}
 
@@ -76,6 +81,31 @@ func (p *proxy) SetHost(key string, host string) error {
 		}
 
 		return bucket.Put([]byte(key)[1:], []byte(host))
+	})
+}
+
+func (p *proxy) Delete(dir string, key string) error {
+	return p.db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
+		if err != nil {
+			return fmt.Errorf("create backet: %s", err)
+		}
+		err = bucket.Delete([]byte(dir + "/" + key))
+		if err != nil {
+			return fmt.Errorf("Can not delete version: %s", dir+"/"+key)
+		}
+		bucket = tx.Bucket([]byte("hosts"))
+		c := bucket.Cursor()
+
+		prefix := []byte(dir + "/" + key)
+		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
+			err = bucket.Delete([]byte(k))
+			if err != nil {
+				return fmt.Errorf("Can not delete host: %s", k)
+			}
+		}
+
+		return nil
 	})
 }
 

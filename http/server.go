@@ -54,6 +54,17 @@ func ServerPutHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, string(result))
 }
 
+func ServerDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	dir := params.Get(":dir")
+	key := params.Get(":key")
+
+	err := server.Delete(dir, key)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+}
+
 func ServerMigration() {
 	server.Migration()
 }

@@ -94,6 +94,7 @@ func doServer(c *cli.Context) {
 	mux := pat.New()
 	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ServerGetHandler))
 	mux.Put("/:dir/:key/:version", http.HandlerFunc(elton.ServerPutHandler))
+	mux.Del("/:dir/:key", http.HandlerFunc(elton.ServerDeleteHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
 	http.Handle("/", mux)
 
@@ -108,6 +109,7 @@ func doProxy(c *cli.Context) {
 	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ProxyGetHandler))
 	mux.Post("/api/migration", http.HandlerFunc(elton.ProxyMigrationHandler))
 	mux.Put("/:dir/:key", http.HandlerFunc(elton.ProxyPutHandler))
+	mux.Del("/:dir/:key", http.HandlerFunc(elton.ProxyDeleteHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
 	http.Handle("/", mux)
 

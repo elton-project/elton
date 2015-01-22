@@ -2,7 +2,9 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -20,6 +22,7 @@ type server struct {
 type Server interface {
 	Read(string, string, string) (string, error)
 	Create(string, string, string, multipart.File) error
+	Delete(string, string) error
 	Migration()
 }
 
@@ -51,8 +54,21 @@ func (s *server) Create(dir string, key string, version string, file multipart.F
 	return nil
 }
 
+func (s *server) Delete(dir string, key string) error {
+	if err := filepath.Walk(s.Dir+"/"+dir, func(path string, info os.FileInfo, err error) error {
+		if strings.HasPrefix(info.Name(), key) {
+			log.Println(path)
+			return os.Remove(path)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("Can not delete file: %s", err)
+	}
+	return nil
+}
+
 func (s *server) Migration() {
-	filepath.Walk(s.Dir, func(p string, info os.FileInfo, err error) (e error) {
+	filepath.Walk(s.Dir, func(p string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
