@@ -17,7 +17,6 @@ func InitClient(dir string, host string) {
 }
 
 func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("1")
 	params := r.URL.Query()
 	dir := params.Get(":dir")
 	key := params.Get(":key")
@@ -25,7 +24,7 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	target, err := client.Read(dir, key, version)
 	if err != nil {
-		log.Println("1")
+		log.Println(client.GetHost() + "/" + dir + "/" + key + "/" + version)
 		res, err := http.Get(client.GetHost() + "/" + dir + "/" + key + "/" + version)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
