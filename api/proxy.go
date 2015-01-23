@@ -67,7 +67,7 @@ func (p *proxy) GetNewVersion(dir string, key string) (string, error) {
 	})
 
 	if err != nil || version == nil {
-		return "", errors.New("Can not get new version")
+		return "", err
 	}
 
 	return string(version), nil
