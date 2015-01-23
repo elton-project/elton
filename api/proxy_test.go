@@ -13,7 +13,7 @@ func init() {
 	}
 }
 
-func TestSetHost(t *testing.T) {
+func TestProxySetHost(t *testing.T) {
 	proxy := NewProxy(DBPATH)
 	defer proxy.Close()
 
@@ -23,33 +23,41 @@ func TestSetHost(t *testing.T) {
 		t.Fatalf("Error: %v", err)
 	}
 
-	err = proxy.SetHost("/hoge/hideo.txt/1", "localhost:56789")
+	err = proxy.SetHost("/hoge/hideo.txt/1", "localhost:67890")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 }
 
-func TestGetHost(t *testing.T) {
+func TestProxyGetHost(t *testing.T) {
 	proxy := NewProxy(DBPATH)
 	defer proxy.Close()
 
-	_, err := proxy.GetHost("hoge", "hideo.txt", "0")
+	host, err := proxy.GetHost("hoge", "hideo.txt", "0")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 
-	_, err = proxy.GetHost("hoge", "hideo.txt", "1")
+	if host != "localhost:56789" {
+		t.Fatalf("Error: expected '%s', got '%s'", "localhost:56789", host)
+	}
+
+	host, err = proxy.GetHost("hoge", "hideo.txt", "1")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
+	}
+
+	if host != "localhost:67890" {
+		t.Fatalf("Error: expected '%s', got '%s'", "localhost:67890", host)
 	}
 
 	_, err = proxy.GetHost("hoge", "hideo.txt", "2")
 	if err == nil {
-		t.Fatalf("Expected Error")
+		t.Fatalf("Expected error")
 	}
 }
 
-func TestGetNewVersion(t *testing.T) {
+func TestProxyGetNewVersion(t *testing.T) {
 	proxy := NewProxy(DBPATH)
 	defer proxy.Close()
 
@@ -60,7 +68,7 @@ func TestGetNewVersion(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestProxyDelete(t *testing.T) {
 	proxy := NewProxy(DBPATH)
 	defer proxy.Close()
 
@@ -70,7 +78,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestMigration(t *testing.T) {
+func TestProxyMigration(t *testing.T) {
 	proxy := NewProxy(DBPATH)
 	defer proxy.Close()
 }
