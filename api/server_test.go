@@ -28,7 +28,7 @@ func TestGetHost(t *testing.T) {
 }
 
 func TestRead(t *testing.T) {
-	dir := "../"
+	dir := "../example"
 	host := "localhost:12345"
 	server := NewServer(dir, host)
 
