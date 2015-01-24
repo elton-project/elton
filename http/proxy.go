@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"nashio-lab.info/elton/api"
+	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 )
 
 type Transport struct {

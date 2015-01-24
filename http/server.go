@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"nashio-lab.info/elton/api"
+	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 )
 
 type Version struct {
