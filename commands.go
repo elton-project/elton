@@ -84,6 +84,7 @@ var commandProxy = cli.Command{
 		},
 		cli.StringSliceFlag{
 			Name:  "server, s",
+			Value: &cli.StringSlice{},
 			Usage: "server URL",
 		},
 	},
