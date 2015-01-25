@@ -73,13 +73,11 @@ func ProxyDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	client := &http.Client{}
 	//Client側にも送らないとね
 	for _, server := range proxy.GetServers() {
-		rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
-			request.URL.Scheme = "http"
-			request.URL.Host = server
-		}}
-		go rp.ServeHTTP(w, r)
+		req, _ := http.NewRequest("DELETE", "http://"+server+r.URL.Path, nil)
+		go client.Do(req)
 	}
 }
 
