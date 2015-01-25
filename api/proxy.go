@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"container/ring"
 	"errors"
-	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -70,16 +69,13 @@ func (p *proxy) GetHost(dir string, key string, version string) (host string, er
 		return nil
 	})
 
-	if err != nil {
-		return "", errors.New("No such file: " + dir + "/" + key + "/" + version)
-	}
-
-	return host, nil
+	return
 }
 
 func (p *proxy) GetLatestVersion(dir string, key string) (version string, err error) {
 	err = p.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("versions"))
+
 		version = string(bucket.Get([]byte(dir + "/" + key)))
 		if version == "" {
 			return errors.New("Not found: " + dir + "/" + key)
@@ -94,7 +90,7 @@ func (p *proxy) GetNewVersion(dir string, key string) (version string, err error
 	err = p.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte("counter"))
 		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
+			return err
 		}
 
 		n, err := strconv.ParseUint(string(bucket.Get([]byte(dir+"/"+key))), 10, 64)
@@ -106,31 +102,26 @@ func (p *proxy) GetNewVersion(dir string, key string) (version string, err error
 		return bucket.Put([]byte(dir+"/"+key), []byte(version))
 	})
 
-	if err != nil || version == "" {
-		return "", err
-	}
-
-	return version, nil
+	return
 }
 
 func (p *proxy) SetHost(key string, host string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
 		if err != nil {
-			return fmt.Errorf("create backet: %s", err)
+			return err
 		}
 
 		keys := strings.Split(string(key), "/")
 		version := keys[len(keys)-1]
-		err = bucket.Put([]byte(key), []byte(version))
-
+		err = bucket.Put([]byte(keys[0]+"/"+keys[1]), []byte(version))
 		if err != nil {
 			return err
 		}
 
 		bucket, err = tx.CreateBucketIfNotExists([]byte("hosts"))
 		if err != nil {
-			return fmt.Errorf("create backet: %s", err)
+			return err
 		}
 
 		return bucket.Put([]byte(key), []byte(host))
@@ -141,12 +132,13 @@ func (p *proxy) Delete(dir string, key string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
 		if err != nil {
-			return fmt.Errorf("create backet: %s", err)
+			return err
 		}
 		err = bucket.Delete([]byte(dir + "/" + key))
 		if err != nil {
-			return fmt.Errorf("Can not delete version: %s", dir+"/"+key)
+			return err
 		}
+
 		bucket = tx.Bucket([]byte("hosts"))
 		c := bucket.Cursor()
 
@@ -154,7 +146,7 @@ func (p *proxy) Delete(dir string, key string) error {
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 			err = bucket.Delete([]byte(k))
 			if err != nil {
-				return fmt.Errorf("Can not delete host: %s", k)
+				return err
 			}
 		}
 		bucket = tx.Bucket([]byte("counter"))
@@ -166,17 +158,17 @@ func (p *proxy) Migration(path []string, host string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
 		versionsBucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
 		if err != nil {
-			return fmt.Errorf("create backet: %s", err)
+			return err
 		}
 
 		hostsBucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
 		if err != nil {
-			return fmt.Errorf("create backet: %s", err)
+			return err
 		}
 
 		counterBucket, err := tx.CreateBucketIfNotExists([]byte("counter"))
 		if err != nil {
-			return fmt.Errorf("create backet: %s", err)
+			return err
 		}
 
 		for _, p := range path {
@@ -187,12 +179,10 @@ func (p *proxy) Migration(path []string, host string) error {
 				p += "/0"
 			}
 
-			log.Printf("key: %s, host: %s", p, host)
-
 			keys := strings.Split(string(p), "/")
 			version := keys[len(keys)-1]
 
-			err = versionsBucket.Put([]byte(p), []byte(version))
+			err = versionsBucket.Put([]byte(keys[0]+"/"+keys[1]), []byte(version))
 			if err != nil {
 				return err
 			}
