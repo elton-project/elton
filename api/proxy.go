@@ -35,11 +35,12 @@ type Proxy interface {
 func NewProxy(path string, servers []string) Proxy {
 	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
-		log.Fatalf("Can not open db file: %s\n", err)
+		log.Fatalf("[elton proxy] Can not open db file: %s\n", err)
 	}
 
 	serverRing := ring.New(len(servers))
 	for _, server := range servers {
+		log.Printf("[elton proxy] Add server: %s", server)
 		serverRing.Value = server
 		serverRing = serverRing.Next()
 	}
@@ -69,6 +70,7 @@ func (p *proxy) GetHost(dir string, key string, version string) (host string, er
 		return nil
 	})
 
+	log.Printf("[elton proxy] Get key: %s, host: %s", dir+"/"+key+"/"+version, host)
 	return
 }
 
@@ -83,6 +85,7 @@ func (p *proxy) GetLatestVersion(dir string, key string) (version string, err er
 		return nil
 	})
 
+	log.Printf("[elton proxy] Get key: %s, version: %s", dir+"/"+key, version)
 	return
 }
 
@@ -102,6 +105,7 @@ func (p *proxy) GetNewVersion(dir string, key string) (version string, err error
 		return bucket.Put([]byte(dir+"/"+key), []byte(version))
 	})
 
+	log.Printf("[elton proxy] Get key: %s, version: %s", dir+"/"+key, version)
 	return
 }
 
@@ -124,6 +128,7 @@ func (p *proxy) SetHost(key string, host string) error {
 			return err
 		}
 
+		log.Printf("[elton proxy] Set key: %s, host: %s", key, host)
 		return bucket.Put([]byte(key), []byte(host))
 	})
 }
@@ -150,6 +155,8 @@ func (p *proxy) Delete(dir string, key string) error {
 			}
 		}
 		bucket = tx.Bucket([]byte("counter"))
+
+		log.Printf("[elton proxy] Delete key: %s", dir+"/"+key)
 		return bucket.Delete([]byte(dir + "/" + key))
 	})
 }
@@ -172,6 +179,7 @@ func (p *proxy) Migration(path []string, host string) error {
 		}
 
 		for _, p := range path {
+			log.Printf("[elton proxy] Migration path: %s, host: %s", p, host)
 			regex := regexp.MustCompile(`-(\d+)\z`)
 			if regex.MatchString(p) {
 				p = regex.ReplaceAllString(p, "/$1")
