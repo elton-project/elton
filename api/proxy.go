@@ -143,9 +143,11 @@ func (p *proxy) Migration(path []string, host string) error {
 			return fmt.Errorf("create backet: %s", err)
 		}
 		for _, p := range path {
-			log.Printf("key: %s, host: %s", p, host)
-			if match, _ := regexp.Match(`\d+\z`, []byte(p)); !match {
-				p += "-0"
+			regex := regexp.MustCompile(`-(\d+)\z`)
+			if regex.Match([]byte(p)) {
+				p = regex.ReplaceAllString(p, "/$1")
+			} else {
+				p += "/0"
 			}
 			log.Printf("key: %s, host: %s", p, host)
 			err = bucket.Put([]byte(p), []byte(host))
