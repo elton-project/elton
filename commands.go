@@ -84,7 +84,6 @@ var commandProxy = cli.Command{
 		},
 		cli.StringSliceFlag{
 			Name:  "server, s",
-			Value: &cli.StringSlice{"lecalhost:12345"},
 			Usage: "server URL",
 		},
 	},
