@@ -6,6 +6,7 @@ import (
 )
 
 var DBPATH = "./elton_test.db"
+var SERVERS = []string{"localhost:12345", "localhost:13579"}
 
 func init() {
 	if _, err := os.Stat(DBPATH); os.IsNotExist(err) {
@@ -14,7 +15,7 @@ func init() {
 }
 
 func TestProxySetHost(t *testing.T) {
-	proxy := NewProxy(DBPATH)
+	proxy := NewProxy(DBPATH, SERVERS)
 	defer proxy.Close()
 
 	//URL.Pathからとってるので '/:dir/:key/:version' の形ですね
@@ -30,7 +31,7 @@ func TestProxySetHost(t *testing.T) {
 }
 
 func TestProxyGetHost(t *testing.T) {
-	proxy := NewProxy(DBPATH)
+	proxy := NewProxy(DBPATH, SERVERS)
 	defer proxy.Close()
 
 	host, err := proxy.GetHost("hoge", "hideo.txt", "0")
@@ -58,7 +59,7 @@ func TestProxyGetHost(t *testing.T) {
 }
 
 func TestProxyGetNewVersion(t *testing.T) {
-	proxy := NewProxy(DBPATH)
+	proxy := NewProxy(DBPATH, SERVERS)
 	defer proxy.Close()
 
 	version, err := proxy.GetNewVersion("hoge", "hideo.txt")
@@ -69,7 +70,7 @@ func TestProxyGetNewVersion(t *testing.T) {
 }
 
 func TestProxyDelete(t *testing.T) {
-	proxy := NewProxy(DBPATH)
+	proxy := NewProxy(DBPATH, SERVERS)
 	defer proxy.Close()
 
 	err := proxy.Delete("hoge", "hideo.txt")
@@ -79,6 +80,6 @@ func TestProxyDelete(t *testing.T) {
 }
 
 func TestProxyMigration(t *testing.T) {
-	proxy := NewProxy(DBPATH)
+	proxy := NewProxy(DBPATH, SERVERS)
 	defer proxy.Close()
 }
