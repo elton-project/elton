@@ -18,13 +18,12 @@ func TestProxySetHost(t *testing.T) {
 	proxy := NewProxy(DBPATH, SERVERS)
 	defer proxy.Close()
 
-	//URL.Pathからとってるので '/:dir/:key/:version' の形ですね
-	err := proxy.SetHost("/hoge/hideo.txt/0", "localhost:56789")
+	err := proxy.SetHost("hoge/hideo.txt/0", "localhost:56789")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 
-	err = proxy.SetHost("/hoge/hideo.txt/1", "localhost:67890")
+	err = proxy.SetHost("hoge/hideo.txt/1", "localhost:67890")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}

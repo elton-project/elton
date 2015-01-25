@@ -87,6 +87,10 @@ var commandProxy = cli.Command{
 			Value: &cli.StringSlice{},
 			Usage: "server URL",
 		},
+		cli.BoolFlag{
+			Name:  "migration",
+			Usage: "migration",
+		},
 	},
 }
 
@@ -123,9 +127,11 @@ func doProxy(c *cli.Context) {
 	elton.InitProxy(c.String("dbpath"), c.StringSlice("server"))
 	defer elton.DestoryProxy()
 
+	if c.Bool("migration") {
+		elton.Migration()
+	}
 	mux := pat.New()
 	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ProxyGetHandler))
-	mux.Post("/api/migration", http.HandlerFunc(elton.ProxyMigrationHandler))
 	mux.Put("/:dir/:key", http.HandlerFunc(elton.ProxyPutHandler))
 	mux.Del("/:dir/:key", http.HandlerFunc(elton.ProxyDeleteHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))

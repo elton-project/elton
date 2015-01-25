@@ -26,7 +26,7 @@ type Proxy interface {
 	GetNewVersion(string, string) (string, error)
 	SetHost(string, string) error
 	Delete(string, string) error
-	Migration()
+	Migration([]string, string) error
 	Close()
 }
 
@@ -106,7 +106,7 @@ func (p *proxy) SetHost(key string, host string) error {
 			return fmt.Errorf("create backet: %s", err)
 		}
 
-		return bucket.Put([]byte(key)[1:], []byte(host))
+		return bucket.Put([]byte(key), []byte(host))
 	})
 }
 
@@ -135,7 +135,19 @@ func (p *proxy) Delete(dir string, key string) error {
 	})
 }
 
-func (p *proxy) Migration() {
+func (p *proxy) Migration(path []string, host string) error {
+	//	return p.db.Update(func(tx *bolt.Tx) error {
+	//		bucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
+	//		if err != nil {
+	//			return fmt.Errorf("create backet: %s", err)
+	//		}
+	//
+	//		return bucket.Put([]byte(key), []byte(host))
+	//	})
+	for _, p := range path {
+		log.Printf("key: %s, host: %s", p, host)
+	}
+	return nil
 }
 
 func (p *proxy) Close() {

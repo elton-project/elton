@@ -1,6 +1,8 @@
 package http
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -81,10 +83,19 @@ func ProxyDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ProxyMigrationHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL.Path)
-	key := r.FormValue("key")
-	log.Println(key)
+func Migration() {
+	for _, server := range proxy.GetServers() {
+		var path Path
+		res, err := http.Get("http://" + server + "/api/migration")
+		if err != nil {
+			log.Printf("Error: can not reach: %s, error: %v", server, err)
+			return
+		}
+		content, _ := ioutil.ReadAll(res.Body)
+		json.Unmarshal(content, &path)
+		defer res.Body.Close()
+		proxy.Migration(path.Path, res.Request.URL.Host)
+	}
 }
 
 func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
@@ -94,9 +105,9 @@ func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
 	}
 
 	if response.StatusCode == http.StatusOK {
-		key := response.Request.URL.Path
+		key := []byte(response.Request.URL.Path)
 		host := response.Request.URL.Host
-		err = proxy.SetHost(key, host)
+		err = proxy.SetHost(string(key[1:]), host)
 		if err != nil {
 			return nil, err
 		}
