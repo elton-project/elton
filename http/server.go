@@ -12,10 +12,16 @@ type Version struct {
 	Version string `json:"version"`
 }
 
-var server api.Server
+type Path struct {
+	Path []string `json:"path"`
+}
 
-func InitServer(dir string) {
+var server api.Server
+var isMigration bool
+
+func InitServer(dir string, flag bool) {
 	server = api.NewServer(dir, "")
+	isMigration = flag
 }
 
 func ServerGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +74,10 @@ func ServerDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ServerMigration() {
-	server.Migration()
+func ServerMigrationHandler(w http.ResponseWriter, r *http.Request) {
+	if isMigration {
+		result, _ := json.Marshal(&Path{server.Migration()})
+		fmt.Fprintf(w, string(result))
+		return
+	}
 }

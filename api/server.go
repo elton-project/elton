@@ -6,8 +6,6 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
-	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -25,7 +23,7 @@ type Server interface {
 	Read(string, string, string) (string, error)
 	Create(string, string, string, multipart.File) error
 	Delete(string, string) error
-	Migration()
+	Migration() []string
 	FormatPath(string, string, string) string
 }
 
@@ -78,26 +76,16 @@ func (s *server) Delete(dir string, key string) error {
 	return nil
 }
 
-func (s *server) Migration() {
+func (s *server) Migration() (paths []string) {
 	filepath.Walk(s.Dir, func(p string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
 
-		p = strings.Replace(p, path.Clean(s.Dir)+"/", "", 1)
-
-		for {
-			res, _ := http.PostForm(
-				s.Host+"/api/migration",
-				url.Values{"key": {p}},
-			)
-			if res.StatusCode == http.StatusOK {
-				break
-			}
-		}
-
+		paths = append(paths, strings.Replace(p, path.Clean(s.Dir)+"/", "", 1))
 		return nil
 	})
+	return
 }
 
 func (s *server) FormatPath(dir string, key string, version string) string {
@@ -105,5 +93,4 @@ func (s *server) FormatPath(dir string, key string, version string) string {
 		return s.Dir + "/" + dir + "/" + key
 	}
 	return s.Dir + "/" + dir + "/" + key + "-" + version
-
 }

@@ -3,6 +3,7 @@ package api
 import (
 	"mime/multipart"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -79,6 +80,15 @@ func TestServerCreate(t *testing.T) {
 	}
 }
 
+func TestServerMigration(t *testing.T) {
+	path := s.Migration()
+	truePath := []string{"hideo/fuga.txt-1", "hideo/fuga.txt-2", "hoge/hideo.txt", "hoge/hideo.txt-1"}
+
+	if !reflect.DeepEqual(path, truePath) {
+		t.Fatalf("Error: expected '%v', got '%v'", truePath, path)
+	}
+}
+
 func TestServerDelete(t *testing.T) {
 	err := s.Delete("hideo", "fuga.txt")
 	if err != nil {
@@ -88,9 +98,6 @@ func TestServerDelete(t *testing.T) {
 	if err = os.Remove("../examples/hideo"); err != nil {
 		t.Fatalf("Error: %v", err)
 	}
-}
-
-func TestServerMigration(t *testing.T) {
 }
 
 func TestServerPormatPath(t *testing.T) {

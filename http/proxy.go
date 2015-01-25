@@ -15,7 +15,7 @@ var proxy api.Proxy
 
 func InitProxy(path string, servers []string) {
 	for _, server := range servers {
-		res, err := http.PostForm("http://"+server+"/api/ping", nil)
+		res, err := http.Get("http://" + server + "/api/ping")
 		if err != nil || res.StatusCode != http.StatusOK {
 			log.Fatalf("can not reach: %s, Error: %v", server, err)
 		}
