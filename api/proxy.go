@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"sync"
 
@@ -136,18 +137,23 @@ func (p *proxy) Delete(dir string, key string) error {
 }
 
 func (p *proxy) Migration(path []string, host string) error {
-	//	return p.db.Update(func(tx *bolt.Tx) error {
-	//		bucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
-	//		if err != nil {
-	//			return fmt.Errorf("create backet: %s", err)
-	//		}
-	//
-	//		return bucket.Put([]byte(key), []byte(host))
-	//	})
-	for _, p := range path {
-		log.Printf("key: %s, host: %s", p, host)
-	}
-	return nil
+	return p.db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
+		if err != nil {
+			return fmt.Errorf("create backet: %s", err)
+		}
+		for _, p := range path {
+			log.Printf("key: %s, host: %s", p, host)
+			regex, _ := regexp.Compile(`[^(\d+)]\z`)
+			p = regex.ReplaceAllString(p, "-0")
+			log.Printf("key: %s, host: %s", p, host)
+			err = bucket.Put([]byte(p), []byte(host))
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (p *proxy) Close() {
