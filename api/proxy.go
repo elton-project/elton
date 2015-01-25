@@ -144,8 +144,9 @@ func (p *proxy) Migration(path []string, host string) error {
 		}
 		for _, p := range path {
 			log.Printf("key: %s, host: %s", p, host)
-			regex, _ := regexp.Compile(`[^(\d+)]\z`)
-			p = regex.ReplaceAllString(p, "-0")
+			if match, _ := regexp.Match(`\d+\z`, []byte(p)); !match {
+				p += "-0"
+			}
 			log.Printf("key: %s, host: %s", p, host)
 			err = bucket.Put([]byte(p), []byte(host))
 			if err != nil {
