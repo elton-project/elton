@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/bmizerany/pat"
@@ -115,7 +116,7 @@ func doServer(c *cli.Context) {
 	mux.Put("/:dir/:key/:version", http.HandlerFunc(elton.ServerPutHandler))
 	mux.Del("/:dir/:key", http.HandlerFunc(elton.ServerDeleteHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
-	mux.Post("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	mux.Post("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, "") }))
 	http.Handle("/", mux)
 
 	http.ListenAndServe(":"+c.String("port"), nil)
