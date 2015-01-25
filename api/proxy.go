@@ -8,6 +8,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/boltdb/bolt"
@@ -24,6 +25,7 @@ type Proxy interface {
 	GetServers() []string
 	GetServerHost() string
 	GetHost(string, string, string) (string, error)
+	GetLatestVersion(string, string) (string, error)
 	GetNewVersion(string, string) (string, error)
 	SetHost(string, string) error
 	Delete(string, string) error
@@ -58,12 +60,11 @@ func (p *proxy) GetServerHost() (host string) {
 	return
 }
 
-func (p *proxy) GetHost(dir string, key string, version string) (string, error) {
-	var host []byte
-	err := p.db.View(func(tx *bolt.Tx) error {
+func (p *proxy) GetHost(dir string, key string, version string) (host string, err error) {
+	err = p.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("hosts"))
-		host = bucket.Get([]byte(dir + "/" + key + "/" + version))
-		if host == nil {
+		host = string(bucket.Get([]byte(dir + "/" + key + "/" + version)))
+		if host == "" {
 			return errors.New("Not found: " + dir + "/" + key + "/" + version)
 		}
 		return nil
@@ -73,13 +74,25 @@ func (p *proxy) GetHost(dir string, key string, version string) (string, error) 
 		return "", errors.New("No such file: " + dir + "/" + key + "/" + version)
 	}
 
-	return string(host), nil
+	return host, nil
 }
 
-func (p *proxy) GetNewVersion(dir string, key string) (string, error) {
-	var version []byte
-	err := p.db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
+func (p *proxy) GetLatestVersion(dir string, key string) (version string, err error) {
+	err = p.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("versions"))
+		version = string(bucket.Get([]byte(dir + "/" + key)))
+		if version == "" {
+			return errors.New("Not found: " + dir + "/" + key)
+		}
+		return nil
+	})
+
+	return
+}
+
+func (p *proxy) GetNewVersion(dir string, key string) (version string, err error) {
+	err = p.db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists([]byte("counter"))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -89,20 +102,33 @@ func (p *proxy) GetNewVersion(dir string, key string) (string, error) {
 			n = 0
 		}
 
-		version = []byte(strconv.FormatUint(n+1, 10))
-		return bucket.Put([]byte(dir+"/"+key), version)
+		version = strconv.FormatUint(n+1, 10)
+		return bucket.Put([]byte(dir+"/"+key), []byte(version))
 	})
 
-	if err != nil || version == nil {
+	if err != nil || version == "" {
 		return "", err
 	}
 
-	return string(version), nil
+	return version, nil
 }
 
 func (p *proxy) SetHost(key string, host string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
+		bucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
+		if err != nil {
+			return fmt.Errorf("create backet: %s", err)
+		}
+
+		keys := strings.Split(string(key), "/")
+		version := keys[len(keys)-1]
+		err = bucket.Put([]byte(key), []byte(version))
+
+		if err != nil {
+			return err
+		}
+
+		bucket, err = tx.CreateBucketIfNotExists([]byte("hosts"))
 		if err != nil {
 			return fmt.Errorf("create backet: %s", err)
 		}
@@ -131,26 +157,52 @@ func (p *proxy) Delete(dir string, key string) error {
 				return fmt.Errorf("Can not delete host: %s", k)
 			}
 		}
-
-		return nil
+		bucket = tx.Bucket([]byte("counter"))
+		return bucket.Delete([]byte(dir + "/" + key))
 	})
 }
 
 func (p *proxy) Migration(path []string, host string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
+		versionsBucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
 		if err != nil {
 			return fmt.Errorf("create backet: %s", err)
 		}
+
+		hostsBucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
+		if err != nil {
+			return fmt.Errorf("create backet: %s", err)
+		}
+
+		counterBucket, err := tx.CreateBucketIfNotExists([]byte("counter"))
+		if err != nil {
+			return fmt.Errorf("create backet: %s", err)
+		}
+
 		for _, p := range path {
 			regex := regexp.MustCompile(`-(\d+)\z`)
-			if regex.Match([]byte(p)) {
+			if regex.MatchString(p) {
 				p = regex.ReplaceAllString(p, "/$1")
 			} else {
 				p += "/0"
 			}
+
 			log.Printf("key: %s, host: %s", p, host)
-			err = bucket.Put([]byte(p), []byte(host))
+
+			keys := strings.Split(string(p), "/")
+			version := keys[len(keys)-1]
+
+			err = versionsBucket.Put([]byte(p), []byte(version))
+			if err != nil {
+				return err
+			}
+
+			err = hostsBucket.Put([]byte(p), []byte(host))
+			if err != nil {
+				return err
+			}
+
+			err = counterBucket.Put([]byte(p), []byte(version))
 			if err != nil {
 				return err
 			}

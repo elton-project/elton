@@ -30,6 +30,14 @@ func ProxyGetHandler(w http.ResponseWriter, r *http.Request) {
 	dir := params.Get(":dir")
 	key := params.Get(":key")
 	version := params.Get(":version")
+	if version == "" {
+		version, _ = proxy.GetLatestVersion(dir, key)
+	}
+
+	if version == "" {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 
 	host, err := proxy.GetHost(dir, key, version)
 	if err != nil {

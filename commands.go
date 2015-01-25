@@ -132,6 +132,7 @@ func doProxy(c *cli.Context) {
 	}
 	mux := pat.New()
 	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ProxyGetHandler))
+	mux.Get("/:dir/:key", http.HandlerFunc(elton.ProxyGetHandler))
 	mux.Put("/:dir/:key", http.HandlerFunc(elton.ProxyPutHandler))
 	mux.Del("/:dir/:key", http.HandlerFunc(elton.ProxyDeleteHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
