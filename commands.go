@@ -58,11 +58,6 @@ var commandServer = cli.Command{
 			Value: "./",
 			Usage: "target directory",
 		},
-		cli.StringFlag{
-			Name:  "proxy",
-			Value: "localhost:56789",
-			Usage: "proxy host",
-		},
 		cli.BoolFlag{
 			Name:  "migration",
 			Usage: "migration",
@@ -85,7 +80,12 @@ var commandProxy = cli.Command{
 		cli.StringFlag{
 			Name:  "dbpath",
 			Value: "./elton.db",
-			Usage: "db paht",
+			Usage: "db path",
+		},
+		cli.StringSliceFlag{
+			Name:  "server, s",
+			Value: &cli.StringSlice{"lecalhost:12345"},
+			Usage: "server URL",
 		},
 	},
 }
@@ -104,7 +104,7 @@ func doClient(c *cli.Context) {
 }
 
 func doServer(c *cli.Context) {
-	elton.InitServer(c.String("dir"), c.String("proxy"))
+	elton.InitServer(c.String("dir"))
 
 	if c.Bool("migration") {
 		elton.ServerMigration()
@@ -115,13 +115,14 @@ func doServer(c *cli.Context) {
 	mux.Put("/:dir/:key/:version", http.HandlerFunc(elton.ServerPutHandler))
 	mux.Del("/:dir/:key", http.HandlerFunc(elton.ServerDeleteHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
+	mux.Post("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	http.Handle("/", mux)
 
 	http.ListenAndServe(":"+c.String("port"), nil)
 }
 
 func doProxy(c *cli.Context) {
-	elton.InitProxy(c.String("dbpath"))
+	elton.InitProxy(c.String("dbpath"), c.StringSlice("server"))
 	defer elton.DestoryProxy()
 
 	mux := pat.New()

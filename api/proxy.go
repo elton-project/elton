@@ -2,19 +2,26 @@ package api
 
 import (
 	"bytes"
+	"container/ring"
 	"errors"
 	"fmt"
 	"log"
 	"strconv"
+	"sync"
 
 	"github.com/boltdb/bolt"
 )
 
 type proxy struct {
-	db *bolt.DB
+	db         *bolt.DB
+	servers    []string
+	serverRing *ring.Ring
+	mutex      sync.Mutex
 }
 
 type Proxy interface {
+	GetServers() []string
+	GetServerHost() string
 	GetHost(string, string, string) (string, error)
 	GetNewVersion(string, string) (string, error)
 	SetHost(string, string) error
@@ -23,12 +30,31 @@ type Proxy interface {
 	Close()
 }
 
-func NewProxy(path string) Proxy {
+func NewProxy(path string, servers []string) Proxy {
 	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
 		log.Fatalf("Can not open db file: %s\n", err)
 	}
-	return &proxy{db}
+
+	serverRing := ring.New(len(servers))
+	for _, server := range servers {
+		serverRing.Value = server
+		serverRing = serverRing.Next()
+	}
+
+	return &proxy{db, servers, serverRing, sync.Mutex{}}
+}
+
+func (p *proxy) GetServers() []string {
+	return p.servers
+}
+
+func (p *proxy) GetServerHost() (host string) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	host = p.serverRing.Value.(string)
+	p.serverRing = p.serverRing.Next()
+	return
 }
 
 func (p *proxy) GetHost(dir string, key string, version string) (string, error) {

@@ -13,8 +13,14 @@ type Transport struct {
 
 var proxy api.Proxy
 
-func InitProxy(path string) {
-	proxy = api.NewProxy(path)
+func InitProxy(path string, servers []string) {
+	for _, server := range servers {
+		res, err := http.PostForm("http://"+server+"/api/ping", nil)
+		if res.StatusCode != http.StatusOK {
+			log.Fatalf("can not reach: %s, Error: %v", server, err)
+		}
+	}
+	proxy = api.NewProxy(path, servers)
 }
 
 func ProxyGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +55,7 @@ func ProxyPutHandler(w http.ResponseWriter, r *http.Request) {
 
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
-		request.URL.Host = "localhost:12345"
+		request.URL.Host = proxy.GetServerHost()
 		request.URL.Path += "/" + string(version)
 	}}
 	rp.Transport = &Transport{}
@@ -67,12 +73,14 @@ func ProxyDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//ここforで回して複数クライアントにデリート送らないとね
-	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
-		request.URL.Scheme = "http"
-		request.URL.Host = "localhost:12345"
-	}}
-	rp.ServeHTTP(w, r)
+	//Client側にも送らないとね
+	for _, server := range proxy.GetServers() {
+		rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
+			request.URL.Scheme = "http"
+			request.URL.Host = server
+		}}
+		rp.ServeHTTP(w, r)
+	}
 }
 
 func ProxyMigrationHandler(w http.ResponseWriter, r *http.Request) {

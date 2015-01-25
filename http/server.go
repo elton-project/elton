@@ -14,8 +14,8 @@ type Version struct {
 
 var server api.Server
 
-func InitServer(dir string, host string) {
-	server = api.NewServer(dir, host)
+func InitServer(dir string) {
+	server = api.NewServer(dir, "")
 }
 
 func ServerGetHandler(w http.ResponseWriter, r *http.Request) {
