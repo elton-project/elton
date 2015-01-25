@@ -79,7 +79,7 @@ func ProxyDeleteHandler(w http.ResponseWriter, r *http.Request) {
 			request.URL.Scheme = "http"
 			request.URL.Host = server
 		}}
-		rp.ServeHTTP(w, r)
+		go rp.ServeHTTP(w, r)
 	}
 }
 
