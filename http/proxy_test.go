@@ -75,7 +75,7 @@ func TestProxyPutHandler(t *testing.T) {
 		t.Fatalf("Error by ioutil.ReadAll(). %v", err)
 	}
 
-	if `{"version":"1"}` != strings.Trim(string(data), "\n") {
+	if `{"version":"1","length":251}` != strings.Trim(string(data), "\n") {
 		t.Fatalf("Data Error. %s", string(data))
 	}
 }
