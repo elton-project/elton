@@ -82,7 +82,7 @@ func TestServerCreate(t *testing.T) {
 
 func TestServerMigration(t *testing.T) {
 	path := s.Migration()
-	truePath := []string{"hideo/fuga.txt-1", "hideo/fuga.txt-2", "hoge/hideo.txt", "hoge/hideo.txt-1"}
+	truePath := []string{"elton_test.db", "hideo/fuga.txt-1", "hideo/fuga.txt-2", "hoge/hideo.txt", "hoge/hideo.txt-1"}
 
 	if !reflect.DeepEqual(path, truePath) {
 		t.Fatalf("Error: expected '%v', got '%v'", truePath, path)

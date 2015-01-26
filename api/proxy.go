@@ -35,7 +35,26 @@ type Proxy interface {
 func NewProxy(path string, servers []string) Proxy {
 	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
-		log.Fatalf("[elton proxy] Can not open db file: %s\n", err)
+		log.Fatalf("[elton proxy] Can not open db file: %s", err)
+	}
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		_, err = tx.CreateBucketIfNotExists([]byte("counter"))
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte("hosts"))
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte("versions"))
+		return err
+	})
+
+	if err != nil {
+		log.Fatalf("[elton proxy] Can not create bucket file: %v", err)
 	}
 
 	serverRing := ring.New(len(servers))
@@ -63,6 +82,7 @@ func (p *proxy) GetServerHost() (host string) {
 func (p *proxy) GetHost(dir string, key string, version string) (host string, err error) {
 	err = p.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("hosts"))
+
 		host = string(bucket.Get([]byte(dir + "/" + key + "/" + version)))
 		if host == "" {
 			return errors.New("Not found: " + dir + "/" + key + "/" + version)
@@ -91,10 +111,7 @@ func (p *proxy) GetLatestVersion(dir string, key string) (version string, err er
 
 func (p *proxy) GetNewVersion(dir string, key string) (version string, err error) {
 	err = p.db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte("counter"))
-		if err != nil {
-			return err
-		}
+		bucket := tx.Bucket([]byte("counter"))
 
 		n, err := strconv.ParseUint(string(bucket.Get([]byte(dir+"/"+key))), 10, 64)
 		if err != nil {
@@ -111,22 +128,16 @@ func (p *proxy) GetNewVersion(dir string, key string) (version string, err error
 
 func (p *proxy) SetHost(key string, host string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
-		if err != nil {
-			return err
-		}
+		bucket := tx.Bucket([]byte("versions"))
 
 		keys := strings.Split(string(key), "/")
 		version := keys[len(keys)-1]
-		err = bucket.Put([]byte(keys[0]+"/"+keys[1]), []byte(version))
+		err := bucket.Put([]byte(keys[0]+"/"+keys[1]), []byte(version))
 		if err != nil {
 			return err
 		}
 
-		bucket, err = tx.CreateBucketIfNotExists([]byte("hosts"))
-		if err != nil {
-			return err
-		}
+		bucket = tx.Bucket([]byte("hosts"))
 
 		log.Printf("[elton proxy] Set key: %s, host: %s", key, host)
 		return bucket.Put([]byte(key), []byte(host))
@@ -135,11 +146,9 @@ func (p *proxy) SetHost(key string, host string) error {
 
 func (p *proxy) Delete(dir string, key string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
-		if err != nil {
-			return err
-		}
-		err = bucket.Delete([]byte(dir + "/" + key))
+		bucket := tx.Bucket([]byte("versions"))
+
+		err := bucket.Delete([]byte(dir + "/" + key))
 		if err != nil {
 			return err
 		}
@@ -154,6 +163,7 @@ func (p *proxy) Delete(dir string, key string) error {
 				return err
 			}
 		}
+
 		bucket = tx.Bucket([]byte("counter"))
 
 		log.Printf("[elton proxy] Delete key: %s", dir+"/"+key)
@@ -163,23 +173,11 @@ func (p *proxy) Delete(dir string, key string) error {
 
 func (p *proxy) Migration(path []string, host string) error {
 	return p.db.Update(func(tx *bolt.Tx) error {
-		versionsBucket, err := tx.CreateBucketIfNotExists([]byte("versions"))
-		if err != nil {
-			return err
-		}
-
-		hostsBucket, err := tx.CreateBucketIfNotExists([]byte("hosts"))
-		if err != nil {
-			return err
-		}
-
-		counterBucket, err := tx.CreateBucketIfNotExists([]byte("counter"))
-		if err != nil {
-			return err
-		}
+		versionsBucket := tx.Bucket([]byte("versions"))
+		hostsBucket := tx.Bucket([]byte("hosts"))
+		counterBucket := tx.Bucket([]byte("counter"))
 
 		for _, p := range path {
-			log.Printf("[elton proxy] Migration path: %s, host: %s", p, host)
 			regex := regexp.MustCompile(`-(\d+)\z`)
 			if regex.MatchString(p) {
 				p = regex.ReplaceAllString(p, "/$1")
@@ -189,8 +187,8 @@ func (p *proxy) Migration(path []string, host string) error {
 
 			keys := strings.Split(string(p), "/")
 			version := keys[len(keys)-1]
-
-			err = versionsBucket.Put([]byte(keys[0]+"/"+keys[1]), []byte(version))
+			log.Printf("[elton proxy] Migration path: %s, host: %s", p, host)
+			err := versionsBucket.Put([]byte(keys[0]+"/"+keys[1]), []byte(version))
 			if err != nil {
 				return err
 			}

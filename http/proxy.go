@@ -30,6 +30,7 @@ func ProxyGetHandler(w http.ResponseWriter, r *http.Request) {
 	dir := params.Get(":dir")
 	key := params.Get(":key")
 	version := params.Get(":version")
+
 	if version == "" {
 		version, _ = proxy.GetLatestVersion(dir, key)
 	}
@@ -48,6 +49,7 @@ func ProxyGetHandler(w http.ResponseWriter, r *http.Request) {
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
 		request.URL.Host = string(host)
+		request.URL.Path = "/" + dir + "/" + key + "/" + version
 	}}
 	rp.ServeHTTP(w, r)
 }
