@@ -28,6 +28,7 @@ func init() {
 	smux.Get("/api/migration", http.HandlerFunc(ServerMigrationHandler))
 	smux.Get("/:dir/:key/:version", http.HandlerFunc(ServerGetHandler))
 	smux.Put("/:dir/:key/:version", http.HandlerFunc(ServerPutHandler))
+	smux.Del("/:dir/:key", http.HandlerFunc(ServerDeleteHandler))
 	sts = httptest.NewServer(smux)
 }
 
@@ -132,12 +133,27 @@ func TestProxyGetHandler(t *testing.T) {
 	if "hideo.txt" != strings.Trim(string(data), "\n") {
 		t.Fatalf("Data Error. %v", string(data))
 	}
-
-	sts.Close()
 }
 
 func TestProxyDeleteHandler(t *testing.T) {
-}
+	InitProxy(DBPATH, []string{strings.Trim(sts.URL, "http://")})
+	defer DestoryProxy()
+	pmux := pat.New()
+	pmux.Del("/:dir/:key", http.HandlerFunc(ProxyDeleteHandler))
+	pts := httptest.NewServer(pmux)
+	defer pts.Close()
 
-func TestMigration(t *testing.T) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("DELETE", pts.URL+"/hideo/hideo.txt", nil)
+	_, err := client.Do(req)
+
+	if err != nil {
+		t.Fatalf("Error by http.Do(). %v", err)
+	}
+
+	if err = os.Remove("../examples/hideo"); err != nil {
+		t.Fatalf("Can not delete directory: %v", err)
+	}
+
+	sts.Close()
 }
