@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/bmizerany/pat"
@@ -99,7 +100,7 @@ func doClient(c *cli.Context) {
 
 	mux := pat.New()
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
-	mux.Get("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	mux.Get("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprintf(w, "hideo") }))
 	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ClientGetHandler))
 	mux.Put("/:dir/:key", http.HandlerFunc(elton.ClientPutHandler))
 	mux.Del("/:dir/:key", http.HandlerFunc(elton.ClientDeleteHandler))
@@ -114,7 +115,7 @@ func doServer(c *cli.Context) {
 
 	mux := pat.New()
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
-	mux.Get("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	mux.Get("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprintf(w, "hideo") }))
 	mux.Get("/api/migration", http.HandlerFunc(elton.ServerMigrationHandler))
 	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ServerGetHandler))
 	mux.Put("/:dir/:key/:version", http.HandlerFunc(elton.ServerPutHandler))
@@ -134,7 +135,7 @@ func doProxy(c *cli.Context) {
 	}
 	mux := pat.New()
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
-	mux.Get("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	mux.Get("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprintf(w, "hideo") }))
 	mux.Get("/:dir/:key/:version", http.HandlerFunc(elton.ProxyGetHandler))
 	mux.Get("/:dir/:key", http.HandlerFunc(elton.ProxyGetHandler))
 	mux.Put("/:dir/:key", http.HandlerFunc(elton.ProxyPutHandler))
