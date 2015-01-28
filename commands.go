@@ -136,6 +136,7 @@ func doProxy(c *cli.Context) {
 	mux.Put("/:dir/:key", http.HandlerFunc(elton.ProxyPutHandler))
 	mux.Del("/:dir/:key", http.HandlerFunc(elton.ProxyDeleteHandler))
 	mux.Get("/api/stats", http.HandlerFunc(stats_api.Handler))
+	mux.Get("/api/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	http.Handle("/", mux)
 
 	http.ListenAndServe(":"+c.String("port"), nil)
