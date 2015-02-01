@@ -44,6 +44,7 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 
 		io.Copy(out, res.Body)
 		defer res.Body.Close()
+		target, _ := client.Read(dir, key, version)
 	}
 
 	http.ServeFile(w, r, target)
