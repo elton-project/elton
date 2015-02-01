@@ -33,7 +33,8 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 			os.Mkdir(client.GetDir()+"/"+dir, 0700)
 		}
 
-		out, err := os.Create(client.FormatPath(dir, key, version))
+		target = client.FormatPath(dir, key, version)
+		out, err := os.Create(target)
 
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -44,7 +45,6 @@ func ClientGetHandler(w http.ResponseWriter, r *http.Request) {
 
 		io.Copy(out, res.Body)
 		defer res.Body.Close()
-		target, _ := client.Read(dir, key, version)
 	}
 
 	http.ServeFile(w, r, target)
