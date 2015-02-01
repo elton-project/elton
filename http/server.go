@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 )
 
 type Result struct {
-	Version string `json:"version"`
-	Length  int64  `json:"length"`
+	Version int64 `json:"version"`
+	Length  int64 `json:"length"`
 }
 
 type Path struct {
@@ -59,7 +60,8 @@ func ServerPutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
-	result, _ := json.Marshal(&Result{Version: version, Length: r.ContentLength})
+	v, _ := strconv.ParseInt(version, 10, 64)
+	result, _ := json.Marshal(&Result{Version: v, Length: r.ContentLength})
 	fmt.Fprintf(w, string(result))
 }
 
