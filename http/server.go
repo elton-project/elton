@@ -8,8 +8,9 @@ import (
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 )
 
-type Version struct {
+type Result struct {
 	Version string `json:"version"`
+	Length  int64  `json:"length"`
 }
 
 type Path struct {
@@ -58,7 +59,7 @@ func ServerPutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
-	result, _ := json.Marshal(&Version{Version: version})
+	result, _ := json.Marshal(&Result{Version: version, Length: r.ContentLength})
 	fmt.Fprintf(w, string(result))
 }
 

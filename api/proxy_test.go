@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-var DBPATH = "./elton_test.db"
+var DBPATH = "../examples/elton_test.db"
 var SERVERS = []string{"localhost:12345", "localhost:13579"}
 
 func init() {
-	if _, err := os.Stat(DBPATH); os.IsExist(err) {
+	if _, err := os.Stat(DBPATH); !os.IsNotExist(err) {
 		os.Remove(DBPATH)
 	}
 }
