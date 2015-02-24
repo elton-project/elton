@@ -18,4 +18,4 @@ install: .deps
 	go install
 
 clean:
-	rm -rf $(GOPATH)/bin/$(BIN) $(BIN)
+	go clean
