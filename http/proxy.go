@@ -3,11 +3,11 @@ package http
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httputil"
 
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
-	"github.com/golang/glog"
 )
 
 type Transport struct {
@@ -19,7 +19,7 @@ func InitProxy(path string, servers []string) {
 	for _, server := range servers {
 		res, err := http.Get("http://" + server + "/api/ping")
 		if err != nil || res.StatusCode != http.StatusOK {
-			glog.Fatalf("can not reach: %s, Error: %v", server, err)
+			log.Fatalf("can not reach: %s, Error: %v", server, err)
 		}
 	}
 	proxy = api.NewProxy(path, servers)
@@ -98,7 +98,7 @@ func Migration() {
 		var path Path
 		res, err := http.Get("http://" + server + "/api/migration")
 		if err != nil {
-			glog.Errorf("Error: can not reach: %s, error: %v", server, err)
+			log.Printf("Error: can not reach: %s, error: %v", server, err)
 			return
 		}
 		content, _ := ioutil.ReadAll(res.Body)

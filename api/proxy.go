@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"container/ring"
 	"errors"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/boltdb/bolt"
-	"github.com/golang/glog"
 )
 
 type proxy struct {
@@ -35,7 +35,7 @@ type Proxy interface {
 func NewProxy(path string, servers []string) Proxy {
 	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
-		glog.Fatalf("[elton proxy] Can not open db file: %s", err)
+		log.Fatalf("[elton proxy] Can not open db file: %s", err)
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
@@ -54,12 +54,12 @@ func NewProxy(path string, servers []string) Proxy {
 	})
 
 	if err != nil {
-		glog.Fatalf("[elton proxy] Can not create bucket file: %v", err)
+		log.Fatalf("[elton proxy] Can not create bucket file: %v", err)
 	}
 
 	serverRing := ring.New(len(servers))
 	for _, server := range servers {
-		glog.Infof("[elton proxy] Add server: %s", server)
+		log.Printf("[elton proxy] Add server: %s", server)
 		serverRing.Value = server
 		serverRing = serverRing.Next()
 	}
@@ -90,7 +90,7 @@ func (p *proxy) GetHost(dir string, key string, version string) (host string, er
 		return nil
 	})
 
-	glog.Infof("[elton proxy] Get key: %s, host: %s", dir+"/"+key+"/"+version, host)
+	log.Printf("[elton proxy] Get key: %s, host: %s", dir+"/"+key+"/"+version, host)
 	return
 }
 
@@ -105,7 +105,7 @@ func (p *proxy) GetLatestVersion(dir string, key string) (version string, err er
 		return nil
 	})
 
-	glog.Infof("[elton proxy] Get key: %s, version: %s", dir+"/"+key, version)
+	log.Printf("[elton proxy] Get key: %s, version: %s", dir+"/"+key, version)
 	return
 }
 
@@ -122,7 +122,7 @@ func (p *proxy) GetNewVersion(dir string, key string) (version string, err error
 		return bucket.Put([]byte(dir+"/"+key), []byte(version))
 	})
 
-	glog.Infof("[elton proxy] Get key: %s, version: %s", dir+"/"+key, version)
+	log.Printf("[elton proxy] Get key: %s, version: %s", dir+"/"+key, version)
 	return
 }
 
@@ -139,7 +139,7 @@ func (p *proxy) SetHost(key string, host string) error {
 
 		bucket = tx.Bucket([]byte("hosts"))
 
-		glog.Infof("[elton proxy] Set key: %s, host: %s", key, host)
+		log.Printf("[elton proxy] Set key: %s, host: %s", key, host)
 		return bucket.Put([]byte(key), []byte(host))
 	})
 }
@@ -166,7 +166,7 @@ func (p *proxy) Delete(dir string, key string) error {
 
 		bucket = tx.Bucket([]byte("counter"))
 
-		glog.Infof("[elton proxy] Delete key: %s", dir+"/"+key)
+		log.Printf("[elton proxy] Delete key: %s", dir+"/"+key)
 		return bucket.Delete([]byte(dir + "/" + key))
 	})
 }
@@ -187,7 +187,7 @@ func (p *proxy) Migration(path []string, host string) error {
 
 			keys := strings.Split(string(p), "/")
 			version := keys[len(keys)-1]
-			glog.Infof("[elton proxy] Migration path: %s, host: %s", p, host)
+			log.Printf("[elton proxy] Migration path: %s, host: %s", p, host)
 			err := versionsBucket.Put([]byte(keys[0]+"/"+keys[1]), []byte(version))
 			if err != nil {
 				return err
