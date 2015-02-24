@@ -4,8 +4,6 @@ GODEPS = \
 	github.com/bmizerany/pat \
 	github.com/fukata/golang-stats-api-handler
 
-BIN = elton
-
 all: install
 
 .deps:
@@ -18,4 +16,4 @@ install: .deps
 	go install
 
 clean:
-	rm -rf $(GOPATH)/bin/$(BIN) $(BIN)
+	go clean
