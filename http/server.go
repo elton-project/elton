@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
+	"../api"
 )
 
 type Result struct {

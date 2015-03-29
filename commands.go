@@ -7,7 +7,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/fukata/golang-stats-api-handler"
 
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/http"
+	elton "./http"
 )
 
 var Commands = []cli.Command{

@@ -6,7 +6,7 @@ import (
 	"net/http/httputil"
 	"os"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
+	"../api"
 )
 
 var client api.Server
