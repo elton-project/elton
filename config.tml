@@ -1,0 +1,28 @@
+[server]
+port = "56789"
+
+[[server.slave]]
+weight = 1
+host = "10.0.0.1"
+port = "24680"
+
+[[server.slave]]
+weight = 5
+host = "10.0.0.2"
+port = "24680"
+
+[[server.slave]]
+weight = 3
+host = "10.0.0.3"
+port = "24680"
+
+[[server.slave]]
+weight = 2
+host = "10.0.0.4"
+port = "24680"
+
+[db]
+host = "localhost"
+port = "3306"
+user = "root"
+pass = "pass"
