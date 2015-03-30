@@ -5,23 +5,23 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
-	Db     DbConfig
+	Proxy  ProxyConfig
+	Server []ServerConfig
+	DB     DBConfig
 }
 
-type ServerConfig struct {
-	Port  string        `toml:"port"`
-	Slave []SlaveServer `toml:"slave"`
+type ProxyConfig struct {
+	Port string `toml:"port"`
 }
 
-type DbConfig struct {
+type DBConfig struct {
 	Host string `toml:"host"`
 	Port string `toml:"port"`
 	User string `toml:"user"`
 	Pass string `toml:"pass"`
 }
 
-type SlaveServer struct {
+type ServerConfig struct {
 	Weight int    `toml:"weight"`
 	Host   string `toml:"host"`
 	Port   string `toml:"port"`
