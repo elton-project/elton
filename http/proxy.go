@@ -10,26 +10,45 @@ import (
 
 	"github.com/fukata/golang-stats-api-handler"
 
-	//	"git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/config"
+	e "git.t-lab.cs.teu.ac.jp/nashio/elton/elton"
 )
 
 type proxy struct {
-	conf config.Config
+	conf  config.Config
+	elton e.DBManager
 }
 
 type Proxy interface {
 	Serve()
+	dispatchHandler(w http.ResponseWriter, r *http.Request)
+	getHandler(w http.ResponseWriter, r *http.Request)
+	putHandler(w http.ResponseWriter, r *http.Request)
+	deleteHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type Transport struct {
 }
 
-func NewProxy(conf config.Config) Proxy {
-	return &proxy{conf: conf}
+func NewProxy(conf config.Config) (Proxy, error) {
+	elt, err := e.NewDBManager(conf)
+	if err != nil {
+		return new(proxy), err
+	}
+
+	return &proxy{conf: conf, elton: elt}
 }
 
 func (p *proxy) Serve() {
+	defer p.elton.Close()
+
+	for _, server := range p.conf.Server {
+		res, err := http.Get("http://" + server.Host + ":" + server.Port + "/api/ping")
+		if err != nil || res.StatusCode != http.StatusOK {
+			log.Fatalf("can not reach: %s, Error: %v", server, err)
+		}
+	}
+
 	http.HandleFunc("/maint/stats", stats_api.Handler)
 	http.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
@@ -37,30 +56,33 @@ func (p *proxy) Serve() {
 			return
 		}
 	})
-	http.HandleFunc("/", dispatchHandler)
-	log.Fatal(http.ListenAndServe(":"+p.conf.Server.Port, nil))
+	http.HandleFunc("/", p.dispatchHandler)
+	log.Fatal(http.ListenAndServe(":"+p.conf.Proxy.Port, nil))
 }
 
-func dispatchHandler(w http.ResponseWriter, r *http.Request) {
+func (p *proxy) dispatchHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		getHandler(w, r)
+		p.getHandler(w, r)
 	case "PUT":
-		putHandler(w, r)
+		p.putHandler(w, r)
 	case "DELETE":
-		deleteHandler(w, r)
+		p.deleteHandler(w, r)
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 	}
 }
 
-func getHandler(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Path
-	fmt.Fprintf(w, key)
+func (p *proxy) getHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Path
+	fmt.Fprintf(w, name)
 }
 
-func putHandler(w http.ResponseWriter, r *http.Request) {
+func (p *proxy) putHandler(w http.ResponseWriter, r *http.Request) {
+	//	name := r.URL.Path
+
+	//	version, err := p.getNewVersion(name)
 }
 
-func deleteHandler(w http.ResponseWriter, r *http.Request) {
+func (p *proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
 }

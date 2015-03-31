@@ -22,7 +22,8 @@ host = "10.0.0.4"
 port = "24680"
 
 [db]
-host = "localhost"
-port = "3306"
 user = "root"
 pass = "pass"
+host = "localhost"
+port = "3306"
+dbname = "elton"

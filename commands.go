@@ -6,7 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/config"
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/http"
+	"git.t-lab.cs.teu.ac.jp/nashio/elton/http"
 )
 
 var Commands = []cli.Command{
@@ -34,10 +34,20 @@ var commandServer = cli.Command{
 	Description: ``,
 	Action:      doServer,
 	Flags: []cli.Flag{
+		cli.IntFlag{
+			Name:  "port, p",
+			Value: 24680,
+			Usage: "port number",
+		},
 		cli.StringFlag{
-			Name:  "file, f",
-			Value: "config.tml",
-			Usage: "config file",
+			Name:  "dir, d",
+			Value: "./",
+			Usage: "target directory",
+		},
+		cli.IntFlag{
+			Name:  "weight",
+			Value: 1,
+			Usage: "weight",
 		},
 	},
 }
@@ -48,16 +58,15 @@ func doProxy(c *cli.Context) {
 		log.Fatal(err)
 	}
 
-	proxy := elton.NewProxy(conf)
-	proxy.Serve()
-}
-
-func doServer(c *cli.Context) {
-	conf, err := config.Load(c.String("file"))
+	proxy, err := http.NewProxy(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server := elton.NewServer(conf)
+	proxy.Serve()
+}
+
+func doServer(c *cli.Context) {
+	server := http.NewServer(c.String("port"), c.String("dir"), c.Int("weight"))
 	server.Serve()
 }

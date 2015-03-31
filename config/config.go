@@ -14,17 +14,18 @@ type ProxyConfig struct {
 	Port string `toml:"port"`
 }
 
-type DBConfig struct {
-	Host string `toml:"host"`
-	Port string `toml:"port"`
-	User string `toml:"user"`
-	Pass string `toml:"pass"`
-}
-
 type ServerConfig struct {
 	Weight int    `toml:"weight"`
 	Host   string `toml:"host"`
 	Port   string `toml:"port"`
+}
+
+type DBConfig struct {
+	User   string `toml:"user"`
+	Pass   string `toml:"pass"`
+	Host   string `toml:"host"`
+	Port   string `toml:"port"`
+	DBName string `toml:"dbname"`
 }
 
 func Load(path string) (Config, error) {
