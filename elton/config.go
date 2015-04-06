@@ -1,4 +1,4 @@
-package config
+package elton
 
 import (
 	"github.com/BurntSushi/toml"

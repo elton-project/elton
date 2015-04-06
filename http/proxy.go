@@ -10,19 +10,18 @@ import (
 
 	"github.com/fukata/golang-stats-api-handler"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/config"
 	e "git.t-lab.cs.teu.ac.jp/nashio/elton/elton"
 )
 
 type Proxy struct {
-	conf  config.Config
+	conf  e.Config
 	elton *e.Elton
 }
 
 type Transport struct {
 }
 
-func NewProxy(conf config.Config) (*Proxy, error) {
+func NewProxy(conf e.Config) (*Proxy, error) {
 	elt, err := e.NewElton(conf)
 	if err != nil {
 		return nil, err
@@ -71,7 +70,6 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
-p.elton.
 	//	name := r.URL.Path
 
 	//	version, err := p.getNewVersion(name)
