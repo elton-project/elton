@@ -14,32 +14,24 @@ import (
 	e "git.t-lab.cs.teu.ac.jp/nashio/elton/elton"
 )
 
-type proxy struct {
+type Proxy struct {
 	conf  config.Config
-	elton e.DBManager
-}
-
-type Proxy interface {
-	Serve()
-	dispatchHandler(w http.ResponseWriter, r *http.Request)
-	getHandler(w http.ResponseWriter, r *http.Request)
-	putHandler(w http.ResponseWriter, r *http.Request)
-	deleteHandler(w http.ResponseWriter, r *http.Request)
+	elton *e.Elton
 }
 
 type Transport struct {
 }
 
-func NewProxy(conf config.Config) (Proxy, error) {
-	elt, err := e.NewDBManager(conf)
+func NewProxy(conf config.Config) (*Proxy, error) {
+	elt, err := e.NewElton(conf)
 	if err != nil {
-		return new(proxy), err
+		return nil, err
 	}
 
-	return &proxy{conf: conf, elton: elt}
+	return &Proxy{conf: conf, elton: elt}, nil
 }
 
-func (p *proxy) Serve() {
+func (p *Proxy) Serve() {
 	defer p.elton.Close()
 
 	for _, server := range p.conf.Server {
@@ -60,7 +52,7 @@ func (p *proxy) Serve() {
 	log.Fatal(http.ListenAndServe(":"+p.conf.Proxy.Port, nil))
 }
 
-func (p *proxy) dispatchHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) dispatchHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		p.getHandler(w, r)
@@ -73,16 +65,17 @@ func (p *proxy) dispatchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *proxy) getHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
 	fmt.Fprintf(w, name)
 }
 
-func (p *proxy) putHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
+p.elton.
 	//	name := r.URL.Path
 
 	//	version, err := p.getNewVersion(name)
 }
 
-func (p *proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
 }
