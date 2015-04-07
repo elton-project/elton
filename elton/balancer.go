@@ -15,9 +15,9 @@ type Balancer struct {
 func NewBalancer(conf Config) (*Balancer, error) {
 	var servers []string
 	for _, server := range conf.Server {
-		target := "http://" + server.Host + ":" + server.Port
+		target := server.Host + ":" + server.Port
 
-		res, err := http.Get(target + "/api/ping")
+		res, err := http.Get("http://" + target + "/maint/ping")
 		if err != nil || res.StatusCode != http.StatusOK {
 			return nil, fmt.Errorf("can not reach: %s, Error: %v", server, err)
 		}

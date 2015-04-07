@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	//	"net/http/httputil"
+	"net/http/httputil"
 
 	"github.com/fukata/golang-stats-api-handler"
 
@@ -58,8 +58,30 @@ func (p *Proxy) dispatchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+
 	name := r.URL.Path
-	fmt.Fprintf(w, name)
+	version := params.Get("version")
+
+	var host, path string
+	var err error
+	if version == "" {
+		host, path, err := p.ep.manager.GetHost(name)
+	} else {
+		host, path, err := p.ep.manager.GetHostWithVersion(name, version)
+	}
+
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	rp := &httputil.ReverseProxy{Director: func(request *http.Reqeust) {
+		request.URL.Scheme = "http"
+		request.URL.Host = host
+		request.URL.Path = path
+	}}
+	rp.ServeHTTP(w, r)
 }
 
 func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {

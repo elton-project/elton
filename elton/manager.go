@@ -28,7 +28,11 @@ func NewManager(conf Config) (*Manager, error) {
 	return &Manager{db: db}, nil
 }
 
-func (m *Manager) GetHost() (host string, err error) {
+func (m *Manager) GetHostWithVersion(name string, version string) (host string, path string, err error) {
+	sql := `SELECT * FROM `
+}
+
+func (m *Manager) GetHost(name string) (host string, path string, err error) {
 }
 
 func (m *Manager) Close() {
