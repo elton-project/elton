@@ -14,31 +14,24 @@ import (
 )
 
 type Proxy struct {
-	conf  e.Config
-	elton *e.Elton
+	conf e.Config
+	ep   *e.EltonProxy
 }
 
 type Transport struct {
 }
 
 func NewProxy(conf e.Config) (*Proxy, error) {
-	elt, err := e.NewElton(conf)
+	ep, err := e.NewEltonProxy(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Proxy{conf: conf, elton: elt}, nil
+	return &Proxy{conf: conf, ep: ep}, nil
 }
 
 func (p *Proxy) Serve() {
-	defer p.elton.Close()
-
-	for _, server := range p.conf.Server {
-		res, err := http.Get("http://" + server.Host + ":" + server.Port + "/api/ping")
-		if err != nil || res.StatusCode != http.StatusOK {
-			log.Fatalf("can not reach: %s, Error: %v", server, err)
-		}
-	}
+	defer p.ep.Close()
 
 	http.HandleFunc("/maint/stats", stats_api.Handler)
 	http.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {

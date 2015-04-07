@@ -14,6 +14,9 @@ type Proxy struct {
 	serversLen int
 }
 
+type Proxy interface {
+}
+
 func NewProxy(conf Config) (*Proxy, error) {
 	dns := conf.DB.User + ":" + conf.DB.Pass + "@tcp(" + conf.DB.Host + ":" + conf.DB.Port + ")/" + conf.DB.DBName + "?charset=utf8&autocommit=false"
 	db, err := sql.Open("mysql", dns)
