@@ -12,7 +12,7 @@ all: deps build
 $(TARGET):
 
 deps:
-	go get -u $(GODEPS)
+	go get -d
 
 build: $(TARGET)
 	go build -o $^

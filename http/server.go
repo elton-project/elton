@@ -8,14 +8,14 @@ import (
 	"github.com/fukata/golang-stats-api-handler"
 )
 
-type HTTPServer struct {
+type Server struct {
 	port   string
 	dir    string
 	weight int
 }
 
-func NewServer(port string, dir string, weight int) *HTTPServer {
-	return &HTTPServer{port: port, dir: dir, weight: weight}
+func NewServer(port string, dir string, weight int) *Server {
+	return &Server{port: port, dir: dir, weight: weight}
 }
 
 func (s *Server) Serve() {

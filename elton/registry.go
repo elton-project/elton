@@ -7,7 +7,13 @@ import (
 )
 
 type Registry struct {
-	db *sql.DB
+	DB *sql.DB
+}
+
+type EltonPath struct {
+	Name string
+	Host string
+	Path string
 }
 
 func NewRegistry(conf Config) (*Registry, error) {
@@ -25,16 +31,48 @@ func NewRegistry(conf Config) (*Registry, error) {
 		return nil, err
 	}
 
-	return &Registry{db: db}, nil
+	return &Registry{DB: db}, nil
 }
 
-func (m *Registry) GetHostWithVersion(name string, version string) (host string, path string, err error) {
-	sql := `SELECT * FROM hideo`
+func (m *Registry) GetHost(name string, version string) (EltonPath, error) {
+	if version == "" {
+		return m.getLatestVersionHost(name)
+	}
+
+	var target, key string
+
+	err := m.DB.QueryRow(`SELECT target, key FROM host WHERE name = ?`, name+"-"+version).Scan(&target, &key)
+	if err != nil {
+		return nil, err
+	}
+
+	if target != nil && key != nil {
+		return nil, fmt.Errorf("not found")
+	}
+
+	return EltonPath{Name: name + "-" + version, Host: target, Path: key}, nil
 }
 
-func (m *Registry) GetHost(name string) (host string, path string, err error) {
+func (m *Registry) getLatestVersionHost(name string) (EltonPath, error) {
+	var target, key string
+
+	err := m.DB.QueryRow(`SELECT target, key FROM host WHERE name = (SELECT concat(name, "-", latest_version) FROM version WHERE name = ?)`, name).Scan(&target, &key)
+	if err != nil {
+		return nil, err
+	}
+
+	if target != nil && key != nil {
+		return nil, fmt.Errorf("not found")
+	}
+
+	return EltonPath{Name: name, Host: target, Path: key}, nil
+}
+
+func (m *Registry) CreateNewVersion(name string) (EltonPath, error) {
+
+	return EltonPath{Name: name + "-" + version, Host: target, Path: key}, nil
 }
 
 func (m *Registry) Close() {
-	m.db.Close()
+	m.DB.Close()
 }

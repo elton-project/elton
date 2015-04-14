@@ -8,8 +8,8 @@ import (
 )
 
 type Balancer struct {
-	servers    []string
-	serversLen int
+	Servers    []string
+	ServersLen int
 }
 
 func NewBalancer(conf Config) (*Balancer, error) {
@@ -17,9 +17,8 @@ func NewBalancer(conf Config) (*Balancer, error) {
 	for _, server := range conf.Server {
 		target := server.Host + ":" + server.Port
 
-		res, err := http.Get("http://" + target + "/maint/ping")
-		if err != nil || res.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("can not reach: %s, Error: %v", server, err)
+		if err := ping(target); err != nil {
+			return nil, err
 		}
 
 		for i := 0; i < server.Weight; i++ {
@@ -28,9 +27,26 @@ func NewBalancer(conf Config) (*Balancer, error) {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	return &Balancer{servers: servers, serversLen: len(servers)}, nil
+	return &Balancer{Servers: servers, ServersLen: len(servers)}, nil
 }
 
 func (b *Balancer) GetServer() string {
-	return b.servers[rand.Intn(b.serversLen)]
+	return b.Servers[rand.Intn(b.ServersLen)]
 }
+
+func ping(target string) error {
+	res, err := http.Get("http://" + target + "/maint/ping")
+	if err != nil || res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("can not reach: %s, Error: %v", server, err)
+	}
+}
+
+//func (b *Balancer) heartbeat() {
+//	for _, server := range b.Servers {
+//		target := server.Host + ":" + server.Port
+
+//		if err := ping(target); err != nil {
+//			return nil, err
+//		}
+//	}
+//}

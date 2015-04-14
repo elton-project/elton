@@ -3,14 +3,14 @@ package http
 import (
 	//	"encoding/json"
 	//	"io/ioutil"
-	"fmt"
+	//	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 
 	"github.com/fukata/golang-stats-api-handler"
 
-	e "git.t-lab.cs.teu.ac.jp/nashio/elton/elton"
+	e "../elton"
 )
 
 type Proxy struct {
@@ -63,32 +63,56 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
 	version := params.Get("version")
 
-	var host, path string
-	var err error
-	if version == "" {
-		host, path, err := p.ep.manager.GetHost(name)
-	} else {
-		host, path, err := p.ep.manager.GetHostWithVersion(name, version)
-	}
+	data, err := p.ep.Registry.GetHost(name, version)
 
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
-	rp := &httputil.ReverseProxy{Director: func(request *http.Reqeust) {
+	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
-		request.URL.Host = host
-		request.URL.Path = path
+		request.URL.Host = data.Host
+		request.URL.Path = data.Path
 	}}
 	rp.ServeHTTP(w, r)
 }
 
 func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
-	//	name := r.URL.Path
+	name := r.URL.Path
 
-	//	version, err := p.getNewVersion(name)
+	data, err := p.ep.Registry.CreateNewVersion(name)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
+		request.URL.Scheme = "http"
+		request.URL.Host = proxy.GetServerHost()
+		request.URL.Path += "/" + version
+	}}
+	rp.Transport = make(Transport)
+	rp.ServeHTTP(w, r)
 }
 
 func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
+	response, err := http.DefaultTransport.RoundTrip(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode == http.StatusOK {
+		key := []byte(response.Request.URL.Path)
+		host := response.Request.URL.Host
+		err = proxy.SetHost(string(key[1:]), host)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return response, err
 }

@@ -5,8 +5,8 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/elton"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/http"
+	"./elton"
+	"./http"
 )
 
 var Commands = []cli.Command{
@@ -53,7 +53,7 @@ var commandServer = cli.Command{
 }
 
 func doProxy(c *cli.Context) {
-	conf, err := config.Load(c.String("file"))
+	conf, err := elton.Load(c.String("file"))
 	if err != nil {
 		log.Fatal(err)
 	}
