@@ -6,11 +6,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type Manager struct {
+type Registry struct {
 	db *sql.DB
 }
 
-func NewManager(conf Config) (*Manager, error) {
+func NewRegistry(conf Config) (*Registry, error) {
 	dns := conf.DB.User + ":" + conf.DB.Pass + "@tcp(" + conf.DB.Host + ":" + conf.DB.Port + ")/" + conf.DB.DBName + "?charset=utf8&autocommit=false"
 
 	db, err := sql.Open("mysql", dns)
@@ -25,16 +25,16 @@ func NewManager(conf Config) (*Manager, error) {
 		return nil, err
 	}
 
-	return &Manager{db: db}, nil
+	return &Registry{db: db}, nil
 }
 
-func (m *Manager) GetHostWithVersion(name string, version string) (host string, path string, err error) {
-	sql := `SELECT * FROM `
+func (m *Registry) GetHostWithVersion(name string, version string) (host string, path string, err error) {
+	sql := `SELECT * FROM hideo`
 }
 
-func (m *Manager) GetHost(name string) (host string, path string, err error) {
+func (m *Registry) GetHost(name string) (host string, path string, err error) {
 }
 
-func (m *Manager) Close() {
+func (m *Registry) Close() {
 	m.db.Close()
 }

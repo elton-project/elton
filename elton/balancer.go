@@ -2,8 +2,8 @@ package elton
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
-	"rand"
 	"time"
 )
 

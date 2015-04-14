@@ -6,21 +6,16 @@ type EltonServer struct {
 }
 
 type EltonProxy struct {
-	manager  *Manager
+	registry *Registry
 	balancer *Balancer
 }
 
 func NewEltonServer(conf Config) (*EltonServer, error) {
-	db, err := NewDBManager(conf)
-	r := ring.New(len(conf.Server))
-	if err != nil {
-		return nil, err
-	}
-	return &Elton{db: db, serverRing: r, mutex: sync.Mutex{}}, nil
+	return nil, nil
 }
 
 func NewEltonProxy(conf Config) (*EltonProxy, error) {
-	m, err := NewManager(conf)
+	m, err := NewRegistry(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -30,12 +25,12 @@ func NewEltonProxy(conf Config) (*EltonProxy, error) {
 		return nil, err
 	}
 
-	return &EltonProxy{manager: m, balancer: b}, nil
+	return &EltonProxy{registry: m, balancer: b}, nil
 }
 
 func (p *EltonProxy) Close() {
-	p.manager.Close()
+	p.registry.Close()
 }
 
-func (e *Elton) Close() {
+func (e *EltonServer) Close() {
 }
