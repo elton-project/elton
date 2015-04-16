@@ -1,9 +1,3 @@
-GODEPS = \
-	github.com/codegangsta/cli \
-	github.com/fukata/golang-stats-api-handler \
-	github.com/BurntSushi/toml \
-	github.com/go-sql-driver/mysql
-
 TARGETDIR = bin
 TARGET = $(TARGETDIR)/elton
 
@@ -12,7 +6,7 @@ all: deps build
 $(TARGET):
 
 deps:
-	go get -d
+	go get -d -v
 
 build: $(TARGET)
 	go build -o $^
