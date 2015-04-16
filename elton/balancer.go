@@ -37,8 +37,9 @@ func (b *Balancer) GetServer() string {
 func ping(target string) error {
 	res, err := http.Get("http://" + target + "/maint/ping")
 	if err != nil || res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("can not reach: %s, Error: %v", server, err)
+		return fmt.Errorf("can not reach: %s, Error: %v", target, err)
 	}
+	return nil
 }
 
 //func (b *Balancer) heartbeat() {

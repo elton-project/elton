@@ -2,6 +2,7 @@ package elton
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -43,11 +44,11 @@ func (m *Registry) GetHost(name string, version string) (EltonPath, error) {
 
 	err := m.DB.QueryRow(`SELECT target, key FROM host WHERE name = ?`, name+"-"+version).Scan(&target, &key)
 	if err != nil {
-		return nil, err
+		return EltonPath{}, err
 	}
 
-	if target != nil && key != nil {
-		return nil, fmt.Errorf("not found")
+	if target != "" && key != "" {
+		return EltonPath{}, fmt.Errorf("not found")
 	}
 
 	return EltonPath{Name: name + "-" + version, Host: target, Path: key}, nil
@@ -58,11 +59,11 @@ func (m *Registry) getLatestVersionHost(name string) (EltonPath, error) {
 
 	err := m.DB.QueryRow(`SELECT target, key FROM host WHERE name = (SELECT concat(name, "-", latest_version) FROM version WHERE name = ?)`, name).Scan(&target, &key)
 	if err != nil {
-		return nil, err
+		return EltonPath{}, err
 	}
 
-	if target != nil && key != nil {
-		return nil, fmt.Errorf("not found")
+	if target != "" && key != "" {
+		return EltonPath{}, fmt.Errorf("not found")
 	}
 
 	return EltonPath{Name: name, Host: target, Path: key}, nil
