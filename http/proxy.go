@@ -89,8 +89,8 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
-		request.URL.Host = proxy.GetServerHost()
-		request.URL.Path += "/" + version
+		request.URL.Host = date.Host
+		request.URL.Path += data.Path
 	}}
 	rp.Transport = make(Transport)
 	rp.ServeHTTP(w, r)
