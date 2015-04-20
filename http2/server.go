@@ -1,27 +1,26 @@
 package http2
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/bradfitz/http2"
 	"github.com/fukata/golang-stats-api-handler"
+
+	eh "../http"
 )
 
-type Server struct {
-	port   string
-	dir    string
-	weight int
+type Server2 struct {
+	*eh.Server
 }
 
-func NewServer(port string, dir string, weight int) *Server {
-	return &Server{port: port, dir: dir, weight: weight}
+func NewServer(port string, dir string, weight int) *Server2 {
+	return &Server2{eh.NewServer(port, dir, weight)}
 }
 
-func (s *Server) Serve() {
+func (s *Server2) Serve() {
 	var srv http.Server
-	srv.Addr = ":" + s.port
+	srv.Addr = ":" + s.Port
 	mux := http.NewServeMux()
 	mux.HandleFunc("/maint/stats", stats_api.Handler)
 	mux.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
@@ -30,33 +29,9 @@ func (s *Server) Serve() {
 			return
 		}
 	})
-	mux.HandleFunc("/", s.dispatchHandler)
+	mux.HandleFunc("/", s.DispatchHandler)
 	srv.Handler = mux
 
 	http2.ConfigureServer(&srv, new(http2.Server))
 	log.Fatal(srv.ListenAndServeTLS("../examples/server.crt", "../examples/server.key"))
-}
-
-func (s *Server) dispatchHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		s.getHandler(w, r)
-	case "PUT":
-		s.putHandler(w, r)
-	case "DELETE":
-		s.deleteHandler(w, r)
-	default:
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-	}
-}
-
-func (s *Server) getHandler(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Path
-	fmt.Fprintf(w, key)
-}
-
-func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
-}
-
-func (s *Server) deleteHandler(w http.ResponseWriter, r *http.Request) {
 }

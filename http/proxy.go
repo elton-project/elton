@@ -14,8 +14,8 @@ import (
 )
 
 type Proxy struct {
-	conf e.Config
-	ep   *e.EltonProxy
+	Conf       e.Config
+	EltonProxy *e.EltonProxy
 }
 
 type Transport struct {
@@ -30,11 +30,11 @@ func NewProxy(conf e.Config) (*Proxy, error) {
 		return nil, err
 	}
 
-	return &Proxy{conf: conf, ep: ep}, nil
+	return &Proxy{Conf: conf, EltonProxy: ep}, nil
 }
 
 func (p *Proxy) Serve() {
-	defer p.ep.Close()
+	defer p.EltonProxy.Close()
 
 	http.HandleFunc("/maint/stats", stats_api.Handler)
 	http.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
@@ -43,11 +43,11 @@ func (p *Proxy) Serve() {
 			return
 		}
 	})
-	http.HandleFunc("/", p.dispatchHandler)
-	log.Fatal(http.ListenAndServe(":"+p.conf.Proxy.Port, nil))
+	http.HandleFunc("/", p.DispatchHandler)
+	log.Fatal(http.ListenAndServe(":"+p.Conf.Proxy.Port, nil))
 }
 
-func (p *Proxy) dispatchHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) DispatchHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		p.getHandler(w, r)
@@ -66,7 +66,7 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
 	version := params.Get("version")
 
-	data, err := p.ep.Registry.GetHost(name, version)
+	data, err := p.EltonProxy.Registry.GetHost(name, version)
 
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -84,7 +84,7 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
 
-	data, err := p.ep.Registry.GenerateNewVersion(name)
+	data, err := p.EltonProxy.Registry.GenerateNewVersion(name)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -104,20 +104,20 @@ func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
 
 func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
 	response, err := http.DefaultTransport.RoundTrip(request)
-	if err != nil {
-		return nil, err
-	}
+	//	if err != nil {
+	//		return nil, err
+	//	}
 
-	if response.StatusCode == http.StatusOK {
-		host := response.Request.URL.Host
-		key := []byte(response.Request.URL.Path)
+	//	if response.StatusCode == http.StatusOK {
+	//		host := response.Request.URL.Host
+	//		key := []byte(response.Request.URL.Path)
 
-		err = p.ep.Registry.CreateNewVersion(t.versionedName, host, string(key[1:]), t.name)
-		err = proxy.SetHost(string(key[1:]), host)
-		if err != nil {
-			return nil, err
-		}
-	}
+	//		err = p.ep.Registry.CreateNewVersion(t.versionedName, host, string(key[1:]), t.name)
+	//		err = proxy.SetHost(string(key[1:]), host)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//	}
 
 	return response, err
 }

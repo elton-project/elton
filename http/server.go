@@ -9,13 +9,13 @@ import (
 )
 
 type Server struct {
-	port   string
-	dir    string
-	weight int
+	Port   string
+	Dir    string
+	Weight int
 }
 
 func NewServer(port string, dir string, weight int) *Server {
-	return &Server{port: port, dir: dir, weight: weight}
+	return &Server{Port: port, Dir: dir, Weight: weight}
 }
 
 func (s *Server) Serve() {
@@ -26,11 +26,11 @@ func (s *Server) Serve() {
 			return
 		}
 	})
-	http.HandleFunc("/", s.dispatchHandler)
-	log.Fatal(http.ListenAndServe(":"+s.port, nil))
+	http.HandleFunc("/", s.DispatchHandler)
+	log.Fatal(http.ListenAndServe(":"+s.Port, nil))
 }
 
-func (s *Server) dispatchHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) DispatchHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		s.getHandler(w, r)
