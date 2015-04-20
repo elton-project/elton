@@ -19,15 +19,24 @@ func NewServer(port string, dir string, weight int) *Server {
 }
 
 func (s *Server) Serve() {
-	http.HandleFunc("/maint/stats", stats_api.Handler)
-	http.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
+	var srv http.Server
+	srv.Addr = ":" + s.Port
+	s.RegisterHandler(&srv)
+
+	log.Fatal(http.ListenAndServe(":"+s.Port, nil))
+}
+
+func (s *Server) RegisterHandler(srv *http.Server) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/maint/stats", stats_api.Handler)
+	mux.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		}
 	})
-	http.HandleFunc("/", s.DispatchHandler)
-	log.Fatal(http.ListenAndServe(":"+s.Port, nil))
+	mux.HandleFunc("/", s.DispatchHandler)
+	srv.Handler = mux
 }
 
 func (s *Server) DispatchHandler(w http.ResponseWriter, r *http.Request) {

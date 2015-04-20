@@ -36,15 +36,24 @@ func NewProxy(conf e.Config) (*Proxy, error) {
 func (p *Proxy) Serve() {
 	defer p.EltonProxy.Close()
 
-	http.HandleFunc("/maint/stats", stats_api.Handler)
-	http.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
+	var srv http.Server
+	srv.Addr = ":" + p.Conf.Proxy.Port
+	p.RegisterHandler(&srv)
+
+	log.Fatal(srv.ListenAndServe())
+}
+
+func (p *Proxy) RegisterHandler(srv *http.Server) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/maint/stats", stats_api.Handler)
+	mux.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		}
 	})
-	http.HandleFunc("/", p.DispatchHandler)
-	log.Fatal(http.ListenAndServe(":"+p.Conf.Proxy.Port, nil))
+	mux.HandleFunc("/", p.DispatchHandler)
+	srv.Handler = mux
 }
 
 func (p *Proxy) DispatchHandler(w http.ResponseWriter, r *http.Request) {

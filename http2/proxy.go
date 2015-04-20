@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/bradfitz/http2"
-	"github.com/fukata/golang-stats-api-handler"
 
 	e "../elton"
 	eh "../http"
@@ -29,17 +28,8 @@ func (p *Proxy2) Serve() {
 
 	var srv http.Server
 	srv.Addr = ":" + p.Conf.Proxy.Port
-	mux := http.NewServeMux()
-	mux.HandleFunc("/maint/stats", stats_api.Handler)
-	mux.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "GET" {
-			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-			return
-		}
-	})
-	mux.HandleFunc("/", p.DispatchHandler)
-	srv.Handler = mux
-
+	p.RegisterHandler(&srv)
 	http2.ConfigureServer(&srv, new(http2.Server))
+
 	log.Fatal(srv.ListenAndServeTLS("../examples/server.crt", "../examples/server.key"))
 }
