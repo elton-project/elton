@@ -1,12 +1,9 @@
 package elton
 
 import (
-	"crypto/md5"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"strconv"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -22,9 +19,10 @@ type EltonPath struct {
 	Path string
 }
 
-func NewRegistry(conf Config) (*Registry, error) {
-	dns := conf.DB.User + ":" + conf.DB.Pass + "@tcp(" + conf.DB.Host + ":" + conf.DB.Port + ")/" + conf.DB.DBName + "?charset=utf8&autocommit=false"
+var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false`
 
+func NewRegistry(conf Config) (*Registry, error) {
+	dns := fmt.Sprintf(dnsTemplate, conf.DB.User, conf.DB.Pass, conf.DB.Host, conf.DB.Port, conf.DB.DBName)
 	db, err := sql.Open("mysql", dns)
 	if err != nil {
 		return nil, err
@@ -72,44 +70,42 @@ func (m *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	return
 }
 
-func (m *Registry) CreateNewVersion(name string) (e EltonPath, err error) {
+func (m *Registry) GenerateNewVersion(name string) (e EltonPath, err error) {
 	tx, err := m.DB.Begin()
 	if err != nil {
 		return
 	}
 
-	//	defer func() {
-	//		if err != nil {
-	//			tx.Rollback()
-	//			return
-	//		}
-	//		err = tx.Commit()
-	//	}()
-	var version uint64
-	_, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE counter = counter + 1`, name)
-	if err != nil {
-		tx.Rollback()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	if _, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE counter = counter + 1`, name); err != nil {
 		return
 	}
 
-	err = tx.QueryRow(`SELECT counter FROM version WHERE name = ?`, name).Scan(&version)
-	if err != nil {
-		tx.Rollback()
+	var version uint64
+	if err = tx.QueryRow(`SELECT counter FROM version WHERE name = ?`, name).Scan(&version); err != nil {
 		return
 	}
-	tx.Commit()
 
 	e = EltonPath{Name: name + "-" + strconv.FormatUint(version, 10), Host: m.Balancer.GetServer(), Path: generateKey(name + "-" + strconv.FormatUint(version, 10))}
 	return
 }
 
-func (m *Registry) Close() {
-	m.DB.Close()
+func (m *Registry) CreateNewVersion(versionedName, host, key, name string) (err error) {
+	tx, err := m.DB.Begin()
+
+	if _, err = tx.Exec(`INSERT INTO hosts (name, target, key, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, host, key, name); err != nil {
+		return
+	}
+	return
 }
 
-func generateKey(name string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(name + time.Now().String()))
-	hash := hex.EncodeToString(hasher.Sum(nil))
-	return string(hash[:2] + "/" + hash[2:])
+func (m *Registry) Close() {
+	m.DB.Close()
 }

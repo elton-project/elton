@@ -19,6 +19,9 @@ type Proxy struct {
 }
 
 type Transport struct {
+	name          string
+	version       uint64
+	versionedName string
 }
 
 func NewProxy(conf e.Config) (*Proxy, error) {
@@ -81,7 +84,7 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
 
-	data, err := p.ep.Registry.CreateNewVersion(name)
+	data, err := p.ep.Registry.GenerateNewVersion(name)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -89,10 +92,10 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
-		request.URL.Host = date.Host
+		request.URL.Host = data.Host
 		request.URL.Path += data.Path
 	}}
-	rp.Transport = make(Transport)
+	rp.Transport = &Transport{name: name, versionName: data.Name}
 	rp.ServeHTTP(w, r)
 }
 
@@ -106,8 +109,10 @@ func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
 	}
 
 	if response.StatusCode == http.StatusOK {
-		key := []byte(response.Request.URL.Path)
 		host := response.Request.URL.Host
+		key := []byte(response.Request.URL.Path)
+
+		err = p.ep.Registry.CreateNewVersion(t.versionedName, host, string(key[1:]), t.name)
 		err = proxy.SetHost(string(key[1:]), host)
 		if err != nil {
 			return nil, err

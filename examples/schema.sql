@@ -12,8 +12,8 @@ CREATE TABLE version (
 CREATE TABLE host (
   id         BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT,
   name	     VARCHAR(255)   	NOT NULL UNIQUE,
-  key        VARCHAR(255)   	NOT NULL,
   target     VARCHAR(255)   	NOT NULL,
+  key        VARCHAR(255)   	NOT NULL,
   perent_id  BIGINT UNSIGNED 	NOT NULL,
   PRIMARY KEY(id),
   KEY(name),
