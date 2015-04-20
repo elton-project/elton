@@ -7,7 +7,6 @@ type EltonServer struct {
 
 type EltonProxy struct {
 	Registry *Registry
-	Balancer *Balancer
 }
 
 func NewEltonServer(conf Config) (*EltonServer, error) {
@@ -20,12 +19,7 @@ func NewEltonProxy(conf Config) (*EltonProxy, error) {
 		return nil, err
 	}
 
-	b, err := NewBalancer(conf)
-	if err != nil {
-		return nil, err
-	}
-
-	return &EltonProxy{Registry: m, Balancer: b}, nil
+	return &EltonProxy{Registry: m}, nil
 }
 
 func (p *EltonProxy) Close() {
