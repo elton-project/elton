@@ -1,13 +1,11 @@
-package http
+package http2
 
 import (
-	//	"encoding/json"
-	//	"io/ioutil"
-	//	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/bradfitz/http2"
 	"github.com/fukata/golang-stats-api-handler"
 
 	e "../elton"
@@ -36,15 +34,21 @@ func NewProxy(conf e.Config) (*Proxy, error) {
 func (p *Proxy) Serve() {
 	defer p.ep.Close()
 
-	http.HandleFunc("/maint/stats", stats_api.Handler)
-	http.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
+	var srv http.Server
+	srv.Addr = ":" + p.conf.Proxy.Port
+	mux := http.NewServeMux()
+	mux.HandleFunc("/maint/stats", stats_api.Handler)
+	mux.HandleFunc("/maint/ping", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		}
 	})
-	http.HandleFunc("/", p.dispatchHandler)
-	log.Fatal(http.ListenAndServe(":"+p.conf.Proxy.Port, nil))
+	mux.HandleFunc("/", p.dispatchHandler)
+	srv.Handler = mux
+
+	http2.ConfigureServer(&srv, new(http2.Server))
+	log.Fatal(srv.ListenAndServeTLS("../examples/server.crt", "../examples/server.key"))
 }
 
 func (p *Proxy) dispatchHandler(w http.ResponseWriter, r *http.Request) {
@@ -104,20 +108,20 @@ func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
 
 func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
 	response, err := http.DefaultTransport.RoundTrip(request)
-	if err != nil {
-		return nil, err
-	}
+	//	if err != nil {
+	//		return nil, err
+	//	}
 
-	if response.StatusCode == http.StatusOK {
-		host := response.Request.URL.Host
-		key := []byte(response.Request.URL.Path)
-
-		err = p.ep.Registry.CreateNewVersion(t.versionedName, host, string(key[1:]), t.name)
-		err = proxy.SetHost(string(key[1:]), host)
-		if err != nil {
-			return nil, err
-		}
-	}
+	//	if response.StatusCode == http.StatusOK {
+	//		host := response.Request.URL.Host
+	//		key := []byte(response.Request.URL.Path)
+	//
+	//		err = p.ep.Registry.CreateNewVersion(t.versionedName, host, string(key[1:]), t.name)
+	//		err = proxy.SetHost(string(key[1:]), host)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//	}
 
 	return response, err
 }
