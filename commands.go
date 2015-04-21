@@ -6,7 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 
 	"./elton"
-	http "./http2"
+	http "./http"
 )
 
 var Commands = []cli.Command{
