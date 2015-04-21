@@ -1,21 +1,24 @@
--- Table for perent keys table
+-- Table for versioning table
 CREATE TABLE version (
   id               BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT,
   name        	   VARCHAR(255)   	NOT NULL UNIQUE,
   latest_version   BIGINT UNSIGNED 	NOT NULL DEFAULT 0,
   counter          BIGINT UNSIGNED 	NOT NULL DEFAULT 1,
+  updated_at	   TIMESTAMP		NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY(id),
   KEY(name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Table for elton table
+-- Table for register host table
 CREATE TABLE host (
-  id         BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT,
-  name	     VARCHAR(255)   	NOT NULL UNIQUE,
-  target     VARCHAR(255)   	NOT NULL,
-  key        VARCHAR(255)   	NOT NULL,
-  perent_id  BIGINT UNSIGNED 	NOT NULL,
+  id           BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT,
+  name	       VARCHAR(255)   	NOT NULL UNIQUE,
+  target       VARCHAR(255)   	NOT NULL,
+  key          VARCHAR(255)   	NOT NULL,
+  perent_id    BIGINT UNSIGNED 	NOT NULL,
+  created_at   TIMESTAMP	NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY(id),
   KEY(name),
-  KEY(perent_id)
+  KEY(perent_id),
+  KEY(created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
