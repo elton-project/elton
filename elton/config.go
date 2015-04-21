@@ -7,6 +7,7 @@ import (
 type Config struct {
 	Proxy  ProxyConfig
 	Server []ServerConfig
+	Backup []BackupConfig
 	DB     DBConfig
 }
 
@@ -18,6 +19,11 @@ type ServerConfig struct {
 	Weight int    `toml:"weight"`
 	Host   string `toml:"host"`
 	Port   string `toml:"port"`
+}
+
+type BackupConfig struct {
+	Host string `toml:"host"`
+	Port string `toml:"port"`
 }
 
 type DBConfig struct {

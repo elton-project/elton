@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -18,6 +19,14 @@ type EltonPath struct {
 	Host string
 	Path string
 }
+
+type EltonFile struct {
+	Name       string
+	FileSize   uint64
+	ModifyTime time.Time
+}
+
+type FileList []EltonFile
 
 var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false`
 
@@ -38,14 +47,41 @@ func NewRegistry(conf Config) (*Registry, error) {
 	return &Registry{DB: db, Balancer: balancer}, nil
 }
 
-func (m *Registry) GetHost(name string, version string) (e EltonPath, err error) {
+func (r *Registry) GetList() (FileList, error) {
+	var counter uint64
+	err := r.DB.QueryRow(`SELECT COUNT(*) FROM host`).Scan(&counter)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := r.DB.Query(`SELECT name, size, create_at FROM host`)
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	list := make(FileList, counter)
+	for i := 0; rows.Next(); i++ {
+		var name string
+		var size uint64
+		var modifyTime time.Time
+		if err := rows.Scan(&name, &size, &modifyTime); err != nil {
+			return nil, err
+		}
+		list[i] = EltonFile{Name: name, FileSize: size, ModifyTime: modifyTime}
+	}
+	return list, nil
+}
+
+func (r *Registry) GetHost(name string, version string) (e EltonPath, err error) {
 	if version == "" {
-		return m.getLatestVersionHost(name)
+		return r.getLatestVersionHost(name)
 	}
 
 	var target, key string
 
-	err = m.DB.QueryRow(`SELECT target, key FROM host WHERE name = ?`, name+"-"+version).Scan(&target, &key)
+	err = r.DB.QueryRow(`SELECT target, key FROM host WHERE name = ?`, name+"-"+version).Scan(&target, &key)
 	if err == sql.ErrNoRows {
 		return e, fmt.Errorf("not found: %s", name+"-"+version)
 	} else if err != nil {
@@ -56,10 +92,10 @@ func (m *Registry) GetHost(name string, version string) (e EltonPath, err error)
 	return
 }
 
-func (m *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
+func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	var target, key string
 
-	err = m.DB.QueryRow(`SELECT target, key FROM host WHERE name = (SELECT concat(name, "-", latest_version) FROM version WHERE name = ?)`, name).Scan(&target, &key)
+	err = r.DB.QueryRow(`SELECT target, key FROM host WHERE name = (SELECT concat(name, "-", latest_version) FROM version WHERE name = ?)`, name).Scan(&target, &key)
 	if err == sql.ErrNoRows {
 		return e, fmt.Errorf("not found: %s", name)
 	} else if err != nil {
@@ -70,8 +106,8 @@ func (m *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	return
 }
 
-func (m *Registry) GenerateNewVersion(name string) (e EltonPath, err error) {
-	tx, err := m.DB.Begin()
+func (r *Registry) GenerateNewVersion(name string) (e EltonPath, err error) {
+	tx, err := r.DB.Begin()
 	if err != nil {
 		return
 	}
@@ -93,7 +129,7 @@ func (m *Registry) GenerateNewVersion(name string) (e EltonPath, err error) {
 		return
 	}
 
-	e = EltonPath{Name: name + "-" + strconv.FormatUint(version, 10), Host: m.Balancer.GetServer(), Path: generateKey(name + "-" + strconv.FormatUint(version, 10))}
+	e = EltonPath{Name: name + "-" + strconv.FormatUint(version, 10), Host: r.Balancer.GetServer(), Path: generateKey(name + "-" + strconv.FormatUint(version, 10))}
 	return
 }
 
@@ -106,6 +142,6 @@ func (m *Registry) CreateNewVersion(versionedName, host, key, name string) (err 
 	return
 }
 
-func (m *Registry) Close() {
-	m.DB.Close()
+func (r *Registry) Close() {
+	r.DB.Close()
 }

@@ -1,9 +1,9 @@
 package http
 
 import (
-	//	"encoding/json"
+	"encoding/json"
 	//	"io/ioutil"
-	//	"fmt"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -52,8 +52,25 @@ func (p *Proxy) RegisterHandler(srv *http.Server) {
 			return
 		}
 	})
+	mux.HandleFunc("/api/list", p.GetListHandler)
 	mux.HandleFunc("/", p.DispatchHandler)
 	srv.Handler = mux
+}
+
+func (p *Proxy) GetListHandler(w http.ResponseWriter, r *http.Request) {
+	list, err := p.EltonProxy.Registry.GetList()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	jsonString, err := json.Marshal(list)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, string(jsonString))
 }
 
 func (p *Proxy) DispatchHandler(w http.ResponseWriter, r *http.Request) {

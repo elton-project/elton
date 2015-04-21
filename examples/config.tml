@@ -21,6 +21,14 @@ weight = 2
 host = "10.0.0.4"
 port = "24680"
 
+[[backup]]
+host = "10.0.0.5"
+port = "52339"
+
+[[backup]]
+host = "10.0.0.6"
+port = "52339"
+
 [db]
 user = "root"
 pass = "pass"
