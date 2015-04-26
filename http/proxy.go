@@ -50,12 +50,28 @@ func (p *Proxy) RegisterHandler(srv *http.Server) {
 			return
 		}
 	})
+	mux.HandleFunc("/api/connect", p.ConnectHandler)
 	mux.HandleFunc("/api/list", p.GetListHandler)
 	mux.HandleFunc("/", p.DispatchHandler)
 	srv.Handler = mux
 }
 
+func (p *Proxy) ConnectHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	host := r.PostFormValue("host")
+	p.Registry.AddClient(host)
+}
+
 func (p *Proxy) GetListHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
 	list, err := p.Registry.GetList()
 	if err != nil {
 		log.Println(err)
@@ -130,6 +146,25 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Path
+	version := r.PostFormValue("version")
+
+	for _, client := range p.Registry.Clients {
+
+	}
+	data, err := p.Registry.GetHost(name, version)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
+		request.URL.Scheme = "http"
+		request.URL.Host = data.Host
+		request.URL.Path = data.Path
+	}}
+	rp.ServeHTTP(w, r)
 }
 
 func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error) {

@@ -3,6 +3,7 @@ package elton
 import (
 	"database/sql"
 	"fmt"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -10,7 +11,9 @@ import (
 
 type Registry struct {
 	DB       *sql.DB
-	Balancer *Balancer
+	balancer *Balancer
+	Clients  []string
+	mux      *sync.Mutex
 }
 
 type EltonPath struct {
@@ -41,7 +44,18 @@ func NewRegistry(conf Config) (*Registry, error) {
 		return nil, err
 	}
 
-	return &Registry{DB: db, Balancer: balancer}, nil
+	clients := make([]string, len(conf.Server))
+	for i, server := range conf.Server {
+		clients[i] = server.Host + ":" + server.Port
+	}
+
+	return &Registry{DB: db, balancer: balancer, Clients: clients, mux: new(sync.Mutex)}, nil
+}
+
+func (r *Registry) AddClient(client string) {
+	r.mux.Lock()
+	r.Clients = append(r.Clients, client)
+	r.mux.Unlock()
 }
 
 func (r *Registry) GetList() ([]EltonFile, error) {
@@ -141,12 +155,46 @@ func (r *Registry) GenerateNewVersion(name, host string) (e EltonPath, err error
 		return
 	}
 
-	e = EltonPath{Path: versionedName, Host: r.Balancer.GetServer(), Version: version}
+	e = EltonPath{Path: versionedName, Host: r.balancer.GetServer(), Version: version}
 	return
 }
 
-func (m *Registry) RegisterNewVersion(name, key, target string, size int64) (err error) {
-	_, err = m.DB.Exec(`UPDATE host SET (target, key, size, delegate) VALUES (?, ?, ?, true) WHERE name = ?`, target, key, size, name)
+func (r *Registry) RegisterNewVersion(name, key, target string, size int64) (err error) {
+	_, err = r.DB.Exec(`UPDATE host SET (target, key, size, delegate) VALUES (?, ?, ?, true) WHERE name = ?`, target, key, size, name)
+	return
+}
+
+func (r *Registry) DeleteVersion(name, version string) (err error) {
+	if version == "" {
+		return r.deleteAllVersion(name)
+	}
+
+	versionedName := name + "-" + version
+	_, err = r.DB.Exec(`DELETE FROM host WHERE name = ?`, versionedName)
+	return
+}
+
+func (r *Registry) deleteAllVersion(name string) (err error) {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	if _, err = tx.Exec(`DELETE FROM host WHERE name like '?%'`, name); err != nil {
+		return
+	}
+
+	if _, err = tx.Exec(`DELETE FROM version WHERE name = ?`, name); err != nil {
+		return
+	}
 	return
 }
 

@@ -21,9 +21,11 @@ func NewBalancer(conf Config) (*Balancer, error) {
 			return nil, err
 		}
 
+		s := make([]string, server.Weight)
 		for i := 0; i < server.Weight; i++ {
-			servers = append(servers, target)
+			s[i] = target
 		}
+		servers = append(servers, s...)
 	}
 
 	rand.Seed(time.Now().UnixNano())
