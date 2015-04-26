@@ -1,21 +1,35 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path"
 
 	"github.com/fukata/golang-stats-api-handler"
+
+	e "../elton"
 )
 
 type Server struct {
 	Port   string
-	Dir    string
 	Weight int
+	FS     *e.FileSystem
+}
+
+type Result struct {
+	Name    string
+	Key     string
+	Target  string
+	Version string
+	Length  int64
 }
 
 func NewServer(port string, dir string, weight int) *Server {
-	return &Server{Port: port, Dir: dir, Weight: weight}
+	fs := e.NewFileSystem(dir)
+	return &Server{Port: port, Weight: weight, FS: fs}
 }
 
 func (s *Server) Serve() {
@@ -58,6 +72,23 @@ func (s *Server) getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Path
+	version := r.PostFormValue("version")
+	host := r.PostFormValue("host")
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	key, err := s.FS.Create(name, version, file.(*os.File))
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	result, _ := json.Marshal(&Result{Name: name, Key: key, Target: path.Join(host, key), Version: version, Length: r.ContentLength})
+	fmt.Fprintf(w, string(result))
 }
 
 func (s *Server) deleteHandler(w http.ResponseWriter, r *http.Request) {

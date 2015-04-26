@@ -2,8 +2,8 @@ package http
 
 import (
 	"encoding/json"
-	//	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -14,27 +14,25 @@ import (
 )
 
 type Proxy struct {
-	Conf       e.Config
-	EltonProxy *e.EltonProxy
+	Conf     e.Config
+	Registry *e.Registry
 }
 
-type Transport struct {
-	name          string
-	version       uint64
-	versionedName string
+type EltonTransport struct {
+	Registry *e.Registry
 }
 
 func NewProxy(conf e.Config) (*Proxy, error) {
-	ep, err := e.NewEltonProxy(conf)
+	registry, err := e.NewRegistry(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Proxy{Conf: conf, EltonProxy: ep}, nil
+	return &Proxy{Conf: conf, Registry: registry}, nil
 }
 
 func (p *Proxy) Serve() {
-	defer p.EltonProxy.Close()
+	defer p.Registry.Close()
 
 	var srv http.Server
 	srv.Addr = ":" + p.Conf.Proxy.Port
@@ -58,19 +56,19 @@ func (p *Proxy) RegisterHandler(srv *http.Server) {
 }
 
 func (p *Proxy) GetListHandler(w http.ResponseWriter, r *http.Request) {
-	list, err := p.EltonProxy.Registry.GetList()
+	list, err := p.Registry.GetList()
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	jsonString, err := json.Marshal(list)
+	result, err := json.Marshal(list)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Fprintf(w, string(jsonString))
+	fmt.Fprintf(w, string(result))
 }
 
 func (p *Proxy) DispatchHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +90,7 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
 	version := params.Get("version")
 
-	data, err := p.EltonProxy.Registry.GetHost(name, version)
+	data, err := p.Registry.GetHost(name, version)
 
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -109,8 +107,9 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 
 func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
+	host := r.PostFormValue("host")
 
-	data, err := p.EltonProxy.Registry.GenerateNewVersion(name)
+	data, err := p.Registry.GenerateNewVersion(name, host)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -119,31 +118,37 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
 		request.URL.Host = data.Host
-		request.URL.Path += data.Path
+		request.URL.Path = data.Name
+		request.PostForm.Add("version", data.Version)
+		request.PostForm.Set("host", data.Host)
 	}}
-	rp.Transport = &Transport{name: name, versionedName: data.Name}
+	rp.Transport = &EltonTransport{Registry: p.Registry}
 	rp.ServeHTTP(w, r)
 }
 
 func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
-func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
+func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	response, err := http.DefaultTransport.RoundTrip(request)
-	//	if err != nil {
-	//		return nil, err
-	//	}
+	if err != nil {
+		return nil, err
+	}
 
-	//	if response.StatusCode == http.StatusOK {
-	//		host := response.Request.URL.Host
-	//		key := []byte(response.Request.URL.Path)
+	if response.StatusCode == http.StatusOK {
+		defer response.Body.Close()
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return nil, err
+		}
 
-	//		err = p.ep.Registry.CreateNewVersion(t.versionedName, host, string(key[1:]), t.name)
-	//		err = proxy.SetHost(string(key[1:]), host)
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//	}
+		var result Result
+		json.Unmarshal(body, &result)
+
+		if err = t.Registry.RegisterNewVersion(result.Name, result.Key, result.Target, result.Length); err != nil {
+			return nil, err
+		}
+	}
 
 	return response, err
 }

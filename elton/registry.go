@@ -3,7 +3,7 @@ package elton
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
+	"path"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -15,9 +15,10 @@ type Registry struct {
 }
 
 type EltonPath struct {
-	Name string
-	Host string
-	Path string
+	Name    string
+	Host    string
+	Path    string
+	Version string
 }
 
 type EltonFile struct {
@@ -25,8 +26,6 @@ type EltonFile struct {
 	FileSize   uint64
 	ModifyTime time.Time
 }
-
-type FileList []EltonFile
 
 var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false`
 
@@ -47,7 +46,7 @@ func NewRegistry(conf Config) (*Registry, error) {
 	return &Registry{DB: db, Balancer: balancer}, nil
 }
 
-func (r *Registry) GetList() (FileList, error) {
+func (r *Registry) GetList() ([]EltonFile, error) {
 	var counter uint64
 	err := r.DB.QueryRow(`SELECT COUNT(*) FROM host`).Scan(&counter)
 	if err != nil {
@@ -61,7 +60,7 @@ func (r *Registry) GetList() (FileList, error) {
 		return nil, err
 	}
 
-	list := make(FileList, counter)
+	list := make([]EltonFile, counter)
 	for i := 0; rows.Next(); i++ {
 		var name string
 		var size uint64
@@ -106,7 +105,7 @@ func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	return
 }
 
-func (r *Registry) GenerateNewVersion(name string) (e EltonPath, err error) {
+func (r *Registry) GenerateNewVersion(name, host string) (e EltonPath, err error) {
 	tx, err := r.DB.Begin()
 	if err != nil {
 		return
@@ -120,25 +119,26 @@ func (r *Registry) GenerateNewVersion(name string) (e EltonPath, err error) {
 		err = tx.Commit()
 	}()
 
-	if _, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE counter = counter + 1`, name); err != nil {
+	if _, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE latest_version = latest_version + 1`, name); err != nil {
 		return
 	}
 
-	var version uint64
-	if err = tx.QueryRow(`SELECT counter FROM version WHERE name = ?`, name).Scan(&version); err != nil {
+	var version string
+	if err = tx.QueryRow(`SELECT latest_version FROM version WHERE name = ?`, name).Scan(&version); err != nil {
 		return
 	}
 
-	e = EltonPath{Name: name + "-" + strconv.FormatUint(version, 10), Host: r.Balancer.GetServer(), Path: generateKey(name + "-" + strconv.FormatUint(version, 10))}
+	versionedName := name + "-" + version
+	if _, err = tx.Exec(`INSERT INTO host (name, target, perent_id) VALUES (?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, path.Join(host, name), name); err != nil {
+		return
+	}
+
+	e = EltonPath{Name: versionedName, Host: r.Balancer.GetServer(), Version: version}
 	return
 }
 
-func (m *Registry) CreateNewVersion(versionedName, host, key, name string) (err error) {
-	tx, err := m.DB.Begin()
-
-	if _, err = tx.Exec(`INSERT INTO hosts (name, target, key, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, host, key, name); err != nil {
-		return
-	}
+func (m *Registry) RegisterNewVersion(name, key, target string, size int64) (err error) {
+	_, err = m.DB.Exec(`UPDATE host SET (target, key, size, delegate) VALUES (?, ?, ?, true) WHERE name = ?`, target, key, size, name)
 	return
 }
 
