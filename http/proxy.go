@@ -121,7 +121,7 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
 		request.URL.Host = data.Host
-		request.URL.Path = data.Name
+		request.URL.Path = data.Path
 		request.PostForm.Add("version", data.Version)
 		request.PostForm.Set("host", data.Host)
 	}}

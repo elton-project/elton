@@ -13,7 +13,7 @@ CREATE TABLE host (
   id           BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT,
   name	       VARCHAR(255)   	NOT NULL UNIQUE,
   target       VARCHAR(255)   	NOT NULL,
-  key          VARCHAR(255)   	NOT NULL DEFAULT '',
+  key          VARCHAR(255)   	NOT NULL,
   size         BIGINT UNSIGNED  NOT NULL DEFAULT 0,
   perent_id    BIGINT UNSIGNED 	NOT NULL,
   delegate     BOOLEAN          NOT NULL DEFAULT TRUE,

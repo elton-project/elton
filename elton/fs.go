@@ -36,6 +36,13 @@ func (fs *FileSystem) Create(name, version string, file *os.File) (string, error
 	return key, nil
 }
 
+func (fs *FileSystem) Find(name string) error {
+	if _, err := os.Stat(name); os.IsNotExist(err) {
+		return errors.New("No such file: " + name)
+	}
+	return nil
+}
+
 func (fs *FileSystem) mkDir(path string) {
 	dir := filepath.Dir(path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {

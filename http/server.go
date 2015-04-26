@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 
 	"github.com/fukata/golang-stats-api-handler"
 
@@ -66,9 +65,15 @@ func (s *Server) DispatchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getHandler(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Path
-	log.Println(key)
-	fmt.Fprintf(w, key)
+	name := r.URL.Path
+
+	if err := s.FS.Find(name); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	http.ServeFile(w, r, name)
 }
 
 func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
