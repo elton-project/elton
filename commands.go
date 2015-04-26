@@ -44,15 +44,11 @@ var commandServer = cli.Command{
 			Value: "./",
 			Usage: "target directory",
 		},
-		cli.IntFlag{
-			Name:  "weight",
-			Value: 1,
-			Usage: "weight",
-		},
 	},
 }
 
 func doProxy(c *cli.Context) {
+	log.SetPrefix("[elton proxy] ")
 	conf, err := elton.Load(c.String("file"))
 	if err != nil {
 		log.Fatal(err)
@@ -67,6 +63,7 @@ func doProxy(c *cli.Context) {
 }
 
 func doServer(c *cli.Context) {
-	server := http.NewServer(c.String("port"), c.String("dir"), c.Int("weight"))
+	log.SetPrefix("[elton server] ")
+	server := http.NewServer(c.String("port"), c.String("dir"))
 	server.Serve()
 }

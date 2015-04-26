@@ -58,12 +58,14 @@ func (p *Proxy) RegisterHandler(srv *http.Server) {
 func (p *Proxy) GetListHandler(w http.ResponseWriter, r *http.Request) {
 	list, err := p.Registry.GetList()
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	result, err := json.Marshal(list)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -91,8 +93,8 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 	version := params.Get("version")
 
 	data, err := p.Registry.GetHost(name, version)
-
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
@@ -111,6 +113,7 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 
 	data, err := p.Registry.GenerateNewVersion(name, host)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -132,6 +135,7 @@ func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
 func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	response, err := http.DefaultTransport.RoundTrip(request)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -139,6 +143,7 @@ func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error
 		defer response.Body.Close()
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 
@@ -146,6 +151,7 @@ func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error
 		json.Unmarshal(body, &result)
 
 		if err = t.Registry.RegisterNewVersion(result.Name, result.Key, result.Target, result.Length); err != nil {
+			log.Println(err)
 			return nil, err
 		}
 	}
