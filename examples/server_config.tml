@@ -1,0 +1,8 @@
+# sample server config
+
+[server]
+port = "52339"
+dir = "/target"
+[[server.backup]]
+host = "localhost"
+port = "523339"
