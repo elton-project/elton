@@ -1,4 +1,5 @@
 -- Table for versioning table
+DROP TABLE IF EXISTS version;
 CREATE TABLE version (
   id               BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT,
   name        	   VARCHAR(255)   	NOT NULL UNIQUE,
@@ -9,11 +10,12 @@ CREATE TABLE version (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Table for register host table
+DROP TABLE IF EXISTS host;
 CREATE TABLE host (
   id           BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT,
   name	       VARCHAR(255)   	NOT NULL UNIQUE,
   target       VARCHAR(255)   	NOT NULL,
-  key          VARCHAR(255)   	NOT NULL,
+  eltonkey     VARCHAR(255)   	NOT NULL,
   size         BIGINT UNSIGNED  NOT NULL DEFAULT 0,
   perent_id    BIGINT UNSIGNED 	NOT NULL,
   delegate     BOOLEAN          NOT NULL DEFAULT TRUE,

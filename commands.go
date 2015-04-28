@@ -22,7 +22,7 @@ var commandProxy = cli.Command{
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "file, f",
-			Value: "config.tml",
+			Value: "proxy_config.tml",
 			Usage: "config file",
 		},
 	},
@@ -34,15 +34,10 @@ var commandServer = cli.Command{
 	Description: ``,
 	Action:      doServer,
 	Flags: []cli.Flag{
-		cli.IntFlag{
-			Name:  "port, p",
-			Value: 24680,
-			Usage: "port number",
-		},
 		cli.StringFlag{
-			Name:  "dir, d",
-			Value: "./",
-			Usage: "target directory",
+			Name:  "file, f",
+			Value: "server_config.tml",
+			Usage: "config file",
 		},
 	},
 }
@@ -64,6 +59,11 @@ func doProxy(c *cli.Context) {
 
 func doServer(c *cli.Context) {
 	log.SetPrefix("[elton server] ")
-	server := http.NewServer(c.String("port"), c.String("dir"))
+	conf, err := elton.Load(c.String("file"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := http.NewServer(conf)
 	server.Serve()
 }

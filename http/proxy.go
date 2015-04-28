@@ -146,25 +146,16 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Path
-	version := r.PostFormValue("version")
+	// name := r.URL.Path
+	// version := r.PostFormValue("version")
 
-	for _, client := range p.Registry.Clients {
-
-	}
-	data, err := p.Registry.GetHost(name, version)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-
-	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
-		request.URL.Scheme = "http"
-		request.URL.Host = data.Host
-		request.URL.Path = data.Path
-	}}
-	rp.ServeHTTP(w, r)
+	// client := &http.Client{}
+	// for _, c := range p.Registry.Clients {
+	// 	if _, err := client.Do(r); err != nil {
+	// 		log.Printf("Can not Delete file: %s.", c)
+	// 		log.Printf("Error by: %v", err)
+	// 	}
+	// }
 }
 
 func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error) {

@@ -5,25 +5,20 @@ import (
 )
 
 type Config struct {
-	Proxy  ProxyConfig
-	Server []ServerConfig
-	Backup []BackupConfig
-	DB     DBConfig
+	Proxy  ProxyConfig  `toml:"proxy"`
+	Server ServerConfig `toml:"server"`
 }
 
 type ProxyConfig struct {
-	Port string `toml:"port"`
+	Port     string          `toml:"port"`
+	Servers  []ServersConfig `toml:"servers"`
+	Database DBConfig        `toml:"database"`
 }
 
-type ServerConfig struct {
+type ServersConfig struct {
 	Weight int    `toml:"weight"`
 	Host   string `toml:"host"`
 	Port   string `toml:"port"`
-}
-
-type BackupConfig struct {
-	Host string `toml:"host"`
-	Port string `toml:"port"`
 }
 
 type DBConfig struct {
@@ -32,6 +27,17 @@ type DBConfig struct {
 	Host   string `toml:"host"`
 	Port   string `toml:"port"`
 	DBName string `toml:"dbname"`
+}
+
+type ServerConfig struct {
+	Port   string         `toml:"port"`
+	Dir    string         `toml:"dir"`
+	Backup []BackupConfig `toml:"backup"`
+}
+
+type BackupConfig struct {
+	Host string `toml:"host"`
+	Port string `toml:"port"`
 }
 
 func Load(path string) (Config, error) {

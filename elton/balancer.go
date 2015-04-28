@@ -14,7 +14,7 @@ type Balancer struct {
 
 func NewBalancer(conf Config) (*Balancer, error) {
 	var servers []string
-	for _, server := range conf.Server {
+	for _, server := range conf.Proxy.Servers {
 		target := server.Host + ":" + server.Port
 
 		if err := ping(target); err != nil {

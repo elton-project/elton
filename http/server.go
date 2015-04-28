@@ -25,9 +25,9 @@ type Result struct {
 	Length  int64
 }
 
-func NewServer(port string, dir string) *Server {
-	fs := e.NewFileSystem(dir)
-	return &Server{Port: port, FS: fs}
+func NewServer(conf e.Config) *Server {
+	fs := e.NewFileSystem(conf.Server.Dir, conf.Server.Backup)
+	return &Server{Port: conf.Server.Port, FS: fs}
 }
 
 func (s *Server) Serve() {

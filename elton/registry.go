@@ -31,21 +31,21 @@ type EltonFile struct {
 var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false`
 
 func NewRegistry(conf Config) (*Registry, error) {
-	dns := fmt.Sprintf(dnsTemplate, conf.DB.User, conf.DB.Pass, conf.DB.Host, conf.DB.Port, conf.DB.DBName)
+	dns := fmt.Sprintf(dnsTemplate, conf.Proxy.Database.User, conf.Proxy.Database.Pass, conf.Proxy.Database.Host, conf.Proxy.Database.Port, conf.Proxy.Database.DBName)
 	db, err := sql.Open("mysql", dns)
 	if err != nil {
 		return nil, err
 	}
 
-	db.SetMaxIdleConns(len(conf.Server))
+	db.SetMaxIdleConns(len(conf.Proxy.Servers))
 
 	balancer, err := NewBalancer(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	clients := make([]string, len(conf.Server))
-	for i, server := range conf.Server {
+	clients := make([]string, len(conf.Proxy.Servers))
+	for i, server := range conf.Proxy.Servers {
 		clients[i] = server.Host + ":" + server.Port
 	}
 
@@ -98,7 +98,7 @@ func (r *Registry) GetHost(name string, version string) (e EltonPath, err error)
 
 	versionedName := name + "-" + version
 	var target, key string
-	if err = r.DB.QueryRow(`SELECT target, key FROM host WHERE name = ?`, versionedName).Scan(&target, &key); err != nil {
+	if err = r.DB.QueryRow(`SELECT target, eltonkey FROM host WHERE name = ?`, versionedName).Scan(&target, &key); err != nil {
 		return
 	}
 
@@ -119,7 +119,7 @@ func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	}
 
 	versionedName := name + "-" + version
-	if err = r.DB.QueryRow(`SELECT target, key FROM host WHERE name = ?`, versionedName).Scan(&target, &key); err != nil {
+	if err = r.DB.QueryRow(`SELECT target, eltonkey FROM host WHERE name = ?`, versionedName).Scan(&target, &key); err != nil {
 		return
 	}
 
@@ -151,7 +151,7 @@ func (r *Registry) GenerateNewVersion(name, host string) (e EltonPath, err error
 	}
 
 	versionedName := name + "-" + version
-	if _, err = tx.Exec(`INSERT INTO host (name, target, key, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, host, name, name); err != nil {
+	if _, err = tx.Exec(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, host, name, name); err != nil {
 		return
 	}
 
@@ -160,7 +160,7 @@ func (r *Registry) GenerateNewVersion(name, host string) (e EltonPath, err error
 }
 
 func (r *Registry) RegisterNewVersion(name, key, target string, size int64) (err error) {
-	_, err = r.DB.Exec(`UPDATE host SET (target, key, size, delegate) VALUES (?, ?, ?, true) WHERE name = ?`, target, key, size, name)
+	_, err = r.DB.Exec(`UPDATE host SET (target, eltonkey, size, delegate) VALUES (?, ?, ?, true) WHERE name = ?`, target, key, size, name)
 	return
 }
 

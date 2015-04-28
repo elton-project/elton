@@ -13,10 +13,11 @@ import (
 
 type FileSystem struct {
 	RootDir string
+	Backup  []BackupConfig
 }
 
-func NewFileSystem(dir string) *FileSystem {
-	return &FileSystem{RootDir: dir}
+func NewFileSystem(dir string, backup []BackupConfig) *FileSystem {
+	return &FileSystem{RootDir: dir, Backup: backup}
 }
 
 func (fs *FileSystem) Create(name, version string, file *os.File) (string, error) {
