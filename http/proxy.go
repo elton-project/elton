@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"path"
 
 	"github.com/fukata/golang-stats-api-handler"
 
@@ -20,6 +21,7 @@ type Proxy struct {
 
 type EltonTransport struct {
 	Registry *e.Registry
+	Target   string
 }
 
 func NewProxy(conf e.Config) (*Proxy, error) {
@@ -51,8 +53,8 @@ func (p *Proxy) RegisterHandler(srv *http.Server) {
 		}
 	})
 	mux.HandleFunc("/api/connect", p.ConnectHandler)
-	mux.HandleFunc("/api/list", p.GetListHandler)
-	mux.HandleFunc("/", p.DispatchHandler)
+	mux.HandleFunc("/api/list", p.DispatchListHandler)
+	mux.HandleFunc("/", p.DispatchFileHandler)
 	srv.Handler = mux
 }
 
@@ -66,12 +68,20 @@ func (p *Proxy) ConnectHandler(w http.ResponseWriter, r *http.Request) {
 	p.Registry.AddClient(host)
 }
 
-func (p *Proxy) GetListHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
+func (p *Proxy) DispatchListHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		p.getListHandler(w, r)
+	case "PUT":
+		p.putListHandler(w, r)
+	case "DELETE":
+		p.deleteListHandler(w, r)
+	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
 	}
+}
 
+func (p *Proxy) getListHandler(w http.ResponseWriter, r *http.Request) {
 	list, err := p.Registry.GetList()
 	if err != nil {
 		log.Println(err)
@@ -89,26 +99,36 @@ func (p *Proxy) GetListHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, string(result))
 }
 
-func (p *Proxy) DispatchHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) putListHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (p *Proxy) deleteListHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (p *Proxy) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		p.getHandler(w, r)
+		p.getFileHandler(w, r)
 	case "PUT":
-		p.putHandler(w, r)
+		p.putFileHandler(w, r)
 	case "DELETE":
-		p.deleteHandler(w, r)
+		p.deleteFileHandler(w, r)
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 	}
 }
 
-func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) getFileHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 
 	name := r.URL.Path
-	version := params.Get("version")
+	if params.Get("latest") == "true" {
+		data, err := p.Registry.GetLatestVersionHost(name)
+	} else {
+		version := path.Base(name)
+		data, err := p.Registry.GetHost(name, version)
+	}
 
-	data, err := p.Registry.GetHost(name, version)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -123,13 +143,12 @@ func (p *Proxy) getHandler(w http.ResponseWriter, r *http.Request) {
 	rp.ServeHTTP(w, r)
 }
 
-func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) putFileHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
-	host := r.PostFormValue("host")
 
 	data, err := p.Registry.GenerateNewVersion(name, host)
 	if err != nil {
-		log.Println(err)
+		log.Printf("L.132: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -137,15 +156,14 @@ func (p *Proxy) putHandler(w http.ResponseWriter, r *http.Request) {
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
 		request.URL.Host = data.Host
-		request.URL.Path = data.Path
-		request.PostForm.Add("version", data.Version)
-		request.PostForm.Set("host", data.Host)
+		request.URL.Path = data.Path + "/" + data.Version
 	}}
-	rp.Transport = &EltonTransport{Registry: p.Registry}
+
+	rp.Transport = &EltonTransport{Registry: p.Registry, Target: data.Host}
 	rp.ServeHTTP(w, r)
 }
 
-func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) deleteFileHandler(w http.ResponseWriter, r *http.Request) {
 	// name := r.URL.Path
 	// version := r.PostFormValue("version")
 
@@ -161,7 +179,7 @@ func (p *Proxy) deleteHandler(w http.ResponseWriter, r *http.Request) {
 func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	response, err := http.DefaultTransport.RoundTrip(request)
 	if err != nil {
-		log.Println(err)
+		log.Printf("L.164: %v", err)
 		return nil, err
 	}
 
@@ -169,15 +187,15 @@ func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error
 		defer response.Body.Close()
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			log.Println(err)
+			log.Printf("L.172: %v", err)
 			return nil, err
 		}
 
 		var result Result
 		json.Unmarshal(body, &result)
 
-		if err = t.Registry.RegisterNewVersion(result.Name, result.Key, result.Target, result.Length); err != nil {
-			log.Println(err)
+		if err = t.Registry.RegisterNewVersion(result.Name, result.Key, t.Target, result.Length); err != nil {
+			log.Printf("L.180: %v", err)
 			return nil, err
 		}
 	}

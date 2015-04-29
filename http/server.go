@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"strings"
 
 	"github.com/fukata/golang-stats-api-handler"
 
@@ -20,7 +20,6 @@ type Server struct {
 type Result struct {
 	Name    string
 	Key     string
-	Target  string
 	Version string
 	Length  int64
 }
@@ -77,9 +76,11 @@ func (s *Server) getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Path
-	version := r.PostFormValue("version")
-	host := r.PostFormValue("host")
+	path := r.URL.Path
+
+	args := strings.Split(path, "-")
+	name := strings.Join(args[:len(args)-1], "")
+	version := args[len(args)-1]
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
@@ -88,13 +89,14 @@ func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key, err := s.FS.Create(name, version, file.(*os.File))
+	key, err := s.FS.Create(path, file)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
-	result, _ := json.Marshal(&Result{Name: name, Key: key, Target: host, Version: version, Length: r.ContentLength})
+	result, _ := json.Marshal(&Result{Name: name, Key: key, Version: version, Length: r.ContentLength})
 	fmt.Fprintf(w, string(result))
 }
 

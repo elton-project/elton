@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"time"
@@ -20,7 +21,7 @@ func NewFileSystem(dir string, backup []BackupConfig) *FileSystem {
 	return &FileSystem{RootDir: dir, Backup: backup}
 }
 
-func (fs *FileSystem) Create(name, version string, file *os.File) (string, error) {
+func (fs *FileSystem) Create(name string, file multipart.File) (string, error) {
 	key := generateKey(name)
 	path := filepath.Join(fs.RootDir, key)
 	fs.mkDir(path)

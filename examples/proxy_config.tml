@@ -5,17 +5,17 @@ port = "56789"
 
 [[proxy.servers]]
 weight = 1
-host = "172.17.0.82"
+host = "localhost"
 port = "52339"
 
-[[proxy.servers]]
-weight = 1
-host = "172.17.0.83"
-port = "52339"
+#[[proxy.servers]]
+#weight = 1
+#host = "172.17.0.83"
+#port = "52339"
 
 [proxy.database]
 user = "root"
 pass = "mysql"
-host = "172.17.0.66"
-port = "3306"
+host = "192.168.189.34"
+port = "13306"
 dbname = "elton_test"
