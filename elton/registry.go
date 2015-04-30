@@ -23,9 +23,9 @@ type EltonPath struct {
 }
 
 type EltonFile struct {
-	Name       string
-	FileSize   uint64
-	ModifyTime time.Time
+	Name       string    `json:"name"`
+	FileSize   uint64    `json:"size"`
+	ModifyTime time.Time `json:"modifytime,omitempty"`
 }
 
 var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false&parseTime=true`
@@ -123,7 +123,7 @@ func (r *Registry) GetLatestVersionHost(name string) (e EltonPath, err error) {
 	return
 }
 
-func (r *Registry) GenerateNewVersion(name, host string) (e EltonPath, err error) {
+func (r *Registry) GenerateNewVersions(host string, files []EltonFile) (e []EltonPath, err error) {
 	tx, err := r.DB.Begin()
 	if err != nil {
 		return
@@ -137,21 +137,28 @@ func (r *Registry) GenerateNewVersion(name, host string) (e EltonPath, err error
 		err = tx.Commit()
 	}()
 
-	if _, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE latest_version = latest_version + 1`, name); err != nil {
-		return
-	}
+	newVersionStmt, _ := tx.Prepare(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE latest_version = latest_version + 1`)
+	versionStmt, _ := tx.Prepare(`SELECT latest_version FROM version WHERE name = ?`)
+	newTargetStmt, _ := tx.Prepare(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`)
 
-	var version string
-	if err = tx.QueryRow(`SELECT latest_version FROM version WHERE name = ?`, name).Scan(&version); err != nil {
-		return
-	}
+	e = make([]EltonPath, len(files))
+	for i, file := range files {
+		if _, err = newVersionStmt.Exec(file.Name); err != nil {
+			return
+		}
 
-	versionedName := name + "/" + version
-	if _, err = tx.Exec(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, host, name, name); err != nil {
-		return
-	}
+		var version string
+		if err = versionStmt.QueryRow(file.Name).Scan(&version); err != nil {
+			return
+		}
 
-	e = EltonPath{Path: versionedName, Host: r.balancer.GetServer(), Version: version}
+		versionedName := file.Name + "/" + version
+		if _, err = newTargetStmt.Exec(versionedName, host, file.Name, file.Name); err != nil {
+			return
+		}
+
+		e[i] = EltonPath{Path: versionedName, Host: r.balancer.GetServer(), Version: version}
+	}
 	return
 }
 

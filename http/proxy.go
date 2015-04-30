@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"path"
+	"strconv"
 
 	"github.com/fukata/golang-stats-api-handler"
 
@@ -22,6 +23,11 @@ type Proxy struct {
 type EltonTransport struct {
 	Registry *e.Registry
 	Target   string
+}
+
+type FileList struct {
+	Host  string        `json:"host"`
+	Files []e.EltonFile `json:"files"`
 }
 
 func NewProxy(conf e.Config) (*Proxy, error) {
@@ -122,14 +128,17 @@ func (p *Proxy) getFileHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 
 	name := r.URL.Path
-	if params.Get("latest") == "true" {
-		data, err := p.Registry.GetLatestVersionHost(name)
+
+	var data e.EltonPath
+	var err error
+	if params.Get("q") == "latest" {
+		data, err = p.Registry.GetLatestVersionHost(name)
 	} else {
 		version := path.Base(name)
-		data, err := p.Registry.GetHost(name, version)
+		data, err = p.Registry.GetHost(name, version)
 	}
 
-	if err != nil {
+	if err != nil || data.Host == "" {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
@@ -146,7 +155,12 @@ func (p *Proxy) getFileHandler(w http.ResponseWriter, r *http.Request) {
 func (p *Proxy) putFileHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Path
 
-	data, err := p.Registry.GenerateNewVersion(name, host)
+	var data e.EltonPath
+	var err error
+	if _, err = strconv.ParseUint(path.Base(name), 10, 64); err != nil {
+		data, err = p.Registry.GenerateNewVersions("", []e.EltonFile{e.EltonFile{Name: name}})
+	}
+
 	if err != nil {
 		log.Printf("L.132: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
