@@ -88,6 +88,10 @@ func (r *Registry) GetList() ([]EltonFile, error) {
 }
 
 func (r *Registry) GetHost(name string, version string) (e EltonPath, err error) {
+	if version == "0" {
+		return r.getLatestVersionHost(name)
+	}
+
 	defer func() {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("not found: %s", name)
@@ -104,7 +108,7 @@ func (r *Registry) GetHost(name string, version string) (e EltonPath, err error)
 	return
 }
 
-func (r *Registry) GetLatestVersionHost(name string) (e EltonPath, err error) {
+func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	defer func() {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("not found: %s", name)
@@ -161,6 +165,23 @@ func (r *Registry) GenerateNewVersion(host, name string) (version string, err er
 
 		e[i] = EltonFile{Name: versionedName, FileSize: file.FileSize}
 	}
+	return
+}
+
+func (r *Registry) GenerateNewVersion(host, name string) (e EltonPath, err error) {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
 	return
 }
 

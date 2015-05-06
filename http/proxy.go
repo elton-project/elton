@@ -140,18 +140,8 @@ func (p *Proxy) deleteListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Proxy) getFileHandler(w http.ResponseWriter, r *http.Request) {
-	params := r.URL.Query()
-
-	name := getEltonName(r.URL.Path)
-
-	var data e.EltonPath
-	var err error
-	if params.Get("q") == "latest" {
-		data, err = p.Registry.GetLatestVersionHost(name)
-	} else {
-		version := path.Base(name)
-		data, err = p.Registry.GetHost(name, version)
-	}
+	name, version := parsePath(r.URL.Path)
+	data, err := p.Registry.GetHost(name, version)
 
 	if err != nil || data.Host == "" {
 		log.Println(err)
@@ -168,12 +158,12 @@ func (p *Proxy) getFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Proxy) putFileHandler(w http.ResponseWriter, r *http.Request) {
-	name := getEltonName(r.URL.Path)
+	name, version := parsePath(r.URL.Path)
 
 	var data e.EltonPath
 	var err error
-	if _, err = strconv.ParseUint(path.Base(name), 10, 64); err != nil {
-		data, err = p.Registry.GenerateNewVersions("", []e.EltonFile{e.EltonFile{Name: name}})
+	if version == "0" {
+		data, err = p.Registry.GenerateNewVersion("", name)
 	}
 
 	if err != nil {
@@ -232,6 +222,12 @@ func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error
 	return response, err
 }
 
-func getEltonName(name string) string {
-	return strings.TrimPrefix(name, "/elton")
+func parsePath(path string) (string, string) {
+	name := strings.TrimPrefix(path, "/elton")
+	list := strings.Split(name, "-")
+	version, err := strconv.ParseUint(list[len(list)-1], 64, 10)
+	if err != nil {
+		return name, "0"
+	}
+	return name, strconv.FormatUint(version, 10)
 }
