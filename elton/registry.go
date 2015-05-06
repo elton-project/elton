@@ -3,6 +3,8 @@ package elton
 import (
 	"database/sql"
 	"fmt"
+	"path"
+	"strconv"
 	"sync"
 	"time"
 
@@ -110,7 +112,7 @@ func (r *Registry) GetLatestVersionHost(name string) (e EltonPath, err error) {
 	}()
 
 	var target, key, version string
-	if err = r.DB.QueryRow(`SELECT version FROM version WHERE name = ?`, name).Scan(&version); err != nil {
+	if err = r.DB.QueryRow(`SELECT latest_version FROM version WHERE name = ?`, name).Scan(&version); err != nil {
 		return
 	}
 
@@ -123,7 +125,7 @@ func (r *Registry) GetLatestVersionHost(name string) (e EltonPath, err error) {
 	return
 }
 
-func (r *Registry) GenerateNewVersions(host string, files []EltonFile) (e []EltonPath, err error) {
+func (r *Registry) GenerateNewVersion(host, name string) (version string, err error) {
 	tx, err := r.DB.Begin()
 	if err != nil {
 		return
@@ -137,11 +139,11 @@ func (r *Registry) GenerateNewVersions(host string, files []EltonFile) (e []Elto
 		err = tx.Commit()
 	}()
 
-	newVersionStmt, _ := tx.Prepare(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE latest_version = latest_version + 1`)
-	versionStmt, _ := tx.Prepare(`SELECT latest_version FROM version WHERE name = ?`)
+	newVersionStmt, _ := tx.Prepare(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE counter = counter + 1`)
+	versionStmt, _ := tx.Prepare(`SELECT counter FROM version WHERE name = ?`)
 	newTargetStmt, _ := tx.Prepare(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`)
 
-	e = make([]EltonPath, len(files))
+	e = make([]EltonFile, len(files))
 	for i, file := range files {
 		if _, err = newVersionStmt.Exec(file.Name); err != nil {
 			return
@@ -157,13 +159,38 @@ func (r *Registry) GenerateNewVersions(host string, files []EltonFile) (e []Elto
 			return
 		}
 
-		e[i] = EltonPath{Path: versionedName, Host: r.balancer.GetServer(), Version: version}
+		e[i] = EltonFile{Name: versionedName, FileSize: file.FileSize}
 	}
 	return
 }
 
 func (r *Registry) RegisterNewVersion(name, key, target string, size int64) (err error) {
-	_, err = r.DB.Exec(`UPDATE host SET target = ?, eltonkey = ?, size = ?, delegate = TRUE WHERE name = ?`, target, key, size, name)
+	tx, err := r.BD.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	if _, err = tx.Exec(`UPDATE host SET target = ?, eltonkey = ?, size = ?, delegate = TRUE WHERE name = ?`, target, key, size, name); err != nil {
+		return
+	}
+
+	version, err := strconv.ParseUint(path.Base(name), 10, 64)
+	if err != nil {
+		return
+	}
+
+	if _, err = tx.Exec(`UPDATE version SET latest_version = ? WHERE name = ?`, version, name); err != nil {
+		return
+	}
+
 	return
 }
 

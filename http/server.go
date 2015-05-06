@@ -19,9 +19,9 @@ type Server struct {
 
 type Result struct {
 	Name    string `json:"name"`
-	Key     string `json:"key"`
+	Key     string `json:"key,omitempty"`
 	Version string `json:"version"`
-	Length  int64  `json:"length"`
+	Length  int64  `json:"length,omitempty"`
 }
 
 func NewServer(conf e.Config) *Server {

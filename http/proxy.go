@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/fukata/golang-stats-api-handler"
 
@@ -59,8 +60,9 @@ func (p *Proxy) RegisterHandler(srv *http.Server) {
 		}
 	})
 	mux.HandleFunc("/api/connect", p.ConnectHandler)
-	mux.HandleFunc("/api/list", p.DispatchListHandler)
-	mux.HandleFunc("/", p.DispatchFileHandler)
+	mux.HandleFunc("/api/list", p.GetListHandler)
+	mux.HandleFunc("/api/register", p.RegisterHandler)
+	mux.HandleFunc("/elton/", p.DispatchFileHandler)
 	srv.Handler = mux
 }
 
@@ -74,20 +76,24 @@ func (p *Proxy) ConnectHandler(w http.ResponseWriter, r *http.Request) {
 	p.Registry.AddClient(host)
 }
 
-func (p *Proxy) DispatchListHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		p.getListHandler(w, r)
+		p.getFileHandler(w, r)
 	case "PUT":
-		p.putListHandler(w, r)
+		p.putFileHandler(w, r)
 	case "DELETE":
-		p.deleteListHandler(w, r)
+		p.deleteFileHandler(w, r)
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 	}
 }
 
-func (p *Proxy) getListHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) GetListHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	}
+
 	list, err := p.Registry.GetList()
 	if err != nil {
 		log.Println(err)
@@ -105,29 +111,38 @@ func (p *Proxy) getListHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, string(result))
 }
 
-func (p *Proxy) putListHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Proxy) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	}
+
+	host := r.PostFormValue("host")
+	name := r.PostFormValue("name")
+
+	version, err := p.Register.GenerateNewVersion(host, name)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	result, err := json.Marshal(files)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, string(result))
 }
 
 func (p *Proxy) deleteListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
-func (p *Proxy) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		p.getFileHandler(w, r)
-	case "PUT":
-		p.putFileHandler(w, r)
-	case "DELETE":
-		p.deleteFileHandler(w, r)
-	default:
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-	}
-}
-
 func (p *Proxy) getFileHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 
-	name := r.URL.Path
+	name := getEltonName(r.URL.Path)
 
 	var data e.EltonPath
 	var err error
@@ -153,7 +168,7 @@ func (p *Proxy) getFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Proxy) putFileHandler(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Path
+	name := getEltonName(r.URL.Path)
 
 	var data e.EltonPath
 	var err error
@@ -215,4 +230,8 @@ func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error
 	}
 
 	return response, err
+}
+
+func getEltonName(name string) string {
+	return strings.TrimPrefix(name, "/elton")
 }
