@@ -163,7 +163,7 @@ func (p *Proxy) putFileHandler(w http.ResponseWriter, r *http.Request) {
 	var data e.EltonPath
 	var err error
 	if version == "0" {
-		data, err = p.Registry.GenerateNewVersion("", name)
+		data, err = p.Registry.GenerateNewVersion(name, "", "")
 	}
 
 	if err != nil {
@@ -175,7 +175,7 @@ func (p *Proxy) putFileHandler(w http.ResponseWriter, r *http.Request) {
 	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
 		request.URL.Scheme = "http"
 		request.URL.Host = data.Host
-		request.URL.Path = data.Path + "/" + data.Version
+		request.URL.Path = data.Path
 	}}
 
 	rp.Transport = &EltonTransport{Registry: p.Registry, Target: data.Host}

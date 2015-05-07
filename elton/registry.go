@@ -129,7 +129,7 @@ func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	return
 }
 
-func (r *Registry) GenerateNewVersion(host, name string) (version string, err error) {
+func (r *Registry) GenerateNewVersion(name, target, key string) (e EltonPath, err error) {
 	tx, err := r.DB.Begin()
 	if err != nil {
 		return
@@ -143,45 +143,21 @@ func (r *Registry) GenerateNewVersion(host, name string) (version string, err er
 		err = tx.Commit()
 	}()
 
-	newVersionStmt, _ := tx.Prepare(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE counter = counter + 1`)
-	versionStmt, _ := tx.Prepare(`SELECT counter FROM version WHERE name = ?`)
-	newTargetStmt, _ := tx.Prepare(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`)
-
-	e = make([]EltonFile, len(files))
-	for i, file := range files {
-		if _, err = newVersionStmt.Exec(file.Name); err != nil {
-			return
-		}
-
-		var version string
-		if err = versionStmt.QueryRow(file.Name).Scan(&version); err != nil {
-			return
-		}
-
-		versionedName := file.Name + "/" + version
-		if _, err = newTargetStmt.Exec(versionedName, host, file.Name, file.Name); err != nil {
-			return
-		}
-
-		e[i] = EltonFile{Name: versionedName, FileSize: file.FileSize}
-	}
-	return
-}
-
-func (r *Registry) GenerateNewVersion(host, name string) (e EltonPath, err error) {
-	tx, err := r.DB.Begin()
-	if err != nil {
+	if _, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE counter = counter + 1`, name); err != nil {
 		return
 	}
 
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-			return
-		}
-		err = tx.Commit()
-	}()
+	var version string
+	if err = tx.QueryRow(`SELECT counter FROM version WHERE name = ?`, name).Scan(&version); err != nil {
+		return
+	}
 
+	versionedName := name + "-" + version
+	if _, err = tx.Exec(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, target, key, name); err != nil {
+		return
+	}
+
+	e = EltonPath{Host: r.balancer.GetServer(), Path: versionedName, Version: version}
 	return
 }
 
