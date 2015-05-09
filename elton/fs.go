@@ -35,6 +35,27 @@ func (fs *FileSystem) Create(name string, file multipart.File) (string, error) {
 
 	log.Printf("[elton server] Create path: %s", path)
 	io.Copy(out, file)
+	defer file.Close()
+
+	return key, nil
+}
+
+func (fs *FileSystem) Create(name string, body io.ReadCloser) (string, error) {
+	key := generateKey(name)
+	path := filepath.Join(fs.RootDir, key)
+	fs.mkDir(path)
+
+	out, err := os.Create(path)
+	if err != nil {
+		log.Printf("[elton server] Can not create file: %s", path)
+		return "", errors.New("Can not create file: " + path)
+	}
+	defer out.Close()
+
+	log.Printf("[elton server] Create path: %s", path)
+	io.Copy(out, body)
+	defer body.Close()
+
 	return key, nil
 }
 

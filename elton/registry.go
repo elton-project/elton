@@ -3,8 +3,6 @@ package elton
 import (
 	"database/sql"
 	"fmt"
-	"path"
-	"strconv"
 	"sync"
 	"time"
 
@@ -25,9 +23,9 @@ type EltonPath struct {
 }
 
 type EltonFile struct {
-	Name       string    `json:"name"`
-	FileSize   uint64    `json:"size"`
-	ModifyTime time.Time `json:"modifytime,omitempty"`
+	Name       string
+	FileSize   uint64
+	ModifyTime time.Time
 }
 
 var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false&parseTime=true`
@@ -88,10 +86,6 @@ func (r *Registry) GetList() ([]EltonFile, error) {
 }
 
 func (r *Registry) GetHost(name string, version string) (e EltonPath, err error) {
-	if version == "0" {
-		return r.getLatestVersionHost(name)
-	}
-
 	defer func() {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("not found: %s", name)
@@ -108,7 +102,7 @@ func (r *Registry) GetHost(name string, version string) (e EltonPath, err error)
 	return
 }
 
-func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
+func (r *Registry) GetLatestVersionHost(name string) (e EltonPath, err error) {
 	defer func() {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("not found: %s", name)
@@ -116,7 +110,7 @@ func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	}()
 
 	var target, key, version string
-	if err = r.DB.QueryRow(`SELECT latest_version FROM version WHERE name = ?`, name).Scan(&version); err != nil {
+	if err = r.DB.QueryRow(`SELECT version FROM version WHERE name = ?`, name).Scan(&version); err != nil {
 		return
 	}
 
@@ -129,7 +123,7 @@ func (r *Registry) getLatestVersionHost(name string) (e EltonPath, err error) {
 	return
 }
 
-func (r *Registry) GenerateNewVersion(name, target, key string) (e EltonPath, err error) {
+func (r *Registry) GenerateNewVersion(name) (version string, err error) {
 	tx, err := r.DB.Begin()
 	if err != nil {
 		return
@@ -143,51 +137,19 @@ func (r *Registry) GenerateNewVersion(name, target, key string) (e EltonPath, er
 		err = tx.Commit()
 	}()
 
-	if _, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE counter = counter + 1`, name); err != nil {
+	if _, err = tx.Exec(`INSERT INTO version (name) VALUES (?) ON DUPLICATE KEY UPDATE latest_version = latest_version + 1`, name); err != nil {
 		return
 	}
 
-	var version string
-	if err = tx.QueryRow(`SELECT counter FROM version WHERE name = ?`, name).Scan(&version); err != nil {
+	if err = tx.QueryRow(`SELECT latest_version FROM version WHERE name = ?`, name).Scan(&version); err != nil {
 		return
 	}
 
-	versionedName := name + "-" + version
-	if _, err = tx.Exec(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, versionedName, target, key, name); err != nil {
-		return
-	}
-
-	e = EltonPath{Host: r.balancer.GetServer(), Path: versionedName, Version: version}
 	return
 }
 
 func (r *Registry) RegisterNewVersion(name, key, target string, size int64) (err error) {
-	tx, err := r.BD.Begin()
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-			return
-		}
-		err = tx.Commit()
-	}()
-
-	if _, err = tx.Exec(`UPDATE host SET target = ?, eltonkey = ?, size = ?, delegate = TRUE WHERE name = ?`, target, key, size, name); err != nil {
-		return
-	}
-
-	version, err := strconv.ParseUint(path.Base(name), 10, 64)
-	if err != nil {
-		return
-	}
-
-	if _, err = tx.Exec(`UPDATE version SET latest_version = ? WHERE name = ?`, version, name); err != nil {
-		return
-	}
-
+	_, err = r.DB.Exec(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, name+"-"+version, host, key, name)
 	return
 }
 

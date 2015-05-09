@@ -19,6 +19,7 @@ import (
 type Proxy struct {
 	Conf     e.Config
 	Registry *e.Registry
+	FS       *e.FileSystem
 }
 
 type EltonTransport struct {
