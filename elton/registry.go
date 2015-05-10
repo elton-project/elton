@@ -3,6 +3,7 @@ package elton
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -63,6 +64,11 @@ func NewRegistry(conf Config) (*Registry, error) {
 //}
 
 func (r *Registry) GetHost(name string, version string) (e EltonPath, err error) {
+	log.Println(version)
+	if version == "0" {
+		return r.GetLatestVersionHost(name)
+	}
+
 	defer func() {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("not found: %s", name)

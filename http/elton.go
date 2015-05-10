@@ -1,11 +1,16 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -13,11 +18,6 @@ import (
 	"github.com/fukata/golang-stats-api-handler"
 
 	e "../elton"
-	"bytes"
-	"io"
-	"io/ioutil"
-	"mime/multipart"
-	"os"
 )
 
 var client *http.Client = &http.Client{
@@ -40,11 +40,6 @@ type Result struct {
 type Transport struct {
 	Elton  *Elton
 	Backup bool
-}
-
-type EltonTransport struct {
-	Registry *e.Registry
-	Target   string
 }
 
 func NewEltonServer(conf e.Config, backup bool) (*Elton, error) {
@@ -114,7 +109,7 @@ func (e *Elton) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
 
 func (e *Elton) getFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
-
+	log.Println(`hideo`)
 	localPath, err := e.FS.Find(name)
 	if err != nil {
 		if e.Backup {
@@ -135,7 +130,6 @@ func (e *Elton) putFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		log.Printf("hideo: %v", err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -158,6 +152,7 @@ func (e *Elton) getFileHandler(w http.ResponseWriter, r *http.Request) {
 
 	localPath, err := e.FS.Find(result.Path)
 	if err != nil {
+		// compare HostName + Port
 		if result.Host == e.Conf.Elton.HostName {
 			result.Host = e.Conf.Backup.HostName + ":" + e.Conf.Backup.Port
 		}
@@ -192,6 +187,7 @@ func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// target is HostName + Port
 	if err = e.Registry.RegisterNewVersion(name, version, key, e.Conf.Elton.HostName, r.ContentLength); err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -229,7 +225,6 @@ func (e *Elton) newReverseProxy(host, name string) *httputil.ReverseProxy {
 
 func (e *Elton) doBackup(key string) {
 	name, _ := e.FS.Find(key)
-	log.Println("hideo " + name)
 	file, err := os.Open(name)
 	if err != nil {
 		log.Printf("Can not backup: %v", err)
@@ -239,7 +234,6 @@ func (e *Elton) doBackup(key string) {
 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
-	defer writer.Close()
 
 	part, err := writer.CreateFormFile("file", key)
 	if err != nil {
@@ -251,6 +245,7 @@ func (e *Elton) doBackup(key string) {
 		log.Printf("Can not backup: %v", err)
 		return
 	}
+	writer.Close()
 
 	req, _ := http.NewRequest("PUT", "http://"+path.Join(e.Conf.Backup.HostName+":"+e.Conf.Backup.Port, "api", "elton", key), body)
 	req.Header.Add("Content-Type", writer.FormDataContentType())
@@ -294,9 +289,9 @@ func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
 func parsePath(path string) (string, string) {
 	name := strings.TrimPrefix(path, "/elton")
 	list := strings.Split(name, "-")
-	version, err := strconv.ParseUint(list[len(list)-1], 64, 10)
+	version, err := strconv.ParseUint(list[len(list)-1], 10, 64)
 	if err != nil {
 		return name, "0"
 	}
-	return name, strconv.FormatUint(version, 10)
+	return list[:len(list)-1][0], strconv.FormatUint(version, 10)
 }
