@@ -10,15 +10,15 @@ import (
 )
 
 var Commands = []cli.Command{
-	commandProxy,
+	commandClient,
 	commandServer,
 }
 
-var commandProxy = cli.Command{
-	Name:        "proxy",
+var commandClient = cli.Command{
+	Name:        "client",
 	Usage:       "",
 	Description: ``,
-	Action:      doProxy,
+	Action:      doClient,
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "file, f",
@@ -36,34 +36,30 @@ var commandServer = cli.Command{
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "file, f",
-			Value: "server_config.tml",
+			Value: "config.tml",
 			Usage: "config file",
+		},
+		cli.BoolFlag{
+			Name:  "backup",
+			Usage: "Backup flag",
 		},
 	},
 }
 
-func doProxy(c *cli.Context) {
-	log.SetPrefix("[elton proxy] ")
-	conf, err := elton.Load(c.String("file"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	proxy, err := http.NewProxy(conf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	proxy.Serve()
+func doClient(c *cli.Context) {
 }
 
 func doServer(c *cli.Context) {
 	log.SetPrefix("[elton server] ")
 	conf, err := elton.Load(c.String("file"))
+	backup := c.Bool("backup")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server := http.NewServer(conf)
+	server, err := http.NewEltonServer(conf, backup)
+	if err != nil {
+		log.Fatal(err)
+	}
 	server.Serve()
 }
