@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -14,16 +13,33 @@ import (
 	"github.com/fukata/golang-stats-api-handler"
 
 	e "../elton"
+	"bytes"
+	"io"
+	"io/ioutil"
+	"mime/multipart"
+	"os"
 )
+
+var client *http.Client = &http.Client{
+	Transport: &http.Transport{MaxIdleConnsPerHost: 32},
+}
 
 type Elton struct {
 	Conf     e.Config
 	Registry *e.Registry
 	FS       *e.FileSystem
+	Backup   bool
 }
 
-type getTransport struct {
-	Elton *Elton
+type Result struct {
+	Name    string
+	Version string
+	Length  int64
+}
+
+type Transport struct {
+	Elton  *Elton
+	Backup bool
 }
 
 type EltonTransport struct {
@@ -31,25 +47,25 @@ type EltonTransport struct {
 	Target   string
 }
 
-type FileList struct {
-	Host  string        `json:"host"`
-	Files []e.EltonFile `json:"files"`
-}
+func NewEltonServer(conf e.Config, backup bool) (*Elton, error) {
+	fs := e.NewFileSystem(conf.Elton.Dir)
+	if backup {
+		return &Elton{Conf: conf, FS: fs, Backup: backup}, nil
+	}
 
-func NewElton(conf e.Config) (*Elton, error) {
 	registry, err := e.NewRegistry(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Elton{Conf: conf, Registry: registry, FS: e.NewFileSystem(conf.Elton.Dir)}, nil
+	return &Elton{Conf: conf, Registry: registry, FS: fs, Backup: false}, nil
 }
 
 func (e *Elton) Serve() {
 	defer e.Registry.Close()
 
 	var srv http.Server
-	srv.Addr = ":" + e.Conf.Proxy.Port
+	srv.Addr = ":" + e.Conf.Elton.Port
 	e.RegisterHandler(&srv)
 
 	log.Fatal(srv.ListenAndServe())
@@ -59,8 +75,11 @@ func (e *Elton) RegisterHandler(srv *http.Server) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/maint/stats", stats_api.Handler)
 
-	mux.HandleFunc("/api/elton/", e.GetFileApiHandler)
-	mux.HandleFunc("/elton/", e.DispatchFileHandler)
+	mux.HandleFunc("/api/elton/", e.GetFileAPIHandler)
+	if !e.Backup {
+		mux.HandleFunc("/elton/", e.DispatchFileHandler)
+	}
+
 	srv.Handler = mux
 }
 
@@ -77,23 +96,40 @@ func (e *Elton) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (e *Elton) GetFileAPIHandler(w http.ResponseWriter, r *http.Request) {
+	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
+
+	localPath, err := e.FS.Find(name)
+	if err != nil {
+		if e.Backup {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		rp := e.newReverseProxy(e.Conf.Backup.HostName+":"+e.Conf.Backup.Port, name)
+		rp.ServeHTTP(w, r)
+		return
+	}
+
+	http.ServeFile(w, r, localPath)
+}
+
 func (e *Elton) getFileHandler(w http.ResponseWriter, r *http.Request) {
 	name, version := parsePath(r.URL.Path)
-	data, err := e.Registry.GetHost(name, version)
-	if err != nil || data.Host == "" {
+
+	result, err := e.Registry.GetHost(name, version)
+	if err != nil || result.Host == "" {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
-	localPath := filepath.Join(e.FS.RootDir, data.Path)
-	if err := e.FS.Find(localPath); err != nil {
-		// must isLocalHost(data.Host) check
-		rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
-			request.URL.Scheme = "http"
-			request.URL.Host = data.Host
-			request.URL.Path = data.Path
-		}}
-		rp.Transport = &getTransport{Elton: e}
+	localPath, err := e.FS.Find(result.Path)
+	if err != nil {
+		if result.Host == e.Conf.Elton.HostName {
+			result.Host = e.Conf.Backup.HostName + ":" + e.Conf.Backup.Port
+		}
+
+		rp := e.newReverseProxy(result.Host, result.Path)
 		rp.ServeHTTP(w, r)
 		return
 	}
@@ -102,9 +138,9 @@ func (e *Elton) getFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Path
+	name := strings.TrimPrefix(r.URL.Path, "/elton")
 
-	version, err := p.Registry.GenerateNewVersion(name)
+	version, err := e.Registry.GenerateNewVersion(name)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -116,22 +152,26 @@ func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key, err := s.FS.Create(name+"-"+version, file)
+	key, err := e.FS.Create(name+"-"+version, file)
+	file.Seek(0, 0)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	if err = RegisterNewVersion(name, key, e.Conf.Host, r.ContentLength); err != nil {
+	if err = e.Registry.RegisterNewVersion(name, version, key, e.Conf.Elton.HostName, r.ContentLength); err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
+	go e.doBackup(key, file)
 
 	result, _ := json.Marshal(&Result{Name: name, Version: version, Length: r.ContentLength})
 	fmt.Fprintf(w, string(result))
 }
 
 func (e *Elton) deleteFileHandler(w http.ResponseWriter, r *http.Request) {
+
 	// name := r.URL.Path
 	// version := r.PostFormValue("version")
 
@@ -144,54 +184,74 @@ func (e *Elton) deleteFileHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
-func (t *getTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-	name, version := parsePath(request.URL.Path)
-	response, err := http.DefaultTransport.RoundTrip(request)
-	if err != nil {
-		return nil, err
-	}
-
-	localPath := filepath.Join(t.FS.RootDir, name)
-	if response.StatusCode == http.StatusOK {
-		t.Elton.FS.Create(name+"-"+version, response.Body.Close())
-	} else {
-
-	}
-
-	return response, err
+func (e *Elton) newReverseProxy(host, name string) *httputil.ReverseProxy {
+	rp := &httputil.ReverseProxy{Director: func(request *http.Request) {
+		request.URL.Scheme = "http"
+		request.URL.Host = host
+		request.URL.Path = path.Join("api", "elton", name)
+	}}
+	rp.Transport = &Transport{Elton: e}
+	return rp
 }
 
-func (t *EltonTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+func (e *Elton) doBackup(key string, file multipart.File) {
+	defer file.Close()
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	defer writer.Close()
+
+	part, err := writer.CreateFormFile("file", key)
+	if err != nil {
+		log.Printf("Can not backup: %v", err)
+		return
+	}
+
+	if _, err = io.Copy(part, file); err != nil {
+		log.Printf("Can not backup: %v", err)
+		return
+	}
+
+	req, _ := http.NewRequest("PUT", "http://"+e.Conf.Backup.HostName+":"+e.Conf.Backup.Port, body)
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+	res, err := client.Do(req)
+	if err != nil {
+		log.Printf("Can not backup: %v", err)
+		return
+	}
+	defer res.Body.Close()
+
+	if err = e.Registry.RegisterBackup(key); err != nil {
+		log.Printf("Can not backup: %v", err)
+		return
+	}
+}
+
+func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
+	name := strings.TrimPrefix(request.URL.Path, "/api/elton")
+
 	response, err := http.DefaultTransport.RoundTrip(request)
 	if err != nil {
-		log.Printf("L.164: %v", err)
 		return nil, err
 	}
 
 	if response.StatusCode == http.StatusOK {
-		defer response.Body.Close()
-		body, err := ioutil.ReadAll(response.Body)
+		key, err := t.Elton.FS.Create(name, response.Body)
 		if err != nil {
-			log.Printf("L.172: %v", err)
 			return nil, err
 		}
 
-		var result Result
-		json.Unmarshal(body, &result)
-
-		if err = t.Registry.RegisterNewVersion(result.Name, result.Key, t.Target, result.Length); err != nil {
-			log.Printf("L.180: %v", err)
+		file, err := os.Open(key)
+		if err != nil {
 			return nil, err
 		}
+		response.Body = ioutil.NopCloser(file)
 	}
 
 	return response, err
 }
 
 func parsePath(path string) (string, string) {
-	paths := strings.SplitN(path, "elton", 2)
-	name := paths[1]
-	//	name := strings.TrimPrefix(path, "/elton")
+	name := strings.TrimPrefix(path, "/elton")
 	list := strings.Split(name, "-")
 	version, err := strconv.ParseUint(list[len(list)-1], 64, 10)
 	if err != nil {

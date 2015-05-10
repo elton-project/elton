@@ -3,10 +3,8 @@ package elton
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"io"
 	"log"
-	"mime/multipart"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,63 +12,53 @@ import (
 
 type FileSystem struct {
 	RootDir string
-	Backup  []BackupConfig
 }
 
-func NewFileSystem(dir string, backup []BackupConfig) *FileSystem {
-	return &FileSystem{RootDir: dir, Backup: backup}
+// ディスク容量をチェックする必要がある
+
+func NewFileSystem(dir string) *FileSystem {
+	return &FileSystem{RootDir: dir}
 }
 
-func (fs *FileSystem) Create(name string, file multipart.File) (string, error) {
+func (fs *FileSystem) Create(name string, src io.Reader) (string, error) {
 	key := generateKey(name)
 	path := filepath.Join(fs.RootDir, key)
-	fs.mkDir(path)
+	err := fs.mkDir(path)
+	if err != nil {
+		return "", err
+	}
 
 	out, err := os.Create(path)
 	if err != nil {
-		log.Printf("[elton server] Can not create file: %s", path)
-		return "", errors.New("Can not create file: " + path)
+		log.Printf("Can not create file: %s", path)
+		return "", err
 	}
 	defer out.Close()
 
-	log.Printf("[elton server] Create path: %s", path)
-	io.Copy(out, file)
-	defer file.Close()
+	log.Printf("Create path: %s", path)
+	_, err = io.Copy(out, src)
 
-	return key, nil
+	return key, err
 }
 
-func (fs *FileSystem) Create(name string, body io.ReadCloser) (string, error) {
-	key := generateKey(name)
-	path := filepath.Join(fs.RootDir, key)
-	fs.mkDir(path)
-
-	out, err := os.Create(path)
-	if err != nil {
-		log.Printf("[elton server] Can not create file: %s", path)
-		return "", errors.New("Can not create file: " + path)
+func (fs *FileSystem) Find(name string) (path string, err error) {
+	path = filepath.Join(fs.RootDir, name)
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		log.Printf("No such file: %s", path)
+		return "", err
 	}
-	defer out.Close()
-
-	log.Printf("[elton server] Create path: %s", path)
-	io.Copy(out, body)
-	defer body.Close()
-
-	return key, nil
+	return path, nil
 }
 
-func (fs *FileSystem) Find(name string) error {
-	if _, err := os.Stat(name); os.IsNotExist(err) {
-		return errors.New("No such file: " + name)
-	}
-	return nil
-}
-
-func (fs *FileSystem) mkDir(path string) {
+func (fs *FileSystem) mkDir(path string) error {
 	dir := filepath.Dir(path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.Mkdir(dir, 0700)
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			log.Printf("Can not create dir: %s", dir)
+			return err
+		}
 	}
+	return nil
 }
 
 func generateKey(name string) string {

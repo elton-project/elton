@@ -5,39 +5,28 @@ import (
 )
 
 type Config struct {
-	Proxy  ProxyConfig  `toml:"proxy"`
-	Server ServerConfig `toml:"server"`
+	Elton    EltonConfig  `toml:"elton"`
+	Backup   BackupConfig `toml:"backup"`
+	Database DBConfig     `toml:"database"`
 }
 
-type ProxyConfig struct {
-	Port     string          `toml:"port"`
-	Servers  []ServersConfig `toml:"servers"`
-	Database DBConfig        `toml:"database"`
-}
-
-type ServersConfig struct {
-	Weight int    `toml:"weight"`
-	Host   string `toml:"host"`
-	Port   string `toml:"port"`
+type EltonConfig struct {
+	HostName string `toml:"hostname"`
+	Port     string `toml:"port"`
+	Dir      string `toml:"dir"`
 }
 
 type DBConfig struct {
-	User   string `toml:"user"`
-	Pass   string `toml:"pass"`
-	Host   string `toml:"host"`
-	Port   string `toml:"port"`
-	DBName string `toml:"dbname"`
-}
-
-type ServerConfig struct {
-	Port   string         `toml:"port"`
-	Dir    string         `toml:"dir"`
-	Backup []BackupConfig `toml:"backup"`
+	User     string `toml:"user"`
+	Pass     string `toml:"pass"`
+	HostName string `toml:"hostname"`
+	Port     string `toml:"port"`
+	DBName   string `toml:"dbname"`
 }
 
 type BackupConfig struct {
-	Host string `toml:"host"`
-	Port string `toml:"port"`
+	HostName string `toml:"hostname"`
+	Port     string `toml:"port"`
 }
 
 func Load(path string) (Config, error) {
