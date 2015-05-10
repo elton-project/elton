@@ -22,23 +22,26 @@ func NewFileSystem(dir string) *FileSystem {
 
 func (fs *FileSystem) Create(name string, src io.Reader) (string, error) {
 	key := generateKey(name)
-	path := filepath.Join(fs.RootDir, key)
-	err := fs.mkDir(path)
-	if err != nil {
-		return "", err
+	err := fs.FileCreate(key, src)
+	return key, err
+}
+
+func (fs *FileSystem) FileCreate(name string, src io.Reader) error {
+	path := filepath.Join(fs.RootDir, name)
+	if err := fs.mkDir(path); err != nil {
+		return err
 	}
 
 	out, err := os.Create(path)
 	if err != nil {
 		log.Printf("Can not create file: %s", path)
-		return "", err
+		return err
 	}
 	defer out.Close()
 
 	log.Printf("Create path: %s", path)
 	_, err = io.Copy(out, src)
-
-	return key, err
+	return err
 }
 
 func (fs *FileSystem) Find(name string) (path string, err error) {

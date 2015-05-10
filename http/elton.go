@@ -75,12 +75,28 @@ func (e *Elton) RegisterHandler(srv *http.Server) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/maint/stats", stats_api.Handler)
 
-	mux.HandleFunc("/api/elton/", e.GetFileAPIHandler)
+	mux.HandleFunc("/api/elton/", e.DispatchFileAPIHandler)
 	if !e.Backup {
 		mux.HandleFunc("/elton/", e.DispatchFileHandler)
 	}
 
 	srv.Handler = mux
+}
+
+func (e *Elton) DispatchFileAPIHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		e.getFileAPIHandler(w, r)
+	case "PUT":
+		if e.Backup {
+			e.putFileAPIHandler(w, r)
+		} else {
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		}
+		//	case "DELETE":
+	default:
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	}
 }
 
 func (e *Elton) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +112,7 @@ func (e *Elton) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e *Elton) GetFileAPIHandler(w http.ResponseWriter, r *http.Request) {
+func (e *Elton) getFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
 
 	localPath, err := e.FS.Find(name)
@@ -112,6 +128,23 @@ func (e *Elton) GetFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeFile(w, r, localPath)
+}
+
+func (e *Elton) putFileAPIHandler(w http.ResponseWriter, r *http.Request) {
+	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		log.Printf("hideo: %v", err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	if err = e.FS.FileCreate(name, file); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (e *Elton) getFileHandler(w http.ResponseWriter, r *http.Request) {
@@ -151,9 +184,9 @@ func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+	defer file.Close()
 
 	key, err := e.FS.Create(name+"-"+version, file)
-	file.Seek(0, 0)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -164,7 +197,7 @@ func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go e.doBackup(key, file)
+	go e.doBackup(key)
 
 	result, _ := json.Marshal(&Result{Name: name, Version: version, Length: r.ContentLength})
 	fmt.Fprintf(w, string(result))
@@ -194,8 +227,16 @@ func (e *Elton) newReverseProxy(host, name string) *httputil.ReverseProxy {
 	return rp
 }
 
-func (e *Elton) doBackup(key string, file multipart.File) {
+func (e *Elton) doBackup(key string) {
+	name, _ := e.FS.Find(key)
+	log.Println("hideo " + name)
+	file, err := os.Open(name)
+	if err != nil {
+		log.Printf("Can not backup: %v", err)
+		return
+	}
 	defer file.Close()
+
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	defer writer.Close()
@@ -211,11 +252,11 @@ func (e *Elton) doBackup(key string, file multipart.File) {
 		return
 	}
 
-	req, _ := http.NewRequest("PUT", "http://"+e.Conf.Backup.HostName+":"+e.Conf.Backup.Port, body)
+	req, _ := http.NewRequest("PUT", "http://"+path.Join(e.Conf.Backup.HostName+":"+e.Conf.Backup.Port, "api", "elton", key), body)
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 	res, err := client.Do(req)
-	if err != nil {
-		log.Printf("Can not backup: %v", err)
+	if err != nil || res.StatusCode != http.StatusOK {
+		log.Printf("Can not backup: %v", res.StatusCode)
 		return
 	}
 	defer res.Body.Close()

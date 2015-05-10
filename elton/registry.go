@@ -151,7 +151,7 @@ func (r *Registry) RegisterNewVersion(name, version, key, target string, size in
 }
 
 func (r *Registry) RegisterBackup(key string) (err error) {
-	_, err = r.DB.Exec(`UPDATE host SET backup = TRUE WHERE key = ?`, key)
+	_, err = r.DB.Exec(`UPDATE host SET backup = TRUE WHERE eltonkey = ?`, key)
 	return
 }
 
