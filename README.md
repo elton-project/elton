@@ -1,12 +1,2 @@
-elton
-====
-
-## Install
-
-To install, use `go get`:
-
-```bash
-$ git config --global url."git@[git.t-lab.cs.teu.ac.jp(your ssh config setting)]:".insteadOf "https://git.t-lab.cs.teu.ac.jp/"
-
-$ go get -d git.t-lab.cs.teu.ac.jp/nashio/elton.git; cd $GOPATH/src/git.t-lab.cs.teu.ac.jp/nashio && mv elton.git elton && cd elton && ./setup.sh
-```
+docker inspect --format {{ .NetworkSettings.IPAddress }} $(docker run -d -t dockerhub.pdns/elton_server)
+docker run --name elton_mysql -e MYSQL_ROOT_PASSWORD=mysql -d -p 13306:3306 mysql:5.6

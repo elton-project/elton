@@ -1,19 +1,20 @@
-GODEPS = \
-	github.com/codegangsta/cli \
-	github.com/boltdb/bolt \
-	github.com/bmizerany/pat \
-	github.com/fukata/golang-stats-api-handler
+TARGETDIR = bin
+TARGET = $(TARGETDIR)/elton
 
-all: install
+all: deps build
 
-.deps:
-	go get -u $(GODEPS)
+$(TARGET):
 
-build: .deps
-	go build
+deps:
+	go get -d -v
 
-install: .deps
+build: $(TARGET)
+	go build -o $^
+
+install: $(TARGET)
 	go install
 
 clean:
-	go clean
+	$(RM) -r $(TARGETDIR)
+
+.PHONY: all $(TARGET) deps build install clean
