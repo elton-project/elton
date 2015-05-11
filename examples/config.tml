@@ -1,15 +1,15 @@
 [elton]
-hostname = "192.168.1.4"
+hostname = "192.168.1.2"
 port = "52339"
 dir = "/tmp"
 
 [backup]
-hostname = "192.168.1.4"
+hostname = "192.168.1.2"
 port = "56789"
 
 [database]
 user = "root"
 pass = "mysql"
-host = "192.168.1.4"
+host = "192.168.1.2"
 port = "13306"
 dbname = "elton_test"

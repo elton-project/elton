@@ -6,6 +6,7 @@ import (
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
 
 type Registry struct {
@@ -18,11 +19,12 @@ type EltonPath struct {
 	Version string
 }
 
-// type EltonFileInfo struct {
-// 	Name       string
-// 	FileSize   uint64
-// 	ModifyTime time.Time
-// }
+type FileInfo map[string]FileAttr
+
+type FileAttr struct {
+	FileSize   uint64
+	ModifyTime time.Time
+}
 
 var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false&parseTime=true`
 
@@ -36,32 +38,32 @@ func NewRegistry(conf Config) (*Registry, error) {
 	return &Registry{DB: db}, nil
 }
 
-// func (r *Registry) GetList() ([]EltonFileInfo, error) {
-// 	var counter uint64
-// 	err := r.DB.QueryRow(`SELECT COUNT(*) FROM host`).Scan(&counter)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (r *Registry) GetList() (FileInfo, error) {
+	var counter uint64
+	err := r.DB.QueryRow(`SELECT COUNT(*) FROM host`).Scan(&counter)
+	if err != nil {
+		return nil, err
+	}
 
-// 	rows, err := r.DB.Query(`SELECT name, size, created_at FROM host`)
-// 	defer rows.Close()
+	rows, err := r.DB.Query(`SELECT name, size, created_at FROM host`)
+	defer rows.Close()
 
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	if err != nil {
+		return nil, err
+	}
 
-// 	list := make([]EltonFile, counter)
-// 	for i := 0; rows.Next(); i++ {
-// 		var name string
-// 		var size uint64
-// 		var modifyTime time.Time
-// 		if err := rows.Scan(&name, &size, &modifyTime); err != nil {
-// 			return nil, err
-// 		}
-// 		list[i] = EltonFileInfo{Name: name, FileSize: size, ModifyTime: modifyTime}
-// 	}
-// 	return list, nil
-//}
+	list := make(FileInfo, counter)
+	for i := 0; rows.Next(); i++ {
+		var name string
+		var size uint64
+		var modifyTime time.Time
+		if err := rows.Scan(&name, &size, &modifyTime); err != nil {
+			return nil, err
+		}
+		list[name] = FileAttr{FileSize: size, ModifyTime: modifyTime}
+	}
+	return list, nil
+}
 
 func (r *Registry) GetHost(name string, version string) (e EltonPath, err error) {
 	log.Println(version)
@@ -145,7 +147,7 @@ func (r *Registry) RegisterNewVersion(name, version, key, target string, size in
 		err = tx.Commit()
 	}()
 
-	if _, err = tx.Exec(`INSERT INTO host (name, target, eltonkey, perent_id) VALUES (?, ?, ?, (SELECT id FROM version WHERE name = ?))`, name+"-"+version, target, key, name); err != nil {
+	if _, err = tx.Exec(`INSERT INTO host (name, target, eltonkey, size, perent_id) VALUES (?, ?, ?, ?, (SELECT id FROM version WHERE name = ?))`, name+"-"+version, target, key, size, name); err != nil {
 		return
 	}
 

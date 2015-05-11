@@ -20,14 +20,13 @@ func NewFileSystem(dir string) *FileSystem {
 	return &FileSystem{RootDir: dir}
 }
 
-func (fs *FileSystem) Create(name string, src io.Reader) (string, error) {
-	key := generateKey(name)
-	err := fs.FileCreate(key, src)
-	return key, err
+func (fs *FileSystem) Open(key string) (*os.File, error) {
+	path := filepath.Join(fs.RootDir, key)
+	return os.Open(path)
 }
 
-func (fs *FileSystem) FileCreate(name string, src io.Reader) error {
-	path := filepath.Join(fs.RootDir, name)
+func (fs *FileSystem) Create(key string, src io.Reader) error {
+	path := filepath.Join(fs.RootDir, key)
 	if err := fs.mkDir(path); err != nil {
 		return err
 	}
@@ -64,7 +63,7 @@ func (fs *FileSystem) mkDir(path string) error {
 	return nil
 }
 
-func generateKey(name string) string {
+func (fs *FileSystem) GenerateKey(name string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(name + time.Now().String()))
 	hash := hex.EncodeToString(hasher.Sum(nil))
