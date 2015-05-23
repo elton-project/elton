@@ -52,6 +52,14 @@ func (fs *FileSystem) Find(name string) (path string, err error) {
 	return path, nil
 }
 
+func (fs *FileSystem) Delete(name string) (err error) {
+	path := filepath.Join(fs.RootDir, name)
+	if err = os.Remove(name); err != nil {
+		log.Printf("Can not delete file: %s", path)
+	}
+	return
+}
+
 func (fs *FileSystem) mkDir(path string) error {
 	dir := filepath.Dir(path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {

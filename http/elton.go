@@ -84,7 +84,8 @@ func (e *Elton) DispatchFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 		e.getFileAPIHandler(w, r)
 	case r.Method == "PUT" && e.Backup:
 		e.putFileAPIHandler(w, r)
-		//	case r.Method=="DELETE":
+	case r.Method == "DELETE":
+		e.deleteFileAPIHandler(w, r)
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 	}
@@ -94,6 +95,8 @@ func (e *Elton) DispatchFileHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		e.getFileHandler(w, r)
+	case "POST":
+		e.putFileAPIHandler(w, r)
 	case "PUT":
 		e.putFileHandler(w, r)
 	case "DELETE":
@@ -159,6 +162,19 @@ func (e *Elton) putFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (e *Elton) deleteFileAPIHandler(w http.ResponseWriter, r *http.Request) {
+	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
+	if _, err := e.FS.Find(name); err != nil {
+		return
+	}
+
+	if err := e.FS.Delete(name); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
 func (e *Elton) getFileHandler(w http.ResponseWriter, r *http.Request) {
 	name, version := parsePath(r.URL.Path)
 
@@ -179,6 +195,9 @@ func (e *Elton) getFileHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.ServeFile(w, r, localPath)
 	}
+}
+
+func (e *Elton) postFilehandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
@@ -215,17 +234,15 @@ func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) deleteFileHandler(w http.ResponseWriter, r *http.Request) {
+	name, version := parsePath(r.URL.Path)
 
-	// name := r.URL.Path
-	// version := r.PostFormValue("version")
-
-	// client := &http.Client{}
-	// for _, c := range p.Registry.Clients {
-	// 	if _, err := client.Do(r); err != nil {
-	// 		log.Printf("Can not Delete file: %s.", c)
-	// 		log.Printf("Error by: %v", err)
-	// 	}
-	// }
+	client := &http.Client{}
+	for _, c := range p.Registry.Clients {
+		if _, err := client.Do(r); err != nil {
+			log.Printf("Can not Delete file: %s.", c)
+			log.Printf("Error by: %v", err)
+		}
+	}
 }
 
 func (e *Elton) newReverseProxy(host, name string) *httputil.ReverseProxy {
