@@ -1,7 +1,7 @@
 FROM centos:centos7
 MAINTAINER Taku MIZUNO <dev@nashio-lab.info>
 
-RUN yum -y update && yum -y upgrade && yum -y install golang git make
+RUN yum -y upgrade && yum -y install golang git make
 
 COPY . /elton
 WORKDIR /elton

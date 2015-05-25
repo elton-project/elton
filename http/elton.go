@@ -19,6 +19,11 @@ import (
 	e "../elton"
 )
 
+const (
+	Local = itoa + 1
+	Global
+)
+
 var client *http.Client = &http.Client{
 	Transport: &http.Transport{MaxIdleConnsPerHost: 32},
 }
@@ -27,6 +32,7 @@ type Elton struct {
 	Conf     e.Config
 	Registry *e.Registry
 	FS       *e.FileSystem
+	Cluster  map[string]int
 	Backup   bool
 }
 
@@ -68,14 +74,26 @@ func (e *Elton) Serve() {
 func (e *Elton) RegisterHandler(srv *http.Server) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/maint/stats", stats_api.Handler)
+	mux.HandleFunc("/api/connect", e.DispatchClusterHandler)
 
 	mux.HandleFunc("/api/elton/", e.DispatchFileAPIHandler)
 	if !e.Backup {
-		mux.HandleFunc("/api/list", e.GetListHandler)
+		//		mux.HandleFunc("/api/list", e.GetListHandler)
 		mux.HandleFunc("/elton/", e.DispatchFileHandler)
 	}
 
 	srv.Handler = mux
+}
+
+func (e *Elton) DispathchClusterHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+	case "POST":
+	case "PUT":
+	case "DELETE":
+	default:
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	}
 }
 
 func (e *Elton) DispatchFileAPIHandler(w http.ResponseWriter, r *http.Request) {
