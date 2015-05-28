@@ -19,11 +19,11 @@ type EltonPath struct {
 	Version string
 }
 
-type FileInfo map[string]FileAttr
-
-type FileAttr struct {
-	FileSize   uint64
-	ModifyTime time.Time
+type FileInfo struct {
+	Name string
+	Key  string
+	Size uint64
+	Time time.Time
 }
 
 var dnsTemplate = `%s:%s@tcp(%s:%s)/%s?charset=utf8&autocommit=false&parseTime=true`
@@ -38,31 +38,24 @@ func NewRegistry(conf Config) (*Registry, error) {
 	return &Registry{DB: db}, nil
 }
 
-func (r *Registry) GetList() (FileInfo, error) {
-	var counter uint64
-	err := r.DB.QueryRow(`SELECT COUNT(*) FROM host`).Scan(&counter)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := r.DB.Query(`SELECT name, size, created_at FROM host`)
+func (r *Registry) GetList() ([]FileInfo, error) {
+	rows, err := r.DB.Query(`SELECT version.name, host.eltonkey, host.size, host.created_at FROM version INNER JOIN host ON host.name = CONCAT(version.name, '/', version.latest_version)`)
 	defer rows.Close()
-
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(FileInfo, counter)
+	files := make([]FileInfo, 0)
 	for i := 0; rows.Next(); i++ {
-		var name string
+		var name, key string
 		var size uint64
-		var modifyTime time.Time
-		if err := rows.Scan(&name, &size, &modifyTime); err != nil {
+		var createdTime time.Time
+		if err := rows.Scan(&name, &key, &size, &createdTime); err != nil {
 			return nil, err
 		}
-		list[name] = FileAttr{FileSize: size, ModifyTime: modifyTime}
+		files = append(files, FileInfo{Name: name, Key: key, Size: size, Time: createdTime})
 	}
-	return list, nil
+	return files, nil
 }
 
 func (r *Registry) GetHost(name string, version string) (e EltonPath, err error) {

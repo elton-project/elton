@@ -234,15 +234,15 @@ func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) deleteFileHandler(w http.ResponseWriter, r *http.Request) {
-	name, version := parsePath(r.URL.Path)
+	// name, version := parsePath(r.URL.Path)
 
-	client := &http.Client{}
-	for _, c := range p.Registry.Clients {
-		if _, err := client.Do(r); err != nil {
-			log.Printf("Can not Delete file: %s.", c)
-			log.Printf("Error by: %v", err)
-		}
-	}
+	// client := &http.Client{}
+	// for _, c := range p.Registry.Clients {
+	// 	if _, err := client.Do(r); err != nil {
+	// 		log.Printf("Can not Delete file: %s.", c)
+	// 		log.Printf("Error by: %v", err)
+	// 	}
+	// }
 }
 
 func (e *Elton) newReverseProxy(host, name string) *httputil.ReverseProxy {
