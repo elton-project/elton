@@ -39,7 +39,7 @@ func NewRegistry(conf Config) (*Registry, error) {
 }
 
 func (r *Registry) GetList() ([]FileInfo, error) {
-	rows, err := r.DB.Query(`SELECT version.name, host.eltonkey, host.size, host.created_at FROM version INNER JOIN host ON host.name = CONCAT(version.name, '/', version.latest_version)`)
+	rows, err := r.DB.Query(`SELECT version.name, host.eltonkey, host.size, host.created_at FROM version INNER JOIN host ON host.name = CONCAT(version.name, '-', version.latest_version)`)
 	defer rows.Close()
 	if err != nil {
 		return nil, err

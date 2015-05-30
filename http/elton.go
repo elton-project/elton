@@ -129,7 +129,7 @@ func (e *Elton) GetListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) getFileAPIHandler(w http.ResponseWriter, r *http.Request) {
-	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
+	name := strings.TrimPrefix(r.URL.Path, "/api/elton/")
 
 	localPath, err := e.FS.Find(name)
 	if err != nil {
@@ -147,7 +147,7 @@ func (e *Elton) getFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) putFileAPIHandler(w http.ResponseWriter, r *http.Request) {
-	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
+	name := strings.TrimPrefix(r.URL.Path, "/api/elton/")
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
@@ -163,7 +163,7 @@ func (e *Elton) putFileAPIHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) deleteFileAPIHandler(w http.ResponseWriter, r *http.Request) {
-	name := strings.TrimPrefix(r.URL.Path, "/api/elton")
+	name := strings.TrimPrefix(r.URL.Path, "/api/elton/")
 	if _, err := e.FS.Find(name); err != nil {
 		return
 	}
@@ -201,7 +201,7 @@ func (e *Elton) postFilehandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *Elton) putFileHandler(w http.ResponseWriter, r *http.Request) {
-	name := strings.TrimPrefix(r.URL.Path, "/elton")
+	name := strings.TrimPrefix(r.URL.Path, "/elton/")
 
 	version, err := e.Registry.GenerateNewVersion(name)
 	if err != nil {
@@ -282,7 +282,7 @@ func (e *Elton) doBackup(key string) {
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 	res, err := client.Do(req)
 	if err != nil || res.StatusCode != http.StatusOK {
-		log.Printf("Can not backup: %v", res.StatusCode)
+		log.Printf("Can not backup: %s", res.StatusCode)
 		return
 	}
 	defer res.Body.Close()
@@ -294,7 +294,7 @@ func (e *Elton) doBackup(key string) {
 }
 
 func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
-	name := strings.TrimPrefix(request.URL.Path, "/api/elton")
+	name := strings.TrimPrefix(request.URL.Path, "/api/elton/")
 
 	response, err := http.DefaultTransport.RoundTrip(request)
 	if err != nil {
@@ -317,7 +317,7 @@ func (t *Transport) RoundTrip(request *http.Request) (*http.Response, error) {
 }
 
 func parsePath(path string) (string, string) {
-	name := strings.TrimPrefix(path, "/elton")
+	name := strings.TrimPrefix(path, "/elton/")
 	list := strings.Split(name, "-")
 	version, err := strconv.ParseUint(list[len(list)-1], 10, 64)
 	if err != nil {

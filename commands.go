@@ -51,6 +51,7 @@ func doClient(c *cli.Context) {
 
 func doServer(c *cli.Context) {
 	log.SetPrefix("[elton server] ")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	conf, err := elton.Load(c.String("file"))
 	backup := c.Bool("backup")
 	if err != nil {
