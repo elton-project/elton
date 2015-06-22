@@ -5,28 +5,18 @@ import (
 )
 
 type Config struct {
-	Elton    EltonConfig  `toml:"elton"`
-	Backup   BackupConfig `toml:"backup"`
-	Database DBConfig     `toml:"database"`
+	Elton    EltonConfig   `toml:"elton"`
+	Masters  []EltonConfig `toml:"master"`
+	Database DBConfig      `toml:"database"`
 }
 
 type EltonConfig struct {
+	Name     string `toml:"name"`
 	HostName string `toml:"hostname"`
-	Port     string `toml:"port"`
-	Dir      string `toml:"dir"`
 }
 
 type DBConfig struct {
-	User     string `toml:"user"`
-	Pass     string `toml:"pass"`
-	HostName string `toml:"hostname"`
-	Port     string `toml:"port"`
-	DBName   string `toml:"dbname"`
-}
-
-type BackupConfig struct {
-	HostName string `toml:"hostname"`
-	Port     string `toml:"port"`
+	DBPath string `toml:"dbpath"`
 }
 
 func Load(path string) (Config, error) {

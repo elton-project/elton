@@ -1,15 +1,14 @@
 [elton]
-hostname = "{{.IPADDR}}"
-port = "52339"
-dir = "/tmp"
+name = "elton1"
+hostname = "0.0.0.0:12345"
 
-[backup]
-hostname = "{{.BACKUP_PORT_56789_TCP_ADDR}}"
-port = "{{.BACKUP_PORT_56789_TCP_PORT}}"
+[[master]]
+name = "elton2"
+hostname = "localhost:23456"
+
+[[master]]
+name = "elton3"
+hostname = "localhost:34567"
 
 [database]
-user = "root"
-pass = "mysql"
-hostname = "{{.DB_PORT_3306_TCP_ADDR}}"
-port = "{{.DB_PORT_3306_TCP_PORT}}"
-dbname = "elton_test"
+dbpath = "/tmp/elton_test.db"
