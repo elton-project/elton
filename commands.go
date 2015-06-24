@@ -85,13 +85,12 @@ func doServer(c *cli.Context) {
 	log.SetPrefix("[elton server] ")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	backup := c.Bool("backup")
 	conf, err := elton.Load(c.String("file"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server, err := elhttp.NewEltonServer(conf, backup)
+	server, err := elhttp.NewEltonServer(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
