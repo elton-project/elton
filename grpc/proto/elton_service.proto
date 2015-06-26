@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package proto;
+
+service EltonService {
+	rpc GenerateObjectID(ObjectName) returns (stream ObjectInfo) {};
+	rpc CreateObjectInfo(ObjectInfo) returns (stream ObjectInfo) {};
+	rpc GetObject(ObjectInfo) returns (stream Object) {};
+	rpc DeleteObject(ObjectInfo) returns (ResponseType) {};
+}
+
+message ObjectName {
+	repeated string names = 1;
+}
+
+message ObjectInfo {
+	string object_id = 1;
+	uint64 version = 2;
+	string delegate = 3;
+	string request_hostname = 4;
+}
+
+message Object {
+	string body = 1;
+}
+
+message ResponseType {
+}

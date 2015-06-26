@@ -22,7 +22,7 @@ type ObjectInfo struct {
 	Delegate string `json:"delegate, omitempty"`
 }
 
-type FileName struct {
+type ObjectName struct {
 	Name []string `json:"name, omitempty"`
 }
 
@@ -32,7 +32,7 @@ func NewRegistry(conf Config) (*Registry, error) {
 		return nil, err
 	}
 
-	err = db.Update(func(tx *bolt.Tx) error {
+	if err = db.Update(func(tx *bolt.Tx) error {
 		_, err = tx.CreateBucketIfNotExists([]byte("versions"))
 		if err != nil {
 			return err
@@ -40,25 +40,23 @@ func NewRegistry(conf Config) (*Registry, error) {
 
 		_, err = tx.CreateBucketIfNotExists([]byte("hosts"))
 		return err
-	})
-
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
 	return &Registry{DB: db, Name: conf.Elton.Name}, nil
 }
 
-func (r *Registry) GenerateObjectsInfo(names FileName) ([]ObjectInfo, error) {
-	result := make([]ObjectInfo, len(names.Name))
-	for i, n := range names.Name {
+func (r *Registry) GenerateObjectsInfo(names []string) ([]ObjectInfo, error) {
+	result := make([]ObjectInfo, len(names))
+	for i, n := range names {
 		oid := r.generateObjectID(n)
 
 		if err := r.DB.Update(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket([]byte("versions"))
 			return bucket.Put([]byte(oid), []byte("0"))
 		}); err != nil {
-			return nil, err
+			return result, err
 		}
 
 		result[i] = ObjectInfo{
@@ -77,55 +75,42 @@ func (r *Registry) generateObjectID(name string) string {
 	return string(hex.EncodeToString(hasher.Sum(nil)))
 }
 
-func (r *Registry) GetNewVersions(objects []ObjectInfo) (foundObjs []ObjectInfo, otherObjs []ObjectInfo, err error) {
-	for _, obj := range objects {
-		if obj.Delegate != r.Name {
-			otherObjs = append(otherObjs, obj)
-			continue
+func (r *Registry) GetNewVersion(obj ObjectInfo) (object ObjectInfo, err error) {
+	var version uint64
+	if err = r.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("versions"))
+		n, err := strconv.ParseUint(
+			string(bucket.Get([]byte(obj.ObjectID))),
+			10,
+			64)
+		if err != nil {
+			return err
 		}
 
-		var version uint64
-		if err = r.DB.Update(func(tx *bolt.Tx) error {
-			bucket := tx.Bucket([]byte("versions"))
-			n, err := strconv.ParseUint(
-				string(bucket.Get([]byte(obj.ObjectID))),
-				10,
-				64)
-			if err != nil {
-				return err
-			}
+		version = n + 1
+		return bucket.Put(
+			[]byte(obj.ObjectID),
+			[]byte(strconv.FormatUint(version, 10)))
+	}); err != nil {
+		return
+	}
 
-			version = n + 1
-			return bucket.Put(
-				[]byte(obj.ObjectID),
-				[]byte(strconv.FormatUint(version, 10)))
-		}); err != nil {
-			return
-		}
-
-		foundObjs = append(foundObjs, ObjectInfo{
-			ObjectID: obj.ObjectID,
-			Delegate: obj.Delegate,
-			Version:  version,
-		})
+	object = ObjectInfo{
+		ObjectID: obj.ObjectID,
+		Delegate: obj.Delegate,
+		Version:  version,
 	}
 
 	return
 }
 
-func (r *Registry) SetObjectsInfo(objects []ObjectInfo, host string) error {
-	for _, obj := range objects {
-		if err := r.DB.Update(func(tx *bolt.Tx) error {
-			bucket := tx.Bucket([]byte("hosts"))
-			return bucket.Put(
-				[]byte(fmt.Sprintf("%s/%s", obj.ObjectID, obj.Version)),
-				[]byte(host))
-		}); err != nil {
-			return err
-		}
-	}
-
-	return nil
+func (r *Registry) SetObjectInfo(obj ObjectInfo, host string) error {
+	return r.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("hosts"))
+		return bucket.Put(
+			[]byte(fmt.Sprintf("%s/%s", obj.ObjectID, obj.Version)),
+			[]byte(host))
+	})
 }
 
 func (r *Registry) GetObjectHost(oid string, version uint64) (host string, err error) {
@@ -166,17 +151,23 @@ func (r *Registry) getVersion(oid string) (version uint64, err error) {
 	return
 }
 
-func (r *Registry) DeleteObject(oid string) (err error) {
+func (r *Registry) DeleteObjectVersions(oid string) (err error) {
 	return r.DB.Update(func(tx *bolt.Tx) error {
-		hosts := tx.Bucket([]byte("hosts"))
-		cursor := hosts.Cursor()
+		bucket := tx.Bucket([]byte("hosts"))
+		cursor := bucket.Cursor()
 		for k, _ := cursor.Seek([]byte(oid)); bytes.HasPrefix(k, []byte(oid)); k, _ = cursor.Next() {
-			err = hosts.Delete(k)
+			err = bucket.Delete(k)
 			if err != nil {
 				return err
 			}
 		}
 
+		return nil
+	})
+}
+
+func (r *Registry) DeleteObjectInfo(oid string) (err error) {
+	return r.DB.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket([]byte("versions")).Delete([]byte(oid))
 	})
 }
