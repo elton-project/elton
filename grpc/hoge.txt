@@ -1,2 +1,0 @@
-PASS
-ok  	_/home/nashio/t-lab/elton/grpc	0.067s
