@@ -3,7 +3,7 @@ CLIENT = $(TARGETDIR)/elton
 FS = $(TARGETDIR)/eltonfs
 CONFIGCMD = mkconfig
 CLIOBJS = cmd/main.go cmd/version.go cmd/commands.go
-FSOBJS = eltonfs/main.go
+FSOBJS = eltonfs/main.go eltonfs/fs.go eltonfs/node.go eltonfs/files.go
 
 all: deps build
 

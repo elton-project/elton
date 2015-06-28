@@ -52,6 +52,7 @@ func (e *EltonMaster) Serve() {
 }
 
 func (e *EltonMaster) GenerateObjectID(o *pb.ObjectName, stream pb.EltonService_GenerateObjectIDServer) error {
+	log.Println("GenerateObjectID: %v", o)
 	list, err := e.Registry.GenerateObjectsInfo(o.Names)
 	if err != nil {
 		log.Println(err)
@@ -69,10 +70,12 @@ func (e *EltonMaster) GenerateObjectID(o *pb.ObjectName, stream pb.EltonService_
 		}
 	}
 
+	log.Println("Return GenerateObjectID: %v", list)
 	return nil
 }
 
 func (e *EltonMaster) CreateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CreateObjectInfoServer) error {
+	log.Println("CreateObjectInfo: %v", o)
 	obj, err := e.createObjectInfo(o)
 	if err != nil {
 		log.Println(err)
@@ -96,6 +99,7 @@ func (e *EltonMaster) CreateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_
 		return err
 	}
 
+	log.Println("Return CreateObjectInfo: %v", obj)
 	return nil
 }
 
@@ -165,6 +169,7 @@ func (e *EltonMaster) getConnection(host string) (conn *grpc.ClientConn, err err
 }
 
 func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
+	log.Println("GetObject: %v", o)
 	host, err := e.Registry.GetObjectHost(o.ObjectId, o.Version)
 	if err != nil {
 		if err = e.getObjectFromOtherMaster(o, stream); err != nil {
@@ -231,6 +236,7 @@ func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 }
 
 func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.ResponseType, err error) {
+	log.Println("DeleteObject: %v", o)
 	if err = e.Registry.DeleteObjectVersions(o.ObjectId); err != nil {
 		log.Println(err)
 		return
