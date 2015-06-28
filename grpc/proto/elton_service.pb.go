@@ -18,6 +18,8 @@ package proto
 
 import proto1 "github.com/golang/protobuf/proto"
 
+// discarding unused import google_api1 "google/api"
+
 import (
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"

@@ -1,27 +1,24 @@
 TARGETDIR = bin
-TARGET = $(TARGETDIR)/elton
+CLIENT = $(TARGETDIR)/elton
+FS = $(TARGETDIR)/eltonfs
 CONFIGCMD = mkconfig
+CLIOBJS = cmd/main.go cmd/version.go cmd/commands.go
+FSOBJS = eltonfs/main.go
 
 all: deps build
 
-$(TARGET):
+$(CLIENT): $(CLIOBJS)
+	go build -o $@ $^
+
+$(FS): $(FSOBJS)
+	go build -o $@ $^
 
 deps:
 	go get -d -v
 
-build: $(TARGET)
-	go build -o $^
-
-config:
-	$(CONFIGCMD) examples/config.tml config.tml
-
-backupconfig:
-	$(CONFIGCMD) examples/backup.tml config.tml
-
-install: $(TARGET)
-	go install
+build: $(CLIENT) $(FS)
 
 clean:
 	$(RM) -r $(TARGETDIR)
 
-.PHONY: all $(TARGET) deps build config backupconfig install clean
+.PHONY: all $(CLIENT) $(FS) deps build clean

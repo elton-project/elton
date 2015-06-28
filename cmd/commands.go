@@ -5,8 +5,8 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	"./elton"
-	"./grpc"
+	"../elton"
+	"../grpc"
 )
 
 var Commands = []cli.Command{
@@ -51,7 +51,7 @@ func doMaster(c *cli.Context) {
 		log.Fatal(err)
 	}
 
-	server, err := grpc.NewEltonServer(conf)
+	server, err := grpc.NewEltonMaster(conf)
 	if err != nil {
 		log.Fatal(err)
 	}

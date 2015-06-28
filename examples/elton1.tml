@@ -1,0 +1,10 @@
+[elton]
+name = "elton1"
+hostname = "0.0.0.0:12345"
+
+[[master]]
+name = "elton2"
+hostname = "localhost:23456"
+
+[database]
+dbpath = "/tmp/elton1_test.db"

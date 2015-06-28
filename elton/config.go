@@ -5,14 +5,22 @@ import (
 )
 
 type Config struct {
-	Elton    EltonConfig   `toml:"elton"`
-	Masters  []EltonConfig `toml:"master"`
-	Database DBConfig      `toml:"database"`
+	Elton    MasterConfig   `toml:"elton"`
+	Masters  []MasterConfig `toml:"master"`
+	Slave    SlaveConfig    `toml:"slave"`
+	Database DBConfig       `toml:"database"`
 }
 
-type EltonConfig struct {
+type MasterConfig struct {
 	Name     string `toml:"name"`
 	HostName string `toml:"hostname"`
+}
+
+type SlaveConfig struct {
+	MasterHostName string `toml:"master_hostname"`
+	IP             string `toml:"ip"`
+	Port           uint64 `toml:"port"`
+	Dir            string `toml:"dir"`
 }
 
 type DBConfig struct {
@@ -25,5 +33,6 @@ func Load(path string) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+
 	return conf, nil
 }
