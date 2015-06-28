@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"../elton"
+	elton "../api"
 	pb "./proto"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	"../elton"
+	elton "../api"
 	"../grpc"
 )
 

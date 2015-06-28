@@ -1,4 +1,4 @@
-package elton
+package api
 
 import (
 	"github.com/BurntSushi/toml"
@@ -7,20 +7,12 @@ import (
 type Config struct {
 	Elton    MasterConfig   `toml:"elton"`
 	Masters  []MasterConfig `toml:"master"`
-	Slave    SlaveConfig    `toml:"slave"`
 	Database DBConfig       `toml:"database"`
 }
 
 type MasterConfig struct {
 	Name     string `toml:"name"`
 	HostName string `toml:"hostname"`
-}
-
-type SlaveConfig struct {
-	MasterHostName string `toml:"master_hostname"`
-	IP             string `toml:"ip"`
-	Port           uint64 `toml:"port"`
-	Dir            string `toml:"dir"`
 }
 
 type DBConfig struct {

@@ -1,4 +1,4 @@
-package elton
+package api
 
 import (
 	"crypto/md5"
