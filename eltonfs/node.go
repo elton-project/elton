@@ -1,20 +1,24 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
-	"io"
-	"net/http"
+	"log"
 	"os"
-	"path"
 	"path/filepath"
+	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
+
+	pb "../grpc/proto"
 )
 
 type EltonNode struct {
 	nodefs.Node
-	file     EltonFile
+	file     *EltonFile
 	fs       *EltonFS
 	basePath string
 }
@@ -47,7 +51,7 @@ func (n *EltonNode) Print(indent int) {
 	}
 }
 
-func (n *EltonNode) OpenDir(context *fuse.Context) (stream []fuse.DirEntry, code fuse.Status) {
+func (n *EltonNode) OpenDir(c *fuse.Context) (stream []fuse.DirEntry, code fuse.Status) {
 	children := n.Inode().Children()
 	stream = make([]fuse.DirEntry, 0, len(children))
 	for k, v := range children {
@@ -63,21 +67,15 @@ func (n *EltonNode) OpenDir(context *fuse.Context) (stream []fuse.DirEntry, code
 	return stream, fuse.OK
 }
 
-func (n *EltonNode) Open(flags uint32, context *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
+func (n *EltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
+	log.Println("open")
 	if flags&fuse.O_ANYWRITE != 0 {
-		return nil, fuse.EPERM
-	}
-
-	fullPath := n.getPath(n.file.Name())
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		//		client := pb.NewEltonServiceClient(fs.connection)
-		//		stream, err := client.GetObject(context.Background(), pb.ObjectInfo{ObjectId: n.file.Name, Version: n.file.Version})
-		res, err := http.Get("http://" + path.Join(n.fs.eltonURL, "api", "elton", n.file.Name()))
-		if err != nil {
-			return nil, fuse.ToStatus(err)
+		if n.basePath == n.fs.lower {
+			n.basePath = n.fs.upper
+			n.file.Version++
 		}
-		defer res.Body.Close()
 
+		fullPath := n.getPath(n.file.Name())
 		dir := filepath.Dir(fullPath)
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			if err = os.MkdirAll(dir, 0700); err != nil {
@@ -85,14 +83,41 @@ func (n *EltonNode) Open(flags uint32, context *fuse.Context) (fuseFile nodefs.F
 			}
 		}
 
-		out, err := os.Create(fullPath)
+		f, err := os.Create(fullPath)
 		if err != nil {
-			out.Close()
 			return nil, fuse.ToStatus(err)
 		}
 
-		io.Copy(out, res.Body)
-		out.Close()
+		return nodefs.NewLoopbackFile(f), fuse.OK
+	}
+
+	fullPath := n.getPath(n.file.Name())
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		client := pb.NewEltonServiceClient(n.fs.connection)
+		stream, err := client.GetObject(
+			context.Background(),
+			&pb.ObjectInfo{
+				ObjectId: n.file.Key,
+				Version:  n.file.Version,
+				Delegate: n.file.Delegate,
+			},
+		)
+		if err != nil {
+			return nil, fuse.ToStatus(err)
+		}
+
+		obj, err := stream.Recv()
+		if err != nil {
+			return nil, fuse.ToStatus(err)
+		}
+		data, err := base64.StdEncoding.DecodeString(obj.Body)
+		if err != nil {
+			return nil, fuse.ToStatus(err)
+		}
+
+		if err = CreateFile(fullPath, data); err != nil {
+			return nil, fuse.ToStatus(err)
+		}
 	}
 
 	f, err := os.OpenFile(fullPath, int(flags), 0)
@@ -103,19 +128,39 @@ func (n *EltonNode) Open(flags uint32, context *fuse.Context) (fuseFile nodefs.F
 	return nodefs.NewLoopbackFile(f), fuse.OK
 }
 
-func (n *EltonNode) Deletable() bool {
-	return false
+func (n *EltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Context) (file nodefs.File, child *nodefs.Inode, code fuse.Status) {
+	fsnode := &EltonNode{
+		Node:     nodefs.NewDefaultNode(),
+		basePath: n.fs.upper,
+		fs:       n.fs,
+		file: &EltonFile{
+			Key:      name,
+			Version:  uint64(0),
+			Delegate: "",
+			Size:     uint64(0),
+			Time:     time.Now(),
+		},
+	}
+
+	f, err := os.Create(fsnode.getPath(fsnode.file.Name()))
+	if err != nil {
+		return nil, nil, fuse.ToStatus(err)
+	}
+
+	child = n.Inode().NewChild(name, false, fsnode)
+	return nodefs.NewLoopbackFile(f), child, fuse.OK
 }
 
-func (n *EltonNode) GetAttr(out *fuse.Attr, file nodefs.File, context *fuse.Context) fuse.Status {
-	if n.Inode().IsDir() {
-		out.Mode = fuse.S_IFDIR | 0744
-		return fuse.OK
-	}
-	n.file.Stat(out)
-	return fuse.OK
-}
+// func (n *EltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) fuse.Status {
+// 	log.Println("hideo")
+// 	if n.Inode().IsDir() {
+// 		out.Mode = fuse.S_IFDIR | 0700
+// 		return fuse.OK
+// 	}
+// 	n.file.Stat(out)
+// 	return fuse.OK
+// }
 
 func (n *EltonNode) getPath(relPath string) string {
-	return filepath.Join(n.basePath, relPath)
+	return filepath.Join(n.basePath, fmt.Sprintf("%s/%s", relPath[:2], relPath[2:]))
 }

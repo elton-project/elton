@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -20,26 +19,29 @@ import (
 )
 
 type FileInfo struct {
-	Name    string
-	Key     string
-	Version uint64
-	Size    uint64
-	Time    time.Time
+	Name     string
+	Key      string
+	Version  uint64
+	Delegate string
+	Size     uint64
+	Time     time.Time
 }
 
 type EltonFS struct {
 	root       *EltonNode
-	files      map[string]EltonFile
+	files      map[string]*EltonFile
 	lower      string
 	upper      string
-	eltonURL   string //本当はURLがいい
+	eltonURL   string
 	connection *grpc.ClientConn
 }
 
 var FILEMODE os.FileMode = 0600
-var ELTONFS_FILE_NAME string = ".eltonfs"
+var ELTONFS_CONFIG_DIR string = ".eltonfs"
+var ELTONFS_CONFIG_NAME string = "CONFIG"
+var ELTONFS_COMMIT_NAME string = "COMMIT"
 
-func NewEltonFS(files map[string]EltonFile, lower, upper, eltonURL string) (*EltonFS, error) {
+func NewEltonFS(files map[string]*EltonFile, lower, upper, eltonURL string) (*EltonFS, error) {
 	conn, err := grpc.Dial(eltonURL)
 	if err != nil {
 		return nil, err
@@ -58,19 +60,20 @@ func NewEltonFS(files map[string]EltonFile, lower, upper, eltonURL string) (*Elt
 	return fs, nil
 }
 
-func NewEltonTree(host string, opts *Options) (map[string]EltonFile, error) {
+func NewEltonTree(host string, opts *Options) (map[string]*EltonFile, error) {
 	files, err := getFilesInfo(host, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	out := make(map[string]EltonFile)
+	out := make(map[string]*EltonFile)
 	for _, f := range files {
-		out[f.Name] = &eltonFile{
-			Key:     f.Key,
-			Version: f.Version,
-			Size:    f.Size,
-			Time:    f.Time,
+		out[f.Name] = &EltonFile{
+			Key:      f.Key,
+			Version:  f.Version,
+			Delegate: f.Delegate,
+			Size:     f.Size,
+			Time:     f.Time,
 		}
 	}
 
@@ -85,7 +88,7 @@ func getFilesInfo(host string, opts *Options) (files []FileInfo, err error) {
 	defer conn.Close()
 
 	mi, err := getMountInfo(conn, opts)
-	p := path.Join(opts.LowerDir, fmt.Sprintf("%s-%d", mi.ObjectId, mi.Version))
+	p := filepath.Join(opts.LowerDir, fmt.Sprintf("%s/%s-%d", mi.ObjectId[:2], mi.ObjectId[2:], mi.Version))
 	if _, err = os.Stat(p); os.IsNotExist(err) {
 		client := pb.NewEltonServiceClient(conn)
 		stream, err := client.GetObject(context.Background(), mi)
@@ -103,7 +106,7 @@ func getFilesInfo(host string, opts *Options) (files []FileInfo, err error) {
 			return nil, err
 		}
 
-		if err = ioutil.WriteFile(p, data, FILEMODE); err != nil {
+		if err = CreateFile(p, data); err != nil {
 			return nil, err
 		}
 	}
@@ -117,8 +120,19 @@ func getFilesInfo(host string, opts *Options) (files []FileInfo, err error) {
 	return
 }
 
+func CreateFile(p string, data []byte) error {
+	dir := filepath.Dir(p)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return err
+		}
+	}
+
+	return ioutil.WriteFile(p, data, FILEMODE)
+}
+
 func getMountInfo(conn *grpc.ClientConn, opts *Options) (obj *pb.ObjectInfo, err error) {
-	p := filepath.Join(opts.LowerDir, ELTONFS_FILE_NAME)
+	p := filepath.Join(opts.UpperDir, ELTONFS_CONFIG_DIR, ELTONFS_CONFIG_NAME)
 	buf, err := ioutil.ReadFile(p)
 	if err != nil {
 		return createMountInfo(conn, p, opts)
@@ -140,12 +154,17 @@ func createMountInfo(conn *grpc.ClientConn, p string, opts *Options) (obj *pb.Ob
 		return obj, err
 	}
 
-	if err = ioutil.WriteFile(
-		path.Join(
+	if err = CreateFile(
+		filepath.Join(
 			opts.LowerDir,
-			fmt.Sprintf("%s-%d", obj.ObjectId, obj.Version)),
+			fmt.Sprintf(
+				"%s/%s-%d",
+				obj.ObjectId[:2],
+				obj.ObjectId[2:],
+				obj.Version,
+			),
+		),
 		[]byte("[]"),
-		FILEMODE,
 	); err != nil {
 		return
 	}
@@ -178,6 +197,13 @@ func generateObjectID(conn *grpc.ClientConn, p string) (obj *pb.ObjectInfo, err 
 }
 
 func NewEltonFileSystem(target string, opts *Options) (root nodefs.Node, err error) {
+	dir := filepath.Join(opts.UpperDir, ELTONFS_CONFIG_DIR)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return nil, err
+		}
+	}
+
 	files, err := NewEltonTree(target, opts)
 	if err != nil {
 		return nil, err
@@ -213,7 +239,7 @@ func (fs *EltonFS) onUnmount() {
 	fs.connection.Close()
 }
 
-func (n *EltonFS) addFile(name string, f EltonFile) {
+func (n *EltonFS) addFile(name string, f *EltonFile) {
 	comps := strings.Split(name, "/")
 
 	node := n.root.Inode()
@@ -229,7 +255,7 @@ func (n *EltonFS) addFile(name string, f EltonFile) {
 				fsnode.file = f
 			}
 
-			child = node.NewChild(c, fsnode.file == nil, fsnode)
+			child = node.NewChild(c, fsnode.file == new(EltonFile), fsnode)
 		}
 		node = child
 	}
