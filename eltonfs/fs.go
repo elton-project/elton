@@ -8,10 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"google.golang.org/grpc"
 
@@ -27,57 +29,134 @@ type FileInfo struct {
 	Time     time.Time
 }
 
-type EltonFS struct {
-	root       *EltonNode
-	files      map[string]*EltonFile
-	lower      string
-	upper      string
-	eltonURL   string
-	connection *grpc.ClientConn
-}
-
 var FILEMODE os.FileMode = 0600
 var ELTONFS_CONFIG_DIR string = ".eltonfs"
 var ELTONFS_CONFIG_NAME string = "CONFIG"
 var ELTONFS_COMMIT_NAME string = "COMMIT"
 
-func NewEltonFS(files map[string]*EltonFile, lower, upper, eltonURL string) (*EltonFS, error) {
+func NewEltonFSRoot(target string, opts *Options) (root nodefs.Node, err error) {
+	dir := filepath.Join(opts.UpperDir, ELTONFS_CONFIG_DIR)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return nil, err
+		}
+	}
+
+	efs, err := NewEltonFS(opts.LowerDir, opts.UpperDir, target)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := fs.newEltonTree(); err != nil {
+		return nil, err
+	}
+
+	return efs.Root(), nil
+}
+
+func NewEltonFS(lower, upper, eltonURL string) (*eltonFS, error) {
 	conn, err := grpc.Dial(eltonURL)
 	if err != nil {
 		return nil, err
 	}
 
-	fs := &EltonFS{
-		root:       &EltonNode{Node: nodefs.NewDefaultNode()},
-		files:      files,
+	fs := &eltonFS{
 		lower:      lower,
 		upper:      upper,
 		eltonURL:   eltonURL,
 		connection: conn,
 	}
 
-	fs.root.fs = fs
+	fs.root = fs.newNode(upper, time.Now())
 	return fs, nil
 }
 
-func NewEltonTree(host string, opts *Options) (map[string]*EltonFile, error) {
+type eltonFS struct {
+	root       *EltonNode
+	files      map[string]*eltonFile
+	lower      string
+	upper      string
+	eltonURL   string
+	connection *grpc.ClientConn
+	mux        sync.Mutex
+}
+
+func (fs *eltonFS) String() string {
+	return fmt.Sprintf("EltonFS(%s)", "elton")
+}
+
+func (fs *eltonFS) SetDebug(bool) {
+}
+
+func (fs *eltonFS) Root() nodefs.Node {
+	return fs.root
+}
+
+func (n *eltonFS) OnMount(c *nodefs.FileSystemConnector) {
+	for k, v := range fs.files {
+		fs.addFile(k, v)
+	}
+	fs.files = nil
+}
+
+func (fs *eltonFS) OnUnmount() {
+	fs.connection.Close()
+}
+
+func (fs *eltonFS) newNode(base string, t time.Time) *eltonNode {
+	fs.mux.Lock()
+	n := &eltonNode{
+		Node:     nodefs.NewDefaultNode(),
+		basePath: base,
+		fs:       fs,
+	}
+
+	fs.info.SetTimes(&t, &t, &t)
+	n.info.Mode = fuse.S_IFDIR | 0700
+	fs.mux.Unlock()
+	return n
+}
+
+func (fs *eltonFS) Filename(n *Inode) string {
+	mn := n.Node().(*eltonNode)
+	return mn.filename()
+}
+
+func (fs *eltonFS) addFile(name string, f *eltonFile) {
+	comps := strings.Split(name, "/")
+
+	node := fs.root.Inode()
+	for i, c := range comps {
+		child := node.GetChild(c)
+		if child == nil {
+			fsnode := fs.newNode(fs.lower, f.Time)
+			if i == len(comps)-1 {
+				fsnode.file = f
+			}
+
+			child = node.NewChild(c, fsnode.file == new(eltonFile), fsnode)
+		}
+		node = child
+	}
+}
+
+func (fs *eltonFS) newEltonTree() error {
 	files, err := getFilesInfo(host, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	out := make(map[string]*EltonFile)
+	out := make(map[string]*eltonFile)
 	for _, f := range files {
-		out[f.Name] = &EltonFile{
-			Key:      f.Key,
-			Version:  f.Version,
-			Delegate: f.Delegate,
-			Size:     f.Size,
-			Time:     f.Time,
+		out[f.Name] = &eltonFile{
+			key:      f.Key,
+			version:  f.Version,
+			delegate: f.Delegate,
 		}
 	}
 
-	return out, nil
+	fs.files = out
+	return nil
 }
 
 func getFilesInfo(host string, opts *Options) (files []FileInfo, err error) {
@@ -194,69 +273,4 @@ func generateObjectID(conn *grpc.ClientConn, p string) (obj *pb.ObjectInfo, err 
 
 	obj, err = stream.Recv()
 	return
-}
-
-func NewEltonFileSystem(target string, opts *Options) (root nodefs.Node, err error) {
-	dir := filepath.Join(opts.UpperDir, ELTONFS_CONFIG_DIR)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0700); err != nil {
-			return nil, err
-		}
-	}
-
-	files, err := NewEltonTree(target, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	efs, err := NewEltonFS(files, opts.LowerDir, opts.UpperDir, target)
-	if err != nil {
-		return nil, err
-	}
-
-	return efs.Root(), nil
-}
-
-func (fs *EltonFS) String() string {
-	return fs.upper
-}
-
-func (fs *EltonFS) SetDebug(bool) {
-}
-
-func (fs *EltonFS) Root() nodefs.Node {
-	return fs.root
-}
-
-func (fs *EltonFS) onMount() {
-	for k, v := range fs.files {
-		fs.addFile(k, v)
-	}
-	fs.files = nil
-}
-
-func (fs *EltonFS) onUnmount() {
-	fs.connection.Close()
-}
-
-func (n *EltonFS) addFile(name string, f *EltonFile) {
-	comps := strings.Split(name, "/")
-
-	node := n.root.Inode()
-	for i, c := range comps {
-		child := node.GetChild(c)
-		if child == nil {
-			fsnode := &EltonNode{
-				Node:     nodefs.NewDefaultNode(),
-				basePath: n.lower,
-				fs:       n,
-			}
-			if i == len(comps)-1 {
-				fsnode.file = f
-			}
-
-			child = node.NewChild(c, fsnode.file == new(EltonFile), fsnode)
-		}
-		node = child
-	}
 }
