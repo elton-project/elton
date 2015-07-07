@@ -6,9 +6,5 @@ hostname = "0.0.0.0:12345"
 name = "elton2"
 hostname = "localhost:23456"
 
-[[master]]
-name = "elton3"
-hostname = "localhost:34567"
-
 [database]
-dbpath = "/tmp/elton_test.db"
+dbpath = "/tmp/elton1_test.db"
