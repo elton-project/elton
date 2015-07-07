@@ -32,9 +32,9 @@ func main() {
 		os.Exit(2)
 	}
 
-	root, err := NewEltonFileSystem(args[0], &opts)
+	root, err := NewEltonFSRoot(args[0], &opts)
 	if err != nil {
-		fmt.Printf("NewEltonFileSystem failed: %v", err)
+		fmt.Printf("NewEltonFSRoot failed: %v", err)
 		os.Exit(2)
 	}
 

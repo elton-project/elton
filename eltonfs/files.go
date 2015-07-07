@@ -21,7 +21,7 @@ func (f *eltonFile) InnerFile() nodefs.File {
 }
 
 func (f *eltonFile) Flush() fuse.Status {
-	code := n.File.Flush()
+	code := f.File.Flush()
 
 	if !code.Ok() {
 		return code

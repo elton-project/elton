@@ -31,7 +31,7 @@ func (n *eltonNode) newNode(name string, isDir bool) *eltonNode {
 }
 
 func (n *eltonNode) filename() string {
-	return filepath.Join(n.basePath, fmt.Sprintf("%s-%d", n.file.key, n.file.version))
+	return filepath.Join(n.basePath, n.file.key[:2], fmt.Sprintf("%s-%d", n.file.key[2:], n.file.version))
 }
 
 func (n *eltonNode) Deletable() bool {
@@ -46,7 +46,7 @@ func (n *eltonNode) StatFs() *fuse.StatfsOut {
 	return new(fuse.StatfsOut)
 }
 
-func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *Inode, code fuse.Status) {
+func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
 	ch := n.newNode(name, true)
 	ch.info.Mode = mode | fuse.S_IFDIR
 	return ch.Inode(), fuse.OK
@@ -65,7 +65,7 @@ func (n *eltonNode) Rmdir(name string, c *fuse.Context) (code fuse.Status) {
 	return n.Unlink(name, c)
 }
 
-func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNode *Inode, code fuse.Status) {
+func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
 	ch := n.newNode(name, false)
 	ch.info.Mode = fuse.S_IFLNK | 0700
 	ch.link = content
@@ -109,10 +109,9 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 	if flags&fuse.O_ANYWRITE != 0 {
 		if n.basePath == n.fs.lower {
 			n.basePath = n.fs.upper
-			n.file.Version++
 		}
 
-		fullPath := n.getPath(n.file.Name())
+		fullPath := n.filename()
 		dir := filepath.Dir(fullPath)
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			if err = os.MkdirAll(dir, 0700); err != nil {
@@ -125,18 +124,18 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 			return nil, fuse.ToStatus(err)
 		}
 
-		return nodefs.NewLoopbackFile(f), fuse.OK
+		return n.newFile(f), fuse.OK
 	}
 
-	fullPath := n.getPath(n.file.Name())
+	fullPath := n.filename()
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		client := pb.NewEltonServiceClient(n.fs.connection)
 		stream, err := client.GetObject(
 			context.Background(),
 			&pb.ObjectInfo{
-				ObjectId: n.file.Key,
-				Version:  n.file.Version,
-				Delegate: n.file.Delegate,
+				ObjectId: n.file.key,
+				Version:  n.file.version,
+				Delegate: n.file.delegate,
 			},
 		)
 		if err != nil {
@@ -182,13 +181,13 @@ func (n *eltonNode) Truncate(file nodefs.File, size uint64, c *fuse.Context) (co
 		now := time.Now()
 		// TODO - should update mtime too?
 		n.info.SetTimes(nil, nil, &now)
-		n.info.Size = Size
+		n.info.Size = size
 	}
 
 	return code
 }
 
-func (n *eltonNode) Utimens(file File, atime *time.Time, mtime *time.Time, c *fuse.Context) (code fuse.Status) {
+func (n *eltonNode) Utimens(file nodefs.File, atime *time.Time, mtime *time.Time, c *fuse.Context) (code fuse.Status) {
 	now := time.Now()
 	n.info.SetTimes(atime, mtime, &now)
 	return fuse.OK
@@ -207,8 +206,4 @@ func (n *eltonNode) Chown(file nodefs.File, uid uint32, gid uint32, c *fuse.Cont
 	now := time.Now()
 	n.info.SetTimes(nil, nil, &now)
 	return fuse.OK
-}
-
-func (n *EltonNode) getPath(relPath string) string {
-	return filepath.Join(n.basePath, fmt.Sprintf("%s/%s", relPath[:2], relPath[2:]))
 }
