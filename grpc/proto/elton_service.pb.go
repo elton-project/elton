@@ -12,11 +12,13 @@ It has these top-level messages:
 	ObjectName
 	ObjectInfo
 	Object
-	ResponseType
+	EmptyMessage
 */
 package proto
 
 import proto1 "github.com/golang/protobuf/proto"
+
+// discarding unused import google_api1 "google/api"
 
 import (
 	context "golang.org/x/net/context"
@@ -57,12 +59,12 @@ func (m *Object) Reset()         { *m = Object{} }
 func (m *Object) String() string { return proto1.CompactTextString(m) }
 func (*Object) ProtoMessage()    {}
 
-type ResponseType struct {
+type EmptyMessage struct {
 }
 
-func (m *ResponseType) Reset()         { *m = ResponseType{} }
-func (m *ResponseType) String() string { return proto1.CompactTextString(m) }
-func (*ResponseType) ProtoMessage()    {}
+func (m *EmptyMessage) Reset()         { *m = EmptyMessage{} }
+func (m *EmptyMessage) String() string { return proto1.CompactTextString(m) }
+func (*EmptyMessage) ProtoMessage()    {}
 
 func init() {
 }
@@ -73,7 +75,8 @@ type EltonServiceClient interface {
 	GenerateObjectID(ctx context.Context, in *ObjectName, opts ...grpc.CallOption) (EltonService_GenerateObjectIDClient, error)
 	CreateObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_CreateObjectInfoClient, error)
 	GetObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_GetObjectClient, error)
-	DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*ResponseType, error)
+	PutObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*EmptyMessage, error)
+	DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error)
 }
 
 type eltonServiceClient struct {
@@ -180,8 +183,17 @@ func (x *eltonServiceGetObjectClient) Recv() (*Object, error) {
 	return m, nil
 }
 
-func (c *eltonServiceClient) DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*ResponseType, error) {
-	out := new(ResponseType)
+func (c *eltonServiceClient) PutObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*EmptyMessage, error) {
+	out := new(EmptyMessage)
+	err := grpc.Invoke(ctx, "/proto.EltonService/PutObject", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eltonServiceClient) DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error) {
+	out := new(EmptyMessage)
 	err := grpc.Invoke(ctx, "/proto.EltonService/DeleteObject", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -195,7 +207,8 @@ type EltonServiceServer interface {
 	GenerateObjectID(*ObjectName, EltonService_GenerateObjectIDServer) error
 	CreateObjectInfo(*ObjectInfo, EltonService_CreateObjectInfoServer) error
 	GetObject(*ObjectInfo, EltonService_GetObjectServer) error
-	DeleteObject(context.Context, *ObjectInfo) (*ResponseType, error)
+	PutObject(context.Context, *Object) (*EmptyMessage, error)
+	DeleteObject(context.Context, *ObjectInfo) (*EmptyMessage, error)
 }
 
 func RegisterEltonServiceServer(s *grpc.Server, srv EltonServiceServer) {
@@ -265,6 +278,18 @@ func (x *eltonServiceGetObjectServer) Send(m *Object) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _EltonService_PutObject_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(Object)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(EltonServiceServer).PutObject(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func _EltonService_DeleteObject_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
 	in := new(ObjectInfo)
 	if err := codec.Unmarshal(buf, in); err != nil {
@@ -281,6 +306,10 @@ var _EltonService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "proto.EltonService",
 	HandlerType: (*EltonServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "PutObject",
+			Handler:    _EltonService_PutObject_Handler,
+		},
 		{
 			MethodName: "DeleteObject",
 			Handler:    _EltonService_DeleteObject_Handler,

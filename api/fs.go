@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -43,12 +44,13 @@ func (fs *FileSystem) Create(key string, src io.Reader) error {
 	return err
 }
 
-func (fs *FileSystem) Find(name string) (path string, err error) {
-	path = filepath.Join(fs.RootDir, name)
+func (fs *FileSystem) Find(name string, version uint64) (path string, err error) {
+	path := filename(name, version)
 	if _, err = os.Stat(path); os.IsNotExist(err) {
 		log.Printf("No such file: %s", path)
 		return "", err
 	}
+
 	return path, nil
 }
 
@@ -68,7 +70,12 @@ func (fs *FileSystem) mkDir(path string) error {
 			return err
 		}
 	}
+
 	return nil
+}
+
+func (fs *FileSystem) filename(name string, version uint64) string {
+	return filepath.Join(fs.RootDir, name[:2], fmt.Sprintf("%s-%d", name[2:], version))
 }
 
 func (fs *FileSystem) GenerateKey(name string) string {

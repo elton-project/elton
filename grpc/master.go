@@ -33,7 +33,7 @@ func NewEltonMaster(conf elton.Config) (*EltonMaster, error) {
 	return &EltonMaster{Conf: conf, Registry: registry, Masters: masters, Connections: make(map[string]*grpc.ClientConn)}, nil
 }
 
-func (e *EltonMaster) Serve() {
+func (e *EltonMaster) Serve() error {
 	defer e.Registry.Close()
 	defer func() {
 		for _, c := range e.Connections {
@@ -41,13 +41,14 @@ func (e *EltonMaster) Serve() {
 		}
 	}()
 
-	lis, err := net.Listen("tcp", e.Conf.Elton.HostName)
+	lis, err := net.Listen("tcp", e.Conf.Master.HostName)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		return err
 	}
 
 	server := grpc.NewServer()
 	pb.RegisterEltonServiceServer(server, e)
+
 	log.Fatal(server.Serve(lis))
 }
 
@@ -104,7 +105,7 @@ func (e *EltonMaster) CreateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_
 }
 
 func (e *EltonMaster) createObjectInfo(o *pb.ObjectInfo) (obj elton.ObjectInfo, err error) {
-	if o.Delegate == e.Conf.Elton.Name {
+	if o.Delegate == e.Conf.Master.Name {
 		obj, err = e.Registry.GetNewVersion(
 			elton.ObjectInfo{
 				ObjectID: o.ObjectId,
@@ -242,7 +243,7 @@ func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.R
 		return
 	}
 
-	if o.Delegate == e.Conf.Elton.Name {
+	if o.Delegate == e.Conf.Master.Name {
 		if err = e.Registry.DeleteObjectInfo(o.ObjectId); err != nil {
 			log.Println(err)
 			return

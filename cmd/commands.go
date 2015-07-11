@@ -55,10 +55,20 @@ func doMaster(c *cli.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	server.Serve()
 }
 
 func doSlave(c *cli.Context) {
 	log.SetPrefix("[elton slave] ")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	conf, err := elton.Load(c.String("file"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := grpc.NewEltonSlave(conf)
+
+	server.Serve()
 }

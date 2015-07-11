@@ -44,7 +44,7 @@ func NewRegistry(conf Config) (*Registry, error) {
 		return nil, err
 	}
 
-	return &Registry{DB: db, Name: conf.Elton.Name}, nil
+	return &Registry{DB: db, Name: conf.Master.Name}, nil
 }
 
 func (r *Registry) GenerateObjectsInfo(names []string) ([]ObjectInfo, error) {

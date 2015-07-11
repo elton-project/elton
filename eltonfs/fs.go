@@ -135,7 +135,7 @@ func (fs *eltonFS) newEltonTree() error {
 			if child == nil {
 				fsnode := fs.newNode(c, f.Time)
 				if i == len(comps)-1 {
-					fsnode.file.key = f.Key
+					fsnode.file.key = filepath.Join(f.Key[:2], f.Key[2:])
 					fsnode.file.version = f.Version
 					fsnode.file.delegate = f.Delegate
 					fsnode.basePath = fs.lower
@@ -150,7 +150,7 @@ func (fs *eltonFS) newEltonTree() error {
 
 func (fs *eltonFS) getFilesInfo() (files []FileInfo, err error) {
 	mi, err := fs.getMountInfo()
-	p := filepath.Join(fs.lower, fmt.Sprintf("%s/%s-%d", mi.ObjectId[:2], mi.ObjectId[2:], mi.Version))
+	p := filepath.Join(fs.lower, mi.ObjectId[:2], fmt.Sprintf("%s-%d", mi.ObjectId[2:], mi.Version))
 	if _, err = os.Stat(p); os.IsNotExist(err) {
 		client := pb.NewEltonServiceClient(fs.connection)
 		stream, err := client.GetObject(context.Background(), mi)
@@ -219,9 +219,9 @@ func (fs *eltonFS) createMountInfo(p string) (obj *pb.ObjectInfo, err error) {
 	if err = CreateFile(
 		filepath.Join(
 			fs.lower,
+			obj.ObjectId[:2],
 			fmt.Sprintf(
-				"%s/%s-%d",
-				obj.ObjectId[:2],
+				"%s-%d",
 				obj.ObjectId[2:],
 				obj.Version,
 			),

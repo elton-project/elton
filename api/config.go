@@ -5,14 +5,22 @@ import (
 )
 
 type Config struct {
-	Elton    MasterConfig   `toml:"elton"`
-	Masters  []MasterConfig `toml:"master"`
+	Master   MasterConfig   `toml:"master"`
+	Slave    SlaveConfig    `toml:"slave"`
+	Masters  []MasterConfig `toml:"masters"`
 	Database DBConfig       `toml:"database"`
 }
 
 type MasterConfig struct {
 	Name     string `toml:"name"`
 	HostName string `toml:"hostname"`
+}
+
+type SlaveConfig struct {
+	GrpcHostName   string `toml:"grpc_hostname"`
+	HttpHostName   string `toml:"http_hostname"`
+	MasterHostName string `toml:"master_hostname"`
+	Dir            string `toml:"dir"`
 }
 
 type DBConfig struct {

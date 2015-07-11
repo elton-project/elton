@@ -31,7 +31,7 @@ func (n *eltonNode) newNode(name string, isDir bool) *eltonNode {
 }
 
 func (n *eltonNode) filename() string {
-	return filepath.Join(n.basePath, n.file.key[:2], fmt.Sprintf("%s-%d", n.file.key[2:], n.file.version))
+	return filepath.Join(n.basePath, fmt.Sprintf("%s-%d", n.file.key, n.file.version))
 }
 
 func (n *eltonNode) Deletable() bool {
