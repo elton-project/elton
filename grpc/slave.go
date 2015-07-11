@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -132,9 +133,24 @@ func RegisterEltonServiceHandler(ctx context.Context, router *mux.Router, conn *
 					return
 				}
 
-				ForwardResponseStream(w, func() (proto.Message, error) {
-					return resp.Recv()
-				})
+				obj, err := resp.Recv()
+				if err != nil {
+					HTTPError(w, err)
+					return
+				}
+				data, err := base64.StdEncoding.DecodeString(obj.Body)
+				if err != nil {
+					HTTPError(w, err)
+					return
+				}
+
+				if err = e.fs.Create(oid, version, data); err != nil {
+					HTTPError(w, err)
+					return
+				}
+				// ForwardResponseStream(w, func() (proto.Message, error) {
+				// 	return resp.Recv()
+				// })
 			}
 
 			http.ServeFile(w, r, p)
@@ -198,6 +214,8 @@ func (e *EltonSlave) requestGetObject(ctx context.Context, client pb.EltonServic
 		Delegate:        vars["delegate"],
 		RequestHostname: e.Conf.Slave.GrpcHostName,
 	}
+
+	return client.GetObject(ctx, protoReq)
 }
 
 func (e *EltonSlave) requestDeleteObject(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (msg proto.Message, err error) {
