@@ -2,31 +2,12 @@ syntax = "proto3";
 
 package proto;
 
-import "google/api/annotations.proto";
-
 service EltonService {
-	rpc GenerateObjectID(ObjectName) returns (stream ObjectInfo) {
-		option (google.api.http) = {
-		       put: "/generate/object_id"
-		       body: "*"
-		};
-	};
-	rpc CreateObjectInfo(ObjectInfo) returns (stream ObjectInfo) {
-		option (google.api.http) = {
-		       put: "/{delegate}/{object_id}/{version}"
-		};
-	};
-	rpc GetObject(ObjectInfo) returns (stream Object) {
-		option (google.api.http) = {
-		       get: "/{delegate}/{object_id}/{version}"
-		};
-	};
+	rpc GenerateObjectID(ObjectName) returns (stream ObjectInfo) {};
+	rpc CreateObjectInfo(ObjectInfo) returns (stream ObjectInfo) {};
+	rpc GetObject(ObjectInfo) returns (stream Object) {};
 	rpc PutObject(Object) returns (EmptyMessage) {};
-	rpc DeleteObject(ObjectInfo) returns (EmptyMessage) {
-		option (google.api.http) = {
-		       delete: "/{delegate}/{object_id}/{version}"
-		};
-	};
+	rpc DeleteObject(ObjectInfo) returns (EmptyMessage) {};
 }
 
 message ObjectName {

@@ -50,6 +50,7 @@ func (e *EltonMaster) Serve() error {
 	pb.RegisterEltonServiceServer(server, e)
 
 	log.Fatal(server.Serve(lis))
+	return nil
 }
 
 func (e *EltonMaster) GenerateObjectID(o *pb.ObjectName, stream pb.EltonService_GenerateObjectIDServer) error {
@@ -236,7 +237,11 @@ func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 	return nil
 }
 
-func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.ResponseType, err error) {
+func (e *EltonMaster) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
+	return
+}
+
+func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {
 	log.Printf("DeleteObject: %v", o)
 	if err = e.Registry.DeleteObjectVersions(o.ObjectId); err != nil {
 		log.Println(err)

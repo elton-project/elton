@@ -19,7 +19,7 @@ func NewFileSystem(dir string) *FileSystem {
 }
 
 func (fs *FileSystem) Create(name string, version uint64, body []byte) error {
-	path := filename(name, version)
+	path := fs.filename(name, version)
 	if err := fs.mkDir(path); err != nil {
 		return err
 	}
@@ -27,8 +27,18 @@ func (fs *FileSystem) Create(name string, version uint64, body []byte) error {
 	return ioutil.WriteFile(path, body, 0600)
 }
 
+func (fs *FileSystem) Read(name string, version uint64) (body []byte, err error) {
+	path := fs.filename(name, version)
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		log.Printf("No such file: %s", path)
+		return nil, err
+	}
+
+	return ioutil.ReadFile(path)
+}
+
 func (fs *FileSystem) Find(name string, version uint64) (path string, err error) {
-	path := filename(name, version)
+	path = fs.filename(name, version)
 	if _, err = os.Stat(path); os.IsNotExist(err) {
 		log.Printf("No such file: %s", path)
 		return "", err
