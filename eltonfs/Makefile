@@ -11,7 +11,10 @@ deps:
 build: $(FS)
 	go build -o $^
 
+install:
+	go install
+
 clean:
 	$(RM) $(FS)
 
-.PHONY: all $(FS) deps build clean
+.PHONY: all $(FS) deps build install clean

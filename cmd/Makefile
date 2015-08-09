@@ -11,7 +11,10 @@ deps:
 build: $(CLIENT)
 	go build -o $^
 
+install:
+	go install
+
 clean:
 	$(RM) $(CLIENT)
 
-.PHONY: all $(CLIENT) deps build clean
+.PHONY: all $(CLIENT) deps build install clean
