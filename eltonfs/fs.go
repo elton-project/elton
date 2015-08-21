@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,26 +36,24 @@ var ELTONFS_CONFIG_NAME string = "CONFIG"
 var ELTONFS_COMMIT_NAME string = "COMMIT"
 
 func NewEltonFSRoot(target string, opts *Options) (root nodefs.Node, err error) {
-	dir := filepath.Join(opts.UpperDir, ELTONFS_CONFIG_DIR)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0700); err != nil {
-			return nil, err
-		}
+	if err = ioutil.WriteFile(filepath.Join(opts.UpperDir, ELTONFS_COMMIT_NAME), []byte(""), FILEMODE); err != nil {
+		return
 	}
 
-	efs, err := NewEltonFS(opts.LowerDir, opts.UpperDir, target)
+	server, err := NewEltonFSGrpcServer(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := efs.newEltonTree(); err != nil {
+	efs, err := NewEltonFS(opts.LowerDir, opts.UpperDir, target, opts, server)
+	if err != nil {
 		return nil, err
 	}
 
 	return efs.Root(), nil
 }
 
-func NewEltonFS(lower, upper, eltonURL string) (*eltonFS, error) {
+func NewEltonFS(lower, upper, eltonURL string, opts *Options, server *EltonFSGrpcServer) (*eltonFS, error) {
 	conn, err := grpc.Dial(eltonURL)
 	if err != nil {
 		return nil, err
@@ -65,6 +64,8 @@ func NewEltonFS(lower, upper, eltonURL string) (*eltonFS, error) {
 		upper:      upper,
 		eltonURL:   eltonURL,
 		connection: conn,
+		options:    opts,
+		Server:     server,
 	}
 
 	fs.root = fs.newNode("", time.Now())
@@ -78,6 +79,8 @@ type eltonFS struct {
 	eltonURL   string
 	connection *grpc.ClientConn
 	mux        sync.Mutex
+	options    *Options
+	Server     *EltonFSGrpcServer
 }
 
 func (fs *eltonFS) String() string {
@@ -89,13 +92,6 @@ func (fs *eltonFS) SetDebug(bool) {
 
 func (fs *eltonFS) Root() nodefs.Node {
 	return fs.root
-}
-
-func (fs *eltonFS) OnMount(c *nodefs.FileSystemConnector) {
-}
-
-func (fs *eltonFS) OnUnmount() {
-	fs.connection.Close()
 }
 
 func (fs *eltonFS) newNode(name string, t time.Time) *eltonNode {
@@ -110,7 +106,7 @@ func (fs *eltonFS) newNode(name string, t time.Time) *eltonNode {
 	n.file.key = name
 
 	n.info.SetTimes(&t, &t, &t)
-	n.info.Mode = fuse.S_IFDIR | 0700
+	n.info.Mode = fuse.S_IFREG | 0600
 	fs.mux.Unlock()
 	return n
 }
@@ -120,10 +116,10 @@ func (fs *eltonFS) Filename(n *nodefs.Inode) string {
 	return mn.filename()
 }
 
-func (fs *eltonFS) newEltonTree() error {
+func (fs *eltonFS) newEltonTree() {
 	files, err := fs.getFilesInfo()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 
 	for _, f := range files {
@@ -135,21 +131,29 @@ func (fs *eltonFS) newEltonTree() error {
 			if child == nil {
 				fsnode := fs.newNode(c, f.Time)
 				if i == len(comps)-1 {
-					fsnode.file.key = filepath.Join(f.Key[:2], f.Key[2:])
+					fsnode.file.key = f.Key
 					fsnode.file.version = f.Version
 					fsnode.file.delegate = f.Delegate
 					fsnode.basePath = fs.lower
 				}
+
+				child = node.NewChild(c, fsnode.file.key == c, fsnode)
 			}
 			node = child
 		}
 	}
 
-	return nil
+	child := fs.root.Inode().NewChild(ELTONFS_CONFIG_DIR, true, fs.newNode(ELTONFS_CONFIG_DIR, time.Now()))
+	child.NewChild(ELTONFS_CONFIG_NAME, false, fs.newNode(ELTONFS_CONFIG_NAME, time.Now()))
+	child.NewChild(ELTONFS_COMMIT_NAME, false, fs.newNode(ELTONFS_COMMIT_NAME, time.Now()))
 }
 
 func (fs *eltonFS) getFilesInfo() (files []FileInfo, err error) {
 	mi, err := fs.getMountInfo()
+	if err != nil {
+		return nil, err
+	}
+
 	p := filepath.Join(fs.lower, mi.ObjectId[:2], fmt.Sprintf("%s-%d", mi.ObjectId[2:], mi.Version))
 	if _, err = os.Stat(p); os.IsNotExist(err) {
 		client := pb.NewEltonServiceClient(fs.connection)
@@ -194,12 +198,13 @@ func CreateFile(p string, data []byte) error {
 }
 
 func (fs *eltonFS) getMountInfo() (obj *pb.ObjectInfo, err error) {
-	p := filepath.Join(fs.upper, ELTONFS_CONFIG_DIR, ELTONFS_CONFIG_NAME)
+	p := filepath.Join(fs.upper, ELTONFS_CONFIG_NAME)
 	buf, err := ioutil.ReadFile(p)
 	if err != nil {
 		return fs.createMountInfo(p)
 	}
 
+	obj = new(pb.ObjectInfo)
 	err = json.Unmarshal(buf, obj)
 	return
 }

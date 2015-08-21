@@ -24,6 +24,15 @@ type eltonNode struct {
 	info     fuse.Attr
 }
 
+func (n *eltonNode) OnMount(c *nodefs.FileSystemConnector) {
+	n.fs.newEltonTree()
+}
+
+func (n *eltonNode) OnUnmount() {
+	n.fs.Server.Stop()
+	n.fs.connection.Close()
+}
+
 func (n *eltonNode) newNode(name string, isDir bool) *eltonNode {
 	newNode := n.fs.newNode(n.fs.upper, time.Now())
 	n.Inode().NewChild(name, isDir, newNode)
@@ -31,7 +40,11 @@ func (n *eltonNode) newNode(name string, isDir bool) *eltonNode {
 }
 
 func (n *eltonNode) filename() string {
-	return filepath.Join(n.basePath, fmt.Sprintf("%s-%d", n.file.key, n.file.version))
+	if n.file.version == 0 {
+		return filepath.Join(n.basePath, n.file.key)
+	}
+
+	return filepath.Join(n.basePath, n.file.key[:2], fmt.Sprintf("%s-%d", n.file.key[2:], n.file.version))
 }
 
 func (n *eltonNode) Deletable() bool {
@@ -107,51 +120,12 @@ func (n *eltonNode) newFile(f *os.File) nodefs.File {
 
 func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
 	if flags&fuse.O_ANYWRITE != 0 {
-		if n.basePath == n.fs.lower {
-			n.basePath = n.fs.upper
-		}
-
-		fullPath := n.filename()
-		dir := filepath.Dir(fullPath)
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			if err = os.MkdirAll(dir, 0700); err != nil {
-				return nil, fuse.ToStatus(err)
-			}
-		}
-
-		f, err := os.Create(fullPath)
-		if err != nil {
-			return nil, fuse.ToStatus(err)
-		}
-
-		return n.newFile(f), fuse.OK
+		return n.write(flags, c)
 	}
 
 	fullPath := n.filename()
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		client := pb.NewEltonServiceClient(n.fs.connection)
-		stream, err := client.GetObject(
-			context.Background(),
-			&pb.ObjectInfo{
-				ObjectId: n.file.key,
-				Version:  n.file.version,
-				Delegate: n.file.delegate,
-			},
-		)
-		if err != nil {
-			return nil, fuse.ToStatus(err)
-		}
-
-		obj, err := stream.Recv()
-		if err != nil {
-			return nil, fuse.ToStatus(err)
-		}
-		data, err := base64.StdEncoding.DecodeString(obj.Body)
-		if err != nil {
-			return nil, fuse.ToStatus(err)
-		}
-
-		if err = CreateFile(fullPath, data); err != nil {
+		if err = n.getFile(flags, c); err != nil {
 			return nil, fuse.ToStatus(err)
 		}
 	}
@@ -164,7 +138,61 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 	return n.newFile(f), fuse.OK
 }
 
+func (n *eltonNode) write(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
+	if n.basePath == n.fs.lower {
+		n.basePath = n.fs.upper
+	}
+
+	fullPath := n.filename()
+	dir := filepath.Dir(fullPath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return nil, fuse.ToStatus(err)
+		}
+	}
+
+	f, err := os.Create(fullPath)
+	if err != nil {
+		return nil, fuse.ToStatus(err)
+	}
+
+	return n.newFile(f), fuse.OK
+}
+
+func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
+	client := pb.NewEltonServiceClient(n.fs.connection)
+	stream, err := client.GetObject(
+		context.Background(),
+		&pb.ObjectInfo{
+			ObjectId:        n.file.key,
+			Version:         n.file.version,
+			Delegate:        n.file.delegate,
+			RequestHostname: n.fs.options.HostName,
+		},
+	)
+	if err != nil {
+		return
+	}
+
+	obj, err := stream.Recv()
+	if err != nil {
+		return
+	}
+
+	data, err := base64.StdEncoding.DecodeString(obj.Body)
+	if err != nil {
+		return
+	}
+
+	return CreateFile(n.filename(), data)
+}
+
 func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) fuse.Status {
+	if n.Inode().IsDir() {
+		out.Mode = fuse.S_IFDIR | 0700
+		return fuse.OK
+	}
+
 	*out = n.info
 	return fuse.OK
 }

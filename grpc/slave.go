@@ -63,6 +63,7 @@ func (e *EltonSlave) RegisterEltonServiceHandlerFromEndpoint(ctx context.Context
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {

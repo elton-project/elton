@@ -1,8 +1,8 @@
-[elton]
+[master]
 name = "elton1"
 hostname = "0.0.0.0:12345"
 
-[[master]]
+[[masters]]
 name = "elton2"
 hostname = "localhost:23456"
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/hanwen/go-fuse/fuse/nodefs"
@@ -34,16 +34,16 @@ func main() {
 
 	root, err := NewEltonFSRoot(args[0], &opts)
 	if err != nil {
-		fmt.Printf("NewEltonFSRoot failed: %v", err)
+		log.Printf("NewEltonFSRoot failed: %v", err)
 		os.Exit(2)
 	}
 
-	server, _, err := nodefs.MountRoot(args[1], root, nil)
+	fs, _, err := nodefs.MountRoot(args[1], root, nil)
 	if err != nil {
-		fmt.Printf("Mount fail: %v", err)
+		log.Printf("Mount fail: %v", err)
 		os.Exit(2)
 	}
 
-	server.SetDebug(opts.Debug)
-	server.Serve()
+	fs.SetDebug(opts.Debug)
+	fs.Serve()
 }
