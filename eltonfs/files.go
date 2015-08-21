@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"sync"
 	"syscall"
 
 	"github.com/hanwen/go-fuse/fuse"
