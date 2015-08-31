@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -26,6 +27,7 @@ type eltonNode struct {
 
 func (n *eltonNode) OnMount(c *nodefs.FileSystemConnector) {
 	n.fs.newEltonTree()
+	go n.fs.Server.Serve()
 }
 
 func (n *eltonNode) OnUnmount() {
@@ -33,14 +35,28 @@ func (n *eltonNode) OnUnmount() {
 	n.fs.connection.Close()
 }
 
-func (n *eltonNode) newNode(name string, isDir bool) *eltonNode {
-	newNode := n.fs.newNode(n.fs.upper, time.Now())
+func (n *eltonNode) newNode(name string, isDir bool) (newNode *eltonNode, err error) {
+	if isDir {
+		newNode = &eltonNode{
+			Node: nodefs.NewDefaultNode(),
+			fs:   n.fs,
+		}
+
+		t := time.Now()
+		newNode.info.SetTimes(&t, &t, &t)
+	} else {
+		newNode, err = n.fs.newNode(name, time.Now())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	n.Inode().NewChild(name, isDir, newNode)
-	return newNode
+	return newNode, nil
 }
 
 func (n *eltonNode) filename() string {
-	if n.file.version == 0 {
+	if n.file.key == ELTONFS_COMMIT_NAME || n.file.key == ELTONFS_CONFIG_NAME {
 		return filepath.Join(n.basePath, n.file.key)
 	}
 
@@ -52,6 +68,7 @@ func (n *eltonNode) Deletable() bool {
 }
 
 func (n *eltonNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
+	log.Println("Readlink")
 	return []byte(n.link), fuse.OK
 }
 
@@ -60,12 +77,18 @@ func (n *eltonNode) StatFs() *fuse.StatfsOut {
 }
 
 func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
-	ch := n.newNode(name, true)
+	log.Println("Mkdir: ", name)
+	ch, err := n.newNode(name, true)
+	if err != nil {
+		return nil, fuse.ENOENT
+	}
+
 	ch.info.Mode = mode | fuse.S_IFDIR
 	return ch.Inode(), fuse.OK
 }
 
 func (n *eltonNode) Unlink(name string, c *fuse.Context) (code fuse.Status) {
+	log.Println("Unlink: ", name)
 	ch := n.Inode().RmChild(name)
 	if ch == nil {
 		return fuse.ENOENT
@@ -75,11 +98,17 @@ func (n *eltonNode) Unlink(name string, c *fuse.Context) (code fuse.Status) {
 }
 
 func (n *eltonNode) Rmdir(name string, c *fuse.Context) (code fuse.Status) {
+	log.Println("Rmdir: ", name)
 	return n.Unlink(name, c)
 }
 
 func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
-	ch := n.newNode(name, false)
+	log.Println("Symlink: ", name)
+	ch, err := n.newNode(name, false)
+	if err != nil {
+		return nil, fuse.ENOENT
+	}
+
 	ch.info.Mode = fuse.S_IFLNK | 0700
 	ch.link = content
 
@@ -87,6 +116,7 @@ func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNo
 }
 
 func (n *eltonNode) Rename(oldName string, newParent nodefs.Node, newName string, c *fuse.Context) (code fuse.Status) {
+	log.Println("Rename: ", oldName, ", ", newName)
 	ch := n.Inode().RmChild(oldName)
 	newParent.Inode().RmChild(newName)
 	newParent.Inode().AddChild(newName, ch)
@@ -95,34 +125,50 @@ func (n *eltonNode) Rename(oldName string, newParent nodefs.Node, newName string
 }
 
 func (n *eltonNode) Link(name string, existing nodefs.Node, c *fuse.Context) (*nodefs.Inode, fuse.Status) {
+	log.Println("Link: ", name)
 	n.Inode().AddChild(name, existing.Inode())
 	return existing.Inode(), fuse.OK
 }
 
 func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Context) (file nodefs.File, child *nodefs.Inode, code fuse.Status) {
-	ch := n.newNode(name, false)
+	log.Println("Create: ", name)
+	ch, err := n.newNode(name, false)
+	if err != nil {
+		return nil, nil, fuse.ENOENT
+	}
+
 	ch.info.Mode = mode | fuse.S_IFREG
 
-	f, err := os.Create(ch.filename())
+	fullPath := ch.filename()
+	dir := filepath.Dir(fullPath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return nil, nil, fuse.ToStatus(err)
+		}
+	}
+
+	f, err := os.Create(fullPath)
 	if err != nil {
 		return nil, nil, fuse.ToStatus(err)
 	}
 
+	log.Println("Create file: ", ch.filename())
 	return ch.newFile(f), ch.Inode(), fuse.OK
 }
 
 func (n *eltonNode) newFile(f *os.File) nodefs.File {
-	return &eltonFile{
-		File: nodefs.NewLoopbackFile(f),
-		node: n,
-	}
+	n.file.File = nodefs.NewLoopbackFile(f)
+	n.file.node = n
+	return n.file
 }
 
 func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
+	log.Println("Open: write")
 	if flags&fuse.O_ANYWRITE != 0 {
 		return n.write(flags, c)
 	}
 
+	log.Println("Open: read")
 	fullPath := n.filename()
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		if err = n.getFile(flags, c); err != nil {
@@ -167,7 +213,7 @@ func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
 			ObjectId:        n.file.key,
 			Version:         n.file.version,
 			Delegate:        n.file.delegate,
-			RequestHostname: n.fs.options.HostName,
+			RequestHostname: fmt.Sprintf("%s:%d", n.fs.options.HostName, n.fs.options.Port),
 		},
 	)
 	if err != nil {

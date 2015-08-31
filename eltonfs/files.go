@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"syscall"
 
@@ -40,32 +41,53 @@ func (f *eltonFile) Read(buf []byte, off int64) (res fuse.ReadResult, code fuse.
 }
 
 func (f *eltonFile) Write(data []byte, off int64) (uint32, fuse.Status) {
-	f.commit()
+	if f.key == ELTONFS_COMMIT_NAME {
+		f.commit()
+	}
+
 	return f.File.Write(data, off)
 }
 
 func (f *eltonFile) commit() {
-	root := f.node.fs.Root()
-	children := root.Inode().Children()
-
-	var files []FileInfo
-	for k, v := range children {
-		if !v.IsDir() {
-			n := v.Node().(*eltonNode)
-			files = append(
-				files,
-				FileInfo{
-					Name:     k,
-					Key:      n.file.key,
-					Version:  n.file.version,
-					Delegate: n.file.delegate,
-					Size:     n.info.Size,
-					Time:     n.info.ChangeTime(),
-				},
-			)
-		}
-	}
+	f.node.fs.mux.Lock()
+	defer f.node.fs.mux.Unlock()
+	files := f.getFileTree("", f.node.fs.Root())
 
 	data, _ := json.Marshal(files)
 	ioutil.WriteFile("/tmp/hogehogehoge", data, 0600)
+}
+
+func (f *eltonFile) getFileTree(prefix string, root nodefs.Node) (files []FileInfo) {
+	if prefix != "" {
+		prefix += "/"
+	}
+
+	for k, v := range root.Inode().Children() {
+		if k == ELTONFS_CONFIG_DIR {
+			continue
+		}
+
+		p := fmt.Sprintf("%s%s", prefix, k)
+		if v.IsDir() {
+			files = append(files, f.getFileTree(p, v.Node())...)
+			continue
+		}
+
+		n := v.Node().(*eltonNode)
+		if n.basePath == n.fs.upper {
+		}
+		files = append(
+			files,
+			FileInfo{
+				Name:     p,
+				Key:      n.file.key,
+				Version:  n.file.version,
+				Delegate: n.file.delegate,
+				Size:     n.info.Size,
+				Time:     n.info.ChangeTime(),
+			},
+		)
+	}
+
+	return
 }

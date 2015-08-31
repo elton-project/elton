@@ -47,25 +47,22 @@ func NewRegistry(conf Config) (*Registry, error) {
 	return &Registry{DB: db, Name: conf.Master.Name}, nil
 }
 
-func (r *Registry) GenerateObjectsInfo(names []string) ([]ObjectInfo, error) {
-	result := make([]ObjectInfo, len(names))
-	for i, n := range names {
-		oid := r.generateObjectID(n)
-
-		if err := r.DB.Update(func(tx *bolt.Tx) error {
-			bucket := tx.Bucket([]byte("versions"))
-			return bucket.Put([]byte(oid), []byte("0"))
-		}); err != nil {
-			return result, err
-		}
-
-		result[i] = ObjectInfo{
-			ObjectID: oid,
-			Delegate: r.Name,
-		}
+func (r *Registry) GenerateObjectInfo(name string) (obj ObjectInfo, err error) {
+	oid := r.generateObjectID(name)
+	if err = r.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("versions"))
+		return bucket.Put([]byte(oid), []byte("1"))
+	}); err != nil {
+		return
 	}
 
-	return result, nil
+	obj = ObjectInfo{
+		ObjectID: oid,
+		Version:  1,
+		Delegate: r.Name,
+	}
+
+	return
 }
 
 func (r *Registry) generateObjectID(name string) string {
@@ -97,8 +94,8 @@ func (r *Registry) GetNewVersion(obj ObjectInfo) (object ObjectInfo, err error) 
 
 	object = ObjectInfo{
 		ObjectID: obj.ObjectID,
-		Delegate: obj.Delegate,
 		Version:  version,
+		Delegate: obj.Delegate,
 	}
 
 	return

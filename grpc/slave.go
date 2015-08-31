@@ -86,9 +86,9 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 	client := pb.NewEltonServiceClient(conn)
 
 	router.HandleFunc(
-		"/generate/objectid",
+		"/generate/object",
 		func(w http.ResponseWriter, r *http.Request) {
-			resp, err := e.requestGenerateObjectID(AnnotateContext(ctx, r), client, r)
+			resp, err := e.requestGenerateObjectsInfo(AnnotateContext(ctx, r), client, r)
 			if err != nil {
 				HTTPError(w, err)
 				return
@@ -100,17 +100,27 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 		},
 	).Methods("PUT")
 	router.HandleFunc(
-		"/{delegate:(elton[1-9][0-9]*)/{object_id}/{version:([1-9][0-9]*)}}",
+		"/{delegate:(elton[1-9][0-9]*)/{object_id}",
 		func(w http.ResponseWriter, r *http.Request) {
-			resp, err := e.requestCreateObjectInfo(AnnotateContext(ctx, r), client, r)
+			resp, err := e.requestCommitObjectsInfo(AnnotateContext(ctx, r), client, r)
 			if err != nil {
 				HTTPError(w, err)
 				return
 			}
 
-			ForwardResponseStream(w, func() (proto.Message, error) {
-				return resp.Recv()
-			})
+			ForwardResponseMessage(ctx, w, resp)
+		},
+	).Methods("PUT")
+	router.HandleFunc(
+		"/{delegate:(elton[1-9][0-9]*)/{object_id}/{version:([1-9][0-9]*)}}",
+		func(w http.ResponseWriter, r *http.Request) {
+			resp, err := e.requestCommitObjectsInfo(AnnotateContext(ctx, r), client, r)
+			if err != nil {
+				HTTPError(w, err)
+				return
+			}
+
+			ForwardResponseMessage(ctx, w, resp)
 		},
 	).Methods("PUT")
 	router.HandleFunc(
@@ -169,32 +179,52 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 	return nil
 }
 
-func (e *EltonSlave) requestGenerateObjectID(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (pb.EltonService_GenerateObjectIDClient, error) {
-	var protoReq pb.ObjectName
+func (e *EltonSlave) requestGenerateObjectsInfo(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (pb.EltonService_GenerateObjectsInfoClient, error) {
+	var protoReq pb.ObjectInfo
 
 	if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	return client.GenerateObjectID(ctx, &protoReq)
+	return client.GenerateObjectsInfo(ctx, &pb.ObjectsInfo{[]*pb.ObjectInfo{&protoReq}})
 }
 
-func (e *EltonSlave) requestCreateObjectInfo(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (pb.EltonService_CreateObjectInfoClient, error) {
+func (e *EltonSlave) requestCommitObjectsInfo(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (msg proto.Message, err error) {
 	vars := mux.Vars(r)
 
 	version, err := strconv.ParseUint(vars["version"], 10, 64)
 	if err != nil {
-		return nil, err
+		stream, err := client.GenerateObjectsInfo(
+			ctx,
+			&pb.ObjectsInfo{
+				[]*pb.ObjectInfo{
+					&pb.ObjectInfo{
+						ObjectId: vars["object_id"],
+						Delegate: vars["delegate"],
+					},
+				},
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		obj, err := stream.Recv()
+		if err != nil {
+			return nil, err
+		}
+
+		version = obj.Version
 	}
 
-	protoReq := &pb.ObjectInfo{
+	protoReq := pb.ObjectInfo{
 		ObjectId:        vars["object_id"],
 		Version:         version,
 		Delegate:        vars["delegate"],
 		RequestHostname: e.Conf.Slave.GrpcHostName,
 	}
 
-	return client.CreateObjectInfo(ctx, protoReq)
+	return client.CommitObjectsInfo(ctx, &pb.ObjectsInfo{[]*pb.ObjectInfo{&protoReq}})
 }
 
 func (e *EltonSlave) requestGetObject(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (pb.EltonService_GetObjectClient, error) {
@@ -382,12 +412,12 @@ func HTTPError(w http.ResponseWriter, err error) {
 	}
 }
 
-func (e *EltonSlave) GenerateObjectID(o *pb.ObjectName, stream pb.EltonService_GenerateObjectIDServer) error {
+func (e *EltonSlave) GenerateObjectsInfo(o *pb.ObjectsInfo, stream pb.EltonService_GenerateObjectsInfoServer) error {
 	return nil
 }
 
-func (e *EltonSlave) CreateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CreateObjectInfoServer) error {
-	return nil
+func (e *EltonSlave) CommitObjectsInfo(c context.Context, o *pb.ObjectsInfo) (r *pb.EmptyMessage, err error) {
+	return
 }
 
 func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {

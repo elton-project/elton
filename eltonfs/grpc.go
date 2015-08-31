@@ -16,7 +16,7 @@ type EltonFSGrpcServer struct {
 	Opts *Options
 	FS   *elton.FileSystem
 
-	server *grpc.Server
+	Server *grpc.Server
 }
 
 func NewEltonFSGrpcServer(opts *Options) (*EltonFSGrpcServer, error) {
@@ -32,13 +32,13 @@ func (e *EltonFSGrpcServer) Serve() error {
 	server := grpc.NewServer()
 	pb.RegisterEltonServiceServer(server, e)
 
-	e.server = server
+	e.Server = server
 	server.Serve(lis)
 	return nil
 }
 
 func (e *EltonFSGrpcServer) Stop() {
-	e.server.Stop()
+	e.Server.Stop()
 }
 
 func (e *EltonFSGrpcServer) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
@@ -58,12 +58,12 @@ func (e *EltonFSGrpcServer) GetObject(o *pb.ObjectInfo, stream pb.EltonService_G
 	return nil
 }
 
-func (e *EltonFSGrpcServer) GenerateObjectID(o *pb.ObjectName, stream pb.EltonService_GenerateObjectIDServer) error {
+func (e *EltonFSGrpcServer) GenerateObjectsInfo(o *pb.ObjectsInfo, stream pb.EltonService_GenerateObjectsInfoServer) error {
 	return nil
 }
 
-func (e *EltonFSGrpcServer) CreateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CreateObjectInfoServer) error {
-	return nil
+func (e *EltonFSGrpcServer) CommitObjectsInfo(c context.Context, o *pb.ObjectsInfo) (r *pb.EmptyMessage, err error) {
+	return
 }
 
 func (e *EltonFSGrpcServer) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {

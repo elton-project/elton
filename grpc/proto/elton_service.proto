@@ -3,15 +3,15 @@ syntax = "proto3";
 package proto;
 
 service EltonService {
-	rpc GenerateObjectID(ObjectName) returns (stream ObjectInfo) {};
-	rpc CreateObjectInfo(ObjectInfo) returns (stream ObjectInfo) {};
+	rpc GenerateObjectsInfo(ObjectsInfo) returns (stream ObjectInfo) {};
+	rpc CommitObjectsInfo(ObjectsInfo) returns (EmptyMessage) {};
 	rpc GetObject(ObjectInfo) returns (stream Object) {};
 	rpc PutObject(Object) returns (EmptyMessage) {};
 	rpc DeleteObject(ObjectInfo) returns (EmptyMessage) {};
 }
 
-message ObjectName {
-	repeated string names = 1;
+message ObjectsInfo {
+	repeated ObjectInfo objects = 1;
 }
 
 message ObjectInfo {

@@ -53,92 +53,76 @@ func (e *EltonMaster) Serve() error {
 	return nil
 }
 
-func (e *EltonMaster) GenerateObjectID(o *pb.ObjectName, stream pb.EltonService_GenerateObjectIDServer) error {
-	log.Printf("GenerateObjectID: %v", o)
-	list, err := e.Registry.GenerateObjectsInfo(o.Names)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
+func (e *EltonMaster) GenerateObjectsInfo(objects *pb.ObjectsInfo, stream pb.EltonService_GenerateObjectsInfoServer) error {
+	log.Printf("GenerateObjectsInfo: %v", objects)
+	for _, obj := range objects.GetObjects() {
+		o, err := e.generateObjectInfo(obj)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
 
-	for _, info := range list {
+		log.Printf("Return GenerateObjectsInfo: %v", o)
 		if err = stream.Send(
 			&pb.ObjectInfo{
-				ObjectId: info.ObjectID,
-				Delegate: info.Delegate},
+				ObjectId: o.ObjectID,
+				Version:  o.Version,
+				Delegate: o.Delegate,
+			},
 		); err != nil {
 			log.Println(err)
 			return err
 		}
 	}
 
-	log.Printf("Return GenerateObjectID: %v", list)
 	return nil
 }
 
-func (e *EltonMaster) CreateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CreateObjectInfoServer) error {
-	log.Printf("CreateObjectInfo: %v", o)
-	obj, err := e.createObjectInfo(o)
-	if err != nil {
-		log.Println(err)
-		return err
+func (e *EltonMaster) CommitObjectsInfo(c context.Context, o *pb.ObjectsInfo) (r *pb.EmptyMessage, err error) {
+	log.Printf("CommitObjectsInfo: %v", o)
+	for _, obj := range o.GetObjects() {
+		if err = e.Registry.SetObjectInfo(
+			elton.ObjectInfo{
+				ObjectID: obj.ObjectId,
+				Version:  obj.Version,
+				Delegate: obj.Delegate,
+			},
+			obj.RequestHostname,
+		); err != nil {
+			log.Println(err)
+			return
+		}
 	}
 
-	if err = e.Registry.SetObjectInfo(obj, o.RequestHostname); err != nil {
-		log.Println(err)
-		return err
-	}
-
-	if err = stream.Send(
-		&pb.ObjectInfo{
-			ObjectId:        obj.ObjectID,
-			Version:         obj.Version,
-			Delegate:        obj.Delegate,
-			RequestHostname: o.RequestHostname,
-		},
-	); err != nil {
-		log.Println(err)
-		return err
-	}
-
-	log.Printf("Return CreateObjectInfo: %v", obj)
-	return nil
+	return
 }
 
-func (e *EltonMaster) createObjectInfo(o *pb.ObjectInfo) (obj elton.ObjectInfo, err error) {
+func (e *EltonMaster) generateObjectInfo(o *pb.ObjectInfo) (elton.ObjectInfo, error) {
+	if o.Version == 0 {
+		return e.Registry.GenerateObjectInfo(o.ObjectId)
+	}
+
 	if o.Delegate == e.Conf.Master.Name {
-		obj, err = e.Registry.GetNewVersion(
+		return e.Registry.GetNewVersion(
 			elton.ObjectInfo{
 				ObjectID: o.ObjectId,
 				Version:  o.Version,
 				Delegate: o.Delegate,
 			},
 		)
-
-		if err != nil {
-			return
-		}
-
-		return
 	}
 
-	obj, err = e.createObjectInfoByOtherMaster(o)
-	if err != nil {
-		return
-
-	}
-
-	return
+	return e.generateObjectInfoByOtherMaster(o)
 }
 
-func (e *EltonMaster) createObjectInfoByOtherMaster(o *pb.ObjectInfo) (object elton.ObjectInfo, err error) {
+func (e *EltonMaster) generateObjectInfoByOtherMaster(o *pb.ObjectInfo) (object elton.ObjectInfo, err error) {
 	conn, err := e.getConnection(e.Masters[o.Delegate])
 	if err != nil {
 		return
 	}
 
 	client := pb.NewEltonServiceClient(conn)
-	stream, err := client.CreateObjectInfo(context.Background(), o)
+	stream, err := client.GenerateObjectsInfo(context.Background(), &pb.ObjectsInfo{[]*pb.ObjectInfo{o}})
 	if err != nil {
 		return
 	}
@@ -148,12 +132,11 @@ func (e *EltonMaster) createObjectInfoByOtherMaster(o *pb.ObjectInfo) (object el
 		return
 	}
 
-	object = elton.ObjectInfo{
+	return elton.ObjectInfo{
 		ObjectID: obj.ObjectId,
 		Version:  obj.Version,
 		Delegate: obj.Delegate,
-	}
-	return
+	}, nil
 }
 
 func (e *EltonMaster) getConnection(host string) (conn *grpc.ClientConn, err error) {
