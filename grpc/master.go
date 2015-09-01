@@ -53,48 +53,44 @@ func (e *EltonMaster) Serve() error {
 	return nil
 }
 
-func (e *EltonMaster) GenerateObjectsInfo(objects *pb.ObjectsInfo, stream pb.EltonService_GenerateObjectsInfoServer) error {
-	log.Printf("GenerateObjectsInfo: %v", objects)
-	for _, obj := range objects.GetObjects() {
-		o, err := e.generateObjectInfo(obj)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-
-		log.Printf("Return GenerateObjectsInfo: %v", o)
-		if err = stream.Send(
-			&pb.ObjectInfo{
-				ObjectId: o.ObjectID,
-				Version:  o.Version,
-				Delegate: o.Delegate,
-			},
-		); err != nil {
-			log.Println(err)
-			return err
-		}
+func (e *EltonMaster) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_GenerateObjectInfoServer) error {
+	log.Printf("GenerateObjectInfo: %v", o)
+	obj, err := e.generateObjectInfo(o)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
 
+	if err = stream.Send(
+		&pb.ObjectInfo{
+			ObjectId: obj.ObjectID,
+			Version:  obj.Version,
+			Delegate: obj.Delegate,
+		},
+	); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	log.Printf("Return GenerateObjectInfo: %v", obj)
 	return nil
 }
 
-func (e *EltonMaster) CommitObjectsInfo(c context.Context, o *pb.ObjectsInfo) (r *pb.EmptyMessage, err error) {
-	log.Printf("CommitObjectsInfo: %v", o)
-	for _, obj := range o.GetObjects() {
-		if err = e.Registry.SetObjectInfo(
-			elton.ObjectInfo{
-				ObjectID: obj.ObjectId,
-				Version:  obj.Version,
-				Delegate: obj.Delegate,
-			},
-			obj.RequestHostname,
-		); err != nil {
-			log.Println(err)
-			return
-		}
+func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb.EmptyMessage, error) {
+	log.Printf("CommitObjectInfo: %v", o)
+	if err := e.Registry.SetObjectInfo(
+		elton.ObjectInfo{
+			ObjectID: o.ObjectId,
+			Version:  o.Version,
+			Delegate: o.Delegate,
+		},
+		o.RequestHostname,
+	); err != nil {
+		log.Println(err)
+		return new(pb.EmptyMessage), err
 	}
 
-	return
+	return new(pb.EmptyMessage), nil
 }
 
 func (e *EltonMaster) generateObjectInfo(o *pb.ObjectInfo) (elton.ObjectInfo, error) {
@@ -122,7 +118,7 @@ func (e *EltonMaster) generateObjectInfoByOtherMaster(o *pb.ObjectInfo) (object 
 	}
 
 	client := pb.NewEltonServiceClient(conn)
-	stream, err := client.GenerateObjectsInfo(context.Background(), &pb.ObjectsInfo{[]*pb.ObjectInfo{o}})
+	stream, err := client.GenerateObjectInfo(context.Background(), o)
 	if err != nil {
 		return
 	}
@@ -136,7 +132,7 @@ func (e *EltonMaster) generateObjectInfoByOtherMaster(o *pb.ObjectInfo) (object 
 		ObjectID: obj.ObjectId,
 		Version:  obj.Version,
 		Delegate: obj.Delegate,
-	}, nil
+	}, err
 }
 
 func (e *EltonMaster) getConnection(host string) (conn *grpc.ClientConn, err error) {
@@ -220,31 +216,31 @@ func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 	return nil
 }
 
-func (e *EltonMaster) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
-	return
+func (e *EltonMaster) PutObject(c context.Context, o *pb.Object) (*pb.EmptyMessage, error) {
+	return new(pb.EmptyMessage), nil
 }
 
-func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {
+func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (*pb.EmptyMessage, error) {
 	log.Printf("DeleteObject: %v", o)
-	if err = e.Registry.DeleteObjectVersions(o.ObjectId); err != nil {
+	if err := e.Registry.DeleteObjectVersions(o.ObjectId); err != nil {
 		log.Println(err)
-		return
+		return new(pb.EmptyMessage), err
 	}
 
 	if o.Delegate == e.Conf.Master.Name {
-		if err = e.Registry.DeleteObjectInfo(o.ObjectId); err != nil {
+		if err := e.Registry.DeleteObjectInfo(o.ObjectId); err != nil {
 			log.Println(err)
-			return
+			return new(pb.EmptyMessage), err
 		}
 	} else {
 		conn, err := e.getConnection(e.Masters[o.Delegate])
 		if err != nil {
-			return r, err
+			return new(pb.EmptyMessage), err
 		}
 
 		client := pb.NewEltonServiceClient(conn)
 		_, err = client.DeleteObject(context.Background(), o)
 	}
 
-	return
+	return new(pb.EmptyMessage), nil
 }

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -112,20 +114,16 @@ func (fs *eltonFS) definedNode(name string, t time.Time) *eltonNode {
 }
 
 func (fs *eltonFS) newNode(name string, t time.Time) (*eltonNode, error) {
-	obj, err := fs.generateObjectID(name)
-	if err != nil {
-		return nil, err
-	}
-
 	n := &eltonNode{
 		Node:     nodefs.NewDefaultNode(),
 		basePath: fs.upper,
 		fs:       fs,
-		file: &eltonFile{
-			key:      obj.ObjectId,
-			delegate: obj.Delegate,
-		},
+		file:     new(eltonFile),
 	}
+
+	hasher := sha256.New()
+	hasher.Write([]byte(fmt.Sprintf("%s%d", name, t.Nanosecond())))
+	n.file.key = string(hex.EncodeToString(hasher.Sum(nil)))
 
 	n.info.SetTimes(&t, &t, &t)
 	n.info.Mode = fuse.S_IFREG | 0600
@@ -259,21 +257,18 @@ func (fs *eltonFS) createMountInfo(p string) (obj *pb.ObjectInfo, err error) {
 		return
 	}
 
+	obj.RequestHostname = fmt.Sprintf("%s:%d", fs.options.HostName, fs.options.Port)
 	client := pb.NewEltonServiceClient(fs.connection)
-	_, err = client.CommitObjectsInfo(context.Background(), &pb.ObjectsInfo{[]*pb.ObjectInfo{obj}})
+	_, err = client.CommitObjectInfo(context.Background(), obj)
 	return
 }
 
 func (fs *eltonFS) generateObjectID(p string) (obj *pb.ObjectInfo, err error) {
 	client := pb.NewEltonServiceClient(fs.connection)
-	stream, err := client.GenerateObjectsInfo(
+	stream, err := client.GenerateObjectInfo(
 		context.Background(),
-		&pb.ObjectsInfo{
-			[]*pb.ObjectInfo{
-				&pb.ObjectInfo{
-					ObjectId: p,
-				},
-			},
+		&pb.ObjectInfo{
+			ObjectId: p,
 		},
 	)
 	if err != nil {

@@ -58,11 +58,11 @@ func (e *EltonFSGrpcServer) GetObject(o *pb.ObjectInfo, stream pb.EltonService_G
 	return nil
 }
 
-func (e *EltonFSGrpcServer) GenerateObjectsInfo(o *pb.ObjectsInfo, stream pb.EltonService_GenerateObjectsInfoServer) error {
+func (e *EltonFSGrpcServer) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_GenerateObjectInfoServer) error {
 	return nil
 }
 
-func (e *EltonFSGrpcServer) CommitObjectsInfo(c context.Context, o *pb.ObjectsInfo) (r *pb.EmptyMessage, err error) {
+func (e *EltonFSGrpcServer) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {
 	return
 }
 

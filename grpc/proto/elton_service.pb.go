@@ -9,7 +9,6 @@ It is generated from these files:
 	elton_service.proto
 
 It has these top-level messages:
-	ObjectsInfo
 	ObjectInfo
 	Object
 	EmptyMessage
@@ -29,21 +28,6 @@ var _ grpc.ClientConn
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto1.Marshal
-
-type ObjectsInfo struct {
-	Objects []*ObjectInfo `protobuf:"bytes,1,rep,name=objects" json:"objects,omitempty"`
-}
-
-func (m *ObjectsInfo) Reset()         { *m = ObjectsInfo{} }
-func (m *ObjectsInfo) String() string { return proto1.CompactTextString(m) }
-func (*ObjectsInfo) ProtoMessage()    {}
-
-func (m *ObjectsInfo) GetObjects() []*ObjectInfo {
-	if m != nil {
-		return m.Objects
-	}
-	return nil
-}
 
 type ObjectInfo struct {
 	ObjectId        string `protobuf:"bytes,1,opt,name=object_id" json:"object_id,omitempty"`
@@ -77,8 +61,8 @@ func init() {
 // Client API for EltonService service
 
 type EltonServiceClient interface {
-	GenerateObjectsInfo(ctx context.Context, in *ObjectsInfo, opts ...grpc.CallOption) (EltonService_GenerateObjectsInfoClient, error)
-	CommitObjectsInfo(ctx context.Context, in *ObjectsInfo, opts ...grpc.CallOption) (*EmptyMessage, error)
+	GenerateObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_GenerateObjectInfoClient, error)
+	CommitObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error)
 	GetObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_GetObjectClient, error)
 	PutObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*EmptyMessage, error)
 	DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error)
@@ -92,12 +76,12 @@ func NewEltonServiceClient(cc *grpc.ClientConn) EltonServiceClient {
 	return &eltonServiceClient{cc}
 }
 
-func (c *eltonServiceClient) GenerateObjectsInfo(ctx context.Context, in *ObjectsInfo, opts ...grpc.CallOption) (EltonService_GenerateObjectsInfoClient, error) {
-	stream, err := grpc.NewClientStream(ctx, &_EltonService_serviceDesc.Streams[0], c.cc, "/proto.EltonService/GenerateObjectsInfo", opts...)
+func (c *eltonServiceClient) GenerateObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_GenerateObjectInfoClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_EltonService_serviceDesc.Streams[0], c.cc, "/proto.EltonService/GenerateObjectInfo", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &eltonServiceGenerateObjectsInfoClient{stream}
+	x := &eltonServiceGenerateObjectInfoClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -107,16 +91,16 @@ func (c *eltonServiceClient) GenerateObjectsInfo(ctx context.Context, in *Object
 	return x, nil
 }
 
-type EltonService_GenerateObjectsInfoClient interface {
+type EltonService_GenerateObjectInfoClient interface {
 	Recv() (*ObjectInfo, error)
 	grpc.ClientStream
 }
 
-type eltonServiceGenerateObjectsInfoClient struct {
+type eltonServiceGenerateObjectInfoClient struct {
 	grpc.ClientStream
 }
 
-func (x *eltonServiceGenerateObjectsInfoClient) Recv() (*ObjectInfo, error) {
+func (x *eltonServiceGenerateObjectInfoClient) Recv() (*ObjectInfo, error) {
 	m := new(ObjectInfo)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -124,9 +108,9 @@ func (x *eltonServiceGenerateObjectsInfoClient) Recv() (*ObjectInfo, error) {
 	return m, nil
 }
 
-func (c *eltonServiceClient) CommitObjectsInfo(ctx context.Context, in *ObjectsInfo, opts ...grpc.CallOption) (*EmptyMessage, error) {
+func (c *eltonServiceClient) CommitObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error) {
 	out := new(EmptyMessage)
-	err := grpc.Invoke(ctx, "/proto.EltonService/CommitObjectsInfo", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/proto.EltonService/CommitObjectInfo", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -186,8 +170,8 @@ func (c *eltonServiceClient) DeleteObject(ctx context.Context, in *ObjectInfo, o
 // Server API for EltonService service
 
 type EltonServiceServer interface {
-	GenerateObjectsInfo(*ObjectsInfo, EltonService_GenerateObjectsInfoServer) error
-	CommitObjectsInfo(context.Context, *ObjectsInfo) (*EmptyMessage, error)
+	GenerateObjectInfo(*ObjectInfo, EltonService_GenerateObjectInfoServer) error
+	CommitObjectInfo(context.Context, *ObjectInfo) (*EmptyMessage, error)
 	GetObject(*ObjectInfo, EltonService_GetObjectServer) error
 	PutObject(context.Context, *Object) (*EmptyMessage, error)
 	DeleteObject(context.Context, *ObjectInfo) (*EmptyMessage, error)
@@ -197,33 +181,33 @@ func RegisterEltonServiceServer(s *grpc.Server, srv EltonServiceServer) {
 	s.RegisterService(&_EltonService_serviceDesc, srv)
 }
 
-func _EltonService_GenerateObjectsInfo_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ObjectsInfo)
+func _EltonService_GenerateObjectInfo_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ObjectInfo)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(EltonServiceServer).GenerateObjectsInfo(m, &eltonServiceGenerateObjectsInfoServer{stream})
+	return srv.(EltonServiceServer).GenerateObjectInfo(m, &eltonServiceGenerateObjectInfoServer{stream})
 }
 
-type EltonService_GenerateObjectsInfoServer interface {
+type EltonService_GenerateObjectInfoServer interface {
 	Send(*ObjectInfo) error
 	grpc.ServerStream
 }
 
-type eltonServiceGenerateObjectsInfoServer struct {
+type eltonServiceGenerateObjectInfoServer struct {
 	grpc.ServerStream
 }
 
-func (x *eltonServiceGenerateObjectsInfoServer) Send(m *ObjectInfo) error {
+func (x *eltonServiceGenerateObjectInfoServer) Send(m *ObjectInfo) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _EltonService_CommitObjectsInfo_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(ObjectsInfo)
+func _EltonService_CommitObjectInfo_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ObjectInfo)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(EltonServiceServer).CommitObjectsInfo(ctx, in)
+	out, err := srv.(EltonServiceServer).CommitObjectInfo(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -280,8 +264,8 @@ var _EltonService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*EltonServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CommitObjectsInfo",
-			Handler:    _EltonService_CommitObjectsInfo_Handler,
+			MethodName: "CommitObjectInfo",
+			Handler:    _EltonService_CommitObjectInfo_Handler,
 		},
 		{
 			MethodName: "PutObject",
@@ -294,8 +278,8 @@ var _EltonService_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GenerateObjectsInfo",
-			Handler:       _EltonService_GenerateObjectsInfo_Handler,
+			StreamName:    "GenerateObjectInfo",
+			Handler:       _EltonService_GenerateObjectInfo_Handler,
 			ServerStreams: true,
 		},
 		{
