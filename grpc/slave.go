@@ -425,7 +425,9 @@ func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjec
 
 	if err = stream.Send(
 		&pb.Object{
-			Body: base64.StdEncoding.EncodeToString(body),
+			ObjectId: o.ObjectId,
+			Version:  o.Version,
+			Body:     base64.StdEncoding.EncodeToString(body),
 		},
 	); err != nil {
 		log.Println(err)
@@ -437,7 +439,16 @@ func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjec
 }
 
 func (e *EltonSlave) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
-	return
+	data, err := base64.StdEncoding.DecodeString(o.Body)
+	if err != nil {
+		log.Println(err)
+		return new(pb.EmptyMessage), err
+	}
+
+	if err = e.FS.Create(o.ObjectId, o.Version, data); err != nil {
+		return new(pb.EmptyMessage), err
+	}
+	return new(pb.EmptyMessage), err
 }
 
 func (e *EltonSlave) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {

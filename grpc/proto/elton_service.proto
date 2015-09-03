@@ -18,7 +18,9 @@ message ObjectInfo {
 }
 
 message Object {
-	string body = 1;
+	string object_id = 1;
+	uint64 version = 2;
+	string body = 3;
 }
 
 message EmptyMessage {

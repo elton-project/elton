@@ -90,7 +90,42 @@ func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb
 		return new(pb.EmptyMessage), err
 	}
 
+	// TODO: キューマネージャとかでやる方がいいと思う
+	go func() {
+		err := e.doBackup(o)
+		if err != nil {
+			err = e.doBackup(o)
+		}
+	}()
+
 	return new(pb.EmptyMessage), nil
+}
+
+func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
+	log.Printf("doBackup(): %v", o)
+	conn, err := grpc.Dial(o.RequestHostname)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	client := pb.NewEltonServiceClient(conn)
+	stream, err := client.GetObject(context.Background(), o)
+	if err != nil {
+		return err
+	}
+
+	obj, err := stream.Recv()
+
+	bconn, err := grpc.Dial(e.Conf.Backup.HostName)
+	if err != nil {
+		return err
+	}
+	defer bconn.Close()
+
+	bclient := pb.NewEltonServiceClient(bconn)
+	_, err = bclient.PutObject(context.Background(), obj)
+	return err
 }
 
 func (e *EltonMaster) generateObjectInfo(o *pb.ObjectInfo) (elton.ObjectInfo, error) {
@@ -164,7 +199,7 @@ func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 	conn, err := e.getConnection(host)
 	if err != nil {
 		log.Println(err)
-		return err
+		conn, err = grpc.Dial(e.Conf.Backup.HostName)
 	}
 
 	client := pb.NewEltonServiceClient(conn)
@@ -179,7 +214,8 @@ func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 func (e *EltonMaster) getObjectFromOtherMaster(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
 	conn, err := e.getConnection(e.Masters[o.Delegate])
 	if err != nil {
-		return err
+		log.Println(err)
+		conn, err = grpc.Dial(e.Conf.Backup.HostName)
 	}
 
 	client := pb.NewEltonServiceClient(conn)

@@ -7,6 +7,7 @@ import (
 type Config struct {
 	Master   MasterConfig   `toml:"master"`
 	Slave    SlaveConfig    `toml:"slave"`
+	Backup   BackupConfig   `toml:"backup"`
 	Masters  []MasterConfig `toml:"masters"`
 	Database DBConfig       `toml:"database"`
 }
@@ -21,6 +22,10 @@ type SlaveConfig struct {
 	HttpHostName   string `toml:"http_hostname"`
 	MasterHostName string `toml:"master_hostname"`
 	Dir            string `toml:"dir"`
+}
+
+type BackupConfig struct {
+	HostName string `toml:"hostname"`
 }
 
 type DBConfig struct {

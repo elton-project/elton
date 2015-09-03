@@ -41,7 +41,9 @@ func (m *ObjectInfo) String() string { return proto1.CompactTextString(m) }
 func (*ObjectInfo) ProtoMessage()    {}
 
 type Object struct {
-	Body string `protobuf:"bytes,1,opt,name=body" json:"body,omitempty"`
+	ObjectId string `protobuf:"bytes,1,opt,name=object_id" json:"object_id,omitempty"`
+	Version  uint64 `protobuf:"varint,2,opt,name=version" json:"version,omitempty"`
+	Body     string `protobuf:"bytes,3,opt,name=body" json:"body,omitempty"`
 }
 
 func (m *Object) Reset()         { *m = Object{} }
