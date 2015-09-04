@@ -1,4 +1,0 @@
-[elton]
-hostname = "{{.IPADDR}}"
-port = "56789"
-dir = "/tmp"
