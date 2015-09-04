@@ -2,6 +2,10 @@ TARGETDIR = bin
 
 all: client eltonfs
 
+binary:
+	@docker build -t eltonbuilder .
+	@docker run --rm -it --privileged -v $(CURDIR)/bin:/elton/bin eltonbuilder
+
 client:
 	@$(MAKE) -C cmd
 
