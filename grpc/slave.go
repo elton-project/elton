@@ -62,7 +62,7 @@ func (e *EltonSlave) Serve() {
 }
 
 func (e *EltonSlave) RegisterEltonServiceHandlerFromEndpoint(ctx context.Context, router *mux.Router, endpoint string) (err error) {
-	conn, err := grpc.Dial(endpoint)
+	conn, err := grpc.Dial(endpoint, []grpc.DialOption{grpc.WithInsecure()}...)
 	if err != nil {
 		return err
 	}

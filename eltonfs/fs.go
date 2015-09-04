@@ -56,7 +56,7 @@ func NewEltonFSRoot(target string, opts *Options) (root nodefs.Node, err error) 
 }
 
 func NewEltonFS(lower, upper, eltonURL string, opts *Options, server *EltonFSGrpcServer) (*eltonFS, error) {
-	conn, err := grpc.Dial(eltonURL)
+	conn, err := grpc.Dial(eltonURL, []grpc.DialOption{grpc.WithInsecure()}...)
 	if err != nil {
 		return nil, err
 	}

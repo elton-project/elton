@@ -12,6 +12,8 @@ import (
 	pb "./proto"
 )
 
+var opts []grpc.DialOption
+
 type EltonMaster struct {
 	Conf        elton.Config
 	Registry    *elton.Registry
@@ -20,6 +22,7 @@ type EltonMaster struct {
 }
 
 func NewEltonMaster(conf elton.Config) (*EltonMaster, error) {
+	opts = append(opts, grpc.WithInsecure())
 	registry, err := elton.NewRegistry(conf)
 	if err != nil {
 		return nil, err
@@ -103,7 +106,7 @@ func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb
 
 func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
 	log.Printf("doBackup(): %v", o)
-	conn, err := grpc.Dial(o.RequestHostname)
+	conn, err := grpc.Dial(o.RequestHostname, opts...)
 	if err != nil {
 		return err
 	}
@@ -117,7 +120,8 @@ func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
 
 	obj, err := stream.Recv()
 
-	bconn, err := grpc.Dial(e.Conf.Backup.HostName)
+	log.Println(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port))
+	bconn, err := grpc.Dial(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port), opts...)
 	if err != nil {
 		return err
 	}
@@ -173,7 +177,7 @@ func (e *EltonMaster) generateObjectInfoByOtherMaster(o *pb.ObjectInfo) (object 
 func (e *EltonMaster) getConnection(host string) (conn *grpc.ClientConn, err error) {
 	conn = e.Connections[host]
 	if conn == nil {
-		conn, err = grpc.Dial(host)
+		conn, err = grpc.Dial(host, opts...)
 		if err != nil {
 			return conn, fmt.Errorf("Unknown host: %s", host)
 		}
@@ -199,7 +203,7 @@ func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 	conn, err := e.getConnection(host)
 	if err != nil {
 		log.Println(err)
-		conn, err = grpc.Dial(e.Conf.Backup.HostName)
+		conn, err = grpc.Dial(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port), opts...)
 	}
 
 	client := pb.NewEltonServiceClient(conn)
@@ -214,8 +218,7 @@ func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 func (e *EltonMaster) getObjectFromOtherMaster(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
 	conn, err := e.getConnection(e.Masters[o.Delegate])
 	if err != nil {
-		log.Println(err)
-		conn, err = grpc.Dial(e.Conf.Backup.HostName)
+		conn, err = grpc.Dial(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port), opts...)
 	}
 
 	client := pb.NewEltonServiceClient(conn)
