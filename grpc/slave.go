@@ -25,29 +25,32 @@ import (
 const metadataHeaderPrefix = "Grpc-Metadata-"
 
 type EltonSlave struct {
-	FS   *elton.FileSystem
-	Conf elton.Config
+	FS     *elton.FileSystem
+	Conf   elton.Config
+	backup bool
 }
 
-func NewEltonSlave(conf elton.Config) *EltonSlave {
-	return &EltonSlave{FS: elton.NewFileSystem(conf.Slave.Dir), Conf: conf}
+func NewEltonSlave(conf elton.Config, backup bool) *EltonSlave {
+	return &EltonSlave{FS: elton.NewFileSystem(conf.Slave.Dir), Conf: conf, backup: backup}
 }
 
 func (e *EltonSlave) Serve() {
-	go func() {
-		ctx := context.Background()
-		ctx, cansel := context.WithCancel(ctx)
-		defer cansel()
+	if !e.backup {
+		go func() {
+			ctx := context.Background()
+			ctx, cansel := context.WithCancel(ctx)
+			defer cansel()
 
-		router := mux.NewRouter()
-		if err := e.RegisterEltonServiceHandlerFromEndpoint(ctx, router, e.Conf.Slave.MasterHostName); err != nil {
-			log.Fatal(err)
-		}
+			router := mux.NewRouter()
+			if err := e.RegisterEltonServiceHandlerFromEndpoint(ctx, router, fmt.Sprintf("%s:%d", e.Conf.Slave.MasterName, e.Conf.Slave.MasterPort)); err != nil {
+				log.Fatal(err)
+			}
 
-		log.Fatal(http.ListenAndServe(e.Conf.Slave.HttpHostName, router))
-	}()
+			log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", e.Conf.Slave.HttpPort), router))
+		}()
+	}
 
-	lis, err := net.Listen("tcp", e.Conf.Slave.GrpcHostName)
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", e.Conf.Slave.GrpcPort))
 	if err != nil {
 		log.Fatal(err)
 	}

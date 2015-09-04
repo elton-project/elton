@@ -39,6 +39,10 @@ var commandServer = cli.Command{
 			Value: "config.tml",
 			Usage: "config file",
 		},
+		cli.BoolFlag{
+			Name:  "backup",
+			Usage: "backup flag",
+		},
 	},
 }
 
@@ -68,7 +72,7 @@ func doSlave(c *cli.Context) {
 		log.Fatal(err)
 	}
 
-	server := grpc.NewEltonSlave(conf)
+	server := grpc.NewEltonSlave(conf, c.Bool("backup"))
 
 	server.Serve()
 }
