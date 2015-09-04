@@ -1,7 +1,12 @@
 package api
 
 import (
+	"bytes"
+	"io/ioutil"
+	"text/template"
+
 	"github.com/BurntSushi/toml"
+	"github.com/higanworks/envmap"
 )
 
 type Config struct {
@@ -13,31 +18,42 @@ type Config struct {
 }
 
 type MasterConfig struct {
-	Name     string `toml:"name"`
-	HostName string `toml:"hostname"`
+	Name string `toml:"name"`
+	Port uint64 `toml:"port"`
 }
 
 type SlaveConfig struct {
-	GrpcHostName   string `toml:"grpc_hostname"`
-	HttpHostName   string `toml:"http_hostname"`
-	MasterHostName string `toml:"master_hostname"`
-	Dir            string `toml:"dir"`
+	Name       string `toml:"name"`
+	GrpcPort   uint64 `toml:"grpc_port"`
+	HttpPort   uint64 `toml:"http_port"`
+	MasterName string `toml:"master_name"`
+	MasterPort uint64 `toml:"master_port"`
+	Dir        string `toml:"dir"`
 }
 
 type BackupConfig struct {
-	HostName string `toml:"hostname"`
+	Name string `toml:"name"`
+	Port uint64 `toml:"port"`
 }
 
 type DBConfig struct {
 	DBPath string `toml:"dbpath"`
 }
 
-func Load(path string) (Config, error) {
-	var conf Config
-	_, err := toml.DecodeFile(path, &conf)
+func Load(path string) (conf Config, err error) {
+	envs := envmap.All()
+	rawdata, err := ioutil.ReadFile(path)
 	if err != nil {
-		return Config{}, err
+		return
 	}
 
-	return conf, nil
+	tmpl := template.Must(template.New("config").Parse(string(rawdata)))
+
+	var buf bytes.Buffer
+	if err = tmpl.Execute(&buf, envs); err != nil {
+		return
+	}
+
+	_, err = toml.DecodeReader(&buf, &conf)
+	return
 }
