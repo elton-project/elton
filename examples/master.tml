@@ -1,0 +1,14 @@
+[master]
+name = "{{.MASTER}}"
+port = 12345
+
+[[masters]]
+name = "{{.MASTERS1}}"
+port = 12345
+
+[backup]
+name = "{{.BACKUP}}"
+port = 34567
+
+[database]
+dbpath = "/tmp/elton.db"

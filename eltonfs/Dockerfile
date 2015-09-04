@@ -1,13 +1,15 @@
-FROM centos:centos7
+FROM centos:latest
+MAINTAINER Taku MIZUNO <dev@nashio-lab.info>
 
-RUN yum -y upgrade && yum -y install golang fuse fuse-devel git
+RUN yum -y upgrade && yum -y install golang fuse fuse-devel git make && yum clean all
 
 RUN mkdir -p /vendor/src
 ENV GOPATH /vendor
-ENV PATH $PATH:/vendor/bin
 
-COPY . /vendor/src/eltonfs
-WORKDIR /vendor/src/eltonfs
-RUN go get -d -v && go install
+COPY . /eltonfs
+WORKDIR /eltonfs
+RUN make eltonfs
 
-RUN mkdir -p /eltonfs
+WORKDIR /eltonfs/bin
+RUN mkdir upper lower mountpoint
+#RUN ./eltonfs elton1:12345 --upperdir=upper --lowerdir=lower --host=eltonfs mountpoint & 

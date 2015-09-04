@@ -2,10 +2,10 @@
 set -e
 
 OPTION="$1"
-if [ "${OPTION}" = "backup" ]; then
-  make backupconfig
-  bin/elton server -f config.tml --backup
+if [ "${OPTION}" = "master" ]; then
+  bin/elton master -f examples/master.tml
+elif [ "${OPTION}" = "backup" ]; then
+  bin/elton slave -f examples/slave.tml --backup
 else
-  make config
-  bin/elton server -f config.tml
+  bin/elton slave -f examples/slave.tml
 fi
