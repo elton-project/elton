@@ -24,7 +24,7 @@ func NewEltonFSGrpcServer(opts *Options) (*EltonFSGrpcServer, error) {
 }
 
 func (e *EltonFSGrpcServer) Serve() error {
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", e.Opts.HostName, e.Opts.Port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", e.Opts.Port))
 	if err != nil {
 		return err
 	}

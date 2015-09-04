@@ -220,7 +220,7 @@ func (e *EltonSlave) requestCommitObjectInfo(ctx context.Context, client pb.Elto
 		ObjectId:        vars["object_id"],
 		Version:         version,
 		Delegate:        vars["delegate"],
-		RequestHostname: e.Conf.Slave.GrpcHostName,
+		RequestHostname: fmt.Sprintf("%s:%d", e.Conf.Slave.Name, e.Conf.Slave.GrpcPort),
 	}
 
 	return client.CommitObjectInfo(ctx, &protoReq)
@@ -238,7 +238,7 @@ func (e *EltonSlave) requestGetObject(ctx context.Context, client pb.EltonServic
 		ObjectId:        vars["object_id"],
 		Version:         version,
 		Delegate:        vars["delegate"],
-		RequestHostname: e.Conf.Slave.GrpcHostName,
+		RequestHostname: fmt.Sprintf("%s:%d", e.Conf.Slave.Name, e.Conf.Slave.GrpcPort),
 	}
 
 	return client.GetObject(ctx, protoReq)
@@ -256,7 +256,7 @@ func (e *EltonSlave) requestDeleteObject(ctx context.Context, client pb.EltonSer
 		ObjectId:        vars["object_id"],
 		Version:         version,
 		Delegate:        vars["delegate"],
-		RequestHostname: e.Conf.Slave.GrpcHostName,
+		RequestHostname: fmt.Sprintf("%s:%d", e.Conf.Slave.Name, e.Conf.Slave.GrpcPort),
 	}
 
 	return client.DeleteObject(ctx, protoReq)

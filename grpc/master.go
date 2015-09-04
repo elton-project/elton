@@ -30,7 +30,7 @@ func NewEltonMaster(conf elton.Config) (*EltonMaster, error) {
 
 	masters := make(map[string]string)
 	for _, master := range conf.Masters {
-		masters[master.Name] = master.HostName
+		masters[master.Name] = fmt.Sprintf("%s:%d", master.Name, master.Port)
 	}
 
 	return &EltonMaster{Conf: conf, Registry: registry, Masters: masters, Connections: make(map[string]*grpc.ClientConn)}, nil
@@ -44,7 +44,7 @@ func (e *EltonMaster) Serve() error {
 		}
 	}()
 
-	lis, err := net.Listen("tcp", e.Conf.Master.HostName)
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", e.Conf.Master.Port))
 	if err != nil {
 		return err
 	}
