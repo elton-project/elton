@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:latest
 MAINTAINER Taku MIZUNO <dev@nashio-lab.info>
 
 RUN yum -y upgrade && yum -y install golang git make tar curl gcc-c++ && yum clean all

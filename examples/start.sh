@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+export GOMAXPROCS=4
+
 OPTION="$1"
 if [ "${OPTION}" = "master" ]; then
   bin/elton master -f examples/master.tml
