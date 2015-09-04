@@ -423,6 +423,7 @@ func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjec
 	log.Printf("GetObject: %v", o)
 	body, err := e.FS.Read(o.ObjectId, o.Version)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -442,15 +443,15 @@ func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjec
 }
 
 func (e *EltonSlave) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
+	log.Printf("PutObject: %v", o)
 	data, err := base64.StdEncoding.DecodeString(o.Body)
 	if err != nil {
 		log.Println(err)
 		return new(pb.EmptyMessage), err
 	}
 
-	if err = e.FS.Create(o.ObjectId, o.Version, data); err != nil {
-		return new(pb.EmptyMessage), err
-	}
+	err = e.FS.Create(o.ObjectId, o.Version, data)
+	log.Println(err)
 	return new(pb.EmptyMessage), err
 }
 

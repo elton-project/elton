@@ -49,7 +49,9 @@ func (e *EltonFSGrpcServer) GetObject(o *pb.ObjectInfo, stream pb.EltonService_G
 
 	if err = stream.Send(
 		&pb.Object{
-			Body: base64.StdEncoding.EncodeToString(body),
+			ObjectId: o.ObjectId,
+			Version:  o.Version,
+			Body:     base64.StdEncoding.EncodeToString(body),
 		},
 	); err != nil {
 		return err

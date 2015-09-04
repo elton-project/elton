@@ -96,9 +96,10 @@ func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb
 	// TODO: キューマネージャとかでやる方がいいと思う
 	go func() {
 		err := e.doBackup(o)
-		if err != nil {
-			err = e.doBackup(o)
-		}
+		log.Println(err)
+		// if err != nil {
+		// 	err = e.doBackup(o)
+		// }
 	}()
 
 	return new(pb.EmptyMessage), nil
@@ -244,7 +245,6 @@ func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 		},
 		o.RequestHostname,
 	); err != nil {
-		log.Println(err)
 		return err
 	}
 
@@ -274,6 +274,7 @@ func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (*pb.Emp
 	} else {
 		conn, err := e.getConnection(e.Masters[o.Delegate])
 		if err != nil {
+			log.Println(err)
 			return new(pb.EmptyMessage), err
 		}
 
