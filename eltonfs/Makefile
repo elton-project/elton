@@ -14,7 +14,10 @@ build: $(FS)
 install:
 	go install
 
+test: deps
+	go test
+
 clean:
 	$(RM) $(FS)
 
-.PHONY: all $(FS) deps build install clean
+.PHONY: all $(FS) test deps build install clean

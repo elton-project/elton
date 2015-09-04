@@ -15,7 +15,7 @@ RUN go get -d -v && go install
 
 COPY . /elton
 WORKDIR /elton
-RUN make
+RUN make client
 RUN chmod +x examples/start.sh
 
 ENTRYPOINT ["examples/start.sh"]
