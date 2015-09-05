@@ -26,8 +26,8 @@ type eltonNode struct {
 }
 
 func (n *eltonNode) OnMount(c *nodefs.FileSystemConnector) {
-	n.fs.newEltonTree()
 	go n.fs.Server.Serve()
+	n.fs.newEltonTree()
 }
 
 func (n *eltonNode) OnUnmount() {

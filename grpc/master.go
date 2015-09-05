@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os/exec"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -57,6 +58,8 @@ func (e *EltonMaster) Serve() error {
 }
 
 func (e *EltonMaster) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_GenerateObjectInfoServer) error {
+	out, _ := exec.Command("cat", "/etc/hosts").Output()
+	log.Println(string(out))
 	log.Printf("GenerateObjectInfo: %v", o)
 	obj, err := e.generateObjectInfo(o)
 	if err != nil {

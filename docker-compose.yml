@@ -31,3 +31,13 @@ backup:
     - SLAVE=elton_slave1_1
     - MASTER=elton_elton1_1
   command: examples/start.sh backup
+
+#fs:
+#  image: eltonfs:latest
+#  ports:
+#    - 51823
+#  links:
+#    - elton1:elton1
+#  command: /bin/bash
+#  privileged: true
+
