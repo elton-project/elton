@@ -1,7 +1,7 @@
 FROM centos:latest
 MAINTAINER Taku MIZUNO <dev@nashio-lab.info>
 
-RUN yum -y upgrade && yum -y install golang fuse fuse-devel git make tar curl gcc-c++ && yum clean all
+RUN yum -y upgrade && yum -y install epel-release && yum -y install golang fuse fuse-devel git make tar curl gcc-c++ munin-node && yum clean all
 
 RUN mkdir -p /vendor/src
 ENV GOPATH /vendor
@@ -11,10 +11,13 @@ RUN tar zxvf protobuf-cpp-3.0.0-beta-1.tar.gz
 RUN cd protobuf-3.0.0-beta-1 && ./configure && make && make install
 RUN rm -rf protobuf*
 
+ADD run.sh /usr/local/bin/run
+RUN chmod +x /usr/local/bin/run
+
 COPY . /eltonfs
 WORKDIR /eltonfs
 RUN make eltonfs
 
 WORKDIR /eltonfs/bin
 RUN mkdir upper lower mountpoint
-#RUN ./eltonfs elton1:12345 --upperdir=upper --lowerdir=lower --host=eltonfs mountpoint & 
+CMD ["/usr/local/bin/run"]

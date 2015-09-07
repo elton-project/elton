@@ -1,7 +1,7 @@
 FROM centos:latest
 MAINTAINER Taku MIZUNO <dev@nashio-lab.info>
 
-RUN yum -y upgrade && yum -y install golang git make tar curl gcc-c++ && yum clean all
+RUN yum -y upgrade && yum -y install epel-release && yum -y install golang git make tar curl gcc-c++ munin-node && yum clean all
 
 RUN mkdir -p /vendor/src
 ENV GOPATH /vendor

@@ -15,6 +15,7 @@ eltonfs:
 build:
 	docker build -f cmd/Dockerfile -t elton .
 	docker build -f eltonfs/Dockerfile -t eltonfs .
+	docker build -f munin/Dockerfile -t munin munin
 
 test:
 	$(MAKE) -C api test
