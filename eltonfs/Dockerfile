@@ -11,7 +11,7 @@ RUN tar zxvf protobuf-cpp-3.0.0-beta-1.tar.gz
 RUN cd protobuf-3.0.0-beta-1 && ./configure && make && make install
 RUN rm -rf protobuf*
 
-ADD run.sh /usr/local/bin/run
+ADD eltonfs/run.sh /usr/local/bin/run
 RUN chmod +x /usr/local/bin/run
 
 COPY . /eltonfs
