@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -31,7 +30,6 @@ func (f *eltonFile) InnerFile() nodefs.File {
 }
 
 func (f *eltonFile) Flush() fuse.Status {
-	log.Println("Flush")
 	code := f.File.Flush()
 	if !code.Ok() {
 		return code
@@ -45,12 +43,10 @@ func (f *eltonFile) Flush() fuse.Status {
 }
 
 func (f *eltonFile) Read(buf []byte, off int64) (res fuse.ReadResult, code fuse.Status) {
-	log.Println("Read")
 	return f.File.Read(buf, off)
 }
 
 func (f *eltonFile) Write(data []byte, off int64) (uint32, fuse.Status) {
-	log.Println("Write: ", data)
 	if f.key == ELTONFS_COMMIT_NAME {
 		f.commit()
 	}
@@ -148,7 +144,6 @@ func (f *eltonFile) moveFile(n *eltonNode, obj *pb.ObjectInfo) error {
 	dir := filepath.Dir(p)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0700); err != nil {
-			log.Println(err)
 			return err
 		}
 	}
@@ -157,7 +152,6 @@ func (f *eltonFile) moveFile(n *eltonNode, obj *pb.ObjectInfo) error {
 		n.filename(),
 		p,
 	); err != nil {
-		log.Println(err)
 		return err
 	}
 

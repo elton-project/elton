@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -64,22 +63,18 @@ func (n *eltonNode) filename() string {
 }
 
 func (n *eltonNode) Deletable() bool {
-	log.Println("Deletable")
 	return true
 }
 
 func (n *eltonNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
-	log.Println("Readlink")
 	return []byte(n.link), fuse.OK
 }
 
 func (n *eltonNode) StatFs() *fuse.StatfsOut {
-	log.Println("StatFs")
 	return new(fuse.StatfsOut)
 }
 
 func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
-	log.Println("Mkdir: ", name)
 	ch, err := n.newNode(name, true)
 	if err != nil {
 		return nil, fuse.ENOENT
@@ -90,7 +85,6 @@ func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *n
 }
 
 func (n *eltonNode) Unlink(name string, c *fuse.Context) (code fuse.Status) {
-	log.Println("Unlink: ", name)
 	ch := n.Inode().RmChild(name)
 	if ch == nil {
 		return fuse.ENOENT
@@ -100,12 +94,10 @@ func (n *eltonNode) Unlink(name string, c *fuse.Context) (code fuse.Status) {
 }
 
 func (n *eltonNode) Rmdir(name string, c *fuse.Context) (code fuse.Status) {
-	log.Println("Rmdir: ", name)
 	return n.Unlink(name, c)
 }
 
 func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
-	log.Println("Symlink: ", name)
 	ch, err := n.newNode(name, false)
 	if err != nil {
 		return nil, fuse.ENOENT
@@ -118,7 +110,6 @@ func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNo
 }
 
 func (n *eltonNode) Rename(oldName string, newParent nodefs.Node, newName string, c *fuse.Context) (code fuse.Status) {
-	log.Println("Rename: ", oldName, ", ", newName)
 	ch := n.Inode().RmChild(oldName)
 	newParent.Inode().RmChild(newName)
 	newParent.Inode().AddChild(newName, ch)
@@ -127,13 +118,11 @@ func (n *eltonNode) Rename(oldName string, newParent nodefs.Node, newName string
 }
 
 func (n *eltonNode) Link(name string, existing nodefs.Node, c *fuse.Context) (*nodefs.Inode, fuse.Status) {
-	log.Println("Link: ", name)
 	n.Inode().AddChild(name, existing.Inode())
 	return existing.Inode(), fuse.OK
 }
 
 func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Context) (file nodefs.File, child *nodefs.Inode, code fuse.Status) {
-	log.Println("Create: ", name)
 	ch, err := n.newNode(name, false)
 	if err != nil {
 		return nil, nil, fuse.ENOENT
@@ -154,7 +143,6 @@ func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Conte
 		return nil, nil, fuse.ToStatus(err)
 	}
 
-	log.Println("Create file: ", ch.filename())
 	return ch.newFile(f), ch.Inode(), fuse.OK
 }
 
@@ -165,12 +153,10 @@ func (n *eltonNode) newFile(f *os.File) nodefs.File {
 }
 
 func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
-	log.Println("Open: write")
 	if flags&fuse.O_ANYWRITE != 0 {
 		return n.write(flags, c)
 	}
 
-	log.Println("Open: read")
 	fullPath := n.filename()
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		if err = n.getFile(flags, c); err != nil {
@@ -236,7 +222,6 @@ func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
 }
 
 func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) fuse.Status {
-	log.Println("GetAttr")
 	if n.Inode().IsDir() {
 		out.Mode = fuse.S_IFDIR | 0700
 		return fuse.OK
@@ -247,7 +232,6 @@ func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) f
 }
 
 func (n *eltonNode) Truncate(file nodefs.File, size uint64, c *fuse.Context) (code fuse.Status) {
-	log.Println("Truncate")
 	if file != nil {
 		code = file.Truncate(size)
 	} else {
@@ -266,14 +250,12 @@ func (n *eltonNode) Truncate(file nodefs.File, size uint64, c *fuse.Context) (co
 }
 
 func (n *eltonNode) Utimens(file nodefs.File, atime *time.Time, mtime *time.Time, c *fuse.Context) (code fuse.Status) {
-	log.Println("Utimens")
 	now := time.Now()
 	n.info.SetTimes(atime, mtime, &now)
 	return fuse.OK
 }
 
 func (n *eltonNode) Chmod(file nodefs.File, perms uint32, c *fuse.Context) (code fuse.Status) {
-	log.Println("Chmod")
 	n.info.Mode = (n.info.Mode ^ 07777) | perms
 	now := time.Now()
 	n.info.SetTimes(nil, nil, &now)
@@ -281,7 +263,6 @@ func (n *eltonNode) Chmod(file nodefs.File, perms uint32, c *fuse.Context) (code
 }
 
 func (n *eltonNode) Chown(file nodefs.File, uid uint32, gid uint32, c *fuse.Context) (code fuse.Status) {
-	log.Println("Chown")
 	n.info.Uid = uid
 	n.info.Gid = gid
 	now := time.Now()
