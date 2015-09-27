@@ -42,6 +42,7 @@ eltonfs:
     - 4949
   links:
     - elton1:elton1
+    - backup:backup
   privileged: true
 
 munin:
@@ -54,4 +55,4 @@ munin:
     - backup:backup
     - eltonfs:eltonfs
   environment:
-    - NODES="elton1:elton1 elton2:elton2 backup:backup eltonfs:eltonfs"
+    - NODES=elton1:elton1 elton2:elton2 backup:backup eltonfs:eltonfs

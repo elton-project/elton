@@ -20,4 +20,6 @@ RUN make eltonfs
 
 WORKDIR /eltonfs/bin
 RUN mkdir upper lower mountpoint
+
+RUN echo "cidr_allow 172.17.0.0/16" >> /etc/munin/munin-node.conf
 CMD ["/usr/local/bin/run"]

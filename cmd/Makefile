@@ -9,7 +9,7 @@ deps:
 	go get -d -v
 
 build: $(CLIENT)
-	go build -o $^
+	go build -a -o $^
 
 install:
 	go install

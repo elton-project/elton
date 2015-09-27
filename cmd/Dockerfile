@@ -14,4 +14,6 @@ RUN rm -rf protobuf*
 COPY . /elton
 WORKDIR /elton
 RUN make client
+
+RUN echo "cidr_allow 172.17.0.0/16" >> /etc/munin/munin-node.conf
 RUN chmod +x examples/start.sh

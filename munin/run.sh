@@ -13,7 +13,7 @@ do
 EOF
 done
 
-/usr/sbin/crond &
+crond
 /usr/sbin/munin-node > /dev/null 2>&1 &
 su - munin -s /bin/bash -c '/usr/bin/munin-cron'
 echo "Using the following munin nodes:"

@@ -64,7 +64,8 @@ func (n *eltonNode) filename() string {
 }
 
 func (n *eltonNode) Deletable() bool {
-	return false
+	log.Println("Deletable")
+	return true
 }
 
 func (n *eltonNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
@@ -73,6 +74,7 @@ func (n *eltonNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
 }
 
 func (n *eltonNode) StatFs() *fuse.StatfsOut {
+	log.Println("StatFs")
 	return new(fuse.StatfsOut)
 }
 
@@ -234,6 +236,7 @@ func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
 }
 
 func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) fuse.Status {
+	log.Println("GetAttr")
 	if n.Inode().IsDir() {
 		out.Mode = fuse.S_IFDIR | 0700
 		return fuse.OK
@@ -244,6 +247,7 @@ func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) f
 }
 
 func (n *eltonNode) Truncate(file nodefs.File, size uint64, c *fuse.Context) (code fuse.Status) {
+	log.Println("Truncate")
 	if file != nil {
 		code = file.Truncate(size)
 	} else {
@@ -262,12 +266,14 @@ func (n *eltonNode) Truncate(file nodefs.File, size uint64, c *fuse.Context) (co
 }
 
 func (n *eltonNode) Utimens(file nodefs.File, atime *time.Time, mtime *time.Time, c *fuse.Context) (code fuse.Status) {
+	log.Println("Utimens")
 	now := time.Now()
 	n.info.SetTimes(atime, mtime, &now)
 	return fuse.OK
 }
 
 func (n *eltonNode) Chmod(file nodefs.File, perms uint32, c *fuse.Context) (code fuse.Status) {
+	log.Println("Chmod")
 	n.info.Mode = (n.info.Mode ^ 07777) | perms
 	now := time.Now()
 	n.info.SetTimes(nil, nil, &now)
@@ -275,6 +281,7 @@ func (n *eltonNode) Chmod(file nodefs.File, perms uint32, c *fuse.Context) (code
 }
 
 func (n *eltonNode) Chown(file nodefs.File, uid uint32, gid uint32, c *fuse.Context) (code fuse.Status) {
+	log.Println("Chown")
 	n.info.Uid = uid
 	n.info.Gid = gid
 	now := time.Now()
