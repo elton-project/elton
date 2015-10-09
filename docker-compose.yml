@@ -35,24 +35,24 @@ backup:
     - MASTER=elton_elton1_1
   command: examples/start.sh backup
 
-eltonfs:
-  image: eltonfs:latest
-  ports:
-    - 51823
-    - 4949
-  links:
-    - elton1:elton1
-    - backup:backup
-  privileged: true
+#eltonfs:
+#  image: eltonfs:latest
+#  ports:
+#    - 51823
+#    - 4949
+#  links:
+#    - elton1:elton1
+#    - backup:backup
+#  privileged: true
 
-munin:
-  image: munin:latest
-  ports:
-    - 8080:80
-  links:
-    - elton1:elton1
-    - elton2:elton2
-    - backup:backup
-    - eltonfs:eltonfs
-  environment:
-    - NODES=elton1:elton1 elton2:elton2 backup:backup eltonfs:eltonfs
+# munin:
+#   image: munin:latest
+#   ports:
+#     - 8080:80
+#   links:
+#     - elton1:elton1
+#     - elton2:elton2
+#     - backup:backup
+# #    - eltonfs:eltonfs
+#   environment:
+#     - NODES=elton1:elton1 elton2:elton2 backup:backup # eltonfs:eltonfs

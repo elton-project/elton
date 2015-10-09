@@ -80,7 +80,7 @@ func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *n
 		return nil, fuse.ENOENT
 	}
 
-	ch.info.Mode = mode | fuse.S_IFDIR
+	ch.info.Mode = fuse.S_IFDIR
 	return ch.Inode(), fuse.OK
 }
 
@@ -103,7 +103,7 @@ func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNo
 		return nil, fuse.ENOENT
 	}
 
-	ch.info.Mode = fuse.S_IFLNK | 0700
+	ch.info.Mode = fuse.S_IFLNK | 0744
 	ch.link = content
 
 	return ch.Inode(), fuse.OK
@@ -133,7 +133,7 @@ func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Conte
 	fullPath := ch.filename()
 	dir := filepath.Dir(fullPath)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0700); err != nil {
+		if err = os.MkdirAll(dir, 0744); err != nil {
 			return nil, nil, fuse.ToStatus(err)
 		}
 	}
@@ -180,7 +180,7 @@ func (n *eltonNode) write(flags uint32, c *fuse.Context) (fuseFile nodefs.File, 
 	fullPath := n.filename()
 	dir := filepath.Dir(fullPath)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0700); err != nil {
+		if err = os.MkdirAll(dir, 0744); err != nil {
 			return nil, fuse.ToStatus(err)
 		}
 	}
@@ -223,7 +223,7 @@ func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
 
 func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) fuse.Status {
 	if n.Inode().IsDir() {
-		out.Mode = fuse.S_IFDIR | 0700
+		out.Mode = fuse.S_IFDIR | 0744
 		return fuse.OK
 	}
 

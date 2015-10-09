@@ -16,7 +16,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"google.golang.org/grpc"
 
@@ -32,7 +31,7 @@ type FileInfo struct {
 	Time     time.Time
 }
 
-var FILEMODE os.FileMode = 0600
+var FILEMODE os.FileMode = 0644
 var ELTONFS_CONFIG_DIR string = ".eltonfs"
 var ELTONFS_CONFIG_NAME string = "CONFIG"
 var ELTONFS_COMMIT_NAME string = "COMMIT"
@@ -109,7 +108,7 @@ func (fs *eltonFS) definedNode(name string, t time.Time) *eltonNode {
 	n.file.key = name
 
 	n.info.SetTimes(&t, &t, &t)
-	n.info.Mode = fuse.S_IFREG | 0600
+	n.info.Mode = 0644
 	return n
 }
 
@@ -126,7 +125,7 @@ func (fs *eltonFS) newNode(name string, t time.Time) (*eltonNode, error) {
 	n.file.key = string(hex.EncodeToString(hasher.Sum(nil)))
 
 	n.info.SetTimes(&t, &t, &t)
-	n.info.Mode = fuse.S_IFREG | 0600
+	n.info.Mode = 0644
 	return n, nil
 }
 
@@ -211,7 +210,7 @@ func (fs *eltonFS) getFilesInfo() (files []FileInfo, err error) {
 func CreateFile(p string, data []byte) error {
 	dir := filepath.Dir(p)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0700); err != nil {
+		if err = os.MkdirAll(dir, 0744); err != nil {
 			return err
 		}
 	}

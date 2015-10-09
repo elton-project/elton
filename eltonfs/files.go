@@ -84,13 +84,13 @@ func (f *eltonFile) commit() error {
 	}
 
 	data, _ := json.Marshal(files)
-	ioutil.WriteFile(filepath.Join(f.node.fs.lower, obj.ObjectId[:2], fmt.Sprintf("%s-%d", obj.ObjectId[2:], obj.Version)), data, 0600)
+	ioutil.WriteFile(filepath.Join(f.node.fs.lower, obj.ObjectId[:2], fmt.Sprintf("%s-%d", obj.ObjectId[2:], obj.Version)), data, 0644)
 
 	obj.RequestHostname = fmt.Sprintf("%s:%d", f.node.fs.options.HostName, f.node.fs.options.Port)
 	_, err = client.CommitObjectInfo(context.Background(), obj)
 
 	cdata, _ := json.Marshal(obj)
-	ioutil.WriteFile(p, cdata, 0600)
+	ioutil.WriteFile(p, cdata, 0644)
 	return err
 }
 
@@ -143,7 +143,7 @@ func (f *eltonFile) moveFile(n *eltonNode, obj *pb.ObjectInfo) error {
 	p := filepath.Join(n.fs.lower, obj.ObjectId[:2], fmt.Sprintf("%s-%d", obj.ObjectId[2:], obj.Version))
 	dir := filepath.Dir(p)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0700); err != nil {
+		if err = os.MkdirAll(dir, 0744); err != nil {
 			return err
 		}
 	}
