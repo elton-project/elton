@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	pb "./proto"
+	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 )
 
 var array []*pb.ObjectInfo

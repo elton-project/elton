@@ -13,8 +13,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	elton "../api"
-	pb "./proto"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
+	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc"

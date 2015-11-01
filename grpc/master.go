@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	elton "../api"
-	pb "./proto"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
+	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 )
 
 var opts []grpc.DialOption

@@ -12,7 +12,7 @@ import (
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 
-	pb "../grpc/proto"
+	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 )
 
 type eltonNode struct {
