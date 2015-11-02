@@ -33,14 +33,24 @@ func NewEltonFsFromRoots(roots []string, opts *Options) (pathfs.FileSystem, erro
 		if fs == nil {
 			return nil, err
 		}
+
 		if i > 0 {
-			fs = NewCachingFileSystem(fs, 0)
+			fs = NewGrpcFileSystem(fs, 0)
+		}
+
+		if fs == nil {
+			return nil, err
 		}
 
 		fses = append(fses, fs)
 	}
 
-	return NewEltonFs(fses, *opts)
+	server, err := NewEltonFSGrpcServer(roots[1], opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewEltonFs(fses, *opts, server)
 }
 
 func filePathHash(path string) string {
@@ -58,20 +68,19 @@ type eltonFS struct {
 	branchCache   *TimedCache
 	opts          *Options
 	nodeFs        *pathfs.PathNodeFs
+	server        *EltonFSGrpcServer
 }
 
 const (
-	_ELTONFS_CONFIG_DIR  = ".eltonfs"
-	_ELTONFS_CONFIG_NAME = "CONFIG"
-	_ELTONFS_COMMIT_NAME = "COMMIT"
-	_DROP_CACHE          = ".drop_cache"
+	_DROP_CACHE = ".drop_cache"
 )
 
-func NewEltonFs(fileSystems []pathfs.FileSystem, opts Options) (pathfs.FileSystem, error) {
+func NewEltonFs(fileSystems []pathfs.FileSystem, opts Options, server *EltonFSGrpcServer) (pathfs.FileSystem, error) {
 	g := &eltonFS{
 		FileSystem:  pathfs.NewDefaultFileSystem(),
 		fileSystems: fileSystems,
 		opts:        &opts,
+		server:      server,
 	}
 
 	writable := g.fileSystems[0]
@@ -93,6 +102,13 @@ func NewEltonFs(fileSystems []pathfs.FileSystem, opts Options) (pathfs.FileSyste
 
 func (fs *eltonFS) OnMount(nodeFs *pathfs.PathNodeFs) {
 	fs.nodeFs = nodeFs
+}
+
+func (fs *eltonFS) OnUnmount() {
+	fs.server.Stop()
+	for _, f := range fs.fileSystems {
+		f.(*grpcFileSystem).connection.Close()
+	}
 }
 
 func (fs *eltonFS) isDeleted(name string) (deleted bool, code fuse.Status) {

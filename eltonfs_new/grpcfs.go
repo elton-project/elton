@@ -1,11 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"google.golang.org/grpc"
+
+	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"github.com/hanwen/go-fuse/fuse/pathfs"
@@ -33,9 +40,10 @@ type linkResponse struct {
 	fuse.Status
 }
 
-// TODO: grcpFileSystemとして実装
-type cachingFileSystem struct {
+type grpcFileSystem struct {
 	pathfs.FileSystem
+
+	connection *grpc.ClientConn
 
 	attributes *TimedCache
 	dirs       *TimedCache
@@ -79,9 +87,15 @@ func readLink(fs pathfs.FileSystem, name string) *linkResponse {
 	}
 }
 
-func NewCachingFileSystem(fs pathfs.FileSystem, ttl time.Duration) pathfs.FileSystem {
-	c := new(cachingFileSystem)
+func NewGrpcFileSystem(fs pathfs.FileSystem, ttl time.Duration) pathfs.FileSystem {
+	c := new(grpcFileSystem)
 	c.FileSystem = fs
+	conn, err := grpc.Dial(fs.(*loopbackFileSystem).Opts.Target, []grpc.DialOption{grpc.WithInsecure()}...)
+	if err != nil {
+		return nil
+	}
+
+	c.connection = conn
 	c.attributes = NewTimedCache(func(n string) (interface{}, bool) {
 		a := getAttr(fs, n)
 		return a, a.Ok()
@@ -101,13 +115,68 @@ func NewCachingFileSystem(fs pathfs.FileSystem, ttl time.Duration) pathfs.FileSy
 	return c
 }
 
-func (fs *cachingFileSystem) DropCache() {
+var ELTON_CONFIG_NAME = ".elton_config"
+var ELTON_MOUNT_INFO = ".elton_mountinfo"
+
+// func (fs *grpcFileSystem) getFilesInfo() (files []FileInfo, err error) {
+// }
+
+func (fs *grpcFileSystem) getMountInfo() (*pb.ObjectInfo, error) {
+	p := fs.FileSystem.(*loopbackFileSystem).GetPath(ELTON_CONFIG_NAME)
+	buf, err := ioutil.ReadFile(p)
+	if err != nil {
+		return fs.createMountInfo(p)
+	}
+
+	obj := new(pb.ObjectInfo)
+	err = json.Unmarshal(buf, obj)
+	return obj, err
+}
+
+func (fs *grpcFileSystem) createMountInfo(p string) (*pb.ObjectInfo, error) {
+	obj, err := fs.generateObjectID(p)
+
+	if err = ioutil.WriteFile(fs.FileSystem.(*loopbackFileSystem).GetPath(ELTON_MOUNT_INFO), []byte("[]"), 0644); err != nil {
+		return obj, err
+	}
+
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return obj, err
+	}
+
+	if err = ioutil.WriteFile(p, data, 0644); err != nil {
+		return obj, err
+	}
+
+	obj.RequestHostname = fmt.Sprintf("%s:%d", fs.FileSystem.(*loopbackFileSystem).Opts.HostName, fs.FileSystem.(*loopbackFileSystem).Opts.Port)
+	client := pb.NewEltonServiceClient(fs.connection)
+	_, err = client.CommitObjectInfo(context.Background(), obj)
+	return obj, err
+}
+
+func (fs *grpcFileSystem) generateObjectID(p string) (*pb.ObjectInfo, error) {
+	client := pb.NewEltonServiceClient(fs.connection)
+	stream, err := client.GenerateObjectInfo(
+		context.Background(),
+		&pb.ObjectInfo{
+			ObjectId: p,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return stream.Recv()
+}
+
+func (fs *grpcFileSystem) DropCache() {
 	for _, c := range []*TimedCache{fs.attributes, fs.dirs, fs.links, fs.xattr} {
 		c.DropAll(nil)
 	}
 }
 
-func (fs *cachingFileSystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
+func (fs *grpcFileSystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
 	if name == _DROP_CACHE {
 		return &fuse.Attr{
 			Mode: fuse.S_IFREG | 0777,
@@ -118,27 +187,27 @@ func (fs *cachingFileSystem) GetAttr(name string, context *fuse.Context) (*fuse.
 	return r.Attr, r.Status
 }
 
-func (fs *cachingFileSystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
+func (fs *grpcFileSystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
 	key := name + _XATTRSEP + attr
 	r := fs.xattr.Get(key).(*xattrResponse)
 	return r.data, r.Status
 }
 
-func (fs *cachingFileSystem) Readlink(name string, context *fuse.Context) (string, fuse.Status) {
+func (fs *grpcFileSystem) Readlink(name string, context *fuse.Context) (string, fuse.Status) {
 	r := fs.links.Get(name).(*linkResponse)
 	return r.linkContent, r.Status
 }
 
-func (fs *cachingFileSystem) OpenDir(name string, context *fuse.Context) (stream []fuse.DirEntry, status fuse.Status) {
+func (fs *grpcFileSystem) OpenDir(name string, context *fuse.Context) (stream []fuse.DirEntry, status fuse.Status) {
 	r := fs.dirs.Get(name).(*dirResponse)
 	return r.entries, r.Status
 }
 
-func (fs *cachingFileSystem) String() string {
-	return fmt.Sprintf("cachingFileSystem(%v)", fs.FileSystem)
+func (fs *grpcFileSystem) String() string {
+	return fmt.Sprintf("grpcFileSystem(%v)", fs.FileSystem)
 }
 
-func (fs *cachingFileSystem) Open(name string, flags uint32, context *fuse.Context) (f nodefs.File, status fuse.Status) {
+func (fs *grpcFileSystem) Open(name string, flags uint32, context *fuse.Context) (f nodefs.File, status fuse.Status) {
 	if flags&fuse.O_ANYWRITE != 0 && name == _DROP_CACHE {
 		log.Println("Dropping cache for", fs)
 		fs.DropCache()

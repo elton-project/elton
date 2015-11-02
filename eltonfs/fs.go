@@ -88,9 +88,6 @@ func (fs *eltonFS) String() string {
 	return fmt.Sprintf("EltonFS(%s)", "elton")
 }
 
-func (fs *eltonFS) SetDebug(bool) {
-}
-
 func (fs *eltonFS) Root() nodefs.Node {
 	return fs.root
 }

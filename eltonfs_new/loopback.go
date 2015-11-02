@@ -1,10 +1,11 @@
 package main
 
 import (
-	"io"
-	"log"
+	"crypto/sha256"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 
@@ -13,17 +14,30 @@ import (
 	"github.com/hanwen/go-fuse/fuse/pathfs"
 )
 
+type DirInfo struct {
+	DirEntries []fuse.DirEntry
+	DirAttr    *fuse.Attr
+}
+
 type loopbackFileSystem struct {
 	pathfs.FileSystem
 	Root string
 	Opts Options
+
+	FileNameMapMutex sync.RWMutex
+	FileNameMap      map[string]string
+
+	DirMapMutex sync.RWMutex
+	DirMap      map[string]DirInfo
 }
 
 func NewLoopbackFileSystem(root string, opts Options) pathfs.FileSystem {
 	return &loopbackFileSystem{
-		FileSystem: pathfs.NewDefaultFileSystem(),
-		Root:       root,
-		Opts:       opts,
+		FileSystem:  pathfs.NewDefaultFileSystem(),
+		Root:        root,
+		FileNameMap: make(map[string]string),
+		DirMap:      make(map[string]DirInfo),
+		Opts:        opts,
 	}
 }
 
@@ -34,7 +48,27 @@ func (fs *loopbackFileSystem) OnUnmount() {
 }
 
 func (fs *loopbackFileSystem) GetPath(relPath string) string {
-	return filepath.Join(fs.Root, relPath)
+	fs.FileNameMapMutex.RLock()
+	name, ok := fs.FileNameMap[relPath]
+	fs.FileNameMapMutex.RUnlock()
+
+	if !ok {
+		name = fs.GeneratePath(relPath)
+	}
+
+	return filepath.Join(fs.Root, name[:2], name[2:])
+}
+
+func (fs *loopbackFileSystem) GeneratePath(relPath string) string {
+	h := sha256.New()
+	h.Write([]byte(fmt.Sprintf("%s%d", relPath, time.Now().Nanosecond())))
+	name := fmt.Sprintf("%x-%d", h.Sum(nil), 0)
+
+	fs.FileNameMapMutex.Lock()
+	defer fs.FileNameMapMutex.Unlock()
+	fs.FileNameMap[relPath] = name
+
+	return name
 }
 
 func (fs *loopbackFileSystem) GetAttr(name string, context *fuse.Context) (a *fuse.Attr, code fuse.Status) {
@@ -56,46 +90,21 @@ func (fs *loopbackFileSystem) GetAttr(name string, context *fuse.Context) (a *fu
 }
 
 func (fs *loopbackFileSystem) OpenDir(name string, context *fuse.Context) (stream []fuse.DirEntry, status fuse.Status) {
-	f, err := os.Open(fs.GetPath(name))
-	if err != nil {
-		return nil, fuse.ToStatus(err)
-	}
-	want := 500
-	output := make([]fuse.DirEntry, 0, want)
-	for {
-		infos, err := f.Readdir(want)
-		for i := range infos {
-			if infos[i] == nil {
-				continue
-			}
-			n := infos[i].Name()
-			d := fuse.DirEntry{
-				Name: n,
-			}
-			if s := fuse.ToStatT(infos[i]); s != nil {
-				d.Mode = uint32(s.Mode)
-			} else {
-				log.Printf("ReadDir entry %q for %q has no stat info", n, name)
-			}
-			output = append(output, d)
-		}
-		if len(infos) < want || err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Println("Readdir() returned err:", err)
-			break
-		}
-	}
-	f.Close()
+	fs.DirMapMutex.RLock()
+	entries, ok := fs.DirMap[name].DirEntries
+	fs.DirMapMutex.RUnlock()
 
-	return output, fuse.OK
+	if !ok {
+		return nil, fuse.ENOENT
+	}
+
+	return entries, fuse.OK
 }
 
 func (fs *loopbackFileSystem) Open(path string, flags uint32, context *fuse.Context) (fuseFile nodefs.File, status fuse.Status) {
 	name := fs.GetPath(path)
 	dir := filepath.Dir(name)
-	if _, err := os.Stat(); err != nil {
+	if _, err := os.Stat(dir); err != nil {
 		os.MkdirAll(dir, 0744)
 	}
 
@@ -141,7 +150,13 @@ func (fs *loopbackFileSystem) Mknod(name string, mode uint32, dev uint32, contex
 }
 
 func (fs *loopbackFileSystem) Mkdir(path string, mode uint32, context *fuse.Context) (code fuse.Status) {
-	return fuse.ToStatus(os.Mkdir(fs.GetPath(path), os.FileMode(mode)))
+	fs.DirMapMutex.Lock()
+	defer fs.DirMapMutex.Unlock()
+	fs.DirMap[path] = DirInfo{
+		[]fuse.DirEntry{},
+	}
+
+	return fuse.OK
 }
 
 func (fs *loopbackFileSystem) Unlink(name string, context *fuse.Context) (code fuse.Status) {
@@ -172,10 +187,16 @@ func (fs *loopbackFileSystem) Access(name string, mode uint32, context *fuse.Con
 func (fs *loopbackFileSystem) Create(path string, flags uint32, mode uint32, context *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
 	name := fs.GetPath(path)
 	dir := filepath.Dir(name)
-	if _, err := os.Stat(); err != nil {
+	if _, err := os.Stat(dir); err != nil {
 		os.MkdirAll(dir, 0744)
 	}
-	f, err := os.OpenFile(name, int(flags)|os.O_CREATE, os.FileMode(mode))
 
+	fs.DirMapMutex.Lock()
+	fs.DirMap[filepath.Dir(path)] = append(
+		fs.DirMap[filepath.Dir(path)],
+		fuse.DirEntry{Name: path, Mode: mode})
+	fs.DirMapMutex.Unlock()
+
+	f, err := os.OpenFile(name, int(flags)|os.O_CREATE, os.FileMode(mode))
 	return nodefs.NewLoopbackFile(f), fuse.ToStatus(err)
 }

@@ -1,0 +1,20 @@
+{
+	"ImportPath": "git.t-lab.cs.teu.ac.jp/nashio/elton/api",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0-21-g056c9bc",
+			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.0-119-g90fef38",
+			"Rev": "90fef389f98027ca55594edd7dbd6e7f3926fdad"
+		},
+		{
+			"ImportPath": "github.com/higanworks/envmap",
+			"Rev": "4eb38fd4f96bdca0deb8691ae3d25ac97912d650"
+		}
+	]
+}

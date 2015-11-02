@@ -1,21 +1,21 @@
 TARGETDIR = ../bin
 FS = $(TARGETDIR)/eltonfs
 
-all: deps build
+all: install
 
 $(FS):
 
 deps:
-	go get -d -v
+	godep get
 
 build: $(FS)
-	go build -o $^
+	godep go build -o $^
 
-install:
-	go install
+install: deps
+	godep go install
 
 test: deps
-	go test
+	godep go test
 
 clean:
 	$(RM) $(FS)
