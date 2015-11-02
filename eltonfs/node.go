@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/golang.org/x/net/context"
+	"golang.org/x/net/context"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/hanwen/go-fuse/fuse"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/hanwen/go-fuse/fuse/nodefs"
+	"github.com/hanwen/go-fuse/fuse"
+	"github.com/hanwen/go-fuse/fuse/nodefs"
 
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 )

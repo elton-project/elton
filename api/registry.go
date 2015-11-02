@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/boltdb/bolt"
+	"github.com/boltdb/bolt"
 )
 
 type Registry struct {

@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/hanwen/go-fuse/fuse/nodefs"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/jessevdk/go-flags"
+	"github.com/hanwen/go-fuse/fuse/nodefs"
+	"github.com/jessevdk/go-flags"
 )
 
 type Options struct {

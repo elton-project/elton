@@ -14,10 +14,10 @@ import (
 	"sync"
 	"time"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/golang.org/x/net/context"
+	"golang.org/x/net/context"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/hanwen/go-fuse/fuse/nodefs"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc"
+	"github.com/hanwen/go-fuse/fuse/nodefs"
+	"google.golang.org/grpc"
 
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 )

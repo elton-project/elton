@@ -11,15 +11,15 @@ import (
 	"strconv"
 	"strings"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/golang.org/x/net/context"
+	"golang.org/x/net/context"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/golang/protobuf/proto"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/gorilla/mux"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc/codes"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc/metadata"
 	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	"github.com/golang/protobuf/proto"
+	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 )
 
 const metadataHeaderPrefix = "Grpc-Metadata-"

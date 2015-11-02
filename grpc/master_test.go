@@ -4,8 +4,8 @@ import (
 	"io"
 	"testing"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/golang.org/x/net/context"
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 )
