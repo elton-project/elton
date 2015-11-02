@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 
 	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/grpc"

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 )
 
 func main() {
