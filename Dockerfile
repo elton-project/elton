@@ -6,6 +6,7 @@ RUN yum -y upgrade && yum -y install golang git make tar curl gcc-c++ && yum cle
 RUN mkdir -p /vendor/src
 ENV GOPATH /vendor
 ENV PATH $PATH:$GOPATH/bin
+RUN go get github.com/kr/godep
 
 RUN curl -kL -O https://github.com/google/protobuf/releases/download/v3.0.0-beta-1/protobuf-cpp-3.0.0-beta-1.tar.gz
 RUN tar zxvf protobuf-cpp-3.0.0-beta-1.tar.gz
