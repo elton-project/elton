@@ -4,7 +4,7 @@ all: client eltonfs
 
 binary:
 	docker build -t eltonbuilder .
-	docker run --rm -it --privileged -v $(CURDIR)/bin:/elton/bin eltonbuilder
+	docker run --rm -it --privileged -v $(CURDIR)/bin:/vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton/bin eltonbuilder
 
 client:
 	$(MAKE) -C cmd
