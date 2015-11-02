@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"text/template"
 
-	"github.com/BurntSushi/toml"
-	"github.com/higanworks/envmap"
+	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/BurntSushi/toml"
+	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/higanworks/envmap"
 )
 
 type Config struct {

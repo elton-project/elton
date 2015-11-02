@@ -15,13 +15,13 @@ It has these top-level messages:
 */
 package proto
 
-import proto1 "github.com/golang/protobuf/proto"
+import proto1 "git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
 
 import (
-	context "golang.org/x/net/context"
-	grpc "google.golang.org/grpc"
+	context "git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/golang.org/x/net/context"
+	grpc "git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
+	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/golang.org/x/net/context"
+	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc"
 
 	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"

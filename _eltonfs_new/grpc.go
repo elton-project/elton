@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/golang.org/x/net/context"
+	"golang.org/x/net/context"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/Godeps/_workspace/src/google.golang.org/grpc"
 	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	"google.golang.org/grpc"
 )
 
 type EltonFSGrpcServer struct {
@@ -19,8 +19,8 @@ type EltonFSGrpcServer struct {
 	Server *grpc.Server
 }
 
-func NewEltonFSGrpcServer(opts *Options) (*EltonFSGrpcServer, error) {
-	return &EltonFSGrpcServer{Opts: opts, FS: elton.NewFileSystem(opts.LowerDir)}, nil
+func NewEltonFSGrpcServer(root string, opts *Options) (*EltonFSGrpcServer, error) {
+	return &EltonFSGrpcServer{Opts: opts, FS: elton.NewFileSystem(root)}, nil
 }
 
 func (e *EltonFSGrpcServer) Serve() error {

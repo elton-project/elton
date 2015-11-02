@@ -1,0 +1,19 @@
+{
+	"ImportPath": "git.t-lab.cs.teu.ac.jp/nashio/elton/eltonfs_new",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/hanwen/go-fuse/fuse",
+			"Rev": "228db4e1c0d256cc186e3e25fd7636f10d3363e5"
+		},
+		{
+			"ImportPath": "github.com/hanwen/go-fuse/splice",
+			"Rev": "228db4e1c0d256cc186e3e25fd7636f10d3363e5"
+		},
+		{
+			"ImportPath": "github.com/jessevdk/go-flags",
+			"Comment": "v1-302-g1acbbaf",
+			"Rev": "1acbbaff2f347c412a0c7884873bd72cc9c1f5b4"
+		}
+	]
+}
