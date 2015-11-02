@@ -1,0 +1,73 @@
+{
+	"ImportPath": "git.t-lab.cs.teu.ac.jp/nashio/elton",
+	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0-21-g056c9bc",
+			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.0-119-g90fef38",
+			"Rev": "90fef389f98027ca55594edd7dbd6e7f3926fdad"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-163-g70e3fa5",
+			"Rev": "70e3fa51ebed95df8c0fbe1519c1c1f9bc16bb13"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "efcaa340c1a788c79e1ca31217d66aa41c405a51"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "ee1815431e497d3850809578c93ab6705f1a19f7"
+		},
+		{
+			"ImportPath": "github.com/hanwen/go-fuse/fuse",
+			"Rev": "228db4e1c0d256cc186e3e25fd7636f10d3363e5"
+		},
+		{
+			"ImportPath": "github.com/hanwen/go-fuse/splice",
+			"Rev": "228db4e1c0d256cc186e3e25fd7636f10d3363e5"
+		},
+		{
+			"ImportPath": "github.com/higanworks/envmap",
+			"Rev": "4eb38fd4f96bdca0deb8691ae3d25ac97912d650"
+		},
+		{
+			"ImportPath": "github.com/jessevdk/go-flags",
+			"Comment": "v1-302-g1acbbaf",
+			"Rev": "1acbbaff2f347c412a0c7884873bd72cc9c1f5b4"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "b4e17d61b15679caf2335da776c614169a1b4643"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2",
+			"Rev": "b4e17d61b15679caf2335da776c614169a1b4643"
+		},
+		{
+			"ImportPath": "golang.org/x/net/internal/timeseries",
+			"Rev": "b4e17d61b15679caf2335da776c614169a1b4643"
+		},
+		{
+			"ImportPath": "golang.org/x/net/trace",
+			"Rev": "b4e17d61b15679caf2335da776c614169a1b4643"
+		},
+		{
+			"ImportPath": "google.golang.org/grpc",
+			"Rev": "1d6b82a645979318ad2710abef3e6add7555c400"
+		}
+	]
+}
