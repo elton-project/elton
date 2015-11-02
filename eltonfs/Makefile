@@ -6,7 +6,7 @@ all: deps build
 $(FS):
 
 deps:
-	go get -d -v
+	godep get
 
 build: $(FS)
 	go build -o $^

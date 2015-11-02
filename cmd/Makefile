@@ -6,7 +6,7 @@ all: deps build
 $(CLIENT):
 
 deps:
-	go get -d -v
+	godep get
 
 build: $(CLIENT)
 	go build -a -o $^
