@@ -1,20 +1,17 @@
 TARGETDIR = ../bin
 CLIENT = $(TARGETDIR)/elton
 
-all: deps build
+all: build
 
 $(CLIENT):
 
-deps:
-	godep get
-
 build: $(CLIENT)
-	go build -a -o $^
+	godep go build -o $^
 
 install:
-	go install
+	godep go install
 
 clean:
 	$(RM) $(CLIENT)
 
-.PHONY: all $(CLIENT) deps build install clean
+.PHONY: all $(CLIENT) build install clean
