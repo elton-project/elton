@@ -16,9 +16,5 @@ RUN rm -rf protobuf*
 RUN go get github.com/golang/protobuf/proto
 RUN go get github.com/golang/protobuf/protoc-gen-go
 
-COPY . /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
-WORKDIR /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto
-RUN protoc --go_out=plugins=grpc:. elton_service.proto
-
 WORKDIR /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
 CMD make

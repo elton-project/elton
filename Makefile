@@ -1,10 +1,13 @@
 TARGETDIR = bin
 
-all: client eltonfs
+all: grpc client eltonfs
 
 binary:
 	docker build -t eltonbuilder .
 	docker run --rm -it --privileged -v $(CURDIR):/vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton eltonbuilder
+
+grpc:
+	$(MAKE) -C grpc
 
 client:
 	$(MAKE) -C cmd
@@ -28,4 +31,4 @@ testall: build
 clean:
 	$(RM) -r $(TARGETDIR)
 
-.PHONY: all client build install eltonfs test testall clean
+.PHONY: all grpc client build install eltonfs test testall clean

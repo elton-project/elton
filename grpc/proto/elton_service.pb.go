@@ -16,6 +16,8 @@ It has these top-level messages:
 package proto
 
 import proto1 "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 import (
 	context "golang.org/x/net/context"
@@ -23,11 +25,9 @@ import (
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConn
-
-// Reference imports to suppress errors if they are not otherwise used.
 var _ = proto1.Marshal
+var _ = fmt.Errorf
+var _ = math.Inf
 
 type ObjectInfo struct {
 	ObjectId        string `protobuf:"bytes,1,opt,name=object_id" json:"object_id,omitempty"`
@@ -57,8 +57,9 @@ func (m *EmptyMessage) Reset()         { *m = EmptyMessage{} }
 func (m *EmptyMessage) String() string { return proto1.CompactTextString(m) }
 func (*EmptyMessage) ProtoMessage()    {}
 
-func init() {
-}
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
 
 // Client API for EltonService service
 
@@ -204,9 +205,9 @@ func (x *eltonServiceGenerateObjectInfoServer) Send(m *ObjectInfo) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _EltonService_CommitObjectInfo_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _EltonService_CommitObjectInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(ObjectInfo)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(EltonServiceServer).CommitObjectInfo(ctx, in)
@@ -237,9 +238,9 @@ func (x *eltonServiceGetObjectServer) Send(m *Object) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _EltonService_PutObject_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _EltonService_PutObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(Object)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(EltonServiceServer).PutObject(ctx, in)
@@ -249,9 +250,9 @@ func _EltonService_PutObject_Handler(srv interface{}, ctx context.Context, codec
 	return out, nil
 }
 
-func _EltonService_DeleteObject_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _EltonService_DeleteObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(ObjectInfo)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(EltonServiceServer).DeleteObject(ctx, in)
