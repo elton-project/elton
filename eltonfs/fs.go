@@ -16,6 +16,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"google.golang.org/grpc"
 
@@ -69,7 +70,7 @@ func NewEltonFS(lower, upper, eltonURL string, opts *Options, server *EltonFSGrp
 		Server:     server,
 	}
 
-	fs.root = fs.definedNode("", time.Now())
+	fs.root = fs.newNode("", time.Now())
 	return fs, nil
 }
 
@@ -92,24 +93,7 @@ func (fs *eltonFS) Root() nodefs.Node {
 	return fs.root
 }
 
-func (fs *eltonFS) definedNode(name string, t time.Time) *eltonNode {
-	fs.mux.Lock()
-	defer fs.mux.Unlock()
-	n := &eltonNode{
-		Node:     nodefs.NewDefaultNode(),
-		basePath: fs.lower,
-		fs:       fs,
-		file:     new(eltonFile),
-	}
-
-	n.file.key = name
-
-	n.info.SetTimes(&t, &t, &t)
-	n.info.Mode = 0644
-	return n
-}
-
-func (fs *eltonFS) newNode(name string, t time.Time) (*eltonNode, error) {
+func (fs *eltonFS) newNode(name string, t time.Time) *eltonNode {
 	n := &eltonNode{
 		Node:     nodefs.NewDefaultNode(),
 		basePath: fs.upper,
@@ -122,8 +106,9 @@ func (fs *eltonFS) newNode(name string, t time.Time) (*eltonNode, error) {
 	n.file.key = string(hex.EncodeToString(hasher.Sum(nil)))
 
 	n.info.SetTimes(&t, &t, &t)
-	n.info.Mode = 0644
-	return n, nil
+	n.info.Mode = fuse.S_IFDIR | 0644
+
+	return n
 }
 
 func (fs *eltonFS) Filename(n *nodefs.Inode) string {
@@ -144,11 +129,13 @@ func (fs *eltonFS) newEltonTree() {
 		for i, c := range comps {
 			child := node.GetChild(c)
 			if child == nil {
-				fsnode := fs.definedNode(c, f.Time)
+				fsnode := fs.newNode(c, f.Time)
 				if i == len(comps)-1 {
 					fsnode.file.key = f.Key
 					fsnode.file.version = f.Version
 					fsnode.file.delegate = f.Delegate
+					fsnode.basePath = fs.lower
+					fsnode.info.Mode = fuse.S_IFREG | 0644
 				}
 
 				child = node.NewChild(c, fsnode.file.key == c, fsnode)
@@ -157,12 +144,16 @@ func (fs *eltonFS) newEltonTree() {
 		}
 	}
 
-	child := fs.root.Inode().NewChild(ELTONFS_CONFIG_DIR, true, fs.definedNode(ELTONFS_CONFIG_DIR, time.Now()))
-	config := fs.definedNode(ELTONFS_CONFIG_NAME, time.Now())
-	config.basePath = fs.upper
+	child := fs.root.Inode().NewChild(ELTONFS_CONFIG_DIR, true, fs.newNode(ELTONFS_CONFIG_DIR, time.Now()))
+
+	config := fs.newNode(ELTONFS_CONFIG_NAME, time.Now())
+	config.file.key = ELTONFS_CONFIG_NAME
+	config.info.Mode = fuse.S_IFREG | 0644
 	child.NewChild(ELTONFS_CONFIG_NAME, false, config)
-	commit := fs.definedNode(ELTONFS_COMMIT_NAME, time.Now())
-	commit.basePath = fs.upper
+
+	commit := fs.newNode(ELTONFS_COMMIT_NAME, time.Now())
+	commit.file.key = ELTONFS_COMMIT_NAME
+	commit.info.Mode = fuse.S_IFREG | 0644
 	child.NewChild(ELTONFS_COMMIT_NAME, false, commit)
 }
 

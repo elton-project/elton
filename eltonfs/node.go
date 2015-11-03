@@ -34,24 +34,11 @@ func (n *eltonNode) OnUnmount() {
 	n.fs.connection.Close()
 }
 
-func (n *eltonNode) newNode(name string, isDir bool) (newNode *eltonNode, err error) {
-	if isDir {
-		newNode = &eltonNode{
-			Node: nodefs.NewDefaultNode(),
-			fs:   n.fs,
-		}
-
-		t := time.Now()
-		newNode.info.SetTimes(&t, &t, &t)
-	} else {
-		newNode, err = n.fs.newNode(name, time.Now())
-		if err != nil {
-			return nil, err
-		}
-	}
+func (n *eltonNode) newNode(name string, isDir bool) *eltonNode {
+	newNode := n.fs.newNode(name, time.Now())
 
 	n.Inode().NewChild(name, isDir, newNode)
-	return newNode, nil
+	return newNode
 }
 
 func (n *eltonNode) filename() string {
@@ -75,12 +62,9 @@ func (n *eltonNode) StatFs() *fuse.StatfsOut {
 }
 
 func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
-	ch, err := n.newNode(name, true)
-	if err != nil {
-		return nil, fuse.ENOENT
-	}
+	ch := n.newNode(name, true)
 
-	ch.info.Mode = fuse.S_IFDIR
+	ch.info.Mode = mode | fuse.S_IFDIR
 	return ch.Inode(), fuse.OK
 }
 
@@ -98,10 +82,7 @@ func (n *eltonNode) Rmdir(name string, c *fuse.Context) (code fuse.Status) {
 }
 
 func (n *eltonNode) Symlink(name string, content string, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
-	ch, err := n.newNode(name, false)
-	if err != nil {
-		return nil, fuse.ENOENT
-	}
+	ch := n.newNode(name, false)
 
 	ch.info.Mode = fuse.S_IFLNK | 0744
 	ch.link = content
@@ -123,10 +104,7 @@ func (n *eltonNode) Link(name string, existing nodefs.Node, c *fuse.Context) (*n
 }
 
 func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Context) (file nodefs.File, child *nodefs.Inode, code fuse.Status) {
-	ch, err := n.newNode(name, false)
-	if err != nil {
-		return nil, nil, fuse.ENOENT
-	}
+	ch := n.newNode(name, false)
 
 	ch.info.Mode = mode | fuse.S_IFREG
 
@@ -222,11 +200,6 @@ func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
 }
 
 func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) fuse.Status {
-	if n.Inode().IsDir() {
-		out.Mode = fuse.S_IFDIR | 0744
-		return fuse.OK
-	}
-
 	*out = n.info
 	return fuse.OK
 }
