@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"github.com/jessevdk/go-flags"
 )
@@ -21,7 +22,6 @@ func main() {
 	parser := flags.NewParser(&opts, flags.Default)
 	parser.Name = "eltonfs"
 	parser.Usage = "[OPTIONS] ELTON_HOST MOUNTPOINT"
-
 	args, err := parser.Parse()
 	if err != nil {
 		os.Exit(2)
@@ -38,12 +38,13 @@ func main() {
 		os.Exit(2)
 	}
 
-	fs, _, err := nodefs.MountRoot(args[1], root, nil)
+	conn := nodefs.NewFileSystemConnector(root, nil)
+	server, err := fuse.NewServer(conn.RawFS(), args[1], nil)
 	if err != nil {
 		log.Printf("Mount fail: %v", err)
 		os.Exit(2)
 	}
 
-	fs.SetDebug(opts.Debug)
-	fs.Serve()
+	server.SetDebug(opts.Debug)
+	server.Serve()
 }

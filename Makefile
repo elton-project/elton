@@ -7,7 +7,7 @@ binary:
 	docker run --rm -it --privileged -v $(CURDIR):/vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton eltonbuilder
 
 deps:
-	godep get
+	godep get ./...
 
 grpc:
 	$(MAKE) -C grpc
