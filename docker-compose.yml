@@ -2,7 +2,6 @@ elton1:
   image: elton:latest
   ports:
     - 12345
-    - 4949
   command: examples/start.sh master
   environment:
     - MASTER=elton_elton1_1
@@ -13,7 +12,6 @@ elton2:
   image: elton:latest
   ports:
     - 12345
-    - 4949
   links:
     - elton1:elton1
   command: examples/start.sh master
@@ -26,7 +24,6 @@ backup:
   image: elton:latest
   ports:
     - 34567
-    - 4949
   links:
     - elton1:elton1
     - elton2:elton2
@@ -39,20 +36,8 @@ backup:
 #  image: eltonfs:latest
 #  ports:
 #    - 51823
-#    - 4949
 #  links:
 #    - elton1:elton1
 #    - backup:backup
 #  privileged: true
 
-# munin:
-#   image: munin:latest
-#   ports:
-#     - 8080:80
-#   links:
-#     - elton1:elton1
-#     - elton2:elton2
-#     - backup:backup
-# #    - eltonfs:eltonfs
-#   environment:
-#     - NODES=elton1:elton1 elton2:elton2 backup:backup # eltonfs:eltonfs

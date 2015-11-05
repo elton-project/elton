@@ -1,7 +1,7 @@
 FROM centos:latest
 MAINTAINER Taku MIZUNO <dev@nashio-lab.info>
 
-RUN yum -y upgrade && yum -y install epel-release && yum -y install golang fuse fuse-devel git make tar curl gcc-c++ munin-node && yum clean all
+RUN yum -y upgrade && yum -y install epel-release && yum -y install golang fuse fuse-devel git make tar curl gcc-c++ && yum clean all
 
 RUN mkdir -p /vendor/src
 ENV GOPATH /vendor
@@ -21,5 +21,4 @@ RUN make eltonfs
 WORKDIR /eltonfs/bin
 RUN mkdir upper lower mountpoint
 
-RUN echo "cidr_allow 172.17.0.0/16" >> /etc/munin/munin-node.conf
 CMD ["/usr/local/bin/run"]
