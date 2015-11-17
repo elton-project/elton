@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -130,7 +129,6 @@ func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Conte
 
 func (n *eltonNode) newFile(f *os.File) nodefs.File {
 	return &eltonFile{
-		//		File: NewLoopbackFile(f),
 		File: nodefs.NewLoopbackFile(f),
 		node: n,
 	}
@@ -148,11 +146,6 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 		if err = n.getFile(flags, c); err != nil {
 			return nil, fuse.ToStatus(err)
 		}
-	}
-
-	_, err := ioutil.ReadFile(fullPath)
-	if err != nil {
-		return nil, fuse.ToStatus(err)
 	}
 
 	f, err := os.OpenFile(fullPath, int(flags), 0644)
