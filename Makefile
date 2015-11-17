@@ -12,10 +12,10 @@ deps:
 grpc:
 	$(MAKE) -C grpc
 
-client:
+client: deps
 	$(MAKE) -C cmd
 
-eltonfs:
+eltonfs: deps
 	$(MAKE) -C eltonfs
 
 build:
