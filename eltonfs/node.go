@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -17,11 +18,14 @@ import (
 
 type eltonNode struct {
 	nodefs.Node
-	file     *eltonFile
 	fs       *eltonFS
 	basePath string
 	link     string
 	info     fuse.Attr
+
+	key      string
+	version  uint64
+	delegate string
 }
 
 func (n *eltonNode) OnMount(c *nodefs.FileSystemConnector) {
@@ -42,11 +46,11 @@ func (n *eltonNode) newNode(name string, isDir bool) *eltonNode {
 }
 
 func (n *eltonNode) filename() string {
-	if n.file.key == ELTONFS_COMMIT_NAME || n.file.key == ELTONFS_CONFIG_NAME {
-		return filepath.Join(n.basePath, n.file.key)
+	if n.key == ELTONFS_COMMIT_NAME || n.key == ELTONFS_CONFIG_NAME {
+		return filepath.Join(n.basePath, n.key)
 	}
 
-	return filepath.Join(n.basePath, n.file.key[:2], fmt.Sprintf("%s-%d", n.file.key[2:], n.file.version))
+	return filepath.Join(n.basePath, n.key[:2], fmt.Sprintf("%s-%d", n.key[2:], n.version))
 }
 
 func (n *eltonNode) Deletable() bool {
@@ -58,7 +62,7 @@ func (n *eltonNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
 }
 
 func (n *eltonNode) StatFs() *fuse.StatfsOut {
-	return new(fuse.StatfsOut)
+	return &fuse.StatfsOut{}
 }
 
 func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
@@ -125,14 +129,18 @@ func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Conte
 }
 
 func (n *eltonNode) newFile(f *os.File) nodefs.File {
-	n.file.File = nodefs.NewLoopbackFile(f)
-	n.file.node = n
-	return n.file
+	return &eltonFile{
+		//		File: NewLoopbackFile(f),
+		File: nodefs.NewLoopbackFile(f),
+		node: n,
+	}
 }
 
 func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
 	if flags&fuse.O_ANYWRITE != 0 {
-		return n.write(flags, c)
+		if n.basePath == n.fs.lower {
+			return n.write(flags, c)
+		}
 	}
 
 	fullPath := n.filename()
@@ -142,7 +150,12 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 		}
 	}
 
-	f, err := os.OpenFile(fullPath, int(flags), 0)
+	_, err := ioutil.ReadFile(fullPath)
+	if err != nil {
+		return nil, fuse.ToStatus(err)
+	}
+
+	f, err := os.OpenFile(fullPath, int(flags), 0644)
 	if err != nil {
 		return nil, fuse.ToStatus(err)
 	}
@@ -151,9 +164,7 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 }
 
 func (n *eltonNode) write(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
-	if n.basePath == n.fs.lower {
-		n.basePath = n.fs.upper
-	}
+	n.basePath = n.fs.upper
 
 	fullPath := n.filename()
 	dir := filepath.Dir(fullPath)
@@ -176,9 +187,9 @@ func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
 	stream, err := client.GetObject(
 		context.Background(),
 		&pb.ObjectInfo{
-			ObjectId:        n.file.key,
-			Version:         n.file.version,
-			Delegate:        n.file.delegate,
+			ObjectId:        n.key,
+			Version:         n.version,
+			Delegate:        n.delegate,
 			RequestHostname: fmt.Sprintf("%s:%d", n.fs.options.HostName, n.fs.options.Port),
 		},
 	)
@@ -214,7 +225,7 @@ func (n *eltonNode) Truncate(file nodefs.File, size uint64, c *fuse.Context) (co
 
 	if code.Ok() {
 		now := time.Now()
-		// TODO - should update mtime too?
+
 		n.info.SetTimes(nil, nil, &now)
 		n.info.Size = size
 	}
@@ -229,7 +240,7 @@ func (n *eltonNode) Utimens(file nodefs.File, atime *time.Time, mtime *time.Time
 }
 
 func (n *eltonNode) Chmod(file nodefs.File, perms uint32, c *fuse.Context) (code fuse.Status) {
-	n.info.Mode = (n.info.Mode ^ 07777) | perms
+	n.info.Mode = (n.info.Mode &^ 07777) | perms
 	now := time.Now()
 	n.info.SetTimes(nil, nil, &now)
 	return fuse.OK

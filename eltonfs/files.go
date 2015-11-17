@@ -19,10 +19,6 @@ import (
 type eltonFile struct {
 	nodefs.File
 	node *eltonNode
-
-	key      string
-	version  uint64
-	delegate string
 }
 
 func (f *eltonFile) InnerFile() nodefs.File {
@@ -46,12 +42,14 @@ func (f *eltonFile) Read(buf []byte, off int64) (res fuse.ReadResult, code fuse.
 	return f.File.Read(buf, off)
 }
 
-func (f *eltonFile) Write(data []byte, off int64) (uint32, fuse.Status) {
-	if f.key == ELTONFS_COMMIT_NAME {
+func (f *eltonFile) Write(data []byte, off int64) (n uint32, code fuse.Status) {
+	if f.node.key == ELTONFS_COMMIT_NAME {
 		f.commit()
 	}
 
-	return f.File.Write(data, off)
+	n, code = f.File.Write(data, off)
+	f.Flush()
+	return n, code
 }
 
 func (f *eltonFile) commit() error {
@@ -120,9 +118,9 @@ func (f *eltonFile) getFileTree(prefix string, root nodefs.Node) ([]FileInfo, er
 		n := v.Node().(*eltonNode)
 		fi := FileInfo{
 			Name:     p,
-			Key:      n.file.key,
-			Version:  n.file.version,
-			Delegate: n.file.delegate,
+			Key:      n.key,
+			Version:  n.version,
+			Delegate: n.delegate,
 			Size:     n.info.Size,
 			Time:     n.info.ChangeTime(),
 		}
@@ -179,9 +177,9 @@ func (f *eltonFile) commitObject(client pb.EltonServiceClient, n *eltonNode, fi 
 	}
 
 	n.basePath = n.fs.lower
-	n.file.key = obj.ObjectId
-	n.file.version = obj.Version
-	n.file.delegate = obj.Delegate
+	n.key = obj.ObjectId
+	n.version = obj.Version
+	n.delegate = obj.Delegate
 
 	fi.Key = obj.ObjectId
 	fi.Version = obj.Version

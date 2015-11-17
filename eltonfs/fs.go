@@ -98,12 +98,11 @@ func (fs *eltonFS) newNode(name string, t time.Time) *eltonNode {
 		Node:     nodefs.NewDefaultNode(),
 		basePath: fs.upper,
 		fs:       fs,
-		file:     new(eltonFile),
 	}
 
 	hasher := sha256.New()
 	hasher.Write([]byte(fmt.Sprintf("%s%d", name, t.Nanosecond())))
-	n.file.key = string(hex.EncodeToString(hasher.Sum(nil)))
+	n.key = string(hex.EncodeToString(hasher.Sum(nil)))
 
 	n.info.SetTimes(&t, &t, &t)
 	n.info.Mode = fuse.S_IFDIR | 0644
@@ -131,14 +130,14 @@ func (fs *eltonFS) newEltonTree() {
 			if child == nil {
 				fsnode := fs.newNode(c, f.Time)
 				if i == len(comps)-1 {
-					fsnode.file.key = f.Key
-					fsnode.file.version = f.Version
-					fsnode.file.delegate = f.Delegate
+					fsnode.key = f.Key
+					fsnode.version = f.Version
+					fsnode.delegate = f.Delegate
 					fsnode.basePath = fs.lower
 					fsnode.info.Mode = fuse.S_IFREG | 0644
 				}
 
-				child = node.NewChild(c, fsnode.file.key == c, fsnode)
+				child = node.NewChild(c, fsnode.key == c, fsnode)
 			}
 			node = child
 		}
@@ -147,12 +146,12 @@ func (fs *eltonFS) newEltonTree() {
 	child := fs.root.Inode().NewChild(ELTONFS_CONFIG_DIR, true, fs.newNode(ELTONFS_CONFIG_DIR, time.Now()))
 
 	config := fs.newNode(ELTONFS_CONFIG_NAME, time.Now())
-	config.file.key = ELTONFS_CONFIG_NAME
+	config.key = ELTONFS_CONFIG_NAME
 	config.info.Mode = fuse.S_IFREG | 0644
 	child.NewChild(ELTONFS_CONFIG_NAME, false, config)
 
 	commit := fs.newNode(ELTONFS_COMMIT_NAME, time.Now())
-	commit.file.key = ELTONFS_COMMIT_NAME
+	commit.key = ELTONFS_COMMIT_NAME
 	commit.info.Mode = fuse.S_IFREG | 0644
 	child.NewChild(ELTONFS_COMMIT_NAME, false, commit)
 }
