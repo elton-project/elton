@@ -1,6 +1,6 @@
 TARGETDIR = bin
 
-all: deps grpc client eltonfs
+all: deps client eltonfs
 
 binary:
 	docker build -t eltonbuilder .
@@ -10,7 +10,7 @@ deps:
 	godep get ./...
 
 grpc:
-	$(MAKE) -C grpc
+	$(MAKE) -C grpc/proto
 
 client: deps
 	$(MAKE) -C cmd

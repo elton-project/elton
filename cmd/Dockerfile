@@ -13,9 +13,6 @@ RUN tar zxvf protobuf-cpp-3.0.0-beta-1.tar.gz
 RUN cd protobuf-3.0.0-beta-1 && ./configure && make && make install
 RUN rm -rf protobuf*
 
-RUN go get github.com/golang/protobuf/proto
-RUN go get github.com/golang/protobuf/protoc-gen-go
-
 COPY . /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
 WORKDIR /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
 RUN make client
