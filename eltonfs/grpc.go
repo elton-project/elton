@@ -1,4 +1,4 @@
-package main
+package eltonfs
 
 import (
 	"encoding/base64"

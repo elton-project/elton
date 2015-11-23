@@ -1,4 +1,4 @@
-package main
+package eltonfs
 
 import (
 	"crypto/sha256"
@@ -22,6 +22,14 @@ import (
 
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 )
+
+type Options struct {
+	Debug    bool   `long:"debug" default:"false" description:"print debbuging messages."`
+	HostName string `long:"host" default:"localhost" description:"this host name"`
+	Port     uint64 `short:"p" long:"port" default:"51823" description:"grpc listen port"`
+	UpperDir string `long:"upperdir" required:"true" description:"union mount to upper rw directory."`
+	LowerDir string `long:"lowerdir" required:"true" description:"union mount to lower ro directory"`
+}
 
 type FileInfo struct {
 	Name     string
