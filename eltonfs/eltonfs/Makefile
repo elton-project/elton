@@ -1,4 +1,4 @@
-TARGETDIR = ../bin
+TARGETDIR = ../../bin
 FS = $(TARGETDIR)/eltonfs
 
 all: build
