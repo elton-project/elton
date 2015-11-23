@@ -5,7 +5,7 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/grpc"
 )
 

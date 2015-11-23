@@ -13,19 +13,19 @@ grpc:
 	$(MAKE) -C grpc/proto
 
 client: deps
-	$(MAKE) -C cmd
+	$(MAKE) -C server/elton
 
 eltonfs: deps
-	$(MAKE) -C eltonfs
+	$(MAKE) -C eltonfs/eltonfs
 
 build:
-	docker build -f cmd/Dockerfile -t elton .
+	docker build -f server/elton/Dockerfile -t elton .
 #	docker build -f eltonfs/Dockerfile -t eltonfs .
 
 test:
-	$(MAKE) -C api test
-	$(MAKE) -C grpc test
-	$(MAKE) -C eltonfs test
+	$(MAKE) -C server/elton test
+	$(MAKE) -C grpc/proto test
+	$(MAKE) -C eltonfs/eltonfs test
 
 testall: build
 	docker-compose up

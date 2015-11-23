@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/api"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 	"google.golang.org/grpc"
 )

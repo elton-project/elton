@@ -1,4 +1,4 @@
-TARGETDIR = ../bin
+TARGETDIR = ../../bin
 CLIENT = $(TARGETDIR)/elton
 
 all: build
