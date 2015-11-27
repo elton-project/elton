@@ -24,11 +24,12 @@ import (
 )
 
 type Options struct {
-	Debug    bool   `long:"debug" default:"false" description:"print debbuging messages."`
-	HostName string `long:"host" default:"localhost" description:"this host name"`
-	Port     uint64 `short:"p" long:"port" default:"51823" description:"grpc listen port"`
-	UpperDir string `long:"upperdir" required:"true" description:"union mount to upper rw directory."`
-	LowerDir string `long:"lowerdir" required:"true" description:"union mount to lower ro directory"`
+	Debug      bool   `long:"debug" default:"false" description:"print debbuging messages."`
+	HostName   string `long:"host" default:"localhost" description:"this host name"`
+	Port       uint64 `short:"p" long:"port" default:"51823" description:"grpc listen port"`
+	UpperDir   string `long:"upperdir" required:"true" description:"union mount to upper rw directory."`
+	LowerDir   string `long:"lowerdir" required:"true" description:"union mount to lower ro directory"`
+	StandAlone bool   `long:"standalone" default:"false" description:"stand-alone mode"`
 }
 
 type FileInfo struct {
@@ -50,11 +51,7 @@ func NewEltonFSRoot(target string, opts *Options) (root nodefs.Node, err error) 
 		return
 	}
 
-	server, err := NewEltonFSGrpcServer(opts)
-	if err != nil {
-		return nil, err
-	}
-
+	server := NewEltonFSGrpcServer(opts)
 	efs, err := NewEltonFS(opts.LowerDir, opts.UpperDir, target, opts, server)
 	if err != nil {
 		return nil, err

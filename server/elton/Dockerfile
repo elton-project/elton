@@ -15,6 +15,6 @@ RUN rm -rf protobuf*
 
 COPY . /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
 WORKDIR /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
-RUN make client
+RUN make elton
 
 RUN chmod +x examples/start.sh

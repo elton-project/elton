@@ -7,8 +7,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	"google.golang.org/grpc"
 )
 
@@ -19,11 +19,15 @@ type EltonFSGrpcServer struct {
 	Server *grpc.Server
 }
 
-func NewEltonFSGrpcServer(opts *Options) (*EltonFSGrpcServer, error) {
-	return &EltonFSGrpcServer{Opts: opts, FS: elton.NewFileSystem(opts.LowerDir)}, nil
+func NewEltonFSGrpcServer(opts *Options) *EltonFSGrpcServer {
+	return &EltonFSGrpcServer{Opts: opts, FS: elton.NewFileSystem(opts.LowerDir)}
 }
 
 func (e *EltonFSGrpcServer) Serve() error {
+	if e.Opts.StandAlone {
+		return nil
+	}
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", e.Opts.Port))
 	if err != nil {
 		return err
@@ -38,6 +42,10 @@ func (e *EltonFSGrpcServer) Serve() error {
 }
 
 func (e *EltonFSGrpcServer) Stop() {
+	if e.Opts.StandAlone {
+		return
+	}
+
 	e.Server.Stop()
 }
 

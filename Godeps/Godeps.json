@@ -11,14 +11,33 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.6-15-gb17e718",
+			"Rev": "b17e7183259cc73db8b8fb9e534bfc153f53cb12"
+		},
+		{
 			"ImportPath": "github.com/boltdb/bolt",
 			"Comment": "v1.0-119-g90fef38",
 			"Rev": "90fef389f98027ca55594edd7dbd6e7f3926fdad"
 		},
 		{
+			"ImportPath": "github.com/calavera/dkvolume",
+			"Rev": "ed2f535e7d16dd91abbecb3e2d040b916069d4fa"
+		},
+		{
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-163-g70e3fa5",
 			"Rev": "70e3fa51ebed95df8c0fbe1519c1c1f9bc16bb13"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/listenbuffer",
+			"Comment": "v1.9.0-1-g7e5506d",
+			"Rev": "7e5506d42d27346ec57faea9ea8174fab17ad4f7"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/sockets",
+			"Comment": "v1.9.0-1-g7e5506d",
+			"Rev": "7e5506d42d27346ec57faea9ea8174fab17ad4f7"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
@@ -48,6 +67,11 @@
 			"ImportPath": "github.com/jessevdk/go-flags",
 			"Comment": "v1-302-g1acbbaf",
 			"Rev": "1acbbaff2f347c412a0c7884873bd72cc9c1f5b4"
+		},
+		{
+			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
+			"Comment": "v0.0.3-88-g0f85e4e",
+			"Rev": "0f85e4e1a35a318738476e20618623be4e129ba8"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",

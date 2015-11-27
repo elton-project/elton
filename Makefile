@@ -1,6 +1,6 @@
 TARGETDIR = bin
 
-all: deps client eltonfs
+all: deps elton eltonfs volume-plugin
 
 binary:
 	docker build -t eltonbuilder .
@@ -12,11 +12,14 @@ deps:
 grpc:
 	$(MAKE) -C grpc/proto
 
-client: deps
+elton: deps
 	$(MAKE) -C server/elton
 
 eltonfs: deps
 	$(MAKE) -C eltonfs/eltonfs
+
+volume-plugin: deps
+	$(MAKE) -C docker-volume-elton
 
 build:
 	docker build -f server/elton/Dockerfile -t elton .
@@ -33,4 +36,4 @@ testall: build
 clean:
 	$(RM) -r $(TARGETDIR)
 
-.PHONY: all deps grpc client build install eltonfs test testall clean
+.PHONY: all deps grpc elton build install eltonfs volume-plugin test testall clean

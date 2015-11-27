@@ -3,10 +3,8 @@ FS = $(TARGETDIR)/eltonfs
 
 all: build
 
-$(FS):
-
-build: $(FS)
-	godep go build -o $^
+build:
+	godep go build -o $(FS)
 
 install:
 	godep go install
@@ -17,4 +15,4 @@ test:
 clean:
 	$(RM) $(FS)
 
-.PHONY: all $(FS) test build install clean
+.PHONY: all test build install clean
