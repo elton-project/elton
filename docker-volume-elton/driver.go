@@ -7,9 +7,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/eltonfs"
+	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 
 	"github.com/calavera/dkvolume"
 	"github.com/hanwen/go-fuse/fuse"
@@ -96,10 +98,20 @@ func (d eltonfsDriver) Create(r dkvolume.Request) dkvolume.Response {
 
 	if _, ok := r.Options["object_id"]; ok {
 		if _, ok = r.Options["version"]; ok {
-			data, err := json.Marshal(r.Options)
+			version, err := strconv.ParseUint(r.Options["version"], 10, 64)
 			if err != nil {
 				return dkvolume.Response{Err: err.Error()}
 			}
+
+			data, err := json.Marshal(pb.ObjectInfo{
+				ObjectId: r.Options["object_id"],
+				Version:  version,
+				Delegate: r.Options["delegate"],
+			})
+			if err != nil {
+				return dkvolume.Response{Err: err.Error()}
+			}
+
 			if err = ioutil.WriteFile(
 				filepath.Join(upper, eltonfs.ELTONFS_CONFIG_NAME),
 				data,
@@ -205,6 +217,7 @@ func (d eltonfsDriver) mountServer(mountpoint string) (*fuse.Server, error) {
 		&eltonfs.Options{
 			Debug:      d.config.Debug,
 			HostName:   d.config.HostName,
+			Port:       d.config.Port,
 			UpperDir:   fmt.Sprintf("%s-%s", mountpoint, "upper"),
 			LowerDir:   d.lowerDir(),
 			StandAlone: true,
