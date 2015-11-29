@@ -140,6 +140,7 @@ func (fs *eltonFS) newEltonTree() {
 					fsnode.delegate = f.Delegate
 					fsnode.basePath = fs.lower
 					fsnode.info.Mode = fuse.S_IFREG | 0644
+					fsnode.info.Size = f.Size
 				}
 
 				child = node.NewChild(c, fsnode.key == c, fsnode)
