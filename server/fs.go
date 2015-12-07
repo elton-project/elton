@@ -12,7 +12,8 @@ type FileSystem struct {
 	RootDir string
 }
 
-// ディスク容量をチェックする必要がある
+// TODO: ディスク容量をチェックする必要がある
+// atimeとか見てduration 1week とかすると良いんじゃないかな
 
 func NewFileSystem(dir string) *FileSystem {
 	return &FileSystem{RootDir: dir}
