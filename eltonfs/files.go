@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -49,7 +50,19 @@ func (f *eltonFile) Write(data []byte, off int64) (n uint32, code fuse.Status) {
 
 	n, code = f.File.Write(data, off)
 	f.Flush()
+
+	if f.node.key == ELTONFS_CONFIG_NAME {
+		f.reload()
+	}
+
 	return n, code
+}
+
+func (f *eltonFile) reload() {
+	f.node.fs.mux.Lock()
+	defer f.node.fs.mux.Unlock()
+	f.node.fs.root = f.node.fs.newNode("", time.Now())
+	f.node.fs.newEltonTree()
 }
 
 func (f *eltonFile) commit() error {
