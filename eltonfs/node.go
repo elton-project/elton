@@ -111,15 +111,12 @@ func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Conte
 
 	ch.info.Mode = mode | fuse.S_IFREG
 
-	fullPath := ch.filename()
-	dir := filepath.Dir(fullPath)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0744); err != nil {
-			return nil, nil, fuse.ToStatus(err)
-		}
+	if code = ch.create(); code != fuse.OK {
+		return nil, nil, code
 	}
 
-	f, err := os.Create(fullPath)
+	fullPath := ch.filename()
+	f, err := os.OpenFile(fullPath, int(flags), 0644)
 	if err != nil {
 		return nil, nil, fuse.ToStatus(err)
 	}
@@ -137,7 +134,9 @@ func (n *eltonNode) newFile(f *os.File) nodefs.File {
 func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
 	if flags&fuse.O_ANYWRITE != 0 {
 		if n.basePath == n.fs.lower {
-			return n.write(flags, c)
+			if code := n.create(); code != fuse.OK {
+				return nil, code
+			}
 		}
 	}
 
@@ -156,23 +155,24 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 	return n.newFile(f), fuse.OK
 }
 
-func (n *eltonNode) write(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
+func (n *eltonNode) create() (code fuse.Status) {
 	n.basePath = n.fs.upper
 
 	fullPath := n.filename()
 	dir := filepath.Dir(fullPath)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0744); err != nil {
-			return nil, fuse.ToStatus(err)
+			return fuse.ToStatus(err)
 		}
 	}
 
 	f, err := os.Create(fullPath)
 	if err != nil {
-		return nil, fuse.ToStatus(err)
+		return fuse.ToStatus(err)
 	}
+	f.Close()
 
-	return n.newFile(f), fuse.OK
+	return fuse.OK
 }
 
 func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {

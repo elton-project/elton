@@ -26,6 +26,9 @@ func (f *eltonFile) InnerFile() nodefs.File {
 	return f.File
 }
 
+func (f *eltonFile) SetInode(n *nodefs.Inode) {
+}
+
 func (f *eltonFile) Flush() fuse.Status {
 	code := f.File.Flush()
 	if !code.Ok() {
@@ -56,6 +59,34 @@ func (f *eltonFile) Write(data []byte, off int64) (n uint32, code fuse.Status) {
 	}
 
 	return n, code
+}
+
+func (f *eltonFile) Release() {
+	f.File.Release()
+}
+
+func (f *eltonFile) Fsync(flags int) (code fuse.Status) {
+	return f.File.Fsync(flags)
+}
+
+func (f *eltonFile) Truncate(size uint64) fuse.Status {
+	return f.File.Truncate(size)
+}
+
+func (f *eltonFile) Chmod(mode uint32) fuse.Status {
+	return f.File.Chmod(mode)
+}
+
+func (f *eltonFile) Chown(uid uint32, gid uint32) fuse.Status {
+	return f.File.Chown(uid, gid)
+}
+
+func (f *eltonFile) GetAttr(a *fuse.Attr) fuse.Status {
+	return f.File.GetAttr(a)
+}
+
+func (f *eltonFile) Utimens(a *time.Time, m *time.Time) fuse.Status {
+	return f.File.Utimens(a, m)
 }
 
 func (f *eltonFile) reload() {
