@@ -42,6 +42,8 @@ func (e *EltonFSGrpcServer) Serve() error {
 }
 
 func (e *EltonFSGrpcServer) Stop() {
+	e.FS.PurgeTimer.Stop()
+
 	if e.Opts.StandAlone {
 		return
 	}

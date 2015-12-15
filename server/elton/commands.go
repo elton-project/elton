@@ -5,8 +5,8 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/grpc"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 )
 
 var Commands = []cli.Command{
@@ -73,6 +73,7 @@ func doSlave(c *cli.Context) {
 	}
 
 	server := grpc.NewEltonSlave(conf, c.Bool("backup"))
+	defer server.FS.PurgeTimer.Stop()
 
 	server.Serve()
 }

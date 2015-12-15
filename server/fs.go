@@ -6,17 +6,50 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"syscall"
+	"time"
 )
 
 type FileSystem struct {
-	RootDir string
+	RootDir    string
+	PurgeTimer *time.Timer
 }
 
-// TODO: ディスク容量をチェックする必要がある
-// atimeとか見てduration 1week とかすると良いんじゃないかな
+// TODO: DURATION_TIMEが一週間のマジックナンバーなのをなおす
+const DURATION_TIME time.Duration = time.Duration(7 * 24 * uint64(time.Hour))
 
 func NewFileSystem(dir string) *FileSystem {
-	return &FileSystem{RootDir: dir}
+	return &FileSystem{
+		RootDir: dir,
+		// TODO: 1時間間隔でPurgeチェックがマジックナンバーになってる
+		PurgeTimer: time.AfterFunc(time.Hour, func() {
+			purge(dir)
+		}),
+	}
+}
+
+func purge(dir string) {
+	now := time.Now()
+
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		stat := info.Sys().(*syscall.Stat_t)
+		atime := time.Unix(stat.Atim.Unix())
+
+		if now.Sub(atime.Add(DURATION_TIME)) < 0 {
+			log.Printf("Purge File. Latest access after 1week: %s", path)
+			return os.Remove(path)
+		}
+
+		return nil
+	})
 }
 
 func (fs *FileSystem) Create(name string, version uint64, body []byte) error {
