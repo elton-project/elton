@@ -53,11 +53,11 @@
 		},
 		{
 			"ImportPath": "github.com/hanwen/go-fuse/fuse",
-			"Rev": "228db4e1c0d256cc186e3e25fd7636f10d3363e5"
+			"Rev": "55aa1802bf84bf9afd3470d0c043be573a550854"
 		},
 		{
 			"ImportPath": "github.com/hanwen/go-fuse/splice",
-			"Rev": "228db4e1c0d256cc186e3e25fd7636f10d3363e5"
+			"Rev": "55aa1802bf84bf9afd3470d0c043be573a550854"
 		},
 		{
 			"ImportPath": "github.com/higanworks/envmap",
