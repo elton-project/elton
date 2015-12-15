@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"runtime"
 
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/eltonfs"
 
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	var opts eltonfs.Options
 	parser := flags.NewParser(&opts, flags.Default)
 	parser.Name = "eltonfs"

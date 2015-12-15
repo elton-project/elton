@@ -2,11 +2,13 @@ package main
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/codegangsta/cli"
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	app := cli.NewApp()
 	app.Name = "elton"
 	app.Usage = ""

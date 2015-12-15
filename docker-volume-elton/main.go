@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/calavera/dkvolume"
 )
@@ -24,6 +25,7 @@ var (
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	var Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] elton_server\n", os.Args[0])
 		flag.PrintDefaults()
