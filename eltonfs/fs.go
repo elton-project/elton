@@ -41,10 +41,12 @@ type FileInfo struct {
 	Time     time.Time
 }
 
-var FILEMODE os.FileMode = 0644
-var ELTONFS_CONFIG_DIR string = ".eltonfs"
-var ELTONFS_CONFIG_NAME string = "CONFIG"
-var ELTONFS_COMMIT_NAME string = "COMMIT"
+const (
+	FILEMODE            os.FileMode = 0644
+	ELTONFS_CONFIG_DIR  string      = ".eltonfs"
+	ELTONFS_CONFIG_NAME string      = "CONFIG"
+	ELTONFS_COMMIT_NAME string      = "COMMIT"
+)
 
 func NewEltonFSRoot(target string, opts *Options) (root nodefs.Node, err error) {
 	if err = ioutil.WriteFile(filepath.Join(opts.UpperDir, ELTONFS_COMMIT_NAME), []byte(""), FILEMODE); err != nil {
