@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"git.t-lab.cs.teu.ac.jp/nashio/elton/eltonfs"
@@ -35,7 +36,14 @@ func main() {
 	}
 
 	conn := nodefs.NewFileSystemConnector(root, nil)
-	server, err := fuse.NewServer(conn.RawFS(), args[1], nil)
+
+	origAbs, _ := filepath.Abs(args[1])
+	mOpts := &fuse.MountOptions{
+		AllowOther: true,
+		Name:       "eltonfs",
+		FsName:     origAbs,
+	}
+	server, err := fuse.NewServer(conn.RawFS(), args[1], mOpts)
 	if err != nil {
 		log.Printf("Mount fail: %v", err)
 		os.Exit(2)

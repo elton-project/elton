@@ -228,7 +228,14 @@ func (d eltonfsDriver) mountServer(mountpoint string) (*fuse.Server, error) {
 	}
 
 	conn := nodefs.NewFileSystemConnector(root, nil)
-	server, err := fuse.NewServer(conn.RawFS(), mountpoint, nil)
+
+	origAbs, _ := filepath.Abs(mountpoint)
+	mOpts := &fuse.MountOptions{
+		AllowOther: true,
+		Name:       "eltonfs",
+		FsName:     origAbs,
+	}
+	server, err := fuse.NewServer(conn.RawFS(), mountpoint, mOpts)
 	if err != nil {
 		return nil, err
 	}
