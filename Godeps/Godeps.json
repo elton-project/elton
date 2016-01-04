@@ -21,8 +21,8 @@
 			"Rev": "90fef389f98027ca55594edd7dbd6e7f3926fdad"
 		},
 		{
-			"ImportPath": "github.com/calavera/dkvolume",
-			"Rev": "ed2f535e7d16dd91abbecb3e2d040b916069d4fa"
+			"ImportPath": "github.com/docker/go-plugins-helpers",
+			"Rev": "2bf9a9acfc4fe53ef112e7776a32196ce2ea53a0"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/cli",

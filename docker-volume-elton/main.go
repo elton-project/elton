@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/calavera/dkvolume"
+	"github.com/docker/go-plugins-helpers/volume"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	defaultPath = filepath.Join(dkvolume.DefaultDockerRootDirectory, eltonfsId)
+	defaultPath = filepath.Join(volume.DefaultDockerRootDirectory, eltonfsId)
 
 	root     = flag.String("root", defaultPath, "Docker volumes root directory")
 	hostname = flag.String("hostname", "localhost", "Local hostname")
@@ -50,7 +50,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	h := dkvolume.NewHandler(d)
+	h := volume.NewHandler(d)
 	go d.eltonServer.Serve()
 	defer d.eltonServer.Stop()
 
