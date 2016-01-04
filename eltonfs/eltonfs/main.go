@@ -41,6 +41,7 @@ func main() {
 	mOpts := &fuse.MountOptions{
 		AllowOther: true,
 		Name:       "eltonfs",
+		Options:    opts.FuseOptions,
 		FsName:     origAbs,
 	}
 	server, err := fuse.NewServer(conn.RawFS(), args[1], mOpts)
