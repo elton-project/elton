@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 )
 
 var opts []grpc.DialOption
@@ -57,7 +57,6 @@ func (e *EltonMaster) Serve() error {
 }
 
 func (e *EltonMaster) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_GenerateObjectInfoServer) error {
-	log.Printf("GenerateObjectInfo: %v", o)
 	obj, err := e.generateObjectInfo(o)
 	if err != nil {
 		log.Println(err)
@@ -75,12 +74,10 @@ func (e *EltonMaster) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonServic
 		return err
 	}
 
-	log.Printf("Return GenerateObjectInfo: %v", obj)
 	return nil
 }
 
 func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb.EmptyMessage, error) {
-	log.Printf("CommitObjectInfo: %v", o)
 	if err := e.Registry.SetObjectInfo(
 		elton.ObjectInfo{
 			ObjectID: o.ObjectId,
@@ -104,7 +101,6 @@ func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb
 }
 
 func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
-	log.Printf("doBackup(): %v", o)
 	conn, err := grpc.Dial(o.RequestHostname, opts...)
 	if err != nil {
 		return err
@@ -119,7 +115,6 @@ func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
 
 	obj, err := stream.Recv()
 
-	log.Println(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port))
 	bconn, err := grpc.Dial(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port), opts...)
 	if err != nil {
 		return err
@@ -188,7 +183,6 @@ func (e *EltonMaster) getConnection(host string) (conn *grpc.ClientConn, err err
 }
 
 func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
-	log.Printf("GetObject: %v", o)
 	host, err := e.Registry.GetObjectHost(o.ObjectId, o.Version)
 	if err != nil {
 		if err = e.getObjectFromOtherMaster(o, stream); err != nil {
@@ -258,7 +252,6 @@ func (e *EltonMaster) PutObject(c context.Context, o *pb.Object) (*pb.EmptyMessa
 }
 
 func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (*pb.EmptyMessage, error) {
-	log.Printf("DeleteObject: %v", o)
 	if err := e.Registry.DeleteObjectVersions(o.ObjectId); err != nil {
 		log.Println(err)
 		return new(pb.EmptyMessage), err
