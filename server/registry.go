@@ -105,7 +105,7 @@ func (r *Registry) SetObjectInfo(obj ObjectInfo, host string) error {
 	return r.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("hosts"))
 		return bucket.Put(
-			[]byte(fmt.Sprintf("%s/%s", obj.ObjectID, obj.Version)),
+			[]byte(fmt.Sprintf("%s/%d", obj.ObjectID, obj.Version)),
 			[]byte(host))
 	})
 }
@@ -125,7 +125,7 @@ func (r *Registry) GetObjectHost(oid string, version uint64) (host string, err e
 			oid,
 			version))))
 		if host == "" {
-			return fmt.Errorf("Not found: %s/%s", oid, version)
+			return fmt.Errorf("Not found: %s/%d", oid, version)
 		}
 
 		return nil
