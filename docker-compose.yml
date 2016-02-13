@@ -2,6 +2,8 @@ elton1:
   image: elton:latest
   ports:
     - 12345
+  links:
+    - backup:backup
   command: examples/start.sh master
   environment:
     - MASTER=elton_elton1_1
@@ -14,6 +16,7 @@ elton2:
     - 12345
   links:
     - elton1:elton1
+    - backup:backup
   command: examples/start.sh master
   environment:
     - MASTER=elton_elton2_1
@@ -24,9 +27,6 @@ backup:
   image: elton:latest
   ports:
     - 34567
-  links:
-    - elton1:elton1
-    - elton2:elton2
   environment:
     - SLAVE=elton_slave1_1
     - MASTER=elton_elton1_1
