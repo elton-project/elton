@@ -1,15 +1,18 @@
 TARGETDIR = bin
 
-all: deps elton eltonfs volume-plugin
+all: deps grpc elton eltonfs volume-plugin
 
 binary:
 	docker build -t eltonbuilder .
 	docker run --rm -it --privileged -v $(CURDIR):/vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton eltonbuilder
 
 deps:
-	godep get ./...
+	godep restore -v
 
-grpc:
+fmt:
+	go fmt ./...
+
+grpc: deps
 	$(MAKE) -C grpc/proto
 
 elton: deps
@@ -23,12 +26,6 @@ volume-plugin: deps
 
 build:
 	docker build -f server/elton/Dockerfile -t elton .
-#	docker build -f eltonfs/Dockerfile -t eltonfs .
-
-test:
-	$(MAKE) -C server/elton test
-	$(MAKE) -C grpc/proto test
-	$(MAKE) -C eltonfs/eltonfs test
 
 testall: build
 	docker-compose up
@@ -36,4 +33,4 @@ testall: build
 clean:
 	$(RM) -r $(TARGETDIR)
 
-.PHONY: all deps grpc elton build install eltonfs volume-plugin test testall clean
+.PHONY: all deps fmt grpc elton eltonfs volume-plugin build testall clean

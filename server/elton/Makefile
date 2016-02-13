@@ -3,15 +3,10 @@ CLIENT = $(TARGETDIR)/elton
 
 all: build
 
-$(CLIENT):
-
-build: $(CLIENT)
-	godep go build -o $^
-
-install:
-	godep go install
+build:
+	godep go build -o $(CLIENT)
 
 clean:
 	$(RM) $(CLIENT)
 
-.PHONY: all $(CLIENT) build install clean
+.PHONY: all $(CLIENT) build clean
