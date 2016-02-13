@@ -1,8 +1,9 @@
 package eltonfs
 
 import (
-	"encoding/base64"
+	"bufio"
 	"fmt"
+	"io"
 	"net"
 
 	"golang.org/x/net/context"
@@ -12,6 +13,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+const chunkSize int = 4096
+
 type EltonFSGrpcServer struct {
 	Opts *Options
 	FS   *elton.FileSystem
@@ -20,7 +23,7 @@ type EltonFSGrpcServer struct {
 }
 
 func NewEltonFSGrpcServer(opts *Options) *EltonFSGrpcServer {
-	return &EltonFSGrpcServer{Opts: opts, FS: elton.NewFileSystem(opts.LowerDir)}
+	return &EltonFSGrpcServer{Opts: opts, FS: elton.NewFileSystem(opts.LowerDir, false)}
 }
 
 func (e *EltonFSGrpcServer) Serve() error {
@@ -52,19 +55,32 @@ func (e *EltonFSGrpcServer) Stop() {
 }
 
 func (e *EltonFSGrpcServer) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
-	body, err := e.FS.Read(o.ObjectId, o.Version)
+	fp, err := e.FS.Open(o.ObjectId, o.Version)
 	if err != nil {
 		return err
 	}
+	defer fp.Close()
 
-	if err = stream.Send(
-		&pb.Object{
-			ObjectId: o.ObjectId,
-			Version:  o.Version,
-			Body:     base64.StdEncoding.EncodeToString(body),
-		},
-	); err != nil {
-		return err
+	reader := bufio.NewReader(fp)
+	buf := make([]byte, chunkSize)
+	for {
+		n, err := reader.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+
+		if err = stream.Send(
+			&pb.Object{
+				ObjectId: o.ObjectId,
+				Version:  o.Version,
+				Body:     buf[:n],
+			},
+		); err != nil {
+			return err
+		}
 	}
 
 	return nil

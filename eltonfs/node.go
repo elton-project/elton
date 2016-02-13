@@ -1,8 +1,9 @@
 package eltonfs
 
 import (
-	"encoding/base64"
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -111,7 +112,7 @@ func (n *eltonNode) Create(name string, flags uint32, mode uint32, c *fuse.Conte
 
 	ch.info.Mode = mode | fuse.S_IFREG
 
-	if code = ch.create(); code != fuse.OK {
+	if code = ch.createDir(); code != fuse.OK {
 		return nil, nil, code
 	}
 
@@ -134,7 +135,7 @@ func (n *eltonNode) newFile(f *os.File) nodefs.File {
 func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, code fuse.Status) {
 	if flags&fuse.O_ANYWRITE != 0 {
 		if n.basePath == n.fs.lower {
-			if code := n.create(); code != fuse.OK {
+			if code := n.createDir(); code != fuse.OK {
 				return nil, code
 			}
 		}
@@ -155,7 +156,7 @@ func (n *eltonNode) Open(flags uint32, c *fuse.Context) (fuseFile nodefs.File, c
 	return n.newFile(f), fuse.OK
 }
 
-func (n *eltonNode) create() (code fuse.Status) {
+func (n *eltonNode) createDir() (code fuse.Status) {
 	n.basePath = n.fs.upper
 
 	fullPath := n.filename()
@@ -165,12 +166,6 @@ func (n *eltonNode) create() (code fuse.Status) {
 			return fuse.ToStatus(err)
 		}
 	}
-
-	f, err := os.Create(fullPath)
-	if err != nil {
-		return fuse.ToStatus(err)
-	}
-	f.Close()
 
 	return fuse.OK
 }
@@ -190,17 +185,30 @@ func (n *eltonNode) getFile(flags uint32, c *fuse.Context) (err error) {
 		return
 	}
 
-	obj, err := stream.Recv()
+	fp, err := Create(n.filename())
 	if err != nil {
 		return
 	}
+	defer fp.Close()
 
-	data, err := base64.StdEncoding.DecodeString(obj.Body)
-	if err != nil {
-		return
+	writer := bufio.NewWriter(fp)
+	for {
+		obj, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		_, err = writer.Write(obj.Body)
+		if err != nil {
+			return err
+		}
+		writer.Flush()
 	}
 
-	return CreateFile(n.filename(), data)
+	return nil
 }
 
 func (n *eltonNode) GetAttr(out *fuse.Attr, file nodefs.File, c *fuse.Context) fuse.Status {

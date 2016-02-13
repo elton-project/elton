@@ -43,7 +43,7 @@ func (*ObjectInfo) ProtoMessage()    {}
 type Object struct {
 	ObjectId string `protobuf:"bytes,1,opt,name=object_id" json:"object_id,omitempty"`
 	Version  uint64 `protobuf:"varint,2,opt,name=version" json:"version,omitempty"`
-	Body     string `protobuf:"bytes,3,opt,name=body" json:"body,omitempty"`
+	Body     []byte `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
 }
 
 func (m *Object) Reset()         { *m = Object{} }

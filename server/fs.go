@@ -52,7 +52,7 @@ func purge(dir string) {
 	})
 }
 
-func (fs *FileSystem) Create(name string, version uint64, body []byte) error {
+func (fs *FileSystem) CreateFile(name string, version uint64, body []byte) error {
 	path := fs.filename(name, version)
 	if err := fs.mkDir(path); err != nil {
 		return err
@@ -61,14 +61,22 @@ func (fs *FileSystem) Create(name string, version uint64, body []byte) error {
 	return ioutil.WriteFile(path, body, 0600)
 }
 
-func (fs *FileSystem) Read(name string, version uint64) (body []byte, err error) {
+func (fs *FileSystem) Create(name string, version uint64) (fp *os.File, err error) {
 	path := fs.filename(name, version)
-	if _, err = os.Stat(path); os.IsNotExist(err) {
-		log.Printf("No such file: %s", path)
-		return nil, err
+	if err = fs.mkDir(path); err != nil {
+		return
 	}
 
-	return ioutil.ReadFile(path)
+	return os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+}
+
+func (fs *FileSystem) Open(name string, version uint64) (fp *os.File, err error) {
+	path, err := fs.Find(name, version)
+	if err != nil {
+		return
+	}
+
+	return os.Open(path)
 }
 
 func (fs *FileSystem) Find(name string, version uint64) (path string, err error) {

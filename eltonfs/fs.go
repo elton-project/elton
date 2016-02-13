@@ -1,11 +1,12 @@
 package eltonfs
 
 import (
+	"bufio"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -179,19 +180,29 @@ func (fs *eltonFS) getFilesInfo() (files []FileInfo, err error) {
 			return nil, err
 		}
 
-		obj, err := stream.Recv()
+		fp, err := Create(p)
 		if err != nil {
 			return nil, err
 		}
 
-		data, err := base64.StdEncoding.DecodeString(obj.Body)
-		if err != nil {
-			return nil, err
+		writer := bufio.NewWriter(fp)
+		for {
+			obj, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = writer.Write(obj.Body)
+			if err != nil {
+				return nil, err
+			}
+			writer.Flush()
 		}
 
-		if err = CreateFile(p, data); err != nil {
-			return nil, err
-		}
+		fp.Close()
 	}
 
 	body, err := ioutil.ReadFile(p)
@@ -212,6 +223,17 @@ func CreateFile(p string, data []byte) error {
 	}
 
 	return ioutil.WriteFile(p, data, FILEMODE)
+}
+
+func Create(p string) (fp *os.File, err error) {
+	dir := filepath.Dir(p)
+	if _, err = os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0744); err != nil {
+			return
+		}
+	}
+
+	return os.OpenFile(p, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 }
 
 func (fs *eltonFS) getMountInfo() (obj *pb.ObjectInfo, err error) {

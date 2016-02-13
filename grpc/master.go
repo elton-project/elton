@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 
@@ -224,9 +225,18 @@ func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 		return err
 	}
 
-	obj, err := s.Recv()
-	if err != nil {
-		return err
+	for {
+		obj, err := s.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if err = stream.Send(obj); err != nil {
+			return err
+		}
 	}
 
 	if err = e.Registry.SetObjectInfo(
@@ -237,10 +247,6 @@ func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 		},
 		o.RequestHostname,
 	); err != nil {
-		return err
-	}
-
-	if err = stream.Send(obj); err != nil {
 		return err
 	}
 

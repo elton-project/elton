@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"encoding/base64"
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,8 +13,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc"
@@ -23,6 +23,7 @@ import (
 )
 
 const metadataHeaderPrefix = "Grpc-Metadata-"
+const chunkSize int = 4096
 
 type EltonSlave struct {
 	FS     *elton.FileSystem
@@ -31,7 +32,7 @@ type EltonSlave struct {
 }
 
 func NewEltonSlave(conf elton.Config, backup bool) *EltonSlave {
-	return &EltonSlave{FS: elton.NewFileSystem(conf.Slave.Dir), Conf: conf, backup: backup}
+	return &EltonSlave{FS: elton.NewFileSystem(conf.Slave.Dir, backup), Conf: conf, backup: backup}
 }
 
 func (e *EltonSlave) Serve() {
@@ -146,20 +147,31 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 					return
 				}
 
-				obj, err := resp.Recv()
+				fp, err := e.FS.Create(oid, version)
 				if err != nil {
 					HTTPError(w, err)
 					return
 				}
-				data, err := base64.StdEncoding.DecodeString(obj.Body)
-				if err != nil {
-					HTTPError(w, err)
-					return
-				}
+				defer fp.Close()
 
-				if err = e.FS.Create(oid, version, data); err != nil {
-					HTTPError(w, err)
-					return
+				writer := bufio.NewWriter(fp)
+				for {
+					obj, err := resp.Recv()
+					if err == io.EOF {
+						break
+					}
+
+					if err != nil {
+						HTTPError(w, err)
+						return
+					}
+
+					_, err = writer.Write(obj.Body)
+					if err != nil {
+						HTTPError(w, err)
+						return
+					}
+					writer.Flush()
 				}
 			}
 
@@ -420,37 +432,46 @@ func (e *EltonSlave) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (r *p
 }
 
 func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
-	log.Printf("GetObject: %v", o)
-	body, err := e.FS.Read(o.ObjectId, o.Version)
+	fp, err := e.FS.Open(o.ObjectId, o.Version)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
+	defer fp.Close()
 
-	if err = stream.Send(
-		&pb.Object{
-			ObjectId: o.ObjectId,
-			Version:  o.Version,
-			Body:     base64.StdEncoding.EncodeToString(body),
-		},
-	); err != nil {
-		log.Println(err)
-		return err
+	reader := bufio.NewReader(fp)
+	buf := make([]byte, chunkSize)
+	for {
+		n, err := reader.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+
+		if err = stream.Send(
+			&pb.Object{
+				ObjectId: o.ObjectId,
+				Version:  o.Version,
+				Body:     buf[:n],
+			},
+		); err != nil {
+			log.Println(err)
+			return err
+		}
 	}
 
-	log.Printf("Return GetObject")
 	return nil
 }
 
 func (e *EltonSlave) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
-	data, err := base64.StdEncoding.DecodeString(o.Body)
 	if err != nil {
 		log.Println(err)
 		return new(pb.EmptyMessage), err
 	}
 
-	err = e.FS.Create(o.ObjectId, o.Version, data)
-	log.Println(err)
+	err = e.FS.CreateFile(o.ObjectId, o.Version, []byte(o.Body))
 	return new(pb.EmptyMessage), err
 }
 
