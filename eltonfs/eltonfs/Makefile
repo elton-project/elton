@@ -4,7 +4,7 @@ FS = $(TARGETDIR)/eltonfs
 all: build
 
 build:
-	godep go build -o $(FS)
+	GOOS=linux GOARCH=amd64 godep go build -o $(FS)
 
 clean:
 	$(RM) $(FS)
