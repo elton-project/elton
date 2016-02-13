@@ -16,16 +16,22 @@ type FileSystem struct {
 }
 
 // TODO: DURATION_TIMEが一週間のマジックナンバーなのをなおす
-const DURATION_TIME time.Duration = time.Duration(7 * 24 * uint64(time.Hour))
+const durationTime time.Duration = time.Duration(7 * 24 * uint64(time.Hour))
 
-func NewFileSystem(dir string) *FileSystem {
-	return &FileSystem{
-		RootDir: dir,
+func NewFileSystem(dir string, backup bool) *FileSystem {
+	fs := &FileSystem{RootDir: dir}
+
+	if !backup {
 		// TODO: 1時間間隔でPurgeチェックがマジックナンバーになってる
-		PurgeTimer: time.AfterFunc(time.Hour, func() {
-			purge(dir)
-		}),
+		fs.PurgeTimer = time.AfterFunc(
+			time.Hour,
+			func() {
+				purge(dir)
+			},
+		)
 	}
+
+	return fs
 }
 
 func purge(dir string) {
@@ -43,8 +49,7 @@ func purge(dir string) {
 		stat := info.Sys().(*syscall.Stat_t)
 		atime := time.Unix(stat.Atim.Unix())
 
-		if now.Sub(atime.Add(DURATION_TIME)) < 0 {
-			log.Printf("Purge File. Latest access after 1week: %s", path)
+		if (atime.Add(durationTime)).Sub(now) < 0 {
 			return os.Remove(path)
 		}
 
