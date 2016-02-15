@@ -4,7 +4,7 @@
 
 CentOS7環境を想定する．
 
-```bash
+```
 $ elton --help
 NAME:
    elton -
@@ -64,7 +64,7 @@ $ rm -rf protobuf*
 
 ### systemdのサービスファイルを登録する(Elton Master)
 
-```bash
+```
 # /usr/lib/systemd/system/elton.service
 
 [Unit]
@@ -81,7 +81,7 @@ WantedBy=multi-user.target
 
 ### systemdのサービスファイルを登録する(Elton Slave)
 
-```bash
+```
 # /usr/lib/systemd/system/elton-slave.service
 
 [Unit]
@@ -108,7 +108,7 @@ $ systemctl daemon-reload
 
 バックアップ用途の場合はbackupオプションを設定
 
-```bash
+```
 # /etc/sysconfig/elton-slave
 
 # OPTIONS="--backup"
@@ -121,7 +121,7 @@ OPTIONS=
 
 各種パラメータを適宜書き換えます．
 
-```bash
+```
 # /etc/elton/master.tml
 
 [master]
@@ -150,7 +150,7 @@ dbpath = "/mnt/elton/elton.db"
 
 各種パラメータを適宜書き換えます．
 
-```bash
+```
 # /etc/elton/slave.tml
 
 [slave]

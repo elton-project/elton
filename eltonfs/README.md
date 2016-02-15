@@ -9,7 +9,7 @@
 CentOS7環境を想定．
 基本的にLinux環境で動くことしか考えてない．
 
-```bash
+```
 $ eltonfs --help
 Usage:
  eltonfs [OPTIONS] ELTON_HOST MOUNTPOINT
@@ -36,7 +36,7 @@ $ yum -y install fuse fuse-devel
 
 ### FUSEの設定ファイルを変更
 
-```bash
+```
 # /etc/fuse.conf
 
 user_allow_other
@@ -69,7 +69,7 @@ $ echo hoge > MOUNTPOINT/.eltonfs/COMMIT
 
 upperディレクトリ内のCONFIGファイルを同一にすることで共有できる．
 
-```bash
+```
 # upper/CONFIG
 
 {"object_id":"00abaffcd2c94cddae418f597b4e9e6a1e0276b9af19399003a8e65374acb548","version":1,"delegate":"192.168.189.37"}

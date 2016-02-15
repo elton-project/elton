@@ -18,7 +18,7 @@ $ yum -y install fuse fuse-devel
 
 ### FUSEの設定ファイルを変更
 
-```bash
+```
 # /etc/fuse.conf
 
 user_allow_other
@@ -26,7 +26,7 @@ user_allow_other
 
 ### systemdのサービスファイルを登録する
 
-```bash
+```
 
 # /usr/lib/systemd/system/docker-volume-elton.service
 
@@ -52,7 +52,7 @@ $ systemctl daemon-reload
 
 ### optionファイルを作成する
 
-```bash
+```
 # /etc/sysconfig/docker-volume-elton
 
 # OPTION="-root=[target directory] -hostname=[this hostname] [elton master]"

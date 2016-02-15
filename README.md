@@ -36,9 +36,9 @@ Eltonは，以下のサブプロジェクトで構成される．
 ### File Tree
 
 GOPATHにcloneする．
-clone後に`godep restore -v`とかやるとgodefが効くようになって便利．
+clone後に `godep restore -v` とかやるとgodefが効くようになって便利．
 
-```bash
+```
 .
 ├── Dockerfile(ビルド用のDockerfile)
 ├── Godeps(依存関係を管理するGodeps用ディレクトリ)
