@@ -6,6 +6,7 @@
 
 
 Eltonは，以下のサブプロジェクトで構成される．
+
 - Elton Master
  - メタデータを管理・発行し，バックアップやプロキシ等のスケジューリング機能を持つEltonの中核
 - Elton Slave
@@ -18,6 +19,7 @@ Eltonは，以下のサブプロジェクトで構成される．
 ## Development
 実装は全てGolang 1.4.2で行っている．
 開発環境に必要なものは以下の様なものがあげられる．
+
 - Golang 1.4.2
 - Editor (go-modeがきちんとしているものがいい ex. Emacs，Vim，Atom)
   - godef，goimportsとかも入れると良い
