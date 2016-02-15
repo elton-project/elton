@@ -77,8 +77,6 @@ $ docker volume create --driver=eltonfs --name=[volume name]
 $ docker run -d -v [volume name]:[mount point] hogehoge
 ```
 
-### よしなに遊ぶ
-a
 
 ## Notes
 Dockerはかなり開発の早いプロダクトです．
