@@ -11,7 +11,7 @@ Dockerはセットアップ済みであるとする．
 
 ### 必要なもののインストール
 
-```
+```bash
 [root]
 $ yum -y install fuse fuse-devel
 ```
@@ -19,16 +19,14 @@ $ yum -y install fuse fuse-devel
 ### FUSEの設定ファイルを変更
 
 ```
-# /etc/fuse.conf
-
+### /etc/fuse.conf
 user_allow_other
 ```
 
 ### systemdのサービスファイルを登録する
 
 ```
-# /usr/lib/systemd/system/docker-volume-elton.service
-
+### /usr/lib/systemd/system/docker-volume-elton.service
 [Unit]
 Description=docker-volume-elton
 
@@ -44,7 +42,7 @@ WantedBy=multi-user.target
 
 ### systemdのサービスファイルを反映させる
 
-```
+```bash
 [root]
 $ systemctl daemon-reload
 ```
@@ -52,29 +50,28 @@ $ systemctl daemon-reload
 ### optionファイルを作成する
 
 ```
-# /etc/sysconfig/docker-volume-elton
-
+### /etc/sysconfig/docker-volume-elton
 # OPTION="-root=[target directory] -hostname=[this hostname] [elton master]"
 OPTION="-root=/home/elton -hostname=192.168.189.37 192.168.189.37:12345"
 ```
 
 ### 起動する
 
-```
+```bash
 [root]
 $ systemctl start docker-volume-elton
 ```
 
 ### volumeを作成する
 
-```
+```bash
 [root]
 $ docker volume create --driver=eltonfs --name=[volume name]
 ```
 
 ### マウントする
 
-```
+```bash
 [root]
 $ docker run -d -v [volume name]:[mount point] hogehoge
 ```
