@@ -39,7 +39,6 @@ GOPATHにcloneする．
 clone後に `godep restore -v` とかやるとgodefが効くようになって便利．
 
 ```
-
 .
 ├── Dockerfile(ビルド用のDockerfile)
 ├── Godeps(依存関係を管理するGodeps用ディレクトリ)
@@ -82,7 +81,6 @@ clone後に `godep restore -v` とかやるとgodefが効くようになって�
     │   └── version.go
     ├── fs.go
     └── registry.go
-
 ```
 
 ### Build
@@ -90,11 +88,9 @@ clone後に `godep restore -v` とかやるとgodefが効くようになって�
 ビルドは基本的にmakeを用いてDockerを通じて行う．
 実行後binディレクトリが作成され，その中にバイナリが作成される．
 
-```bash
-
+```
 [root]
 $ make binary
-
 ```
 
 ### Run
@@ -102,9 +98,7 @@ $ make binary
 docker-composeを用いるとEltonを簡易実行できる．
 docker-compose.ymlをよしなに変更するといろいろ楽しい．
 
-```bash
-
+```
 [root]
 $ make testall
-
 ```
