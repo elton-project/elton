@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"golang.org/x/net/context"
@@ -62,7 +63,21 @@ func (n *eltonNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
 }
 
 func (n *eltonNode) StatFs() *fuse.StatfsOut {
-	return &fuse.StatfsOut{}
+	s := syscall.Statfs_t{}
+	err := syscall.Statfs(n.basePath, &s)
+	if err == nil {
+		return &fuse.StatfsOut{
+			Blocks:  s.Blocks,
+			Bsize:   uint32(s.Bsize),
+			Bfree:   s.Bfree,
+			Bavail:  s.Bavail,
+			Files:   s.Files,
+			Ffree:   s.Ffree,
+			Frsize:  uint32(s.Frsize),
+			NameLen: uint32(s.Namelen),
+		}
+	}
+	return nil
 }
 
 func (n *eltonNode) Mkdir(name string, mode uint32, c *fuse.Context) (newNode *nodefs.Inode, code fuse.Status) {
