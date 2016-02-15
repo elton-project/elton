@@ -1,8 +1,11 @@
 # Docker Volume Plugin for Eltonfs
+
 ## Development
+
 [本家ドキュメント](https://docs.docker.com/engine/extend/plugins_volume/)，[プラグインヘルパー](https://github.com/docker/go-plugins-helpers)を要チェック
 
 ## Usage
+
 CentOS7環境を想定する．
 Dockerはセットアップ済みであるとする．
 
@@ -76,8 +79,6 @@ $ docker volume create --driver=eltonfs --name=[volume name]
 [root]
 $ docker run -d -v [volume name]:[mount point] hogehoge
 ```
-
-
 
 ## Notes
 

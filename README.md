@@ -1,9 +1,10 @@
 # Elton
+
 ## What's Elton?
+
 パブリッククラウド・プライベートクラウド間(疎結合マルチクラスタ間)を連携し，
 ネットワークトラフィックを抑えながら効率よくデータ共有をしようプロジェクト．
 現在はDockerをターゲットにしたファイルシステムインタフェースとCDN向けのHTTPインタフェースを提供しようと頑張ってる．
-
 
 Eltonは，以下のサブプロジェクトで構成される．
 
@@ -17,6 +18,7 @@ Eltonは，以下のサブプロジェクトで構成される．
  - Docker Volume Plugin機能を用い，EltonfsをDockerで利用できるようにする
 
 ## Development
+
 実装は全てGolang 1.4.2で行っている．
 開発環境に必要なものは以下の様なものがあげられる．
 
@@ -29,10 +31,10 @@ Eltonは，以下のサブプロジェクトで構成される．
 - make
 - git
 
-
 ビルド用のDockerfileを参考にCentOS7環境で開発環境を構築すると良い(OSX，Windowsだとかなり面倒)．
 
 ### File Tree
+
 GOPATHにcloneする．
 clone後に`godep restore -v`とかやるとgodefが効くようになって便利．
 
@@ -82,9 +84,9 @@ clone後に`godep restore -v`とかやるとgodefが効くようになって便�
 ```
 
 ### Build
+
 ビルドは基本的にmakeを用いてDockerを通じて行う．
 実行後binディレクトリが作成され，その中にバイナリが作成される．
-
 
 ```bash
 [root]
@@ -92,9 +94,9 @@ $ make binary
 ```
 
 ### Run
+
 docker-composeを用いるとEltonを簡易実行できる．
 docker-compose.ymlをよしなに変更するといろいろ楽しい．
-
 
 ```bash
 [root]

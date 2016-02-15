@@ -1,11 +1,13 @@
 # Eltonfs
+
 ## Development
+
 [go-fuse](https://github.com/hanwen/go-fuse)を要チェック
 
 ## Usage
+
 CentOS7環境を想定．
 基本的にLinux環境で動くことしか考えてない．
-
 
 ```bash
 $ eltonfs --help
@@ -41,6 +43,7 @@ user_allow_other
 ```
 
 ### マウントする
+
 マウントに必要なupper，lower，mountpointのディレクトリは予め作成しておく．
 
 ```bash
@@ -55,6 +58,7 @@ $ fusermount -u /tmp/mountpoint
 ```
 
 ### コミット
+
 .eltonfsディレクトリ内のCOMMITファイルに書き込みが発生するとコミットされる．
 
 ```bash
@@ -62,6 +66,7 @@ $ echo hoge > MOUNTPOINT/.eltonfs/COMMIT
 ```
 
 ### 共有
+
 upperディレクトリ内のCONFIGファイルを同一にすることで共有できる．
 
 ```bash
@@ -69,8 +74,6 @@ upperディレクトリ内のCONFIGファイルを同一にすることで共有
 
 {"object_id":"00abaffcd2c94cddae418f597b4e9e6a1e0276b9af19399003a8e65374acb548","version":1,"delegate":"192.168.189.37"}
 ```
-
-
 
 ## Notes
 

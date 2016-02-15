@@ -1,5 +1,7 @@
 # Elton
+
 ## Usage
+
 CentOS7環境を想定する．
 
 ```bash
@@ -50,6 +52,7 @@ OPTIONS:
 ```
 
 ### 必要なもののインストール
+
 ```bash
 [root]
 $ yum -y install make gcc-c++ curl tar gzip
@@ -102,6 +105,7 @@ $ systemctl daemon-reload
 ```
 
 ### Elton Slaveのoptionファイルを作成する
+
 バックアップ用途の場合はbackupオプションを設定
 
 ```bash
@@ -112,6 +116,7 @@ OPTIONS=
 ```
 
 ### 設定ファイルを作成する(Elton Master)
+
 設定ファイルは[TOML記法](http://qiita.com/b4b4r07/items/77c327742fc2256d6cbe)で書きます．
 
 各種パラメータを適宜書き換えます．
@@ -140,6 +145,7 @@ dbpath = "/mnt/elton/elton.db"
 ```
 
 ### 設定ファイルを作成する(Elton Slave)
+
 設定ファイルは[TOML記法](http://qiita.com/b4b4r07/items/77c327742fc2256d6cbe)で書きます．
 
 各種パラメータを適宜書き換えます．
