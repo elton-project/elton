@@ -65,7 +65,7 @@ $ rm -rf protobuf*
 ### systemdのサービスファイルを登録する(Elton Master)
 
 ```
-# /usr/lib/systemd/system/elton.service
+### /usr/lib/systemd/system/elton.service
 [Unit]
 Description=elton
 
@@ -81,7 +81,7 @@ WantedBy=multi-user.target
 ### systemdのサービスファイルを登録する(Elton Slave)
 
 ```
-# /usr/lib/systemd/system/elton-slave.service
+### /usr/lib/systemd/system/elton-slave.service
 [Unit]
 Description=elton-slave
 
