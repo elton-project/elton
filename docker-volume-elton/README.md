@@ -27,7 +27,6 @@ user_allow_other
 ### systemdのサービスファイルを登録する
 
 ```
-
 # /usr/lib/systemd/system/docker-volume-elton.service
 
 [Unit]
