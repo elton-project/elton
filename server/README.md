@@ -103,6 +103,7 @@ $ systemctl daemon-reload
 
 ### Elton Slaveのoptionファイルを作成する
 バックアップ用途の場合はbackupオプションを設定
+
 ```bash
 # /etc/sysconfig/elton-slave
 
