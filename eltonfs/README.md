@@ -38,7 +38,6 @@ $ yum -y install fuse fuse-devel
 
 ```
 # /etc/fuse.conf
-
 user_allow_other
 ```
 
@@ -47,7 +46,7 @@ user_allow_other
 マウントに必要なupper，lower，mountpointのディレクトリは予め作成しておく．
 
 ```
-# eltonfs [elton master] --upperdir=[upper] --lowerdir=[lower] --host=[this hostname] MOUNTPOINT &
+// eltonfs [elton master] --upperdir=[upper] --lowerdir=[lower] --host=[this hostname] MOUNTPOINT &
 $ eltonfs 192.168.189.37:12345 --upperdir=/tmp/upper --lowerdir=/tmp/lower --host=192.168.189.37 /tmp/mountpoint &
 ```
 
