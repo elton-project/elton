@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const chunkSize int = 4096
+const bufferSize int = 64 * 1024
 
 type EltonFSGrpcServer struct {
 	Opts *Options
@@ -61,8 +61,8 @@ func (e *EltonFSGrpcServer) GetObject(o *pb.ObjectInfo, stream pb.EltonService_G
 	}
 	defer fp.Close()
 
-	reader := bufio.NewReader(fp)
-	buf := make([]byte, chunkSize)
+	reader := bufio.NewReaderSize(fp, bufferSize)
+	buf := make([]byte, bufferSize)
 	for {
 		n, err := reader.Read(buf)
 		if err != nil {
