@@ -56,7 +56,7 @@ OPTIONS:
 ```bash
 [root]
 $ yum -y install make gcc-c++ curl tar gzip
-$ curl -kL -O https://github.com/google/protobuf/releases/download/v3.0.0-beta-1/protobuf-cpp-3.0.0-beta-2.tar.gz
+$ curl -kL -O https://github.com/google/protobuf/releases/download/v3.0.0-beta-2/protobuf-cpp-3.0.0-beta-2.tar.gz
 $ tar zxvf protobuf-cpp-3.0.0-beta-2.tar.gz
 $ cd protobuf-3.0.0-beta-2 && ./configure && make && make install && cd ../
 $ rm -rf protobuf*
