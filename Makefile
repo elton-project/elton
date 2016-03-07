@@ -1,8 +1,8 @@
 TARGETDIR = bin
 
-all: deps grpc elton eltonfs volume-plugin
+all: deps fmt grpc elton eltonfs volume-plugin
 
-binary: fmt
+binary:
 	docker build -t eltonbuilder .
 	docker run --rm -it --privileged -v $(CURDIR):/vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton eltonbuilder
 
