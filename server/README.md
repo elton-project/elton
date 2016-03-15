@@ -216,21 +216,26 @@ $ curl -s -XPUT -d'{"object_id":"elton.tar.gz"}' http://slave.elton.internal.t-l
 
 ### PUT /{delegate}/{object_id}
 新しいオブジェクトを作成するAPIです．
-ジェネレートしたオブジェクトIDに対してファイルを送信します．
+ジェネレートしたオブジェクトIDの最新バージョン(自動)に対してファイルを送信します．
 
 #### Request
 
 `file=アップロードファイル`
 
 #### Response
+うまく行けば`{}`が返ってきます．
 
 #### Sample
 
 ```bash
-$ curl -s -XPUT -F file=@
+$ curl -s -XPUT -F file=@nashio_elton-bad1072cac599853bd9c1e40fb91e9ebb4bd5099.tar.gz http://slave.elton.internal.t-lab.cs.teu.ac.jp:23456/192.168.189.75/9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90
+{}
 ```
 
 ### PUT /{delegate}/{object_id}/{version:([1-9][0-9]*)}
+新しいオブジェクトをバージョン指定で作成するAPIです．
+ジェネレートしたオブジェクトID，バージョンに対してファイルを送信します．
+あんまり使いません...
 
 #### Request
 

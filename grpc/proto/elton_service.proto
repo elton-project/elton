@@ -4,10 +4,10 @@ package proto;
 
 service EltonService {
 	rpc GenerateObjectInfo(ObjectInfo) returns (stream ObjectInfo) {};
-	rpc CommitObjectInfo(ObjectInfo) returns (EmptyMessage) {};
+	rpc CommitObjectInfo(ObjectInfo) returns (stream ObjectInfo) {};
 	rpc GetObject(ObjectInfo) returns (stream Object) {};
 	rpc PutObject(Object) returns (EmptyMessage) {};
-	rpc DeleteObject(ObjectInfo) returns (EmptyMessage) {};
+	rpc DeleteObject(ObjectInfo) returns (stream ObjectInfo) {};
 }
 
 message ObjectInfo {
