@@ -69,6 +69,13 @@ $ systemctl start docker-volume-elton
 $ docker volume create --driver=eltonfs --name=[volume name]
 ```
 
+明示的にEltonのKeyを指定することもできる．
+
+```bash
+[root]
+$ docker volume create --driver=eltonfs --name=[volume name] -o object_id=9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90 -o version=1 -o delegate=192.168.189.75
+```
+
 ### マウントする
 
 ```bash
