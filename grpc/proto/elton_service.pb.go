@@ -65,10 +65,10 @@ var _ grpc.ClientConn
 
 type EltonServiceClient interface {
 	GenerateObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_GenerateObjectInfoClient, error)
-	CommitObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error)
+	CommitObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_CommitObjectInfoClient, error)
 	GetObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_GetObjectClient, error)
 	PutObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*EmptyMessage, error)
-	DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error)
+	DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_DeleteObjectClient, error)
 }
 
 type eltonServiceClient struct {
@@ -111,17 +111,40 @@ func (x *eltonServiceGenerateObjectInfoClient) Recv() (*ObjectInfo, error) {
 	return m, nil
 }
 
-func (c *eltonServiceClient) CommitObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error) {
-	out := new(EmptyMessage)
-	err := grpc.Invoke(ctx, "/proto.EltonService/CommitObjectInfo", in, out, c.cc, opts...)
+func (c *eltonServiceClient) CommitObjectInfo(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_CommitObjectInfoClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_EltonService_serviceDesc.Streams[1], c.cc, "/proto.EltonService/CommitObjectInfo", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &eltonServiceCommitObjectInfoClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EltonService_CommitObjectInfoClient interface {
+	Recv() (*ObjectInfo, error)
+	grpc.ClientStream
+}
+
+type eltonServiceCommitObjectInfoClient struct {
+	grpc.ClientStream
+}
+
+func (x *eltonServiceCommitObjectInfoClient) Recv() (*ObjectInfo, error) {
+	m := new(ObjectInfo)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *eltonServiceClient) GetObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_GetObjectClient, error) {
-	stream, err := grpc.NewClientStream(ctx, &_EltonService_serviceDesc.Streams[1], c.cc, "/proto.EltonService/GetObject", opts...)
+	stream, err := grpc.NewClientStream(ctx, &_EltonService_serviceDesc.Streams[2], c.cc, "/proto.EltonService/GetObject", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,23 +184,46 @@ func (c *eltonServiceClient) PutObject(ctx context.Context, in *Object, opts ...
 	return out, nil
 }
 
-func (c *eltonServiceClient) DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (*EmptyMessage, error) {
-	out := new(EmptyMessage)
-	err := grpc.Invoke(ctx, "/proto.EltonService/DeleteObject", in, out, c.cc, opts...)
+func (c *eltonServiceClient) DeleteObject(ctx context.Context, in *ObjectInfo, opts ...grpc.CallOption) (EltonService_DeleteObjectClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_EltonService_serviceDesc.Streams[3], c.cc, "/proto.EltonService/DeleteObject", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &eltonServiceDeleteObjectClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EltonService_DeleteObjectClient interface {
+	Recv() (*ObjectInfo, error)
+	grpc.ClientStream
+}
+
+type eltonServiceDeleteObjectClient struct {
+	grpc.ClientStream
+}
+
+func (x *eltonServiceDeleteObjectClient) Recv() (*ObjectInfo, error) {
+	m := new(ObjectInfo)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // Server API for EltonService service
 
 type EltonServiceServer interface {
 	GenerateObjectInfo(*ObjectInfo, EltonService_GenerateObjectInfoServer) error
-	CommitObjectInfo(context.Context, *ObjectInfo) (*EmptyMessage, error)
+	CommitObjectInfo(*ObjectInfo, EltonService_CommitObjectInfoServer) error
 	GetObject(*ObjectInfo, EltonService_GetObjectServer) error
 	PutObject(context.Context, *Object) (*EmptyMessage, error)
-	DeleteObject(context.Context, *ObjectInfo) (*EmptyMessage, error)
+	DeleteObject(*ObjectInfo, EltonService_DeleteObjectServer) error
 }
 
 func RegisterEltonServiceServer(s *grpc.Server, srv EltonServiceServer) {
@@ -205,16 +251,25 @@ func (x *eltonServiceGenerateObjectInfoServer) Send(m *ObjectInfo) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _EltonService_CommitObjectInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
-	in := new(ObjectInfo)
-	if err := dec(in); err != nil {
-		return nil, err
+func _EltonService_CommitObjectInfo_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ObjectInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	out, err := srv.(EltonServiceServer).CommitObjectInfo(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+	return srv.(EltonServiceServer).CommitObjectInfo(m, &eltonServiceCommitObjectInfoServer{stream})
+}
+
+type EltonService_CommitObjectInfoServer interface {
+	Send(*ObjectInfo) error
+	grpc.ServerStream
+}
+
+type eltonServiceCommitObjectInfoServer struct {
+	grpc.ServerStream
+}
+
+func (x *eltonServiceCommitObjectInfoServer) Send(m *ObjectInfo) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _EltonService_GetObject_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -250,16 +305,25 @@ func _EltonService_PutObject_Handler(srv interface{}, ctx context.Context, dec f
 	return out, nil
 }
 
-func _EltonService_DeleteObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
-	in := new(ObjectInfo)
-	if err := dec(in); err != nil {
-		return nil, err
+func _EltonService_DeleteObject_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ObjectInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	out, err := srv.(EltonServiceServer).DeleteObject(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+	return srv.(EltonServiceServer).DeleteObject(m, &eltonServiceDeleteObjectServer{stream})
+}
+
+type EltonService_DeleteObjectServer interface {
+	Send(*ObjectInfo) error
+	grpc.ServerStream
+}
+
+type eltonServiceDeleteObjectServer struct {
+	grpc.ServerStream
+}
+
+func (x *eltonServiceDeleteObjectServer) Send(m *ObjectInfo) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 var _EltonService_serviceDesc = grpc.ServiceDesc{
@@ -267,16 +331,8 @@ var _EltonService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*EltonServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CommitObjectInfo",
-			Handler:    _EltonService_CommitObjectInfo_Handler,
-		},
-		{
 			MethodName: "PutObject",
 			Handler:    _EltonService_PutObject_Handler,
-		},
-		{
-			MethodName: "DeleteObject",
-			Handler:    _EltonService_DeleteObject_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -286,8 +342,18 @@ var _EltonService_serviceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "CommitObjectInfo",
+			Handler:       _EltonService_CommitObjectInfo_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "GetObject",
 			Handler:       _EltonService_GetObject_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteObject",
+			Handler:       _EltonService_DeleteObject_Handler,
 			ServerStreams: true,
 		},
 	},
