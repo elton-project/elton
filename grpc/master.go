@@ -121,7 +121,6 @@ func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
 	defer bconn.Close()
 
 	bclient := pb.NewEltonServiceClient(bconn)
-
 	for {
 		obj, err := stream.Recv()
 		if err == io.EOF {

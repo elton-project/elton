@@ -228,6 +228,23 @@ func (e *EltonSlave) requestCommitObjectInfo(ctx context.Context, client pb.Elto
 		version = obj.Version
 	}
 
+	r.ParseMultipartForm(32 << 20)
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	fp, err := e.FS.Create(vars["object_id"], version)
+	if err != nil {
+		return nil, err
+	}
+	defer fp.Close()
+	_, err = io.Copy(fp, file)
+	if err != nil {
+		return nil, err
+	}
+
 	protoReq := pb.ObjectInfo{
 		ObjectId:        vars["object_id"],
 		Version:         version,
@@ -466,7 +483,19 @@ func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjec
 }
 
 func (e *EltonSlave) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
-	err = e.FS.WriteFile(o.ObjectId, o.Version, []byte(o.Body))
+	fp, err := e.FS.Create(o.ObjectId, o.Version)
+	if err != nil {
+		return new(pb.EmptyMessage), err
+	}
+	defer fp.Close()
+
+	writer := bufio.NewWriter(fp)
+	_, err = writer.Write(o.Body)
+	if err != nil {
+		return new(pb.EmptyMessage), err
+	}
+	writer.Flush()
+
 	return new(pb.EmptyMessage), err
 }
 
