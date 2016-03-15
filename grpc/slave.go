@@ -112,7 +112,9 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 				return
 			}
 
-			ForwardResponseMessage(ctx, w, resp)
+			ForwardResponseStream(w, func() (proto.Message, error) {
+				return resp.Recv()
+			})
 		},
 	).Methods("PUT")
 	router.HandleFunc(
@@ -124,7 +126,9 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 				return
 			}
 
-			ForwardResponseMessage(ctx, w, resp)
+			ForwardResponseStream(w, func() (proto.Message, error) {
+				return resp.Recv()
+			})
 		},
 	).Methods("PUT")
 	router.HandleFunc(
@@ -187,7 +191,9 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 				return
 			}
 
-			ForwardResponseMessage(ctx, w, resp)
+			ForwardResponseStream(w, func() (proto.Message, error) {
+				return resp.Recv()
+			})
 		},
 	).Methods("DELETE")
 
@@ -204,7 +210,7 @@ func (e *EltonSlave) requestGenerateObjectInfo(ctx context.Context, client pb.El
 	return client.GenerateObjectInfo(ctx, &protoReq)
 }
 
-func (e *EltonSlave) requestCommitObjectInfo(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (msg proto.Message, err error) {
+func (e *EltonSlave) requestCommitObjectInfo(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (pb.EltonService_CommitObjectInfoClient, error) {
 	vars := mux.Vars(r)
 
 	version, err := strconv.ParseUint(vars["version"], 10, 64)
@@ -273,7 +279,7 @@ func (e *EltonSlave) requestGetObject(ctx context.Context, client pb.EltonServic
 	return client.GetObject(ctx, protoReq)
 }
 
-func (e *EltonSlave) requestDeleteObject(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (msg proto.Message, err error) {
+func (e *EltonSlave) requestDeleteObject(ctx context.Context, client pb.EltonServiceClient, r *http.Request) (pb.EltonService_DeleteObjectClient, error) {
 	vars := mux.Vars(r)
 
 	version, err := strconv.ParseUint(vars["version"], 10, 64)

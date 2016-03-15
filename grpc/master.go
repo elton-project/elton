@@ -79,14 +79,12 @@ func (e *EltonMaster) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonServic
 }
 
 func (e *EltonMaster) CommitObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CommitObjectInfoServer) error {
-	obj := elton.ObjectInfo{
-		ObjectID: o.ObjectId,
-		Version:  o.Version,
-		Delegate: o.Delegate,
-	}
-
 	if err := e.Registry.SetObjectInfo(
-		obj,
+		elton.ObjectInfo{
+			ObjectID: o.ObjectId,
+			Version:  o.Version,
+			Delegate: o.Delegate,
+		},
 		o.RequestHostname,
 	); err != nil {
 		log.Println(err)
@@ -100,7 +98,7 @@ func (e *EltonMaster) CommitObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_
 		}
 	}()
 
-	if err = stream.Send(&obj); err != nil {
+	if err := stream.Send(o); err != nil {
 		log.Println(err)
 		return err
 	}
@@ -298,7 +296,7 @@ func (e *EltonMaster) DeleteObject(o *pb.ObjectInfo, stream pb.EltonService_Dele
 		_, err = client.DeleteObject(context.Background(), o)
 	}
 
-	if err = stream.Send(&obj); err != nil {
+	if err := stream.Send(o); err != nil {
 		log.Println(err)
 		return err
 	}
