@@ -175,21 +175,23 @@ $ systemctl start elton-slave
 Eltonを操作するためのHTTPインタフェースの使い方です．
 
 ### PUT /generate/object
-オブジェクトのIDをジェネレートするためのAPIです．
-新しいオブジェクトを作成する際にまず実行するAPIです．
+オブジェクトをジェネレートするためのAPIです．
+新しいオブジェクトを作成する(ファイルの作成・更新時)際にまず実行するAPIです．
 
 #### Request
 Request BodyでJSONを送ります．
-`object_id`に適当なお名前を入れます．
+`object_id`には作成したいオブジェクトの`object_id`を入れます(まだobject_idがない場合は適当なお名前を入れます)．
+
 
 ```bash
 {
-    "object_id":"elton.tar.gz"
+    "object_id":"3509eebf71fa7ebaa86a8a2bab69847b1b4351f7d9b056a18239cff562aed8f0"
 }
 ```
 
 #### Response
 オブジェクトが作成されると以下のようなResponseが返ってきます．
+object_idと新規バージョン等が返ってきます．
 
 ```bash
 {
@@ -220,16 +222,36 @@ $ curl -s -XPUT -d'{"object_id":"elton.tar.gz"}' http://slave.elton.internal.t-l
 
 #### Request
 
+`delegate: generateで返ってきたdelegateの値`
+`object_id: generateで返ってきたobject_idの値`
 `file=アップロードファイル`
 
 #### Response
-うまく行けば`{}`が返ってきます．
+うまく行けば作成したオブジェクトの情報が返ってきます．
+
+```bash
+{
+    "result":{
+        "object_id":"9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90",
+        "version":1,
+        "delegate":"192.168.189.75",
+        "request_hostname":"192.168.189.76:34567"
+    }
+}
+```
 
 #### Sample
 
 ```bash
-$ curl -s -XPUT -F file=@nashio_elton-bad1072cac599853bd9c1e40fb91e9ebb4bd5099.tar.gz http://slave.elton.internal.t-lab.cs.teu.ac.jp:23456/192.168.189.75/9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90
-{}
+$ curl -s -XPUT -F file=@nashio_elton-bad1072cac599853bd9c1e40fb91e9ebb4bd5099.tar.gz http://slave.elton.internal.t-lab.cs.teu.ac.jp:23456/192.168.189.75/9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90 | jq .
+{
+    "result":{
+        "object_id":"9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90",
+        "version":1,
+        "delegate":"192.168.189.75",
+        "request_hostname":"192.168.189.76:34567"
+    }
+}
 ```
 
 ### PUT /{delegate}/{object_id}/{version:([1-9][0-9]*)}
@@ -238,23 +260,79 @@ $ curl -s -XPUT -F file=@nashio_elton-bad1072cac599853bd9c1e40fb91e9ebb4bd5099.t
 あんまり使いません...
 
 #### Request
+`delegate: generateで返ってきたdelegateの値`
+`object_id: generateで返ってきたobject_idの値`
+`version: generateで返ってきたversionの値`
+`file=アップロードファイル`
 
 #### Response
+うまく行けば作成したオブジェクトの情報が返ってきます．
+
+```bash
+{
+    "result":{
+        "object_id":"9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90",
+        "version":1,
+        "delegate":"192.168.189.75",
+        "request_hostname":"192.168.189.76:34567"
+    }
+}
+```
 
 #### Sample
+
+```bash
+$ curl -s -XPUT -F file=@nashio_elton-bad1072cac599853bd9c1e40fb91e9ebb4bd5099.tar.gz http://slave.elton.internal.t-lab.cs.teu.ac.jp:23456/192.168.189.75/9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90/1 | jq .
+{
+    "result":{
+        "object_id":"9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90",
+        "version":1,
+        "delegate":"192.168.189.75",
+        "request_hostname":"192.168.189.76:34567"
+    }
+}
+```
 
 ### GET /{delegate}/{object_id}/{version:([1-9][0-9]*)}
+指定したobject_id，versionのオブジェクトを取得するAPIです．
 
 #### Request
+`delegate: generateで返ってきた取得したいdelegateの値`
+`object_id: generateで返ってきた取得したいobject_idの値`
+`version: generateで返ってきた取得したいversionの値`
 
 #### Response
+ファイルのダウンロードが始まります．
 
 #### Sample
+
+```bash
+$ curl -s -o elton.tar.gz http://slave.elton.internal.t-lab.cs.teu.ac.jp:23456/192.168.189.75/9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90/1
+```
 
 ### DELETE /{delegate}/{object_id}/{version:([1-9][0-9]*)}
 
 #### Request
+`delegate: generateで返ってきた削除したいdelegateの値`
+`object_id: generateで返ってきた削除したいobject_idの値`
+`version: generateで返ってきた削除したいversionの値`
 
 #### Response
+うまく行けば削除したオブジェクトの情報が返ってきます．
+
+```bash
+{
+    "result":{
+        "object_id":"9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90",
+        "version":1,
+        "delegate":"192.168.189.75",
+        "request_hostname":"192.168.189.76:34567"
+    }
+}
+```
 
 #### Sample
+
+```bash
+$ curl -s -XDELETE http://slave.elton.internal.t-lab.cs.teu.ac.jp:23456/192.168.189.75/9e5ed6043d4b80054fc5a0ea83eebda2a37637f35a2b028cb0554d86968ffb90/1
+```
