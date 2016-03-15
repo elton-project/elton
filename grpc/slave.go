@@ -104,7 +104,7 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 		},
 	).Methods("PUT")
 	router.HandleFunc(
-		"/{delegate:(elton[1-9][0-9]*)/{object_id}",
+		"/{delegate}/{object_id}",
 		func(w http.ResponseWriter, r *http.Request) {
 			resp, err := e.requestCommitObjectInfo(AnnotateContext(ctx, r), client, r)
 			if err != nil {
@@ -116,7 +116,7 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 		},
 	).Methods("PUT")
 	router.HandleFunc(
-		"/{delegate:(elton[1-9][0-9]*)/{object_id}/{version:([1-9][0-9]*)}}",
+		"/{delegate}/{object_id}/{version:([1-9][0-9]*)}",
 		func(w http.ResponseWriter, r *http.Request) {
 			resp, err := e.requestCommitObjectInfo(AnnotateContext(ctx, r), client, r)
 			if err != nil {
@@ -128,7 +128,7 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 		},
 	).Methods("PUT")
 	router.HandleFunc(
-		"/{delegate:(elton[1-9][0-9]*)/{object_id}/{version:([1-9][0-9]*)}}",
+		"/{delegate}/{object_id}/{version:([1-9][0-9]*)}",
 		func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
 
@@ -179,7 +179,7 @@ func (e *EltonSlave) RegisterEltonServiceHandler(ctx context.Context, router *mu
 		},
 	).Methods("GET")
 	router.HandleFunc(
-		"/{delegate:(elton[1-9][0-9]*)/{object_id}/{version:([1-9][0-9]*)}}",
+		"/{delegate}/{object_id}/{version:([1-9][0-9]*)}",
 		func(w http.ResponseWriter, r *http.Request) {
 			resp, err := e.requestDeleteObject(AnnotateContext(ctx, r), client, r)
 			if err != nil {

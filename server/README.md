@@ -170,3 +170,19 @@ $ systemctl start elton
 [root]
 $ systemctl start elton-slave
 ```
+
+## HTTPインタフェース
+Eltonを操作するためのHTTPインタフェースの使い方です．
+### PUT /generate/object
+オブジェクトのIDをジェネレートするためのAPIです．
+新しいオブジェクトを作成する際にまず実行するAPIです．
+#### Request
+
+
+### PUT /{delegate}/{object_id}
+
+### PUT /{delegate}/{object_id}/{version:([1-9][0-9]*)}
+
+### GET /{delegate}/{object_id}/{version:([1-9][0-9]*)}
+
+### DELETE /{delegate}/{object_id}/{version:([1-9][0-9]*)}
