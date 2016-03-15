@@ -6,8 +6,6 @@ import (
 	"io"
 	"net"
 
-	"golang.org/x/net/context"
-
 	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
 	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	"google.golang.org/grpc"
@@ -90,14 +88,14 @@ func (e *EltonFSGrpcServer) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.Elton
 	return nil
 }
 
-func (e *EltonFSGrpcServer) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {
+func (e *EltonFSGrpcServer) CommitObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CommitObjectInfoServer) error {
+	return nil
+}
+
+func (e *EltonFSGrpcServer) PutObject(c contuxt.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
 	return
 }
 
-func (e *EltonFSGrpcServer) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
-	return
-}
-
-func (e *EltonFSGrpcServer) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {
-	return
+func (e *EltonFSGrpcServer) DeleteObject(o *pb.ObjectInfo, stream pb.EltonService_DeleteObjectServer) error {
+	return nil
 }

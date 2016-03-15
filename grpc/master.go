@@ -78,17 +78,19 @@ func (e *EltonMaster) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonServic
 	return nil
 }
 
-func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb.EmptyMessage, error) {
+func (e *EltonMaster) CommitObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CommitObjectInfoServer) error {
+	obj := elton.ObjectInfo{
+		ObjectID: o.ObjectId,
+		Version:  o.Version,
+		Delegate: o.Delegate,
+	}
+
 	if err := e.Registry.SetObjectInfo(
-		elton.ObjectInfo{
-			ObjectID: o.ObjectId,
-			Version:  o.Version,
-			Delegate: o.Delegate,
-		},
+		obj,
 		o.RequestHostname,
 	); err != nil {
 		log.Println(err)
-		return new(pb.EmptyMessage), err
+		return err
 	}
 
 	// TODO: キューマネージャとかでやる方がいいと思う
@@ -98,7 +100,12 @@ func (e *EltonMaster) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (*pb
 		}
 	}()
 
-	return new(pb.EmptyMessage), nil
+	if err = stream.Send(&obj); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }
 
 func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
@@ -269,27 +276,32 @@ func (e *EltonMaster) PutObject(c context.Context, o *pb.Object) (*pb.EmptyMessa
 	return new(pb.EmptyMessage), nil
 }
 
-func (e *EltonMaster) DeleteObject(c context.Context, o *pb.ObjectInfo) (*pb.EmptyMessage, error) {
+func (e *EltonMaster) DeleteObject(o *pb.ObjectInfo, stream pb.EltonService_DeleteObjectServer) error {
 	if err := e.Registry.DeleteObjectVersions(o.ObjectId); err != nil {
 		log.Println(err)
-		return new(pb.EmptyMessage), err
+		return err
 	}
 
 	if o.Delegate == e.Conf.Master.Name {
 		if err := e.Registry.DeleteObjectInfo(o.ObjectId); err != nil {
 			log.Println(err)
-			return new(pb.EmptyMessage), err
+			return err
 		}
 	} else {
 		conn, err := e.getConnection(e.Masters[o.Delegate])
 		if err != nil {
 			log.Println(err)
-			return new(pb.EmptyMessage), err
+			return err
 		}
 
 		client := pb.NewEltonServiceClient(conn)
 		_, err = client.DeleteObject(context.Background(), o)
 	}
 
-	return new(pb.EmptyMessage), nil
+	if err = stream.Send(&obj); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }

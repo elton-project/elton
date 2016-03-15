@@ -444,8 +444,8 @@ func (e *EltonSlave) GenerateObjectInfo(o *pb.ObjectInfo, stream pb.EltonService
 	return nil
 }
 
-func (e *EltonSlave) CommitObjectInfo(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {
-	return
+func (e *EltonSlave) CommitObjectInfo(o *pb.ObjectInfo, stream pb.EltonService_CommitObjectInfoServer) error {
+	return nil
 }
 
 func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
@@ -499,6 +499,6 @@ func (e *EltonSlave) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMess
 	return new(pb.EmptyMessage), err
 }
 
-func (e *EltonSlave) DeleteObject(c context.Context, o *pb.ObjectInfo) (r *pb.EmptyMessage, err error) {
-	return
+func (e *EltonSlave) DeleteObject(o *pb.ObjectInfo, stream pb.EltonService_DeleteObjectServer) error {
+	return nil
 }
