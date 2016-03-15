@@ -173,16 +173,83 @@ $ systemctl start elton-slave
 
 ## HTTPインタフェース
 Eltonを操作するためのHTTPインタフェースの使い方です．
+
 ### PUT /generate/object
 オブジェクトのIDをジェネレートするためのAPIです．
 新しいオブジェクトを作成する際にまず実行するAPIです．
-#### Request
 
+#### Request
+Request BodyでJSONを送ります．
+`object_id`に適当なお名前を入れます．
+
+```bash
+{
+    "object_id":"elton.tar.gz"
+}
+```
+
+#### Response
+オブジェクトが作成されると以下のようなResponseが返ってきます．
+
+```bash
+{
+    "result": {
+        "object_id": "3509eebf71fa7ebaa86a8a2bab69847b1b4351f7d9b056a18239cff562aed8f0",
+        "version": 1,
+        "delegate": "192.168.189.75"
+    }
+}
+```
+
+#### Sample
+
+```bash
+$ curl -s -XPUT -d'{"object_id":"elton.tar.gz"}' http://slave.elton.internal.t-lab.cs.teu.ac.jp:23456/generate/object | jq .
+{
+    "result": {
+        "object_id": "3509eebf71fa7ebaa86a8a2bab69847b1b4351f7d9b056a18239cff562aed8f0",
+        "version": 1,
+        "delegate": "192.168.189.75"
+    }
+}
+```
 
 ### PUT /{delegate}/{object_id}
+新しいオブジェクトを作成するAPIです．
+ジェネレートしたオブジェクトIDに対してファイルを送信します．
+
+#### Request
+
+`file=アップロードファイル`
+
+#### Response
+
+#### Sample
+
+```bash
+$ curl -s -XPUT -F file=@
+```
 
 ### PUT /{delegate}/{object_id}/{version:([1-9][0-9]*)}
 
+#### Request
+
+#### Response
+
+#### Sample
+
 ### GET /{delegate}/{object_id}/{version:([1-9][0-9]*)}
 
+#### Request
+
+#### Response
+
+#### Sample
+
 ### DELETE /{delegate}/{object_id}/{version:([1-9][0-9]*)}
+
+#### Request
+
+#### Response
+
+#### Sample

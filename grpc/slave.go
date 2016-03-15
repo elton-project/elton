@@ -466,12 +466,7 @@ func (e *EltonSlave) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjec
 }
 
 func (e *EltonSlave) PutObject(c context.Context, o *pb.Object) (r *pb.EmptyMessage, err error) {
-	if err != nil {
-		log.Println(err)
-		return new(pb.EmptyMessage), err
-	}
-
-	err = e.FS.CreateFile(o.ObjectId, o.Version, []byte(o.Body))
+	err = e.FS.WriteFile(o.ObjectId, o.Version, []byte(o.Body))
 	return new(pb.EmptyMessage), err
 }
 

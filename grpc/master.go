@@ -114,8 +114,6 @@ func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
 		return err
 	}
 
-	obj, err := stream.Recv()
-
 	bconn, err := grpc.Dial(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port), opts...)
 	if err != nil {
 		return err
@@ -123,7 +121,22 @@ func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
 	defer bconn.Close()
 
 	bclient := pb.NewEltonServiceClient(bconn)
-	_, err = bclient.PutObject(context.Background(), obj)
+
+	for {
+		obj, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		_, err = bclient.PutObject(context.Background(), obj)
+		if err != nil {
+			return err
+		}
+	}
+
 	return err
 }
 

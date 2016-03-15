@@ -57,7 +57,7 @@ func purge(dir string) {
 	})
 }
 
-func (fs *FileSystem) CreateFile(name string, version uint64, body []byte) error {
+func (fs *FileSystem) WriteFile(name string, version uint64, body []byte) error {
 	path := fs.filename(name, version)
 	if err := fs.mkDir(path); err != nil {
 		return err
