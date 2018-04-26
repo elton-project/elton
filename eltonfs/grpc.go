@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
+	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto"
+	elton "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/server"
 	"google.golang.org/grpc"
 )
 

@@ -4,7 +4,7 @@ all: deps fmt grpc elton eltonfs volume-plugin
 
 binary:
 	docker build -t eltonbuilder .
-	docker run --rm -it --privileged -v $(CURDIR):/vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton eltonbuilder
+	docker run --rm -it --privileged -v $(CURDIR):/vendor/src/gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton eltonbuilder
 
 deps:
 	godep restore -v

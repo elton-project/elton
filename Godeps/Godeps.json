@@ -1,5 +1,5 @@
 {
-	"ImportPath": "git.t-lab.cs.teu.ac.jp/nashio/elton",
+	"ImportPath": "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton",
 	"GoVersion": "go1.4",
 	"Packages": [
 		"./..."

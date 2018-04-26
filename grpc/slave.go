@@ -13,10 +13,10 @@ import (
 
 	"golang.org/x/net/context"
 
-	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
+	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto"
+	elton "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

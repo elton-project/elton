@@ -13,8 +13,8 @@ RUN tar zxvf protobuf-cpp-3.0.0-beta-2.tar.gz
 RUN cd protobuf-3.0.0-beta-2 && ./configure && make && make install
 RUN rm -rf protobuf*
 
-COPY . /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
-WORKDIR /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
+COPY . /vendor/src/gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton
+WORKDIR /vendor/src/gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton
 RUN make elton
 
 RUN chmod +x examples/start.sh

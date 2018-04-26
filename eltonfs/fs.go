@@ -21,7 +21,7 @@ import (
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"google.golang.org/grpc"
 
-	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto"
 )
 
 type Options struct {
