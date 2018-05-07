@@ -1,4 +1,8 @@
-# Elton
+# Elton Project
+
+- 次回MTG 5/10 11:00  
+minutes/ 議事録
+thesis/ 修論等
 
 ## What's Elton?
 
