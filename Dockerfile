@@ -13,5 +13,5 @@ RUN tar zxvf protobuf-cpp-3.0.0-beta-2.tar.gz
 RUN cd protobuf-3.0.0-beta-2 && ./configure && make && make install
 RUN rm -rf protobuf*
 
-WORKDIR /vendor/src/git.t-lab.cs.teu.ac.jp/nashio/elton
+WORKDIR /vendor/src/gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton
 CMD make

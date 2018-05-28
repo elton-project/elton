@@ -5,8 +5,8 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/grpc"
-	elton "git.t-lab.cs.teu.ac.jp/nashio/elton/server"
+	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc"
+	elton "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/server"
 )
 
 var Commands = []cli.Command{

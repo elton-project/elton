@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/eltonfs"
+	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/eltonfs"
 
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"

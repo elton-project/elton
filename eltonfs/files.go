@@ -14,7 +14,7 @@ import (
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 
-	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto"
 )
 
 type eltonFile struct {

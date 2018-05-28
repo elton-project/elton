@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"sync"
 
-	"git.t-lab.cs.teu.ac.jp/nashio/elton/eltonfs"
-	pb "git.t-lab.cs.teu.ac.jp/nashio/elton/grpc/proto"
+	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/eltonfs"
+	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto"
 
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/hanwen/go-fuse/fuse"
