@@ -24,6 +24,7 @@ type eltonNode struct {
 	link     string
 	info     fuse.Attr
 
+	// key == object ID == ファイル名?
 	key      string
 	version  uint64
 	delegate string

@@ -35,11 +35,17 @@ type Options struct {
 }
 
 type FileInfo struct {
+	// eltonfsのマウントポイントからの相対パス
 	Name     string
+	// ObjectInfo.ObjectIdと同一の値
 	Key      string
 	Version  uint64
+	// このファイルに対応するオブジェクを管理をしているmaster nodeのnode name
 	Delegate string
+	// ファイルサイズ (byte)
 	Size     uint64
+	// ファイルの変更時刻(ChangeTime)。
+	// ModifyTimeではないことに注意！
 	Time     time.Time
 }
 
@@ -91,6 +97,9 @@ type eltonFS struct {
 	connection *grpc.ClientConn
 	mux        sync.Mutex
 	options    *Options
+	// NOTE: 多分機能していない。
+	// クライアントサイドのキャッシュを実装しようと試みたときの残骸？
+	// このサーバはマウント時に初期化されるが、どこからも呼び出されてないようだけど・・・
 	Server     *EltonFSGrpcServer
 }
 

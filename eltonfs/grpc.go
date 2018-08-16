@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"log"
 
 	"golang.org/x/net/context"
 
@@ -55,6 +56,10 @@ func (e *EltonFSGrpcServer) Stop() {
 }
 
 func (e *EltonFSGrpcServer) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
+	// EltonFSGrpcServerが利用されていないことを確認するためのコード。
+	// もし利用されていなたら、このコードは除去してください。
+	log.Fatal("GetObjectが呼び出された！！！！")
+
 	fp, err := e.FS.Open(o.ObjectId, o.Version)
 	if err != nil {
 		return err

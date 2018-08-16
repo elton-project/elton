@@ -89,6 +89,9 @@ func (f *eltonFile) Utimens(a *time.Time, m *time.Time) fuse.Status {
 	return f.File.Utimens(a, m)
 }
 
+// ディレクトリツリーを再構築する。
+// CONFIGを再読込してから、EltonTreeを再構築する。
+// このメソッドは、configファイルが書き込まれた直後に呼び出される。
 func (f *eltonFile) reload() {
 	f.node.fs.mux.Lock()
 	defer f.node.fs.mux.Unlock()
@@ -96,6 +99,8 @@ func (f *eltonFile) reload() {
 	f.node.fs.newEltonTree()
 }
 
+// ディレクトリツリーをコミットする。
+// このメソッドは、COMMITファイルを書き換えようとしたときに呼び出される。
 func (f *eltonFile) commit() error {
 	f.node.fs.mux.Lock()
 	defer f.node.fs.mux.Unlock()
@@ -136,6 +141,9 @@ func (f *eltonFile) commit() error {
 	return err
 }
 
+// コミット時に呼び出されるメソッド。
+// ファイルツリーをwalkｋして、FileInfoのリストを返す。
+// このときに、変更済みのファイル(upperディレクトリに存在するファイル)はコミットされ、lowerディレクトリに移動される。
 func (f *eltonFile) getFileTree(prefix string, root nodefs.Node) ([]FileInfo, error) {
 	if prefix != "" {
 		prefix += "/"
@@ -170,6 +178,8 @@ func (f *eltonFile) getFileTree(prefix string, root nodefs.Node) ([]FileInfo, er
 		}
 
 		if n.basePath == n.fs.upper {
+			// 未コミットのファイルをコミットする。
+			// コミットに成功すると、nおよびfiのバージョン番号などのフィールドを更新する。
 			if err := f.commitObject(client, n, &fi); err != nil {
 				return files, err
 			}
@@ -181,6 +191,8 @@ func (f *eltonFile) getFileTree(prefix string, root nodefs.Node) ([]FileInfo, er
 	return files, nil
 }
 
+// nのコミット直後に呼び出される。
+// nの実態をupperからlowerに移動される。
 func (f *eltonFile) moveFile(n *eltonNode, obj *pb.ObjectInfo) error {
 	p := filepath.Join(n.fs.lower, obj.ObjectId[:2], fmt.Sprintf("%s-%d", obj.ObjectId[2:], obj.Version))
 	dir := filepath.Dir(p)
