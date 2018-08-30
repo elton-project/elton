@@ -145,6 +145,8 @@ func (e *EltonMaster) doBackup(o *pb.ObjectInfo) error {
 	return err
 }
 
+// オブジェクトのバージョンを更新する。
+// もしオブジェクトのバージョンが0なら、自分のノードにversion 1の新しいオブジェクトを作成する。
 func (e *EltonMaster) generateObjectInfo(o *pb.ObjectInfo) (elton.ObjectInfo, error) {
 	if o.Version == 0 {
 		return e.Registry.GenerateObjectInfo(o.ObjectId)
@@ -160,9 +162,12 @@ func (e *EltonMaster) generateObjectInfo(o *pb.ObjectInfo) (elton.ObjectInfo, er
 		)
 	}
 
+	// o.Delegateは他のノードである。
+	// そのノードにバージョン更新を依頼する。
 	return e.generateObjectInfoByOtherMaster(o)
 }
 
+// オブジェクトを管理しているmasterサーバに対して、オブジェクトのバージョンの更新を依頼する。
 func (e *EltonMaster) generateObjectInfoByOtherMaster(o *pb.ObjectInfo) (object elton.ObjectInfo, err error) {
 	conn, err := e.getConnection(e.Masters[o.Delegate])
 	if err != nil {
@@ -204,6 +209,9 @@ func (e *EltonMaster) getConnection(host string) (conn *grpc.ClientConn, err err
 func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer) error {
 	host, err := e.Registry.GetObjectHost(o.ObjectId, o.Version)
 	if err != nil {
+		// TODO: このあたり、確証を持てないので、実際の挙動を確かめる。
+		// 自分のホストには、指定されたオブジェクトのキャッシュが存在しない。
+		// 外部のサーバから取得してくる。
 		if err = e.getObjectFromOtherMaster(o, stream); err != nil {
 			log.Println(err)
 			return err
@@ -212,9 +220,13 @@ func (e *EltonMaster) GetObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 		return nil
 	}
 
+	// TODO: このあたり、確証を持てないので、実際の挙動を確かめる。
+	// 自分のホストにキャッシュが存在した。
+	// そのキャッシュを返す。
 	conn, err := e.getConnection(host)
 	if err != nil {
 		log.Println(err)
+		// TODO: !?
 		conn, err = grpc.Dial(fmt.Sprintf("%s:%d", e.Conf.Backup.Name, e.Conf.Backup.Port), opts...)
 	}
 
@@ -237,6 +249,7 @@ func (e *EltonMaster) getObjectFromOtherMaster(o *pb.ObjectInfo, stream pb.Elton
 	return e.getObject(o, stream, client)
 }
 
+// clientからobjectを取得し、streamに向けて送信する。
 func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObjectServer, client pb.EltonServiceClient) error {
 	s, err := client.GetObject(context.Background(), o)
 	if err != nil {
@@ -257,6 +270,8 @@ func (e *EltonMaster) getObject(o *pb.ObjectInfo, stream pb.EltonService_GetObje
 		}
 	}
 
+	// TODO: 自分自身にキャッシュを持っているのに、遠くのサーバを登録してしまうことが起こるのでは！？
+	// TODO: 転送先が正しくオブジェクトを受け付け、保存することができたとは限らない。
 	if err = e.Registry.SetObjectInfo(
 		elton.ObjectInfo{
 			ObjectID: o.ObjectId,

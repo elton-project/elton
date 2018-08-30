@@ -133,6 +133,7 @@ func (r *Registry) GetNewVersion(obj ObjectInfo) (object ObjectInfo, err error) 
 	return
 }
 
+// オブジェクトのキャッシュを保持しているノードを設定する。
 func (r *Registry) SetObjectInfo(obj ObjectInfo, host string) error {
 	return r.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("hosts"))
@@ -142,6 +143,9 @@ func (r *Registry) SetObjectInfo(obj ObjectInfo, host string) error {
 	})
 }
 
+// 自身のDBから、オブジェクトを保持しているホスト名を探す。
+// DBに登録されていなければ、エラーを返す。
+// versionが0だったときは最新のバージョンを保持するホスト名を返す。
 func (r *Registry) GetObjectHost(oid string, version uint64) (host string, err error) {
 	if version == 0 {
 		version, err = r.getVersion(oid)
@@ -166,6 +170,7 @@ func (r *Registry) GetObjectHost(oid string, version uint64) (host string, err e
 	return
 }
 
+// objectIDの最新のバージョンを取得する。
 func (r *Registry) getVersion(oid string) (version uint64, err error) {
 	err = r.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("versions"))
@@ -180,6 +185,9 @@ func (r *Registry) getVersion(oid string) (version uint64, err error) {
 	return
 }
 
+// hostsバケットから、キャッシュを持っているノード名を削除する。
+//
+// TODO: hostsバケットの内容をクリアするんだから、このメソッド名はおかしいのでは？
 func (r *Registry) DeleteObjectVersions(oid string) (err error) {
 	return r.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("hosts"))
@@ -195,6 +203,7 @@ func (r *Registry) DeleteObjectVersions(oid string) (err error) {
 	})
 }
 
+// versionsバケットから、oidの情報を削除する。
 func (r *Registry) DeleteObjectInfo(oid string) (err error) {
 	return r.DB.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket([]byte("versions")).Delete([]byte(oid))
