@@ -38,6 +38,7 @@ func NewEltonMaster(conf elton.Config) (*EltonMaster, error) {
 }
 
 func (e *EltonMaster) Serve() error {
+	// TODO: log.Fatal()は内部でos.Exit()を呼び出すため、これらのdefer文が実行されない！！！
 	defer e.Registry.Close()
 	defer func() {
 		for _, c := range e.Connections {
