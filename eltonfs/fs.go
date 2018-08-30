@@ -50,6 +50,7 @@ type FileInfo struct {
 }
 
 const (
+	// COMMITファイルの、デフォルトのファイルパーミッション。
 	FILEMODE            os.FileMode = 0644
 	ELTONFS_CONFIG_DIR  string      = ".eltonfs"
 	ELTONFS_CONFIG_NAME string      = "CONFIG"

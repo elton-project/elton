@@ -11,14 +11,36 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// masterサーバのデータベース
 type Registry struct {
+	// boltDBのデータベースオブジェクト。
+	//
+	// versionsバケット:
+	// 各オブジェクトの最新のバージョン番号を格納する。
+	// バージョン番号の最小値は1。
+	//
+	//   versions[objectID] = latestVersion
+	//   objectID: SHA256のハッシュ値を16進数表記に変換した文字列
+	//   latestVersion: 10進数の文字列
+	//
+	//
+	// hostsバケット:
+	// 指定したバージョンのオブジェクトを保持しているノードのホスト名を格納する。
+	// TODO: なんのために使っているのか、よくわからない
+	//
+	//   hosts[objectID, version] = hostName
+	//   hostName: オブジェクトを保持しているノードのアドレス。書式は"host:port"。
+	//             hostはelton serverの名前であり、DNSで引けるとは限らない。
 	DB   *bolt.DB
+	// masterサーバの名前。
 	Name string
 }
 
 type ObjectInfo struct {
+	// SHA256のハッシュ値を16進数表記に変換した文字列
 	ObjectID string `json:"objectid, omitempty"`
 	Version  uint64 `json:"version, omitempty"`
+	// masterサーバの名前
 	Delegate string `json:"delegate, omitempty"`
 }
 
@@ -47,6 +69,10 @@ func NewRegistry(conf Config) (*Registry, error) {
 	return &Registry{DB: db, Name: conf.Master.Name}, nil
 }
 
+// 新しいObjectInfoを作成する。
+// name引数の意味はあまりない。正直適当な値でも問題なさそう。
+//
+// TODO: name引数を削除する。
 func (r *Registry) GenerateObjectInfo(name string) (obj ObjectInfo, err error) {
 	oid := r.generateObjectID(name)
 	if err = r.DB.Update(func(tx *bolt.Tx) error {
@@ -65,6 +91,11 @@ func (r *Registry) GenerateObjectInfo(name string) (obj ObjectInfo, err error) {
 	return
 }
 
+// nameに対応するobjectIDを返す。
+// nameが同じ場合、1<<30の確率でIDが衝突する。
+// しかし、処理のタイミング次第ではもっと高い確率で衝突する恐れがある。
+//
+// TODO: atomic.AddUint32()を使うなどして、シーケンシャルな数値を使う手法に変えられないか検討する。
 func (r *Registry) generateObjectID(name string) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(fmt.Sprintf("%s%d", name, time.Now().Nanosecond())))
@@ -72,6 +103,7 @@ func (r *Registry) generateObjectID(name string) string {
 	return string(hex.EncodeToString(hasher.Sum(nil)))
 }
 
+// objの新しいバージョンを作成して返す。
 func (r *Registry) GetNewVersion(obj ObjectInfo) (object ObjectInfo, err error) {
 	var version uint64
 	if err = r.DB.Update(func(tx *bolt.Tx) error {

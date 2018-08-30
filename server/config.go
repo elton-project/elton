@@ -37,6 +37,8 @@ type BackupConfig struct {
 }
 
 type DBConfig struct {
+	// データベースファイルのパス。
+	// ファイルが存在しなければ、自動的に作成される。
 	DBPath string `toml:"dbpath"`
 }
 
