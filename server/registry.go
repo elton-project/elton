@@ -44,6 +44,7 @@ type ObjectInfo struct {
 	Delegate string `json:"delegate, omitempty"`
 }
 
+// TODO: どこからも使われていない。削除する。
 type ObjectName struct {
 	Name []string `json:"name, omitempty"`
 }
