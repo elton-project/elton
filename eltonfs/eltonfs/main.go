@@ -14,7 +14,11 @@ import (
 )
 
 func main() {
+	// Go1.5以降では、GOMAXPROCSは自動的に設定される。
+	// このため、この行は不要。
+	// http://ascii.jp/elem/000/001/480/1480872/#runtime.gomaxprocsn-runtime.numcpu
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	var opts eltonfs.Options
 	parser := flags.NewParser(&opts, flags.Default)
 	parser.Name = "eltonfs"
