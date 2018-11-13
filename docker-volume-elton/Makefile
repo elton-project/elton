@@ -4,7 +4,7 @@ VOLUME = $(TARGETDIR)/docker-volume-elton
 all: build
 
 build:
-	GOOS=linux GOARCH=amd64 godep go build -o $(VOLUME)
+	GOOS=linux GOARCH=amd64 go build -o $(VOLUME)
 
 clean:
 	$(RM) $(VOLUME)
