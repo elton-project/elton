@@ -46,7 +46,7 @@ func main() {
 
 	d, err := newEltonfsDriver(*root, config)
 	if err != nil {
-		fmt.Errorf(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(2)
 	}
 
