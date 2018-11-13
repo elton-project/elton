@@ -1,7 +1,8 @@
 all: deps generate
 
-deps:
-	godep get -v github.com/golang/protobuf/protoc-gen-go
+build-deps:
+	which go
+	go get -v github.com/golang/protobuf/protoc-gen-go
 
 generate:
 	protoc --go_out=plugins=grpc:. elton_service.proto

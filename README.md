@@ -26,14 +26,15 @@ Eltonは，以下のサブプロジェクトで構成される．
 実装は全てGolang 1.4.2で行っている．
 開発環境に必要なものは以下の様なものがあげられる．
 
-- Golang 1.4.2
+- Golang 1.11.2
 - Editor (go-modeがきちんとしているものがいい ex. Emacs，Vim，Atom)
   - godef，goimportsとかも入れると良い
-- Godeps (依存管理ツール `go get -u github.com/kr/godep` でインストール)
-- Docker 1.9≦
-  - docker-compose
+- Docker 18.06.1-ce
+- docker-compose
 - make
 - git
+
+その他の依存しているツールやライブラリは、`make build-deps`でインストールできる。
 
 ビルド用のDockerfileを参考にCentOS7環境で開発環境を構築すると良い(OSX，Windowsだとかなり面倒)．
 

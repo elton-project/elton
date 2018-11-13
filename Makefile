@@ -1,27 +1,34 @@
 TARGETDIR = bin
 
-all: deps fmt grpc elton eltonfs volume-plugin
+all: build-deps fmt grpc elton eltonfs volume-plugin
+
+build-deps:
+	which go
+	which docker
+	which docker-compose
+	go get github.com/golang/dep/cmd/dep
+	$(MAKE) -C docker-volume-elton build-deps
+	$(MAKE) -C eltonfs/eltonfs     build-deps
+	$(MAKE) -C grpc/proto          build-deps
+	$(MAKE) -C server/elton        build-deps
 
 binary:
 	docker build -t eltonbuilder .
 	docker run --rm -it --privileged -v $(CURDIR):/vendor/src/gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton eltonbuilder
 
-deps:
-	godep restore -v
-
 fmt:
 	go fmt ./...
 
-grpc: deps
+grpc:
 	$(MAKE) -C grpc/proto
 
-elton: deps
+elton:
 	$(MAKE) -C server/elton
 
-eltonfs: deps
+eltonfs:
 	$(MAKE) -C eltonfs/eltonfs
 
-volume-plugin: deps
+volume-plugin:
 	$(MAKE) -C docker-volume-elton
 
 build:
@@ -33,4 +40,4 @@ testall: build
 clean:
 	$(RM) -r $(TARGETDIR)
 
-.PHONY: all deps fmt grpc elton eltonfs volume-plugin build testall clean
+.PHONY: all fmt grpc elton eltonfs volume-plugin build testall clean
