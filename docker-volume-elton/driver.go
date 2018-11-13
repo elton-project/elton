@@ -67,7 +67,7 @@ func newEltonfsDriver(root string, config eltonfsConfig) (d eltonfsDriver, err e
 	}, nil
 }
 
-func (d eltonfsDriver) Create(r volume.Request) volume.Response {
+func (d eltonfsDriver) Create(r *volume.CreateRequest) error {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -75,32 +75,32 @@ func (d eltonfsDriver) Create(r volume.Request) volume.Response {
 	upper := d.upperDir(r.Name)
 
 	if _, ok := d.servers[m]; ok {
-		return volume.Response{}
+		return nil
 	}
 
 	fi, err := os.Lstat(m)
 
 	if os.IsNotExist(err) {
 		if err := os.MkdirAll(m, 0755); err != nil {
-			return volume.Response{Err: err.Error()}
+			return err
 		}
 		if err := os.MkdirAll(upper, 0755); err != nil {
-			return volume.Response{Err: err.Error()}
+			return err
 		}
 
 	} else if err != nil {
-		return volume.Response{Err: err.Error()}
+		return err
 	}
 
 	if fi != nil && !fi.IsDir() {
-		return volume.Response{Err: fmt.Sprintf("%v already exist and it's not a directory", m)}
+		return fmt.Errorf("%v already exist and it's not a directory", m)
 	}
 
 	if _, ok := r.Options["object_id"]; ok {
 		if _, ok = r.Options["version"]; ok {
 			version, err := strconv.ParseUint(r.Options["version"], 10, 64)
 			if err != nil {
-				return volume.Response{Err: err.Error()}
+				return err
 			}
 
 			data, err := json.Marshal(pb.ObjectInfo{
@@ -109,7 +109,7 @@ func (d eltonfsDriver) Create(r volume.Request) volume.Response {
 				Delegate: r.Options["delegate"],
 			})
 			if err != nil {
-				return volume.Response{Err: err.Error()}
+				return err
 			}
 
 			if err = ioutil.WriteFile(
@@ -117,15 +117,40 @@ func (d eltonfsDriver) Create(r volume.Request) volume.Response {
 				data,
 				0644,
 			); err != nil {
-				return volume.Response{Err: err.Error()}
+				return err
 			}
 		}
 	}
 
-	return volume.Response{}
+	return nil
+}
+func (d eltonfsDriver) List() (*volume.ListResponse, error) {
+	d.m.Lock()
+	defer d.m.Unlock()
+
+	var volumes []*volume.Volume
+	for name := range d.servers {
+		volumes = append(volumes, d.volume(name))
+	}
+
+	return &volume.ListResponse{
+		Volumes: volumes,
+	}, nil
+}
+func (d eltonfsDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
+	d.m.Lock()
+	defer d.m.Unlock()
+
+	if !d.isExists(r.Name) {
+		return nil, fmt.Errorf("volume not found: name=%s", r.Name)
+	}
+
+	return &volume.GetResponse{
+		Volume: d.volume(r.Name),
+	}, nil
 }
 
-func (d eltonfsDriver) Remove(r volume.Request) volume.Response {
+func (d eltonfsDriver) Remove(r *volume.RemoveRequest) error {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -137,14 +162,14 @@ func (d eltonfsDriver) Remove(r volume.Request) volume.Response {
 		}
 	}
 
-	return volume.Response{}
+	return nil
 }
 
-func (d eltonfsDriver) Path(r volume.Request) volume.Response {
-	return volume.Response{Mountpoint: d.mountpoint(r.Name)}
+func (d eltonfsDriver) Path(r *volume.PathRequest) (*volume.PathResponse, error) {
+	return &volume.PathResponse{Mountpoint: d.mountpoint(r.Name)}, nil
 }
 
-func (d eltonfsDriver) Mount(r volume.Request) volume.Response {
+func (d eltonfsDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, error) {
 	d.m.Lock()
 	defer d.m.Unlock()
 	m := d.mountpoint(r.Name)
@@ -153,34 +178,34 @@ func (d eltonfsDriver) Mount(r volume.Request) volume.Response {
 	s, ok := d.servers[m]
 	if ok && s.connections > 0 {
 		s.connections++
-		return volume.Response{Mountpoint: m}
+		return &volume.MountResponse{Mountpoint: m}, nil
 	}
 
 	fi, err := os.Lstat(m)
 
 	if os.IsNotExist(err) {
 		if err := os.MkdirAll(m, 0755); err != nil {
-			return volume.Response{Err: err.Error()}
+			return nil, err
 		}
 	} else if err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
 	if fi != nil && !fi.IsDir() {
-		return volume.Response{Err: fmt.Sprintf("%v already exist and it's not a directory", m)}
+		return nil, fmt.Errorf("%v already exist and it's not a directory", m)
 	}
 
 	server, err := d.mountServer(m)
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
 	d.servers[m] = &eltonfsServer{Server: server, connections: 1}
 
-	return volume.Response{Mountpoint: m}
+	return &volume.MountResponse{Mountpoint: m}, nil
 }
 
-func (d eltonfsDriver) Unmount(r volume.Request) volume.Response {
+func (d eltonfsDriver) Unmount(r *volume.UnmountRequest) error {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -193,10 +218,29 @@ func (d eltonfsDriver) Unmount(r volume.Request) volume.Response {
 		}
 		s.connections--
 	} else {
-		return volume.Response{Err: fmt.Sprintf("Unable to find volume mounted on %s", m)}
+		return fmt.Errorf("Unable to find volume mounted on %s", m)
 	}
 
-	return volume.Response{}
+	return nil
+}
+
+func (d eltonfsDriver) Capabilities() *volume.CapabilitiesResponse {
+	return &volume.CapabilitiesResponse{
+		Capabilities: volume.Capability{
+			Scope: "global",
+		},
+	}
+}
+
+func (d eltonfsDriver) isExists(name string) bool {
+	_, ok := d.servers[name]
+	return ok
+}
+func (d eltonfsDriver) volume(name string) *volume.Volume {
+	return &volume.Volume{
+		Name:       name,
+		Mountpoint: d.mountpoint(name),
+	}
 }
 
 func (d eltonfsDriver) mountpoint(name string) string {
