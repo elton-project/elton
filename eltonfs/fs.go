@@ -36,17 +36,17 @@ type Options struct {
 
 type FileInfo struct {
 	// eltonfsのマウントポイントからの相対パス
-	Name     string
+	Name string
 	// ObjectInfo.ObjectIdと同一の値
-	Key      string
-	Version  uint64
+	Key     string
+	Version uint64
 	// このファイルに対応するオブジェクを管理をしているmaster nodeのnode name
 	Delegate string
 	// ファイルサイズ (byte)
-	Size     uint64
+	Size uint64
 	// ファイルの変更時刻(ChangeTime)。
 	// ModifyTimeではないことに注意！
-	Time     time.Time
+	Time time.Time
 }
 
 const (
@@ -101,7 +101,7 @@ type eltonFS struct {
 	// NOTE: 多分機能していない。
 	// クライアントサイドのキャッシュを実装しようと試みたときの残骸？
 	// このサーバはマウント時に初期化されるが、どこからも呼び出されてないようだけど・・・
-	Server     *EltonFSGrpcServer
+	Server *EltonFSGrpcServer
 }
 
 func (fs *eltonFS) String() string {

@@ -31,7 +31,7 @@ type Registry struct {
 	//   hosts[objectID, version] = hostName
 	//   hostName: オブジェクトを保持しているノードのアドレス。書式は"host:port"。
 	//             hostはelton serverの名前であり、DNSで引けるとは限らない。
-	DB   *bolt.DB
+	DB *bolt.DB
 	// masterサーバの名前。
 	Name string
 }

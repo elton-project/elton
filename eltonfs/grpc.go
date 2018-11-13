@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"net"
 	"log"
+	"net"
 
 	"golang.org/x/net/context"
 
