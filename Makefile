@@ -1,6 +1,15 @@
 TARGETDIR = bin
 
-all: fmt grpc elton eltonfs volume-plugin
+all: build-deps fmt grpc elton eltonfs volume-plugin
+
+build-deps:
+	which go
+	which docker
+	which docker-compose
+	$(MAKE) -C docker-volume-elton build-deps
+	$(MAKE) -C eltonfs/eltonfs     build-deps
+	$(MAKE) -C grpc/proto          build-deps
+	$(MAKE) -C server/elton        build-deps
 
 binary:
 	docker build -t eltonbuilder .

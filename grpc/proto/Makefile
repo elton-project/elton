@@ -1,7 +1,7 @@
 all: deps generate
 
-deps:
-	# TODO: rename rule name to 'build-deps'
+build-deps:
+	which go
 	go get -v github.com/golang/protobuf/protoc-gen-go
 
 generate:
