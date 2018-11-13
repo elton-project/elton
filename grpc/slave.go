@@ -307,7 +307,7 @@ func AnnotateContext(ctx context.Context, r *http.Request) context.Context {
 	}
 
 	if len(pairs) != 0 {
-		ctx = metadata.NewContext(ctx, metadata.Pairs(pairs...))
+		ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(pairs...))
 	}
 
 	return ctx
