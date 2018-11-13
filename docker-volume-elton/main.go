@@ -13,6 +13,7 @@ import (
 const (
 	eltonfsId     = "_eltonfs"
 	socketAddress = "/run/docker/plugins/eltonfs.sock"
+	socketGid     = 0 // GID 0 is root group
 )
 
 var (
@@ -55,5 +56,5 @@ func main() {
 	defer d.eltonServer.Stop()
 
 	fmt.Printf("Listening on %s\n", socketAddress)
-	fmt.Println(h.ServeUnix("root", socketAddress))
+	fmt.Println(h.ServeUnix(socketAddress, socketGid))
 }
