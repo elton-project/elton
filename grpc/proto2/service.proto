@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package proto2;
+
+// 仕組み
+//   Listenすると、イベントが発生したときにコールバックされる。
+//   Unlistenすると、コールバックが止まる。
+service MessageTransporter {
+    // 複数個のlistenとunlistenを一括でやる。
+    rpc Listen(stream EventListener) returns (ListenResult);
+    rpc Unlisten(stream EventListener) returns (UnlistenResult);
+
+    rpc OnListenChanged(stream EventListener) returns (Empty);
+
+    rpc OnNodeAdded(stream Node) returns (Empty);
+    rpc OnNodeStopping(stream Node) returns (Empty);
+    rpc OnNodeStopped(stream Node) returns (Empty);
+    rpc OnNodeDetaching(stream Node) returns (Empty);
+    rpc OnNodeDetached(stream Node) returns (Empty);
+
+    rpc OnObjectCreated(stream ObjectInfo) returns (Empty);
+    rpc OnObjectDeleted(stream ObjectInfo) returns (Empty);
+    rpc OnObjectCacheCreated(stream ObjectInfo) returns (Empty);
+    rpc OnObjectCacheDeleted(stream ObjectInfo) returns (Empty);
+}
+
+service ControllerService {
+    rpc StopSystem(Empty) returns (Empty);
+
+    rpc AddNode(Node) returns (Empty);
+    rpc StopNode(Node) returns (Empty);
+    rpc DetachNode(Node) returns (Empty);
+}
+
+// Storageサブシステムが、他のサブシステムに公開しているサービス。
+service StorageService {
+    rpc CreateObject(stream Object) returns (Empty);
+    rpc DeleteObject(stream ObjectInfo) returns (Empty);
+}
+
+service LocalStorageService {
+    rpc CreateObjectByPath(stream ObjectPath) returns (Empty);
+    rpc DownloadObject(stream ObjectInfo) returns (Empty);
+    rpc RLockObject(stream ObjectInfo) returns (Empty);
+    rpc RUnlockObject(stream ObjectInfo) returns (Empty);
+}
+
+// Storageサブシステム内部で利用するサービス。
+// Storageサブシステム毎に定義する。
+service InternalStorageService {
+    // TODO
+    rpc GetObject(ObjectInfo) returns (Object);
+    rpc PutObject(Object) returns (Empty);
+}
+
+enum EventType {
+    ALL = 0;
+    STATUS_CHANGED = 10;
+    NODE_ADDED = 1;
+    NODE_STOPPING = 2;
+    NODE_STOPPED = 3;
+    NODE_DETACHING = 4;
+    NODE_DETACHED = 5;
+    OBJECT_CREATED = 6;
+    OBJECT_DELETED = 7;
+    OBJECT_CACHE_CREATED = 8;
+    OBJECT_CACHE_DELETED = 9;
+}
+
+// ==== State Transition Diagram ====
+//
+// [UNAVAILABLE]
+//       |
+// +-----|------------+
+// |     V            |
+// |  [INIT_PHASE_0]  |
+// |     |            |
+// |     V            |
+// |  [INIT_PHASE_1]  |
+// |     |            |
+// |     V            |
+// |  [INIT_PHASE_2]  |
+// |     |            |
+// +-----|------------+
+//       |
+// +-----|-----------------------------+
+// |     V                             |
+// |  [OPERATING_RW] <--------------+  |
+// |     |                          |  |
+// |     V                          |  |
+// |  [OPERATING_MIGRATING_TO_RO]   |  |
+// |     |                          |  |
+// |     V                          |  |
+// |  [OPERATING_RO] ---------------+  |
+// |     |                             |
+// +-----|-----------------------------+
+//       V
+// [SHUTDOWN]
+enum RunStatus {
+    UNAVAILABLE = 0;
+
+    // launcherが起動した状態。
+    INIT_PHASE_0 = 10;
+    // 各サブシステムが起動中の状態。
+    INIT_PHASE_1 = 11;
+    // 各サブシステムが起動完了した状態。
+    INIT_PHASE_2 = 12;
+
+    // 通常運用の状態。
+    OPERATING_RW = 20;
+    // Read Onlyモードに移行中の状態
+    OPERATING_MIGRATING_TO_RO = 21;
+    // Read Onlyモードで運用中。
+    OPERATING_RO = 22;
+
+    // 各サブシステムのプロセスを終了している状態。
+    SHUTDOWN = 30;
+}
+
+message Empty {}
+
+message Node {
+    uint64 id = 1;
+    repeated string group = 2;
+    string address = 3;
+}
+
+message ObjectInfo {
+    string id = 1;
+    uint64 version = 2;
+}
+
+message Object {
+    ObjectInfo info = 1;
+    bytes body = 2;
+}
+
+message ObjectCache {
+    ObjectInfo obj = 1;
+    Node node = 2;
+}
+
+message ObjectPath {
+    ObjectInfo obj = 1;
+    string path = 2;
+}
+
+message Status {
+    bool writable = 1;
+    RunStatus runLevel = 2;
+}
+
+message EventListener {
+    Node node = 1;
+    EventType type = 2;
+}
+
+message ListenResult {
+    string error = 1;
+}
+
+message UnlistenResult {
+    string error = 1;
+}
+
