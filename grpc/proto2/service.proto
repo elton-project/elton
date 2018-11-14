@@ -117,6 +117,30 @@ enum RunStatus {
     SHUTDOWN = 30;
 }
 
+// ==== State Transition Diagram ====
+//
+// [Unknown]
+//    |
+//    V
+// [Creating]
+//    |  +-----------------+
+//    V  V                 |
+// [Created]  -------->  [Lost]
+//    |                    |
+//    V                    |
+// [Deleting] <------------+
+//    |
+//    V
+// [Deleted]
+enum ObjectStatus {
+    Unknown = 0;
+    Creating = 1;
+    Created = 2;
+    Lost = 3;
+    Deleting = 4;
+    Deleted = 5;
+}
+
 message Empty {}
 
 message Node {
