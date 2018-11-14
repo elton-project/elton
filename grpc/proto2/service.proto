@@ -96,7 +96,7 @@ enum EventType {
 // +-----|-----------------------------+
 //       V
 // [SHUTDOWN]
-enum RunStatus {
+enum SystemStatus {
     UNAVAILABLE = 0;
 
     // launcherが起動した状態。
@@ -171,7 +171,7 @@ message ObjectPath {
 
 message Status {
     bool writable = 1;
-    RunStatus runLevel = 2;
+    SystemStatus runLevel = 2;
 }
 
 message EventListener {
