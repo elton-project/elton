@@ -581,7 +581,7 @@ func (m *Status) GetRunLevel() SystemStatus {
 	return SystemStatus_SS_UNAVAILABLE
 }
 
-type EventListener struct {
+type EventListenerInfo struct {
 	Node                 *Node     `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
 	Type                 EventType `protobuf:"varint,2,opt,name=type,proto3,enum=proto2.EventType" json:"type,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
@@ -589,43 +589,82 @@ type EventListener struct {
 	XXX_sizecache        int32     `json:"-"`
 }
 
-func (m *EventListener) Reset()         { *m = EventListener{} }
-func (m *EventListener) String() string { return proto.CompactTextString(m) }
-func (*EventListener) ProtoMessage()    {}
-func (*EventListener) Descriptor() ([]byte, []int) {
+func (m *EventListenerInfo) Reset()         { *m = EventListenerInfo{} }
+func (m *EventListenerInfo) String() string { return proto.CompactTextString(m) }
+func (*EventListenerInfo) ProtoMessage()    {}
+func (*EventListenerInfo) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a0b84a42fa06f626, []int{7}
 }
 
-func (m *EventListener) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EventListener.Unmarshal(m, b)
+func (m *EventListenerInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EventListenerInfo.Unmarshal(m, b)
 }
-func (m *EventListener) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EventListener.Marshal(b, m, deterministic)
+func (m *EventListenerInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EventListenerInfo.Marshal(b, m, deterministic)
 }
-func (m *EventListener) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventListener.Merge(m, src)
+func (m *EventListenerInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventListenerInfo.Merge(m, src)
 }
-func (m *EventListener) XXX_Size() int {
-	return xxx_messageInfo_EventListener.Size(m)
+func (m *EventListenerInfo) XXX_Size() int {
+	return xxx_messageInfo_EventListenerInfo.Size(m)
 }
-func (m *EventListener) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventListener.DiscardUnknown(m)
+func (m *EventListenerInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventListenerInfo.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EventListener proto.InternalMessageInfo
+var xxx_messageInfo_EventListenerInfo proto.InternalMessageInfo
 
-func (m *EventListener) GetNode() *Node {
+func (m *EventListenerInfo) GetNode() *Node {
 	if m != nil {
 		return m.Node
 	}
 	return nil
 }
 
-func (m *EventListener) GetType() EventType {
+func (m *EventListenerInfo) GetType() EventType {
 	if m != nil {
 		return m.Type
 	}
 	return EventType_ET_ALL
+}
+
+type EventDelivererInfo struct {
+	Node                 *Node    `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EventDelivererInfo) Reset()         { *m = EventDelivererInfo{} }
+func (m *EventDelivererInfo) String() string { return proto.CompactTextString(m) }
+func (*EventDelivererInfo) ProtoMessage()    {}
+func (*EventDelivererInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a0b84a42fa06f626, []int{8}
+}
+
+func (m *EventDelivererInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EventDelivererInfo.Unmarshal(m, b)
+}
+func (m *EventDelivererInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EventDelivererInfo.Marshal(b, m, deterministic)
+}
+func (m *EventDelivererInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventDelivererInfo.Merge(m, src)
+}
+func (m *EventDelivererInfo) XXX_Size() int {
+	return xxx_messageInfo_EventDelivererInfo.Size(m)
+}
+func (m *EventDelivererInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventDelivererInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventDelivererInfo proto.InternalMessageInfo
+
+func (m *EventDelivererInfo) GetNode() *Node {
+	if m != nil {
+		return m.Node
+	}
+	return nil
 }
 
 type ListenResult struct {
@@ -639,7 +678,7 @@ func (m *ListenResult) Reset()         { *m = ListenResult{} }
 func (m *ListenResult) String() string { return proto.CompactTextString(m) }
 func (*ListenResult) ProtoMessage()    {}
 func (*ListenResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b84a42fa06f626, []int{8}
+	return fileDescriptor_a0b84a42fa06f626, []int{9}
 }
 
 func (m *ListenResult) XXX_Unmarshal(b []byte) error {
@@ -678,7 +717,7 @@ func (m *UnlistenResult) Reset()         { *m = UnlistenResult{} }
 func (m *UnlistenResult) String() string { return proto.CompactTextString(m) }
 func (*UnlistenResult) ProtoMessage()    {}
 func (*UnlistenResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b84a42fa06f626, []int{9}
+	return fileDescriptor_a0b84a42fa06f626, []int{10}
 }
 
 func (m *UnlistenResult) XXX_Unmarshal(b []byte) error {
@@ -706,6 +745,84 @@ func (m *UnlistenResult) GetError() string {
 	return ""
 }
 
+type ListenStatusChangesResult struct {
+	Error                string   `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ListenStatusChangesResult) Reset()         { *m = ListenStatusChangesResult{} }
+func (m *ListenStatusChangesResult) String() string { return proto.CompactTextString(m) }
+func (*ListenStatusChangesResult) ProtoMessage()    {}
+func (*ListenStatusChangesResult) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a0b84a42fa06f626, []int{11}
+}
+
+func (m *ListenStatusChangesResult) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListenStatusChangesResult.Unmarshal(m, b)
+}
+func (m *ListenStatusChangesResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListenStatusChangesResult.Marshal(b, m, deterministic)
+}
+func (m *ListenStatusChangesResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListenStatusChangesResult.Merge(m, src)
+}
+func (m *ListenStatusChangesResult) XXX_Size() int {
+	return xxx_messageInfo_ListenStatusChangesResult.Size(m)
+}
+func (m *ListenStatusChangesResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListenStatusChangesResult.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListenStatusChangesResult proto.InternalMessageInfo
+
+func (m *ListenStatusChangesResult) GetError() string {
+	if m != nil {
+		return m.Error
+	}
+	return ""
+}
+
+type UnlistenStatusChangesResult struct {
+	Error                string   `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UnlistenStatusChangesResult) Reset()         { *m = UnlistenStatusChangesResult{} }
+func (m *UnlistenStatusChangesResult) String() string { return proto.CompactTextString(m) }
+func (*UnlistenStatusChangesResult) ProtoMessage()    {}
+func (*UnlistenStatusChangesResult) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a0b84a42fa06f626, []int{12}
+}
+
+func (m *UnlistenStatusChangesResult) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UnlistenStatusChangesResult.Unmarshal(m, b)
+}
+func (m *UnlistenStatusChangesResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UnlistenStatusChangesResult.Marshal(b, m, deterministic)
+}
+func (m *UnlistenStatusChangesResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UnlistenStatusChangesResult.Merge(m, src)
+}
+func (m *UnlistenStatusChangesResult) XXX_Size() int {
+	return xxx_messageInfo_UnlistenStatusChangesResult.Size(m)
+}
+func (m *UnlistenStatusChangesResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_UnlistenStatusChangesResult.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UnlistenStatusChangesResult proto.InternalMessageInfo
+
+func (m *UnlistenStatusChangesResult) GetError() string {
+	if m != nil {
+		return m.Error
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterEnum("proto2.EventType", EventType_name, EventType_value)
 	proto.RegisterEnum("proto2.SystemStatus", SystemStatus_name, SystemStatus_value)
@@ -718,79 +835,87 @@ func init() {
 	proto.RegisterType((*ObjectCache)(nil), "proto2.ObjectCache")
 	proto.RegisterType((*ObjectPath)(nil), "proto2.ObjectPath")
 	proto.RegisterType((*Status)(nil), "proto2.Status")
-	proto.RegisterType((*EventListener)(nil), "proto2.EventListener")
+	proto.RegisterType((*EventListenerInfo)(nil), "proto2.EventListenerInfo")
+	proto.RegisterType((*EventDelivererInfo)(nil), "proto2.EventDelivererInfo")
 	proto.RegisterType((*ListenResult)(nil), "proto2.ListenResult")
 	proto.RegisterType((*UnlistenResult)(nil), "proto2.UnlistenResult")
+	proto.RegisterType((*ListenStatusChangesResult)(nil), "proto2.ListenStatusChangesResult")
+	proto.RegisterType((*UnlistenStatusChangesResult)(nil), "proto2.UnlistenStatusChangesResult")
 }
 
 func init() { proto.RegisterFile("service.proto", fileDescriptor_a0b84a42fa06f626) }
 
 var fileDescriptor_a0b84a42fa06f626 = []byte{
-	// 1023 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x56, 0xdb, 0x6e, 0xe2, 0x46,
-	0x18, 0x8e, 0x81, 0x70, 0xf8, 0x39, 0xc4, 0xf9, 0x37, 0x49, 0xe9, 0x56, 0xaa, 0x22, 0xb4, 0x4d,
-	0x29, 0xaa, 0x92, 0xd4, 0xdb, 0x6e, 0xb5, 0xda, 0x2b, 0x07, 0x3b, 0x09, 0xad, 0x8b, 0x91, 0xc7,
-	0xec, 0xf6, 0xce, 0x32, 0x78, 0x36, 0x61, 0xeb, 0xd8, 0xc8, 0x0c, 0xac, 0x50, 0xaf, 0xfa, 0x24,
-	0x7d, 0x8c, 0x5e, 0xf4, 0xa9, 0xfa, 0x06, 0xd5, 0x78, 0x6c, 0x96, 0xc3, 0x26, 0x24, 0x57, 0x78,
-	0xbe, 0xf9, 0x0e, 0x33, 0xf3, 0xf3, 0x8f, 0x0d, 0xd5, 0x09, 0x8d, 0x66, 0xa3, 0x21, 0x3d, 0x1d,
-	0x47, 0x21, 0x0b, 0x31, 0x1f, 0xff, 0x28, 0x8d, 0x02, 0xec, 0xea, 0x77, 0x63, 0x36, 0x6f, 0x5c,
-	0x42, 0xae, 0x1b, 0x7a, 0x14, 0x6b, 0x90, 0x19, 0x79, 0x75, 0xe9, 0x58, 0x6a, 0xe6, 0xac, 0xcc,
-	0xc8, 0xc3, 0x03, 0xd8, 0xbd, 0x89, 0xc2, 0xe9, 0xb8, 0x9e, 0x39, 0xce, 0x36, 0x4b, 0x96, 0x18,
-	0x60, 0x1d, 0x0a, 0xae, 0xe7, 0x45, 0x74, 0x32, 0xa9, 0x67, 0x8f, 0xa5, 0x66, 0xc9, 0x4a, 0x87,
-	0x8d, 0x57, 0x00, 0xe6, 0xe0, 0x03, 0x1d, 0xb2, 0x4e, 0xf0, 0x3e, 0x5c, 0x72, 0x2b, 0xc5, 0x6e,
-	0x75, 0x28, 0xcc, 0x68, 0x34, 0x19, 0x85, 0x41, 0x3d, 0x13, 0x47, 0xa4, 0xc3, 0x86, 0x06, 0x79,
-	0xa1, 0xc3, 0x13, 0xc8, 0x8d, 0x82, 0xf7, 0x61, 0xac, 0x2a, 0x2b, 0x28, 0x16, 0xac, 0x9c, 0x7e,
-	0x72, 0xb5, 0xe2, 0x79, 0x44, 0xc8, 0x0d, 0x42, 0x6f, 0x1e, 0x1b, 0x55, 0xac, 0xf8, 0xb9, 0xd1,
-	0x87, 0xb2, 0xe0, 0xb5, 0xdd, 0xe1, 0x2d, 0xc5, 0x17, 0x90, 0x0d, 0x07, 0x1f, 0x1e, 0x70, 0xe2,
-	0xd3, 0x78, 0x0c, 0xb9, 0x20, 0xf4, 0x68, 0x6c, 0x54, 0x56, 0x2a, 0x29, 0x8d, 0x1f, 0x87, 0x15,
-	0xcf, 0x34, 0x2e, 0xd3, 0x4d, 0xf5, 0x5c, 0x76, 0xfb, 0x48, 0x57, 0x84, 0xdc, 0xd8, 0x65, 0xb7,
-	0xb1, 0x6b, 0xc9, 0x8a, 0x9f, 0x1b, 0x6f, 0x21, 0x4f, 0x98, 0xcb, 0xa6, 0x13, 0x7c, 0x0e, 0xc5,
-	0x8f, 0xd1, 0x88, 0xb9, 0x03, 0x9f, 0xc6, 0x46, 0x45, 0x6b, 0x31, 0xc6, 0x73, 0x28, 0x46, 0xd3,
-	0xc0, 0xa0, 0x33, 0xea, 0xc7, 0xea, 0x9a, 0x72, 0x90, 0x86, 0x90, 0xf9, 0x84, 0xd1, 0x3b, 0xe1,
-	0x61, 0x2d, 0x58, 0x8d, 0xdf, 0xa1, 0xaa, 0xcf, 0x68, 0xc0, 0x8c, 0xd1, 0x84, 0xd1, 0x80, 0x46,
-	0x8b, 0x2d, 0x49, 0xf7, 0x6d, 0x09, 0xbf, 0x81, 0x1c, 0x9b, 0x8f, 0x69, 0x12, 0xb0, 0x9f, 0x32,
-	0x62, 0x1b, 0x7b, 0x3e, 0xa6, 0x56, 0x3c, 0xdd, 0x78, 0x01, 0x15, 0x61, 0x6a, 0xd1, 0xc9, 0xd4,
-	0x67, 0xfc, 0xef, 0x40, 0xa3, 0x28, 0x8c, 0x92, 0x9a, 0x8a, 0x41, 0xe3, 0x04, 0x6a, 0xfd, 0xc0,
-	0xdf, 0xca, 0x6b, 0xfd, 0x95, 0x81, 0xd2, 0x22, 0x01, 0x01, 0xf2, 0xba, 0xed, 0xa8, 0x86, 0x21,
-	0xef, 0xe0, 0x21, 0xec, 0xeb, 0xb6, 0x43, 0x6c, 0xd5, 0xee, 0x13, 0xa7, 0x7d, 0xad, 0x76, 0xaf,
-	0x74, 0x4d, 0x06, 0xdc, 0x87, 0xaa, 0x6e, 0x3b, 0x5d, 0x53, 0xd3, 0x1d, 0x55, 0xd3, 0x74, 0x4d,
-	0x96, 0xf0, 0x00, 0xe4, 0x14, 0x22, 0xb6, 0xd9, 0xeb, 0x75, 0xba, 0x57, 0x72, 0x06, 0x9f, 0xc1,
-	0xde, 0x0a, 0xaa, 0x6b, 0x72, 0x36, 0x31, 0x8d, 0x41, 0x4d, 0xb7, 0xd5, 0xf6, 0x35, 0xe7, 0xe6,
-	0x96, 0x1d, 0x04, 0xac, 0x6b, 0xf2, 0x6e, 0x42, 0x36, 0x2f, 0x7e, 0xd1, 0xdb, 0xb6, 0xd3, 0xb6,
-	0x74, 0xd5, 0xd6, 0x35, 0x39, 0xbf, 0x0a, 0x6b, 0xba, 0xa1, 0x73, 0xb8, 0x80, 0x5f, 0xc1, 0x17,
-	0x4b, 0x6c, 0xee, 0xb1, 0xd0, 0x14, 0x3f, 0x37, 0x99, 0x2a, 0x4b, 0xad, 0x7f, 0x24, 0xa8, 0x2c,
-	0x97, 0x11, 0x11, 0x6a, 0x84, 0x38, 0xfd, 0xae, 0xfa, 0x56, 0xed, 0x18, 0xea, 0x85, 0xa1, 0xcb,
-	0x3b, 0x7c, 0x3b, 0x84, 0x38, 0x9d, 0x6e, 0xc7, 0x76, 0x7a, 0xd7, 0x2a, 0xd1, 0x9d, 0x73, 0x19,
-	0x36, 0xc1, 0x1f, 0xe4, 0xf2, 0x26, 0xa8, 0xc8, 0x95, 0x04, 0x34, 0x7b, 0xba, 0xa5, 0xda, 0x9d,
-	0xee, 0x95, 0x63, 0xbd, 0x93, 0x0f, 0xf0, 0x4b, 0x38, 0x5c, 0x03, 0x1d, 0xdb, 0x74, 0x2c, 0x53,
-	0x3e, 0xdc, 0xe4, 0x9b, 0xf2, 0x11, 0xee, 0x41, 0x99, 0x10, 0x87, 0x5c, 0xf7, 0x6d, 0xcd, 0x7c,
-	0xd7, 0x95, 0xbf, 0x6e, 0xfd, 0x09, 0x32, 0x99, 0x0e, 0x88, 0xb8, 0x47, 0x92, 0xc5, 0xc7, 0x24,
-	0xbe, 0xfa, 0x5f, 0xbb, 0x9c, 0xb4, 0x93, 0x02, 0x69, 0x11, 0x24, 0x94, 0xa1, 0x22, 0x00, 0xd5,
-	0xb2, 0x45, 0xad, 0xf6, 0xa1, 0x4a, 0x96, 0xe3, 0xe4, 0xec, 0x27, 0x52, 0x52, 0xd0, 0x1c, 0xd6,
-	0x00, 0x38, 0x72, 0xa9, 0x76, 0x0c, 0x5e, 0x9e, 0xd6, 0x1d, 0x54, 0x44, 0x87, 0x25, 0xc1, 0x35,
-	0x00, 0x73, 0x2d, 0xd7, 0x24, 0xa2, 0x06, 0xdc, 0x40, 0x4a, 0x08, 0x69, 0x51, 0x32, 0x58, 0x86,
-	0x82, 0x49, 0x1c, 0xc3, 0x24, 0xb6, 0x9c, 0x4d, 0xd8, 0x71, 0x51, 0x16, 0x71, 0x29, 0xc0, 0xe3,
-	0x94, 0xbf, 0x77, 0x41, 0xfe, 0x8d, 0x4e, 0x26, 0xee, 0x0d, 0xd5, 0xa8, 0x3f, 0x9a, 0xd1, 0x88,
-	0x46, 0xf8, 0x33, 0xe4, 0x45, 0x33, 0xe0, 0xe1, 0x4a, 0xbf, 0xa4, 0x6d, 0xf7, 0x7c, 0xd1, 0xa7,
-	0xcb, 0x3d, 0xd3, 0x94, 0xf0, 0x0d, 0x14, 0xd3, 0xfe, 0xb8, 0x4f, 0x7a, 0x94, 0xc2, 0xab, 0x8d,
-	0xd4, 0x94, 0xf0, 0x35, 0xec, 0x99, 0x81, 0xe0, 0xb5, 0x6f, 0xdd, 0xe0, 0x86, 0x7a, 0xf7, 0x79,
-	0x54, 0x17, 0x30, 0xbf, 0xd2, 0x9b, 0x12, 0x7e, 0x0f, 0x65, 0x33, 0xe0, 0x4d, 0xaf, 0x7a, 0x1e,
-	0xf5, 0x70, 0xe5, 0x1e, 0xd8, 0x64, 0x9f, 0x41, 0x4d, 0xb0, 0x09, 0x0b, 0xc7, 0xe3, 0x51, 0x70,
-	0xb3, 0x4d, 0x70, 0x0a, 0xd5, 0x25, 0xc1, 0xf6, 0x80, 0x73, 0xbe, 0x13, 0x3e, 0xa5, 0x51, 0xe6,
-	0x0e, 0x6f, 0x1f, 0x91, 0xb0, 0x58, 0x92, 0x50, 0x6c, 0x8f, 0x78, 0xc5, 0x23, 0x92, 0x57, 0x40,
-	0x44, 0x5d, 0x46, 0x3d, 0xfc, 0xcc, 0x0d, 0xfd, 0xa0, 0x4e, 0xa3, 0x3e, 0x7d, 0xb4, 0xee, 0x0d,
-	0x1c, 0x2c, 0xf2, 0xf8, 0x02, 0x9f, 0x14, 0xba, 0x2e, 0x7e, 0x4a, 0xb2, 0xf2, 0xaf, 0x04, 0xfb,
-	0xed, 0x30, 0x60, 0x51, 0xe8, 0xfb, 0x34, 0x4a, 0xba, 0x12, 0x5b, 0x00, 0xbc, 0x18, 0xe2, 0x82,
-	0xc1, 0x55, 0xd1, 0x9a, 0x07, 0x9e, 0x40, 0x41, 0xf5, 0xbc, 0xf8, 0xad, 0xff, 0xd0, 0xa9, 0xe2,
-	0xb7, 0x50, 0xe4, 0x9e, 0xdb, 0x89, 0xdf, 0x01, 0x88, 0x3a, 0x6d, 0xa5, 0x2a, 0x33, 0xa8, 0x11,
-	0x16, 0x46, 0xee, 0x0d, 0x4d, 0x57, 0x7e, 0x06, 0x15, 0x71, 0x78, 0xc9, 0x67, 0x40, 0x6d, 0xf5,
-	0x10, 0x36, 0x4f, 0xef, 0x25, 0x54, 0xc4, 0x81, 0x25, 0x82, 0x47, 0x9d, 0xda, 0x7f, 0x12, 0x3c,
-	0x33, 0xc2, 0xa1, 0xeb, 0xaf, 0xa5, 0xbf, 0x06, 0x5c, 0x4e, 0xbf, 0x98, 0xc7, 0x6f, 0xfa, 0x35,
-	0x4b, 0x8e, 0x6d, 0xae, 0xe3, 0x27, 0xa8, 0x69, 0xe1, 0xc7, 0xc0, 0x0f, 0x5d, 0xef, 0x09, 0x2b,
-	0x41, 0x05, 0xca, 0x96, 0x11, 0x0e, 0xff, 0x78, 0x8a, 0xe6, 0x47, 0xa8, 0x5a, 0xfd, 0xc0, 0x7f,
-	0x9a, 0x4a, 0x99, 0xc2, 0x51, 0x27, 0x60, 0x34, 0x0a, 0x36, 0x76, 0x7d, 0x06, 0xa5, 0x2b, 0xca,
-	0x1e, 0xf0, 0x5a, 0x2b, 0x02, 0xb6, 0xa0, 0xd4, 0x9b, 0xb2, 0x47, 0x55, 0x68, 0x20, 0x3e, 0x31,
-	0x5f, 0xfe, 0x1f, 0x00, 0x00, 0xff, 0xff, 0x26, 0xa4, 0xaf, 0x66, 0x7a, 0x0a, 0x00, 0x00,
+	// 1103 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x56, 0x5b, 0x6f, 0xe2, 0x46,
+	0x14, 0x5e, 0x03, 0xe1, 0x72, 0xb8, 0xc4, 0x9c, 0x5c, 0x4a, 0xb2, 0x52, 0x95, 0xd2, 0x6d, 0x4a,
+	0x51, 0x95, 0x64, 0x9d, 0x36, 0x52, 0xb5, 0xaa, 0x2a, 0x07, 0x3b, 0x09, 0x2d, 0xc5, 0xc8, 0x36,
+	0x59, 0xa9, 0xaa, 0x64, 0x19, 0x3c, 0x9b, 0xb0, 0x75, 0x6c, 0x64, 0x0c, 0x2b, 0xd4, 0xa7, 0xfe,
+	0xaa, 0x3e, 0xf4, 0xa5, 0xff, 0xa7, 0x4f, 0xfd, 0x07, 0x95, 0x67, 0x6c, 0x16, 0x03, 0x05, 0xf2,
+	0x04, 0x73, 0xe6, 0xbb, 0x9c, 0x39, 0xc7, 0x73, 0x6c, 0x28, 0x8e, 0x88, 0x37, 0x19, 0xf4, 0xc9,
+	0xd9, 0xd0, 0x73, 0x7d, 0x17, 0xd3, 0xf4, 0x47, 0xa8, 0x66, 0x60, 0x47, 0x7e, 0x1a, 0xfa, 0xd3,
+	0xea, 0x0d, 0xa4, 0xda, 0xae, 0x45, 0xb0, 0x04, 0x89, 0x81, 0x55, 0xe1, 0x4e, 0xb8, 0x5a, 0x4a,
+	0x4d, 0x0c, 0x2c, 0xdc, 0x87, 0x9d, 0x07, 0xcf, 0x1d, 0x0f, 0x2b, 0x89, 0x93, 0x64, 0x2d, 0xa7,
+	0xb2, 0x05, 0x56, 0x20, 0x63, 0x5a, 0x96, 0x47, 0x46, 0xa3, 0x4a, 0xf2, 0x84, 0xab, 0xe5, 0xd4,
+	0x68, 0x59, 0xbd, 0x02, 0x50, 0x7a, 0xef, 0x49, 0xdf, 0x6f, 0x3a, 0xef, 0xdc, 0x39, 0xb5, 0x1c,
+	0x55, 0xab, 0x40, 0x66, 0x42, 0xbc, 0xd1, 0xc0, 0x75, 0x2a, 0x09, 0x6a, 0x11, 0x2d, 0xab, 0x12,
+	0xa4, 0x19, 0x0f, 0x4f, 0x21, 0x35, 0x70, 0xde, 0xb9, 0x94, 0x95, 0x17, 0x90, 0x25, 0x2c, 0x9c,
+	0x7d, 0x54, 0x55, 0xe9, 0x3e, 0x22, 0xa4, 0x7a, 0xae, 0x35, 0xa5, 0x42, 0x05, 0x95, 0xfe, 0xaf,
+	0x76, 0x21, 0xcf, 0x70, 0x0d, 0xb3, 0xff, 0x48, 0xf0, 0x15, 0x24, 0xdd, 0xde, 0xfb, 0x35, 0x4a,
+	0xc1, 0x36, 0x9e, 0x40, 0xca, 0x71, 0x2d, 0x42, 0x85, 0xf2, 0x42, 0x21, 0x82, 0x05, 0xe5, 0x50,
+	0xe9, 0x4e, 0xf5, 0x26, 0x3a, 0x54, 0xc7, 0xf4, 0x1f, 0xb7, 0x54, 0x45, 0x48, 0x0d, 0x4d, 0xff,
+	0x91, 0xaa, 0xe6, 0x54, 0xfa, 0xbf, 0x7a, 0x0f, 0x69, 0xcd, 0x37, 0xfd, 0xf1, 0x08, 0x8f, 0x21,
+	0xfb, 0xc1, 0x1b, 0xf8, 0x66, 0xcf, 0x26, 0x54, 0x28, 0xab, 0xce, 0xd6, 0x78, 0x01, 0x59, 0x6f,
+	0xec, 0xb4, 0xc8, 0x84, 0xd8, 0x94, 0x5d, 0x12, 0xf6, 0x23, 0x13, 0x6d, 0x3a, 0xf2, 0xc9, 0x13,
+	0xd3, 0x50, 0x67, 0xa8, 0xea, 0xaf, 0x50, 0x96, 0x27, 0xc4, 0xf1, 0x5b, 0x83, 0x91, 0x4f, 0x1c,
+	0xe2, 0xd1, 0xda, 0x47, 0xc7, 0xe2, 0xfe, 0xef, 0x58, 0xf8, 0x05, 0xa4, 0xfc, 0xe9, 0x90, 0x84,
+	0x26, 0xe5, 0x08, 0x41, 0xa5, 0xf4, 0xe9, 0x90, 0xa8, 0x74, 0xbb, 0x7a, 0x05, 0x48, 0x43, 0x12,
+	0xb1, 0x07, 0x13, 0xe2, 0x6d, 0x2b, 0x5f, 0x7d, 0x05, 0x05, 0x96, 0x90, 0x4a, 0x46, 0x63, 0xdb,
+	0x0f, 0x1e, 0x25, 0xe2, 0x79, 0xae, 0x17, 0x3e, 0x0f, 0x6c, 0x51, 0x3d, 0x85, 0x52, 0xd7, 0xb1,
+	0x37, 0xe3, 0x5e, 0xc3, 0x11, 0x53, 0x63, 0xa7, 0x6f, 0x3c, 0x9a, 0xce, 0x03, 0x19, 0xad, 0xa5,
+	0x5c, 0xc2, 0xcb, 0x48, 0x7a, 0x6b, 0x52, 0xfd, 0x8f, 0x04, 0xe4, 0x66, 0x15, 0x40, 0x80, 0xb4,
+	0xac, 0x1b, 0x62, 0xab, 0xc5, 0xbf, 0xc0, 0x03, 0x28, 0xcb, 0xba, 0xa1, 0xe9, 0xa2, 0xde, 0xd5,
+	0x8c, 0xc6, 0x9d, 0xd8, 0xbe, 0x95, 0x25, 0x1e, 0xb0, 0x0c, 0x45, 0x59, 0x37, 0xda, 0x8a, 0x24,
+	0x1b, 0xa2, 0x24, 0xc9, 0x12, 0xcf, 0xe1, 0x3e, 0xf0, 0x51, 0x48, 0xd3, 0x95, 0x4e, 0xa7, 0xd9,
+	0xbe, 0xe5, 0x13, 0xb8, 0x07, 0xbb, 0xb1, 0xa8, 0x2c, 0xf1, 0xc9, 0x50, 0x94, 0x06, 0x25, 0x59,
+	0x17, 0x1b, 0x77, 0x01, 0x36, 0x35, 0xaf, 0xc0, 0xc2, 0xb2, 0xc4, 0xef, 0x84, 0x60, 0xe5, 0xfa,
+	0x47, 0xb9, 0xa1, 0x1b, 0x0d, 0x55, 0x16, 0x75, 0x59, 0xe2, 0xd3, 0xf1, 0xb0, 0x24, 0xb7, 0xe4,
+	0x20, 0x9c, 0xc1, 0x97, 0xf0, 0xc9, 0x1c, 0x3a, 0xd0, 0x98, 0x71, 0xb2, 0xab, 0x36, 0x23, 0x66,
+	0xae, 0xfe, 0x27, 0x07, 0x85, 0xf9, 0x47, 0x0d, 0x11, 0x4a, 0x9a, 0x66, 0x74, 0xdb, 0xe2, 0xbd,
+	0xd8, 0x6c, 0x89, 0xd7, 0x2d, 0x99, 0x7f, 0x11, 0x1c, 0x47, 0xd3, 0x8c, 0x66, 0xbb, 0xa9, 0x1b,
+	0x9d, 0x3b, 0x51, 0x93, 0x8d, 0x0b, 0x1e, 0x96, 0x83, 0xaf, 0xf9, 0xfc, 0x72, 0x50, 0xe0, 0x0b,
+	0x61, 0x50, 0xe9, 0xc8, 0xaa, 0xa8, 0x37, 0xdb, 0xb7, 0x86, 0xfa, 0x96, 0xdf, 0xc7, 0x23, 0x38,
+	0x58, 0x08, 0x1a, 0xba, 0x62, 0xa8, 0x0a, 0x7f, 0xb0, 0x8c, 0x57, 0xf8, 0x43, 0xdc, 0x85, 0xbc,
+	0xa6, 0x19, 0xda, 0x5d, 0x57, 0x97, 0x94, 0xb7, 0x6d, 0xfe, 0xd3, 0xfa, 0xef, 0xc0, 0x6b, 0xe3,
+	0x9e, 0xc6, 0x66, 0x5d, 0x98, 0x3c, 0x05, 0x05, 0xd9, 0xff, 0xd4, 0x0e, 0x40, 0x2f, 0xa2, 0x40,
+	0xd4, 0x04, 0x0e, 0x79, 0x28, 0xb0, 0x80, 0xa8, 0xea, 0xac, 0x57, 0x65, 0x28, 0x6a, 0xf3, 0x76,
+	0x7c, 0xf2, 0x23, 0x28, 0x6c, 0x68, 0x0a, 0x4b, 0x00, 0x41, 0xe4, 0x46, 0x6c, 0xb6, 0x82, 0xf6,
+	0xd4, 0x9f, 0xa0, 0xc0, 0xa6, 0x40, 0x68, 0x5c, 0x02, 0x50, 0x16, 0x7c, 0x15, 0x8d, 0xf5, 0x20,
+	0x10, 0xe0, 0x42, 0x40, 0xd4, 0x94, 0x04, 0xe6, 0x21, 0xa3, 0x68, 0x46, 0x4b, 0xd1, 0x74, 0x3e,
+	0x19, 0xa2, 0x69, 0x53, 0x66, 0x76, 0x51, 0x20, 0xb0, 0x13, 0xfe, 0x4e, 0x40, 0x81, 0x3e, 0xa9,
+	0x3f, 0x9b, 0x8e, 0xf9, 0x40, 0x3c, 0x7c, 0x03, 0x69, 0x76, 0x45, 0xf0, 0x28, 0x76, 0x97, 0xe7,
+	0xc7, 0xc2, 0xf1, 0x6c, 0x96, 0xcc, 0xdf, 0xcd, 0x1a, 0x87, 0x3f, 0x40, 0x36, 0xba, 0x2c, 0xeb,
+	0xe8, 0x87, 0xd1, 0x56, 0xfc, 0xd2, 0xd6, 0x38, 0xbc, 0x87, 0xbd, 0x15, 0x17, 0x14, 0x8f, 0x63,
+	0x5a, 0xb1, 0x19, 0x72, 0xfc, 0x59, 0x3c, 0x97, 0x15, 0x97, 0xb4, 0xc6, 0xe1, 0x2f, 0x70, 0xb0,
+	0xf2, 0x16, 0xaf, 0x55, 0xfe, 0x7c, 0x31, 0xcd, 0x95, 0xda, 0x82, 0x02, 0xa5, 0x38, 0x19, 0xbf,
+	0x87, 0x5d, 0xc5, 0x61, 0xe9, 0x30, 0xb0, 0xb5, 0xae, 0x1a, 0xc5, 0xd9, 0x56, 0xf0, 0x12, 0xad,
+	0x71, 0xc2, 0x3f, 0x49, 0x28, 0xc6, 0x60, 0xf8, 0x35, 0xe4, 0x15, 0x27, 0x98, 0x8a, 0xa2, 0x65,
+	0x11, 0x0b, 0x63, 0x83, 0x72, 0x89, 0x8f, 0xe7, 0x50, 0x62, 0x68, 0xcd, 0x77, 0x87, 0xc3, 0x81,
+	0xf3, 0xb0, 0x89, 0x70, 0x06, 0xc5, 0x39, 0xc2, 0x66, 0x83, 0x8b, 0xe0, 0x7c, 0xc1, 0x96, 0x44,
+	0x7c, 0xb3, 0xff, 0xb8, 0x85, 0xc3, 0x2c, 0x25, 0xc6, 0xd8, 0x6c, 0x71, 0x15, 0x58, 0x84, 0xaf,
+	0x61, 0x8f, 0x98, 0x3e, 0xb1, 0x70, 0xc5, 0x5b, 0x72, 0x2d, 0x4f, 0x22, 0x36, 0xd9, 0x9a, 0xf7,
+	0x06, 0xf6, 0x67, 0x7e, 0x41, 0x82, 0xcf, 0x32, 0x5d, 0x24, 0x3f, 0xc7, 0x59, 0xf8, 0x8b, 0x83,
+	0x72, 0xc3, 0x75, 0x7c, 0xcf, 0xb5, 0x6d, 0xe2, 0x85, 0x53, 0x07, 0xeb, 0x00, 0x41, 0x33, 0xd8,
+	0x00, 0xc5, 0x38, 0x69, 0x41, 0x03, 0x4f, 0x21, 0x23, 0x5a, 0x16, 0xfd, 0xf2, 0x5a, 0x57, 0x55,
+	0xfc, 0x12, 0xb2, 0x81, 0xe6, 0x66, 0xe0, 0x57, 0x00, 0xac, 0x4f, 0x1b, 0xa1, 0xc2, 0x04, 0x4a,
+	0x9a, 0xef, 0x7a, 0xe6, 0x03, 0x89, 0x32, 0x3f, 0x87, 0x02, 0x2b, 0x5e, 0xf8, 0x29, 0x56, 0x8a,
+	0x17, 0x61, 0xb9, 0x7a, 0x97, 0x50, 0x60, 0x05, 0x0b, 0x09, 0x5b, 0x55, 0xed, 0x5f, 0x0e, 0xf6,
+	0x5a, 0x6e, 0xdf, 0xb4, 0x17, 0xdc, 0xbf, 0x03, 0x9c, 0x77, 0xbf, 0x9e, 0xd2, 0xaf, 0xad, 0x05,
+	0xc9, 0x20, 0xb6, 0x9c, 0xc7, 0xb7, 0x50, 0x92, 0xdc, 0x0f, 0x8e, 0xed, 0x9a, 0xd6, 0x33, 0x32,
+	0x41, 0x01, 0xf2, 0x6a, 0xcb, 0xed, 0xff, 0xf6, 0x1c, 0xce, 0x37, 0x50, 0x54, 0xbb, 0x8e, 0xfd,
+	0x3c, 0x96, 0x30, 0x86, 0xc3, 0xa6, 0xe3, 0x13, 0xcf, 0x59, 0x3a, 0xf5, 0x39, 0xe4, 0x6e, 0x89,
+	0xbf, 0x46, 0x6b, 0xa1, 0x09, 0x58, 0x87, 0x5c, 0x67, 0xec, 0x6f, 0xd5, 0xa1, 0x1e, 0xfb, 0xcc,
+	0xbf, 0xfc, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x1c, 0x70, 0x19, 0xc1, 0xfe, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -801,57 +926,56 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// MessageDelivererClient is the client API for MessageDeliverer service.
+// EventManagerClient is the client API for EventManager service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type MessageDelivererClient interface {
-	// 複数個のlistenとunlistenを一括でやる。
-	Listen(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_ListenClient, error)
-	Unlisten(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_UnlistenClient, error)
-	OnListenChanged(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnListenChangedClient, error)
-	OnNodeAdded(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeAddedClient, error)
-	OnNodeStopping(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeStoppingClient, error)
-	OnNodeStopped(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeStoppedClient, error)
-	OnNodeDetaching(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeDetachingClient, error)
-	OnNodeDetached(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeDetachedClient, error)
-	OnObjectCreated(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectCreatedClient, error)
-	OnObjectDeleted(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectDeletedClient, error)
-	OnObjectCacheCreated(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectCacheCreatedClient, error)
-	OnObjectCacheDeleted(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectCacheDeletedClient, error)
+type EventManagerClient interface {
+	// 指定したイベントをlistenする。
+	// [Listener] --> [Manager]
+	Listen(ctx context.Context, opts ...grpc.CallOption) (EventManager_ListenClient, error)
+	// 指定したイベントをunlistenする。
+	// [Listener] --> [Manager]
+	Unlisten(ctx context.Context, opts ...grpc.CallOption) (EventManager_UnlistenClient, error)
+	// Listen状態の変化をlistenする。
+	// [Deliverer] --> [Manager]
+	ListenStatusChanges(ctx context.Context, opts ...grpc.CallOption) (EventManager_ListenStatusChangesClient, error)
+	// Listen状態の変化をunlistenする。
+	// [Deliverer] --> [Manager]
+	UnlistenStatusChanges(ctx context.Context, opts ...grpc.CallOption) (EventManager_UnlistenStatusChangesClient, error)
 }
 
-type messageDelivererClient struct {
+type eventManagerClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewMessageDelivererClient(cc *grpc.ClientConn) MessageDelivererClient {
-	return &messageDelivererClient{cc}
+func NewEventManagerClient(cc *grpc.ClientConn) EventManagerClient {
+	return &eventManagerClient{cc}
 }
 
-func (c *messageDelivererClient) Listen(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_ListenClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[0], "/proto2.MessageDeliverer/Listen", opts...)
+func (c *eventManagerClient) Listen(ctx context.Context, opts ...grpc.CallOption) (EventManager_ListenClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventManager_serviceDesc.Streams[0], "/proto2.EventManager/Listen", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &messageDelivererListenClient{stream}
+	x := &eventManagerListenClient{stream}
 	return x, nil
 }
 
-type MessageDeliverer_ListenClient interface {
-	Send(*EventListener) error
+type EventManager_ListenClient interface {
+	Send(*EventListenerInfo) error
 	CloseAndRecv() (*ListenResult, error)
 	grpc.ClientStream
 }
 
-type messageDelivererListenClient struct {
+type eventManagerListenClient struct {
 	grpc.ClientStream
 }
 
-func (x *messageDelivererListenClient) Send(m *EventListener) error {
+func (x *eventManagerListenClient) Send(m *EventListenerInfo) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *messageDelivererListenClient) CloseAndRecv() (*ListenResult, error) {
+func (x *eventManagerListenClient) CloseAndRecv() (*ListenResult, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -862,30 +986,30 @@ func (x *messageDelivererListenClient) CloseAndRecv() (*ListenResult, error) {
 	return m, nil
 }
 
-func (c *messageDelivererClient) Unlisten(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_UnlistenClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[1], "/proto2.MessageDeliverer/Unlisten", opts...)
+func (c *eventManagerClient) Unlisten(ctx context.Context, opts ...grpc.CallOption) (EventManager_UnlistenClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventManager_serviceDesc.Streams[1], "/proto2.EventManager/Unlisten", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &messageDelivererUnlistenClient{stream}
+	x := &eventManagerUnlistenClient{stream}
 	return x, nil
 }
 
-type MessageDeliverer_UnlistenClient interface {
-	Send(*EventListener) error
+type EventManager_UnlistenClient interface {
+	Send(*EventListenerInfo) error
 	CloseAndRecv() (*UnlistenResult, error)
 	grpc.ClientStream
 }
 
-type messageDelivererUnlistenClient struct {
+type eventManagerUnlistenClient struct {
 	grpc.ClientStream
 }
 
-func (x *messageDelivererUnlistenClient) Send(m *EventListener) error {
+func (x *eventManagerUnlistenClient) Send(m *EventListenerInfo) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *messageDelivererUnlistenClient) CloseAndRecv() (*UnlistenResult, error) {
+func (x *eventManagerUnlistenClient) CloseAndRecv() (*UnlistenResult, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -896,742 +1020,961 @@ func (x *messageDelivererUnlistenClient) CloseAndRecv() (*UnlistenResult, error)
 	return m, nil
 }
 
-func (c *messageDelivererClient) OnListenChanged(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnListenChangedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[2], "/proto2.MessageDeliverer/OnListenChanged", opts...)
+func (c *eventManagerClient) ListenStatusChanges(ctx context.Context, opts ...grpc.CallOption) (EventManager_ListenStatusChangesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventManager_serviceDesc.Streams[2], "/proto2.EventManager/ListenStatusChanges", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &messageDelivererOnListenChangedClient{stream}
+	x := &eventManagerListenStatusChangesClient{stream}
 	return x, nil
 }
 
-type MessageDeliverer_OnListenChangedClient interface {
-	Send(*EventListener) error
-	CloseAndRecv() (*Empty, error)
+type EventManager_ListenStatusChangesClient interface {
+	Send(*EventDelivererInfo) error
+	CloseAndRecv() (*ListenStatusChangesResult, error)
 	grpc.ClientStream
 }
 
-type messageDelivererOnListenChangedClient struct {
+type eventManagerListenStatusChangesClient struct {
 	grpc.ClientStream
 }
 
-func (x *messageDelivererOnListenChangedClient) Send(m *EventListener) error {
+func (x *eventManagerListenStatusChangesClient) Send(m *EventDelivererInfo) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *messageDelivererOnListenChangedClient) CloseAndRecv() (*Empty, error) {
+func (x *eventManagerListenStatusChangesClient) CloseAndRecv() (*ListenStatusChangesResult, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(Empty)
+	m := new(ListenStatusChangesResult)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *messageDelivererClient) OnNodeAdded(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeAddedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[3], "/proto2.MessageDeliverer/OnNodeAdded", opts...)
+func (c *eventManagerClient) UnlistenStatusChanges(ctx context.Context, opts ...grpc.CallOption) (EventManager_UnlistenStatusChangesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventManager_serviceDesc.Streams[3], "/proto2.EventManager/UnlistenStatusChanges", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &messageDelivererOnNodeAddedClient{stream}
+	x := &eventManagerUnlistenStatusChangesClient{stream}
 	return x, nil
 }
 
-type MessageDeliverer_OnNodeAddedClient interface {
-	Send(*Node) error
-	CloseAndRecv() (*Empty, error)
+type EventManager_UnlistenStatusChangesClient interface {
+	Send(*EventDelivererInfo) error
+	CloseAndRecv() (*UnlistenStatusChangesResult, error)
 	grpc.ClientStream
 }
 
-type messageDelivererOnNodeAddedClient struct {
+type eventManagerUnlistenStatusChangesClient struct {
 	grpc.ClientStream
 }
 
-func (x *messageDelivererOnNodeAddedClient) Send(m *Node) error {
+func (x *eventManagerUnlistenStatusChangesClient) Send(m *EventDelivererInfo) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *messageDelivererOnNodeAddedClient) CloseAndRecv() (*Empty, error) {
+func (x *eventManagerUnlistenStatusChangesClient) CloseAndRecv() (*UnlistenStatusChangesResult, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(Empty)
+	m := new(UnlistenStatusChangesResult)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *messageDelivererClient) OnNodeStopping(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeStoppingClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[4], "/proto2.MessageDeliverer/OnNodeStopping", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnNodeStoppingClient{stream}
-	return x, nil
+// EventManagerServer is the server API for EventManager service.
+type EventManagerServer interface {
+	// 指定したイベントをlistenする。
+	// [Listener] --> [Manager]
+	Listen(EventManager_ListenServer) error
+	// 指定したイベントをunlistenする。
+	// [Listener] --> [Manager]
+	Unlisten(EventManager_UnlistenServer) error
+	// Listen状態の変化をlistenする。
+	// [Deliverer] --> [Manager]
+	ListenStatusChanges(EventManager_ListenStatusChangesServer) error
+	// Listen状態の変化をunlistenする。
+	// [Deliverer] --> [Manager]
+	UnlistenStatusChanges(EventManager_UnlistenStatusChangesServer) error
 }
 
-type MessageDeliverer_OnNodeStoppingClient interface {
-	Send(*Node) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
+func RegisterEventManagerServer(s *grpc.Server, srv EventManagerServer) {
+	s.RegisterService(&_EventManager_serviceDesc, srv)
 }
 
-type messageDelivererOnNodeStoppingClient struct {
-	grpc.ClientStream
+func _EventManager_Listen_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventManagerServer).Listen(&eventManagerListenServer{stream})
 }
 
-func (x *messageDelivererOnNodeStoppingClient) Send(m *Node) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeStoppingClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *messageDelivererClient) OnNodeStopped(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeStoppedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[5], "/proto2.MessageDeliverer/OnNodeStopped", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnNodeStoppedClient{stream}
-	return x, nil
-}
-
-type MessageDeliverer_OnNodeStoppedClient interface {
-	Send(*Node) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type messageDelivererOnNodeStoppedClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageDelivererOnNodeStoppedClient) Send(m *Node) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeStoppedClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *messageDelivererClient) OnNodeDetaching(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeDetachingClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[6], "/proto2.MessageDeliverer/OnNodeDetaching", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnNodeDetachingClient{stream}
-	return x, nil
-}
-
-type MessageDeliverer_OnNodeDetachingClient interface {
-	Send(*Node) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type messageDelivererOnNodeDetachingClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageDelivererOnNodeDetachingClient) Send(m *Node) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeDetachingClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *messageDelivererClient) OnNodeDetached(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnNodeDetachedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[7], "/proto2.MessageDeliverer/OnNodeDetached", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnNodeDetachedClient{stream}
-	return x, nil
-}
-
-type MessageDeliverer_OnNodeDetachedClient interface {
-	Send(*Node) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type messageDelivererOnNodeDetachedClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageDelivererOnNodeDetachedClient) Send(m *Node) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeDetachedClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *messageDelivererClient) OnObjectCreated(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectCreatedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[8], "/proto2.MessageDeliverer/OnObjectCreated", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnObjectCreatedClient{stream}
-	return x, nil
-}
-
-type MessageDeliverer_OnObjectCreatedClient interface {
-	Send(*ObjectInfo) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type messageDelivererOnObjectCreatedClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageDelivererOnObjectCreatedClient) Send(m *ObjectInfo) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectCreatedClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *messageDelivererClient) OnObjectDeleted(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectDeletedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[9], "/proto2.MessageDeliverer/OnObjectDeleted", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnObjectDeletedClient{stream}
-	return x, nil
-}
-
-type MessageDeliverer_OnObjectDeletedClient interface {
-	Send(*ObjectInfo) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type messageDelivererOnObjectDeletedClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageDelivererOnObjectDeletedClient) Send(m *ObjectInfo) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectDeletedClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *messageDelivererClient) OnObjectCacheCreated(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectCacheCreatedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[10], "/proto2.MessageDeliverer/OnObjectCacheCreated", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnObjectCacheCreatedClient{stream}
-	return x, nil
-}
-
-type MessageDeliverer_OnObjectCacheCreatedClient interface {
-	Send(*ObjectInfo) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type messageDelivererOnObjectCacheCreatedClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageDelivererOnObjectCacheCreatedClient) Send(m *ObjectInfo) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectCacheCreatedClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *messageDelivererClient) OnObjectCacheDeleted(ctx context.Context, opts ...grpc.CallOption) (MessageDeliverer_OnObjectCacheDeletedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageDeliverer_serviceDesc.Streams[11], "/proto2.MessageDeliverer/OnObjectCacheDeleted", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &messageDelivererOnObjectCacheDeletedClient{stream}
-	return x, nil
-}
-
-type MessageDeliverer_OnObjectCacheDeletedClient interface {
-	Send(*ObjectInfo) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type messageDelivererOnObjectCacheDeletedClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageDelivererOnObjectCacheDeletedClient) Send(m *ObjectInfo) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectCacheDeletedClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// MessageDelivererServer is the server API for MessageDeliverer service.
-type MessageDelivererServer interface {
-	// 複数個のlistenとunlistenを一括でやる。
-	Listen(MessageDeliverer_ListenServer) error
-	Unlisten(MessageDeliverer_UnlistenServer) error
-	OnListenChanged(MessageDeliverer_OnListenChangedServer) error
-	OnNodeAdded(MessageDeliverer_OnNodeAddedServer) error
-	OnNodeStopping(MessageDeliverer_OnNodeStoppingServer) error
-	OnNodeStopped(MessageDeliverer_OnNodeStoppedServer) error
-	OnNodeDetaching(MessageDeliverer_OnNodeDetachingServer) error
-	OnNodeDetached(MessageDeliverer_OnNodeDetachedServer) error
-	OnObjectCreated(MessageDeliverer_OnObjectCreatedServer) error
-	OnObjectDeleted(MessageDeliverer_OnObjectDeletedServer) error
-	OnObjectCacheCreated(MessageDeliverer_OnObjectCacheCreatedServer) error
-	OnObjectCacheDeleted(MessageDeliverer_OnObjectCacheDeletedServer) error
-}
-
-func RegisterMessageDelivererServer(s *grpc.Server, srv MessageDelivererServer) {
-	s.RegisterService(&_MessageDeliverer_serviceDesc, srv)
-}
-
-func _MessageDeliverer_Listen_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).Listen(&messageDelivererListenServer{stream})
-}
-
-type MessageDeliverer_ListenServer interface {
+type EventManager_ListenServer interface {
 	SendAndClose(*ListenResult) error
-	Recv() (*EventListener, error)
+	Recv() (*EventListenerInfo, error)
 	grpc.ServerStream
 }
 
-type messageDelivererListenServer struct {
+type eventManagerListenServer struct {
 	grpc.ServerStream
 }
 
-func (x *messageDelivererListenServer) SendAndClose(m *ListenResult) error {
+func (x *eventManagerListenServer) SendAndClose(m *ListenResult) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *messageDelivererListenServer) Recv() (*EventListener, error) {
-	m := new(EventListener)
+func (x *eventManagerListenServer) Recv() (*EventListenerInfo, error) {
+	m := new(EventListenerInfo)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _MessageDeliverer_Unlisten_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).Unlisten(&messageDelivererUnlistenServer{stream})
+func _EventManager_Unlisten_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventManagerServer).Unlisten(&eventManagerUnlistenServer{stream})
 }
 
-type MessageDeliverer_UnlistenServer interface {
+type EventManager_UnlistenServer interface {
 	SendAndClose(*UnlistenResult) error
-	Recv() (*EventListener, error)
+	Recv() (*EventListenerInfo, error)
 	grpc.ServerStream
 }
 
-type messageDelivererUnlistenServer struct {
+type eventManagerUnlistenServer struct {
 	grpc.ServerStream
 }
 
-func (x *messageDelivererUnlistenServer) SendAndClose(m *UnlistenResult) error {
+func (x *eventManagerUnlistenServer) SendAndClose(m *UnlistenResult) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *messageDelivererUnlistenServer) Recv() (*EventListener, error) {
-	m := new(EventListener)
+func (x *eventManagerUnlistenServer) Recv() (*EventListenerInfo, error) {
+	m := new(EventListenerInfo)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _MessageDeliverer_OnListenChanged_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnListenChanged(&messageDelivererOnListenChangedServer{stream})
+func _EventManager_ListenStatusChanges_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventManagerServer).ListenStatusChanges(&eventManagerListenStatusChangesServer{stream})
 }
 
-type MessageDeliverer_OnListenChangedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*EventListener, error)
+type EventManager_ListenStatusChangesServer interface {
+	SendAndClose(*ListenStatusChangesResult) error
+	Recv() (*EventDelivererInfo, error)
 	grpc.ServerStream
 }
 
-type messageDelivererOnListenChangedServer struct {
+type eventManagerListenStatusChangesServer struct {
 	grpc.ServerStream
 }
 
-func (x *messageDelivererOnListenChangedServer) SendAndClose(m *Empty) error {
+func (x *eventManagerListenStatusChangesServer) SendAndClose(m *ListenStatusChangesResult) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *messageDelivererOnListenChangedServer) Recv() (*EventListener, error) {
-	m := new(EventListener)
+func (x *eventManagerListenStatusChangesServer) Recv() (*EventDelivererInfo, error) {
+	m := new(EventDelivererInfo)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _MessageDeliverer_OnNodeAdded_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnNodeAdded(&messageDelivererOnNodeAddedServer{stream})
+func _EventManager_UnlistenStatusChanges_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventManagerServer).UnlistenStatusChanges(&eventManagerUnlistenStatusChangesServer{stream})
 }
 
-type MessageDeliverer_OnNodeAddedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*Node, error)
+type EventManager_UnlistenStatusChangesServer interface {
+	SendAndClose(*UnlistenStatusChangesResult) error
+	Recv() (*EventDelivererInfo, error)
 	grpc.ServerStream
 }
 
-type messageDelivererOnNodeAddedServer struct {
+type eventManagerUnlistenStatusChangesServer struct {
 	grpc.ServerStream
 }
 
-func (x *messageDelivererOnNodeAddedServer) SendAndClose(m *Empty) error {
+func (x *eventManagerUnlistenStatusChangesServer) SendAndClose(m *UnlistenStatusChangesResult) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *messageDelivererOnNodeAddedServer) Recv() (*Node, error) {
-	m := new(Node)
+func (x *eventManagerUnlistenStatusChangesServer) Recv() (*EventDelivererInfo, error) {
+	m := new(EventDelivererInfo)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _MessageDeliverer_OnNodeStopping_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnNodeStopping(&messageDelivererOnNodeStoppingServer{stream})
-}
-
-type MessageDeliverer_OnNodeStoppingServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*Node, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnNodeStoppingServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnNodeStoppingServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeStoppingServer) Recv() (*Node, error) {
-	m := new(Node)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _MessageDeliverer_OnNodeStopped_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnNodeStopped(&messageDelivererOnNodeStoppedServer{stream})
-}
-
-type MessageDeliverer_OnNodeStoppedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*Node, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnNodeStoppedServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnNodeStoppedServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeStoppedServer) Recv() (*Node, error) {
-	m := new(Node)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _MessageDeliverer_OnNodeDetaching_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnNodeDetaching(&messageDelivererOnNodeDetachingServer{stream})
-}
-
-type MessageDeliverer_OnNodeDetachingServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*Node, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnNodeDetachingServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnNodeDetachingServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeDetachingServer) Recv() (*Node, error) {
-	m := new(Node)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _MessageDeliverer_OnNodeDetached_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnNodeDetached(&messageDelivererOnNodeDetachedServer{stream})
-}
-
-type MessageDeliverer_OnNodeDetachedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*Node, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnNodeDetachedServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnNodeDetachedServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnNodeDetachedServer) Recv() (*Node, error) {
-	m := new(Node)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _MessageDeliverer_OnObjectCreated_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnObjectCreated(&messageDelivererOnObjectCreatedServer{stream})
-}
-
-type MessageDeliverer_OnObjectCreatedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*ObjectInfo, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnObjectCreatedServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnObjectCreatedServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectCreatedServer) Recv() (*ObjectInfo, error) {
-	m := new(ObjectInfo)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _MessageDeliverer_OnObjectDeleted_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnObjectDeleted(&messageDelivererOnObjectDeletedServer{stream})
-}
-
-type MessageDeliverer_OnObjectDeletedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*ObjectInfo, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnObjectDeletedServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnObjectDeletedServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectDeletedServer) Recv() (*ObjectInfo, error) {
-	m := new(ObjectInfo)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _MessageDeliverer_OnObjectCacheCreated_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnObjectCacheCreated(&messageDelivererOnObjectCacheCreatedServer{stream})
-}
-
-type MessageDeliverer_OnObjectCacheCreatedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*ObjectInfo, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnObjectCacheCreatedServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnObjectCacheCreatedServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectCacheCreatedServer) Recv() (*ObjectInfo, error) {
-	m := new(ObjectInfo)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _MessageDeliverer_OnObjectCacheDeleted_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageDelivererServer).OnObjectCacheDeleted(&messageDelivererOnObjectCacheDeletedServer{stream})
-}
-
-type MessageDeliverer_OnObjectCacheDeletedServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*ObjectInfo, error)
-	grpc.ServerStream
-}
-
-type messageDelivererOnObjectCacheDeletedServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageDelivererOnObjectCacheDeletedServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageDelivererOnObjectCacheDeletedServer) Recv() (*ObjectInfo, error) {
-	m := new(ObjectInfo)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-var _MessageDeliverer_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "proto2.MessageDeliverer",
-	HandlerType: (*MessageDelivererServer)(nil),
+var _EventManager_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "proto2.EventManager",
+	HandlerType: (*EventManagerServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Listen",
-			Handler:       _MessageDeliverer_Listen_Handler,
+			Handler:       _EventManager_Listen_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "Unlisten",
-			Handler:       _MessageDeliverer_Unlisten_Handler,
+			Handler:       _EventManager_Unlisten_Handler,
 			ClientStreams: true,
 		},
+		{
+			StreamName:    "ListenStatusChanges",
+			Handler:       _EventManager_ListenStatusChanges_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "UnlistenStatusChanges",
+			Handler:       _EventManager_UnlistenStatusChanges_Handler,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "service.proto",
+}
+
+// EventDelivererClient is the client API for EventDeliverer service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type EventDelivererClient interface {
+	// listen状態が変化したときに呼び出される。
+	// [Manager] --> [Deliverer]
+	OnListenChanged(ctx context.Context, opts ...grpc.CallOption) (EventDeliverer_OnListenChangedClient, error)
+}
+
+type eventDelivererClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewEventDelivererClient(cc *grpc.ClientConn) EventDelivererClient {
+	return &eventDelivererClient{cc}
+}
+
+func (c *eventDelivererClient) OnListenChanged(ctx context.Context, opts ...grpc.CallOption) (EventDeliverer_OnListenChangedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventDeliverer_serviceDesc.Streams[0], "/proto2.EventDeliverer/OnListenChanged", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventDelivererOnListenChangedClient{stream}
+	return x, nil
+}
+
+type EventDeliverer_OnListenChangedClient interface {
+	Send(*EventListenerInfo) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventDelivererOnListenChangedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventDelivererOnListenChangedClient) Send(m *EventListenerInfo) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventDelivererOnListenChangedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// EventDelivererServer is the server API for EventDeliverer service.
+type EventDelivererServer interface {
+	// listen状態が変化したときに呼び出される。
+	// [Manager] --> [Deliverer]
+	OnListenChanged(EventDeliverer_OnListenChangedServer) error
+}
+
+func RegisterEventDelivererServer(s *grpc.Server, srv EventDelivererServer) {
+	s.RegisterService(&_EventDeliverer_serviceDesc, srv)
+}
+
+func _EventDeliverer_OnListenChanged_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventDelivererServer).OnListenChanged(&eventDelivererOnListenChangedServer{stream})
+}
+
+type EventDeliverer_OnListenChangedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*EventListenerInfo, error)
+	grpc.ServerStream
+}
+
+type eventDelivererOnListenChangedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventDelivererOnListenChangedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventDelivererOnListenChangedServer) Recv() (*EventListenerInfo, error) {
+	m := new(EventListenerInfo)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+var _EventDeliverer_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "proto2.EventDeliverer",
+	HandlerType: (*EventDelivererServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "OnListenChanged",
-			Handler:       _MessageDeliverer_OnListenChanged_Handler,
+			Handler:       _EventDeliverer_OnListenChanged_Handler,
 			ClientStreams: true,
 		},
+	},
+	Metadata: "service.proto",
+}
+
+// EventListenerClient is the client API for EventListener service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type EventListenerClient interface {
+	// イベントが発生したときに呼び出される。
+	// [Deliverer] --> [Listener]
+	OnNodeAdded(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeAddedClient, error)
+	OnNodeStopping(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeStoppingClient, error)
+	OnNodeStopped(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeStoppedClient, error)
+	OnNodeDetaching(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeDetachingClient, error)
+	OnNodeDetached(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeDetachedClient, error)
+	OnObjectCreated(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectCreatedClient, error)
+	OnObjectDeleted(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectDeletedClient, error)
+	OnObjectCacheCreated(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectCacheCreatedClient, error)
+	OnObjectCacheDeleted(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectCacheDeletedClient, error)
+}
+
+type eventListenerClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewEventListenerClient(cc *grpc.ClientConn) EventListenerClient {
+	return &eventListenerClient{cc}
+}
+
+func (c *eventListenerClient) OnNodeAdded(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeAddedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[0], "/proto2.EventListener/OnNodeAdded", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnNodeAddedClient{stream}
+	return x, nil
+}
+
+type EventListener_OnNodeAddedClient interface {
+	Send(*Node) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnNodeAddedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnNodeAddedClient) Send(m *Node) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeAddedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnNodeStopping(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeStoppingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[1], "/proto2.EventListener/OnNodeStopping", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnNodeStoppingClient{stream}
+	return x, nil
+}
+
+type EventListener_OnNodeStoppingClient interface {
+	Send(*Node) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnNodeStoppingClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnNodeStoppingClient) Send(m *Node) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeStoppingClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnNodeStopped(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeStoppedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[2], "/proto2.EventListener/OnNodeStopped", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnNodeStoppedClient{stream}
+	return x, nil
+}
+
+type EventListener_OnNodeStoppedClient interface {
+	Send(*Node) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnNodeStoppedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnNodeStoppedClient) Send(m *Node) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeStoppedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnNodeDetaching(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeDetachingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[3], "/proto2.EventListener/OnNodeDetaching", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnNodeDetachingClient{stream}
+	return x, nil
+}
+
+type EventListener_OnNodeDetachingClient interface {
+	Send(*Node) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnNodeDetachingClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnNodeDetachingClient) Send(m *Node) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeDetachingClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnNodeDetached(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnNodeDetachedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[4], "/proto2.EventListener/OnNodeDetached", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnNodeDetachedClient{stream}
+	return x, nil
+}
+
+type EventListener_OnNodeDetachedClient interface {
+	Send(*Node) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnNodeDetachedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnNodeDetachedClient) Send(m *Node) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeDetachedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnObjectCreated(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectCreatedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[5], "/proto2.EventListener/OnObjectCreated", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnObjectCreatedClient{stream}
+	return x, nil
+}
+
+type EventListener_OnObjectCreatedClient interface {
+	Send(*ObjectInfo) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnObjectCreatedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnObjectCreatedClient) Send(m *ObjectInfo) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectCreatedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnObjectDeleted(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectDeletedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[6], "/proto2.EventListener/OnObjectDeleted", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnObjectDeletedClient{stream}
+	return x, nil
+}
+
+type EventListener_OnObjectDeletedClient interface {
+	Send(*ObjectInfo) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnObjectDeletedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnObjectDeletedClient) Send(m *ObjectInfo) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectDeletedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnObjectCacheCreated(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectCacheCreatedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[7], "/proto2.EventListener/OnObjectCacheCreated", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnObjectCacheCreatedClient{stream}
+	return x, nil
+}
+
+type EventListener_OnObjectCacheCreatedClient interface {
+	Send(*ObjectInfo) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnObjectCacheCreatedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnObjectCacheCreatedClient) Send(m *ObjectInfo) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectCacheCreatedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventListenerClient) OnObjectCacheDeleted(ctx context.Context, opts ...grpc.CallOption) (EventListener_OnObjectCacheDeletedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventListener_serviceDesc.Streams[8], "/proto2.EventListener/OnObjectCacheDeleted", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventListenerOnObjectCacheDeletedClient{stream}
+	return x, nil
+}
+
+type EventListener_OnObjectCacheDeletedClient interface {
+	Send(*ObjectInfo) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type eventListenerOnObjectCacheDeletedClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventListenerOnObjectCacheDeletedClient) Send(m *ObjectInfo) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectCacheDeletedClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// EventListenerServer is the server API for EventListener service.
+type EventListenerServer interface {
+	// イベントが発生したときに呼び出される。
+	// [Deliverer] --> [Listener]
+	OnNodeAdded(EventListener_OnNodeAddedServer) error
+	OnNodeStopping(EventListener_OnNodeStoppingServer) error
+	OnNodeStopped(EventListener_OnNodeStoppedServer) error
+	OnNodeDetaching(EventListener_OnNodeDetachingServer) error
+	OnNodeDetached(EventListener_OnNodeDetachedServer) error
+	OnObjectCreated(EventListener_OnObjectCreatedServer) error
+	OnObjectDeleted(EventListener_OnObjectDeletedServer) error
+	OnObjectCacheCreated(EventListener_OnObjectCacheCreatedServer) error
+	OnObjectCacheDeleted(EventListener_OnObjectCacheDeletedServer) error
+}
+
+func RegisterEventListenerServer(s *grpc.Server, srv EventListenerServer) {
+	s.RegisterService(&_EventListener_serviceDesc, srv)
+}
+
+func _EventListener_OnNodeAdded_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnNodeAdded(&eventListenerOnNodeAddedServer{stream})
+}
+
+type EventListener_OnNodeAddedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*Node, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnNodeAddedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnNodeAddedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeAddedServer) Recv() (*Node, error) {
+	m := new(Node)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnNodeStopping_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnNodeStopping(&eventListenerOnNodeStoppingServer{stream})
+}
+
+type EventListener_OnNodeStoppingServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*Node, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnNodeStoppingServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnNodeStoppingServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeStoppingServer) Recv() (*Node, error) {
+	m := new(Node)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnNodeStopped_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnNodeStopped(&eventListenerOnNodeStoppedServer{stream})
+}
+
+type EventListener_OnNodeStoppedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*Node, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnNodeStoppedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnNodeStoppedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeStoppedServer) Recv() (*Node, error) {
+	m := new(Node)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnNodeDetaching_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnNodeDetaching(&eventListenerOnNodeDetachingServer{stream})
+}
+
+type EventListener_OnNodeDetachingServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*Node, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnNodeDetachingServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnNodeDetachingServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeDetachingServer) Recv() (*Node, error) {
+	m := new(Node)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnNodeDetached_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnNodeDetached(&eventListenerOnNodeDetachedServer{stream})
+}
+
+type EventListener_OnNodeDetachedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*Node, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnNodeDetachedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnNodeDetachedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnNodeDetachedServer) Recv() (*Node, error) {
+	m := new(Node)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnObjectCreated_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnObjectCreated(&eventListenerOnObjectCreatedServer{stream})
+}
+
+type EventListener_OnObjectCreatedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*ObjectInfo, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnObjectCreatedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnObjectCreatedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectCreatedServer) Recv() (*ObjectInfo, error) {
+	m := new(ObjectInfo)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnObjectDeleted_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnObjectDeleted(&eventListenerOnObjectDeletedServer{stream})
+}
+
+type EventListener_OnObjectDeletedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*ObjectInfo, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnObjectDeletedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnObjectDeletedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectDeletedServer) Recv() (*ObjectInfo, error) {
+	m := new(ObjectInfo)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnObjectCacheCreated_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnObjectCacheCreated(&eventListenerOnObjectCacheCreatedServer{stream})
+}
+
+type EventListener_OnObjectCacheCreatedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*ObjectInfo, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnObjectCacheCreatedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnObjectCacheCreatedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectCacheCreatedServer) Recv() (*ObjectInfo, error) {
+	m := new(ObjectInfo)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _EventListener_OnObjectCacheDeleted_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EventListenerServer).OnObjectCacheDeleted(&eventListenerOnObjectCacheDeletedServer{stream})
+}
+
+type EventListener_OnObjectCacheDeletedServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*ObjectInfo, error)
+	grpc.ServerStream
+}
+
+type eventListenerOnObjectCacheDeletedServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventListenerOnObjectCacheDeletedServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *eventListenerOnObjectCacheDeletedServer) Recv() (*ObjectInfo, error) {
+	m := new(ObjectInfo)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+var _EventListener_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "proto2.EventListener",
+	HandlerType: (*EventListenerServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "OnNodeAdded",
-			Handler:       _MessageDeliverer_OnNodeAdded_Handler,
+			Handler:       _EventListener_OnNodeAdded_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnNodeStopping",
-			Handler:       _MessageDeliverer_OnNodeStopping_Handler,
+			Handler:       _EventListener_OnNodeStopping_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnNodeStopped",
-			Handler:       _MessageDeliverer_OnNodeStopped_Handler,
+			Handler:       _EventListener_OnNodeStopped_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnNodeDetaching",
-			Handler:       _MessageDeliverer_OnNodeDetaching_Handler,
+			Handler:       _EventListener_OnNodeDetaching_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnNodeDetached",
-			Handler:       _MessageDeliverer_OnNodeDetached_Handler,
+			Handler:       _EventListener_OnNodeDetached_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnObjectCreated",
-			Handler:       _MessageDeliverer_OnObjectCreated_Handler,
+			Handler:       _EventListener_OnObjectCreated_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnObjectDeleted",
-			Handler:       _MessageDeliverer_OnObjectDeleted_Handler,
+			Handler:       _EventListener_OnObjectDeleted_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnObjectCacheCreated",
-			Handler:       _MessageDeliverer_OnObjectCacheCreated_Handler,
+			Handler:       _EventListener_OnObjectCacheCreated_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "OnObjectCacheDeleted",
-			Handler:       _MessageDeliverer_OnObjectCacheDeleted_Handler,
+			Handler:       _EventListener_OnObjectCacheDeleted_Handler,
 			ClientStreams: true,
 		},
 	},

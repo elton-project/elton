@@ -2,16 +2,40 @@ syntax = "proto3";
 
 package proto2;
 
-// 仕組み
-//   Listenすると、イベントが発生したときにコールバックされる。
-//   Unlistenすると、コールバックが止まる。
-service MessageDeliverer {
-    // 複数個のlistenとunlistenを一括でやる。
-    rpc Listen (stream EventListener) returns (ListenResult);
-    rpc Unlisten (stream EventListener) returns (UnlistenResult);
+// ==== メッセージング機構 ====
+// [Listener] : イベントの発生通知を受け取る。EventListenerを実装する。
+// [Manager]  : どのListenerが何をlistenしているのか管理する。
+// [Deliverer]: イベントを送信する。
+//
+// [Listener]  --> [Manager]  : Listen状態を登録
+// [Manager]   --> [Deliverer]: Listen状態が変化したことを通知
+// [Deliverer] --> [Listener] : イベント発生を通知
 
-    rpc OnListenChanged (stream EventListener) returns (Empty);
 
+service EventManager {
+    // 指定したイベントをlistenする。
+    // [Listener] --> [Manager]
+    rpc Listen (stream EventListenerInfo) returns (ListenResult);
+    // 指定したイベントをunlistenする。
+    // [Listener] --> [Manager]
+    rpc Unlisten (stream EventListenerInfo) returns (UnlistenResult);
+    // Listen状態の変化をlistenする。
+    // [Deliverer] --> [Manager]
+    rpc ListenStatusChanges (stream EventDelivererInfo) returns (ListenStatusChangesResult);
+    // Listen状態の変化をunlistenする。
+    // [Deliverer] --> [Manager]
+    rpc UnlistenStatusChanges (stream EventDelivererInfo) returns (UnlistenStatusChangesResult);
+}
+
+service EventDeliverer {
+    // listen状態が変化したときに呼び出される。
+    // [Manager] --> [Deliverer]
+    rpc OnListenChanged (stream EventListenerInfo) returns (Empty);
+}
+
+service EventListener {
+    // イベントが発生したときに呼び出される。
+    // [Deliverer] --> [Listener]
     rpc OnNodeAdded (stream Node) returns (Empty);
     rpc OnNodeStopping (stream Node) returns (Empty);
     rpc OnNodeStopped (stream Node) returns (Empty);
@@ -202,9 +226,13 @@ message Status {
     SystemStatus runLevel = 2;
 }
 
-message EventListener {
+message EventListenerInfo {
     Node node = 1;
     EventType type = 2;
+}
+
+message EventDelivererInfo {
+    Node node = 1;
 }
 
 message ListenResult {
@@ -215,3 +243,10 @@ message UnlistenResult {
     string error = 1;
 }
 
+message ListenStatusChangesResult {
+    string error = 1;
+}
+
+message UnlistenStatusChangesResult {
+    string error = 1;
+}
