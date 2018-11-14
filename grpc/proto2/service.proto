@@ -54,119 +54,119 @@ service InternalStorageService {
 }
 
 enum EventType {
-    ALL = 0;
-    STATUS_CHANGED = 10;
-    NODE_ADDED = 1;
-    NODE_STOPPING = 2;
-    NODE_STOPPED = 3;
-    NODE_DETACHING = 4;
-    NODE_DETACHED = 5;
-    OBJECT_CREATED = 6;
-    OBJECT_DELETED = 7;
-    OBJECT_CACHE_CREATED = 8;
-    OBJECT_CACHE_DELETED = 9;
+    ET_ALL = 0;
+    ET_STATUS_CHANGED = 10;
+    ET_NODE_ADDED = 1;
+    ET_NODE_STOPPING = 2;
+    ET_NODE_STOPPED = 3;
+    ET_NODE_DETACHING = 4;
+    ET_NODE_DETACHED = 5;
+    ET_OBJECT_CREATED = 6;
+    ET_OBJECT_DELETED = 7;
+    ET_OBJECT_CACHE_CREATED = 8;
+    ET_OBJECT_CACHE_DELETED = 9;
 }
 
 // ==== State Transition Diagram ====
 //
-// [UNAVAILABLE]
+// [SS_UNAVAILABLE]
 //       |
-// +-----|------------+
-// |     V            |
-// |  [INIT_PHASE_0]  |
-// |     |            |
-// |     V            |
-// |  [INIT_PHASE_1]  |
-// |     |            |
-// |     V            |
-// |  [INIT_PHASE_2]  |
-// |     |            |
-// +-----|------------+
+// +-----|---------------+
+// |     V               |
+// |  [SS_INIT_PHASE_0]  |
+// |     |               |
+// |     V               |
+// |  [SS_INIT_PHASE_1]  |
+// |     |               |
+// |     V               |
+// |  [SS_INIT_PHASE_2]  |
+// |     |               |
+// +-----|---------------+
 //       |
-// +-----|-----------------------------+
-// |     V                             |
-// |  [OPERATING_RW] <--------------+  |
-// |     |                          |  |
-// |     V                          |  |
-// |  [OPERATING_MIGRATING_TO_RO]   |  |
-// |     |                          |  |
-// |     V                          |  |
-// |  [OPERATING_RO] ---------------+  |
-// |     |                             |
-// +-----|-----------------------------+
+// +-----|-------------------------+
+// |     V                         |
+// |  [SS_OPERATING_RW] <-------+  |
+// |     |                      |  |
+// |     V                      |  |
+// |  [SS_OPERATING_RW_TO_RO]   |  |
+// |     |                      |  |
+// |     V                      |  |
+// |  [SS_OPERATING_RO] --------+  |
+// |     |                         |
+// +-----|-------------------------+
 //       V
 // [SHUTDOWN]
 enum SystemStatus {
-    UNAVAILABLE = 0;
+    SS_UNAVAILABLE = 0;
 
     // launcherが起動した状態。
-    INIT_PHASE_0 = 10;
+    SS_INIT_PHASE_0 = 10;
     // 各サブシステムが起動中の状態。
-    INIT_PHASE_1 = 11;
+    SS_INIT_PHASE_1 = 11;
     // 各サブシステムが起動完了した状態。
-    INIT_PHASE_2 = 12;
+    SS_INIT_PHASE_2 = 12;
 
     // 通常運用の状態。
-    OPERATING_RW = 20;
+    SS_OPERATING_RW = 20;
     // Read Onlyモードに移行中の状態
-    OPERATING_MIGRATING_TO_RO = 21;
+    SS_OPERATING_RW_TO_RO = 21;
     // Read Onlyモードで運用中。
-    OPERATING_RO = 22;
+    SS_OPERATING_RO = 22;
 
     // 各サブシステムのプロセスを終了している状態。
-    SHUTDOWN = 30;
+    SS_SHUTDOWN = 30;
 }
 
 
 // ==== State Transition Diagram ====
 //
-//       [UNKNOWN]
+//       [SSS_UNKNOWN]
 //          |
 //          v
-//   +-- [STOPPED]  <----+
-//   |      |            |
-//   |      v            |
-//   +-- [STARTING]      |
-//   |      |            |
-//   |      v            |
-//   +-- [STARTED]       |
-//   |      |            |
-//   |      v            |
-//   +-- [STOPPING]  ----+
+//   +-- [SSS_STOPPED]  <----+
+//   |      |                |
+//   |      v                |
+//   +-- [SSS_STARTING]      |
+//   |      |                |
+//   |      v                |
+//   +-- [SSS_STARTED]       |
+//   |      |                |
+//   |      v                |
+//   +-- [SSS_STOPPING]  ----+
 //   |
 //   V
 // [Failed]
-enum ServiceStatus {
-    UNKNOWN = 0;
-    STOPPED = 1;
-    STARTING = 2;
-    OPERATING = 3;
-    STOPPING = 4;
-    FAILED = 5;
+enum SubServiceStatus {
+   SSS_UNKNOWN = 0;
+   SSS_STOPPED = 1;
+   SSS_STARTING = 2;
+   SSS_OPERATING = 3;
+   SSS_STOPPING = 4;
+   SSS_FAILED = 5;
 }
 
 // ==== State Transition Diagram ====
 //
-// [UNKNOWN]
+// [OS_UNKNOWN]
 //    |
 //    v
-// [CREATING]
-//    |  +-----------------+
-//    v  v                 |
-// [CREATED]  -------->  [LOST]
-//    |                    |
-//    v                    |
-// [DELETING] <------------+
+// [OS_CREATING]
+//    |  +------------------+
+//    v  v                  |
+// [OS_CREATED]  ----->  [OS_LOST]
+//    |                     |
+//    v                     |
+// [OS_DELETING] <-----------+
 //    |
 //    v
-// [DELETED]
+// [OS_DELETED]
 enum ObjectStatus {
-    UNKNOWN = 0;
-    CREATING = 1;
-    CREATED = 2;
-    LOST = 3;
-    DELETING = 4;
-    DELETED = 5;
+    OS_UNKNOWN = 0;
+    OS_CREATING = 1;
+    OS_CREATED = 2;
+    OS_LOST = 3;
+    OS_DELETING = 4;
+    OS_DELETED = 5;
 }
 
 message Empty {}
