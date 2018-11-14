@@ -117,6 +117,34 @@ enum SystemStatus {
     SHUTDOWN = 30;
 }
 
+
+// ==== State Transition Diagram ====
+//
+//       [Unknown]
+//          |
+//          V
+//   +-- [Stopped]  <----+
+//   |      |            |
+//   |      V            |
+//   +-- [Starting]      |
+//   |      |            |
+//   |      V            |
+//   +-- [Started]       |
+//   |      |            |
+//   |      V            |
+//   +-- [Stopping]  ----+
+//   |
+//   V
+// [Failed]
+enum ServiceStatus {
+    Unknown = 0;
+    Stopped = 1;
+    Starting = 2;
+    Operating = 3;
+    Stopping = 4;
+    Failed = 5;
+}
+
 // ==== State Transition Diagram ====
 //
 // [Unknown]
