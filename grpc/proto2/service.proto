@@ -5,7 +5,7 @@ package proto2;
 // 仕組み
 //   Listenすると、イベントが発生したときにコールバックされる。
 //   Unlistenすると、コールバックが止まる。
-service MessageTransporter {
+service MessageDeliverer {
     // 複数個のlistenとunlistenを一括でやる。
     rpc Listen(stream EventListener) returns (ListenResult);
     rpc Unlisten(stream EventListener) returns (UnlistenResult);
