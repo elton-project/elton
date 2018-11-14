@@ -120,53 +120,53 @@ enum SystemStatus {
 
 // ==== State Transition Diagram ====
 //
-//       [Unknown]
+//       [UNKNOWN]
 //          |
-//          V
-//   +-- [Stopped]  <----+
+//          v
+//   +-- [STOPPED]  <----+
 //   |      |            |
-//   |      V            |
-//   +-- [Starting]      |
+//   |      v            |
+//   +-- [STARTING]      |
 //   |      |            |
-//   |      V            |
-//   +-- [Started]       |
+//   |      v            |
+//   +-- [STARTED]       |
 //   |      |            |
-//   |      V            |
-//   +-- [Stopping]  ----+
+//   |      v            |
+//   +-- [STOPPING]  ----+
 //   |
 //   V
 // [Failed]
 enum ServiceStatus {
-    Unknown = 0;
-    Stopped = 1;
-    Starting = 2;
-    Operating = 3;
-    Stopping = 4;
-    Failed = 5;
+    UNKNOWN = 0;
+    STOPPED = 1;
+    STARTING = 2;
+    OPERATING = 3;
+    STOPPING = 4;
+    FAILED = 5;
 }
 
 // ==== State Transition Diagram ====
 //
-// [Unknown]
+// [UNKNOWN]
 //    |
-//    V
-// [Creating]
+//    v
+// [CREATING]
 //    |  +-----------------+
-//    V  V                 |
-// [Created]  -------->  [Lost]
+//    v  v                 |
+// [CREATED]  -------->  [LOST]
 //    |                    |
-//    V                    |
-// [Deleting] <------------+
+//    v                    |
+// [DELETING] <------------+
 //    |
-//    V
-// [Deleted]
+//    v
+// [DELETED]
 enum ObjectStatus {
-    Unknown = 0;
-    Creating = 1;
-    Created = 2;
-    Lost = 3;
-    Deleting = 4;
-    Deleted = 5;
+    UNKNOWN = 0;
+    CREATING = 1;
+    CREATED = 2;
+    LOST = 3;
+    DELETING = 4;
+    DELETED = 5;
 }
 
 message Empty {}
