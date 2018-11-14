@@ -7,50 +7,50 @@ package proto2;
 //   Unlistenすると、コールバックが止まる。
 service MessageDeliverer {
     // 複数個のlistenとunlistenを一括でやる。
-    rpc Listen(stream EventListener) returns (ListenResult);
-    rpc Unlisten(stream EventListener) returns (UnlistenResult);
+    rpc Listen (stream EventListener) returns (ListenResult);
+    rpc Unlisten (stream EventListener) returns (UnlistenResult);
 
-    rpc OnListenChanged(stream EventListener) returns (Empty);
+    rpc OnListenChanged (stream EventListener) returns (Empty);
 
-    rpc OnNodeAdded(stream Node) returns (Empty);
-    rpc OnNodeStopping(stream Node) returns (Empty);
-    rpc OnNodeStopped(stream Node) returns (Empty);
-    rpc OnNodeDetaching(stream Node) returns (Empty);
-    rpc OnNodeDetached(stream Node) returns (Empty);
+    rpc OnNodeAdded (stream Node) returns (Empty);
+    rpc OnNodeStopping (stream Node) returns (Empty);
+    rpc OnNodeStopped (stream Node) returns (Empty);
+    rpc OnNodeDetaching (stream Node) returns (Empty);
+    rpc OnNodeDetached (stream Node) returns (Empty);
 
-    rpc OnObjectCreated(stream ObjectInfo) returns (Empty);
-    rpc OnObjectDeleted(stream ObjectInfo) returns (Empty);
-    rpc OnObjectCacheCreated(stream ObjectInfo) returns (Empty);
-    rpc OnObjectCacheDeleted(stream ObjectInfo) returns (Empty);
+    rpc OnObjectCreated (stream ObjectInfo) returns (Empty);
+    rpc OnObjectDeleted (stream ObjectInfo) returns (Empty);
+    rpc OnObjectCacheCreated (stream ObjectInfo) returns (Empty);
+    rpc OnObjectCacheDeleted (stream ObjectInfo) returns (Empty);
 }
 
 service ControllerService {
-    rpc StopSystem(Empty) returns (Empty);
+    rpc StopSystem (Empty) returns (Empty);
 
-    rpc AddNode(Node) returns (Empty);
-    rpc StopNode(Node) returns (Empty);
-    rpc DetachNode(Node) returns (Empty);
+    rpc AddNode (Node) returns (Empty);
+    rpc StopNode (Node) returns (Empty);
+    rpc DetachNode (Node) returns (Empty);
 }
 
 // Storageサブシステムが、他のサブシステムに公開しているサービス。
 service StorageService {
-    rpc CreateObject(stream Object) returns (Empty);
-    rpc DeleteObject(stream ObjectInfo) returns (Empty);
+    rpc CreateObject (stream Object) returns (Empty);
+    rpc DeleteObject (stream ObjectInfo) returns (Empty);
 }
 
 service LocalStorageService {
-    rpc CreateObjectByPath(stream ObjectPath) returns (Empty);
-    rpc DownloadObject(stream ObjectInfo) returns (Empty);
-    rpc RLockObject(stream ObjectInfo) returns (Empty);
-    rpc RUnlockObject(stream ObjectInfo) returns (Empty);
+    rpc CreateObjectByPath (stream ObjectPath) returns (Empty);
+    rpc DownloadObject (stream ObjectInfo) returns (Empty);
+    rpc RLockObject (stream ObjectInfo) returns (Empty);
+    rpc RUnlockObject (stream ObjectInfo) returns (Empty);
 }
 
 // Storageサブシステム内部で利用するサービス。
 // Storageサブシステム毎に定義する。
 service InternalStorageService {
     // TODO
-    rpc GetObject(ObjectInfo) returns (Object);
-    rpc PutObject(Object) returns (Empty);
+    rpc GetObject (ObjectInfo) returns (Object);
+    rpc PutObject (Object) returns (Empty);
 }
 
 enum EventType {
@@ -117,7 +117,6 @@ enum SystemStatus {
     SS_SHUTDOWN = 30;
 }
 
-
 // ==== State Transition Diagram ====
 //
 //       [SSS_UNKNOWN]
@@ -137,12 +136,12 @@ enum SystemStatus {
 //   V
 // [Failed]
 enum SubServiceStatus {
-   SSS_UNKNOWN = 0;
-   SSS_STOPPED = 1;
-   SSS_STARTING = 2;
-   SSS_OPERATING = 3;
-   SSS_STOPPING = 4;
-   SSS_FAILED = 5;
+    SSS_UNKNOWN = 0;
+    SSS_STOPPED = 1;
+    SSS_STARTING = 2;
+    SSS_OPERATING = 3;
+    SSS_STOPPING = 4;
+    SSS_FAILED = 5;
 }
 
 // ==== State Transition Diagram ====
@@ -169,7 +168,8 @@ enum ObjectStatus {
     OS_DELETED = 5;
 }
 
-message Empty {}
+message Empty {
+}
 
 message Node {
     uint64 id = 1;
