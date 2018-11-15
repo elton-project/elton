@@ -55,3 +55,11 @@ func (s *unsafeDelivererStore) Remove(info *pb.EventDelivererInfo) {
 	s.init()
 	delete(s.m, NodeID(info.Node.Id))
 }
+func (s *unsafeDelivererStore) Foreach(fn func(info *pb.EventDelivererInfo) error) error {
+	for _, info := range s.m {
+		if err := fn(info); err != nil {
+			return err
+		}
+	}
+	return nil
+}
