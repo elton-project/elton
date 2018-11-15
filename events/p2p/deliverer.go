@@ -10,21 +10,16 @@ import (
 // An implementation the EventManagerServer and EventSender interface.
 type P2PEventDeliverer struct {
 	lock sync.Mutex
-	ls   map[pb.EventType][]*pb.EventListenerInfo
-}
-
-func (ed *P2PEventDeliverer) init() {
-	if ed.ls == nil {
-		ed.ls = map[pb.EventType][]*pb.EventListenerInfo{}
-	}
+	ls   unsafeListenerStore
 }
 
 func (ed *P2PEventDeliverer) OnListenChanged(ctx context.Context, info *pb.AllEventListenerInfo) (*pb.Empty, error) {
 	ed.lock.Lock()
 	defer ed.lock.Unlock()
-	ed.init()
+
+	ed.ls.Clear()
 	for _, l := range info.Nodes {
-		ed.ls[l.Type] = append(ed.ls[l.Type], l)
+		ed.ls.Add(l)
 	}
 	return &pb.Empty{}, nil
 }
@@ -32,9 +27,9 @@ func (ed *P2PEventDeliverer) OnListenChanged(ctx context.Context, info *pb.AllEv
 func (ed *P2PEventDeliverer) Send(eventType pb.EventType) {
 	ed.lock.Lock()
 	defer ed.lock.Unlock()
-	ed.init()
 
-	for _, l := range ed.ls[eventType] {
-		fmt.Printf("Send %s to %s\n", eventType.String(), l.Node.Address)
-	}
+	ed.ls.Foreach(eventType, func(info *pb.EventListenerInfo) error {
+		fmt.Printf("Send %s to %s\n", eventType.String(), info.Node.Address)
+		return nil
+	})
 }
