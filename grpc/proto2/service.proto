@@ -9,7 +9,6 @@ package proto2;
 // Process: OS用語でのプロセスとほぼ同義。1プロセスは、１つまたは複数のサービスを提供する。
 // Service: サブシステムの実態のこと。1つのサービスは、単一の機能を提供する。
 
-
 // ==== メッセージング機構 ====
 // [Listener] : イベントの発生通知を受け取る。EventListenerを実装する。
 // [Manager]  : どのListenerが何をlistenしているのか管理する。
@@ -23,37 +22,37 @@ package proto2;
 service EventManager {
     // 指定したイベントをlistenする。
     // [Listener] --> [Manager]
-    rpc Listen (stream EventListenerInfo) returns (ListenResult);
+    rpc Listen (EventListenerInfo) returns (ListenResult);
     // 指定したイベントをunlistenする。
     // [Listener] --> [Manager]
-    rpc Unlisten (stream EventListenerInfo) returns (UnlistenResult);
+    rpc Unlisten (EventListenerInfo) returns (UnlistenResult);
     // Listen状態の変化をlistenする。
     // [Deliverer] --> [Manager]
-    rpc ListenStatusChanges (stream EventDelivererInfo) returns (ListenStatusChangesResult);
+    rpc ListenStatusChanges (EventDelivererInfo) returns (ListenStatusChangesResult);
     // Listen状態の変化をunlistenする。
     // [Deliverer] --> [Manager]
-    rpc UnlistenStatusChanges (stream EventDelivererInfo) returns (UnlistenStatusChangesResult);
+    rpc UnlistenStatusChanges (EventDelivererInfo) returns (UnlistenStatusChangesResult);
 }
 
 service EventDeliverer {
     // listen状態が変化したときに呼び出される。
     // [Manager] --> [Deliverer]
-    rpc OnListenChanged (stream EventListenerInfo) returns (Empty);
+    rpc OnListenChanged (AllEventListenerInfo) returns (Empty);
 }
 
 service EventListener {
     // イベントが発生したときに呼び出される。
     // [Deliverer] --> [Listener]
-    rpc OnNodeAdded (stream Node) returns (Empty);
-    rpc OnNodeStopping (stream Node) returns (Empty);
-    rpc OnNodeStopped (stream Node) returns (Empty);
-    rpc OnNodeDetaching (stream Node) returns (Empty);
-    rpc OnNodeDetached (stream Node) returns (Empty);
+    rpc OnNodeAdded (Node) returns (Empty);
+    rpc OnNodeStopping (Node) returns (Empty);
+    rpc OnNodeStopped (Node) returns (Empty);
+    rpc OnNodeDetaching (Node) returns (Empty);
+    rpc OnNodeDetached (Node) returns (Empty);
 
-    rpc OnObjectCreated (stream ObjectInfo) returns (Empty);
-    rpc OnObjectDeleted (stream ObjectInfo) returns (Empty);
-    rpc OnObjectCacheCreated (stream ObjectInfo) returns (Empty);
-    rpc OnObjectCacheDeleted (stream ObjectInfo) returns (Empty);
+    rpc OnObjectCreated (ObjectInfo) returns (Empty);
+    rpc OnObjectDeleted (ObjectInfo) returns (Empty);
+    rpc OnObjectCacheCreated (ObjectInfo) returns (Empty);
+    rpc OnObjectCacheDeleted (ObjectInfo) returns (Empty);
 }
 
 service ControllerService {
@@ -66,15 +65,15 @@ service ControllerService {
 
 // Storageサブシステムが、他のサブシステムに公開しているサービス。
 service StorageService {
-    rpc CreateObject (stream Object) returns (Empty);
-    rpc DeleteObject (stream ObjectInfo) returns (Empty);
+    rpc CreateObject (Object) returns (Empty);
+    rpc DeleteObject (ObjectInfo) returns (Empty);
 }
 
 service LocalStorageService {
-    rpc CreateObjectByPath (stream ObjectPath) returns (Empty);
-    rpc DownloadObject (stream ObjectInfo) returns (Empty);
-    rpc RLockObject (stream ObjectInfo) returns (Empty);
-    rpc RUnlockObject (stream ObjectInfo) returns (Empty);
+    rpc CreateObjectByPath (ObjectPath) returns (Empty);
+    rpc DownloadObject (ObjectInfo) returns (Empty);
+    rpc RLockObject (ObjectInfo) returns (Empty);
+    rpc RUnlockObject (ObjectInfo) returns (Empty);
 }
 
 // Storageサブシステム内部で利用するサービス。
@@ -237,6 +236,10 @@ message Status {
 message EventListenerInfo {
     Node node = 1;
     EventType type = 2;
+}
+
+message AllEventListenerInfo {
+    repeated EventListenerInfo nodes = 1;
 }
 
 message EventDelivererInfo {

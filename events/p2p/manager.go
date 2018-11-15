@@ -1,8 +1,8 @@
 package p2p
 
 import (
+	"context"
 	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
-	"io"
 	"sync"
 )
 
@@ -27,81 +27,41 @@ func (em *P2PEventManager) init() {
 	}
 }
 
-func (em *P2PEventManager) Listen(stream pb.EventManager_ListenServer) error {
+func (em *P2PEventManager) Listen(ctx context.Context, info *pb.EventListenerInfo) (*pb.ListenResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 	em.init()
 
-	for {
-		l, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		if em.ls[l.Type] == nil {
-			em.ls[l.Type] = map[NodeID]*pb.EventListenerInfo{}
-		}
-		em.ls[l.Type][NodeID(l.Node.Id)] = l
+	if em.ls[info.Type] == nil {
+		em.ls[info.Type] = map[NodeID]*pb.EventListenerInfo{}
 	}
-	return nil
+	em.ls[info.Type][NodeID(info.Node.Id)] = info
+	return &pb.ListenResult{}, nil
 }
 
-func (em *P2PEventManager) Unlisten(stream pb.EventManager_UnlistenServer) error {
+func (em *P2PEventManager) Unlisten(ctx context.Context, info *pb.EventListenerInfo) (*pb.UnlistenResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 	em.init()
 
-	for {
-		u, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		delete(em.ls[u.Type], NodeID(u.Node.Id))
-	}
-	return nil
+	delete(em.ls[info.Type], NodeID(info.Node.Id))
+	return &pb.UnlistenResult{}, nil
 }
 
-func (em *P2PEventManager) ListenStatusChanges(stream pb.EventManager_ListenStatusChangesServer) error {
+func (em *P2PEventManager) ListenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.ListenStatusChangesResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 	em.init()
 
-	for {
-		l, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		em.ds[NodeID(l.Node.Id)] = l
-	}
-	return nil
+	em.ds[NodeID(info.Node.Id)] = info
+	return &pb.ListenStatusChangesResult{}, nil
 }
 
-func (em *P2PEventManager) UnlistenStatusChanges(stream pb.EventManager_UnlistenStatusChangesServer) error {
+func (em *P2PEventManager) UnlistenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.UnlistenStatusChangesResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 	em.init()
 
-	for {
-		u, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		delete(em.ds, NodeID(u.Node.Id))
-	}
-	return nil
+	delete(em.ds, NodeID(info.Node.Id))
+	return &pb.UnlistenStatusChangesResult{}, nil
 }

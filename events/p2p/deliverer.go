@@ -1,9 +1,9 @@
 package p2p
 
 import (
+	"context"
 	"fmt"
 	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
-	"io"
 	"sync"
 )
 
@@ -19,23 +19,14 @@ func (ed *P2PEventDeliverer) init() {
 	}
 }
 
-func (ed *P2PEventDeliverer) OnListenChanged(stream pb.EventDeliverer_OnListenChangedServer) error {
+func (ed *P2PEventDeliverer) OnListenChanged(ctx context.Context, info *pb.AllEventListenerInfo) (*pb.Empty, error){
 	ed.lock.Lock()
 	defer ed.lock.Unlock()
 	ed.init()
-
-	for {
-		l, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
+	for _,l:=range info.Nodes{
 		ed.ls[l.Type] = append(ed.ls[l.Type], l)
 	}
-	return nil
+	return &pb.Empty{},nil
 }
 
 func (ed *P2PEventDeliverer) Send(eventType pb.EventType) {
