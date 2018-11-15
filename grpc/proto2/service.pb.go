@@ -219,7 +219,7 @@ func (SubServiceStatus) EnumDescriptor() ([]byte, []int) {
 // [OS_CREATED]  ----->  [OS_LOST]
 //    |                     |
 //    v                     |
-// [OS_DELETING] <-----------+
+// [OS_DELETING] <----------+
 //    |
 //    v
 // [OS_DELETED]
