@@ -19,14 +19,14 @@ func (ed *P2PEventDeliverer) init() {
 	}
 }
 
-func (ed *P2PEventDeliverer) OnListenChanged(ctx context.Context, info *pb.AllEventListenerInfo) (*pb.Empty, error){
+func (ed *P2PEventDeliverer) OnListenChanged(ctx context.Context, info *pb.AllEventListenerInfo) (*pb.Empty, error) {
 	ed.lock.Lock()
 	defer ed.lock.Unlock()
 	ed.init()
-	for _,l:=range info.Nodes{
+	for _, l := range info.Nodes {
 		ed.ls[l.Type] = append(ed.ls[l.Type], l)
 	}
-	return &pb.Empty{},nil
+	return &pb.Empty{}, nil
 }
 
 func (ed *P2PEventDeliverer) Send(eventType pb.EventType) {
