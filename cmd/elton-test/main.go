@@ -53,15 +53,31 @@ func server(em, ed, el net.Listener) {
 	})
 
 	eds := grpc.NewServer()
-	proto2.RegisterEventDelivererServer(eds, &p2p.P2PEventDeliverer{
+	d := &p2p.P2PEventDeliverer{
 		L: zap.S().With("server", "P2PEventDeliverer"),
-	})
+		Master: &proto2.Node{
+			Id:      0,
+			Group:   nil,
+			Address: "unix://" + em.Addr().String(),
+		},
+		Self: &proto2.Node{
+			Id:      1,
+			Group:   nil,
+			Address: "unix://" + em.Addr().String(),
+		},
+	}
+	proto2.RegisterEventDelivererServer(eds, d)
 
 	go func() {
 		checkError(ems.Serve(em))
 	}()
 	go func() {
 		checkError(eds.Serve(ed))
+	}()
+	go func() {
+		ctx := context.Background()
+		checkError(d.Register(ctx))
+		//checkError(d.Unregister(ctx))
 	}()
 	time.Sleep(1 * time.Second)
 }
@@ -75,9 +91,9 @@ func client(em, ed, el *grpc.ClientConn) {
 		result, err := emc.Listen(ctx,
 			&proto2.EventListenerInfo{
 				Node: &proto2.Node{
-					Id:      1,
-					Address: el.Target(),
+					Id:      2,
 					Group:   nil,
+					Address: "unix://" + el.Target(),
 				},
 				Type: proto2.EventType_ET_OBJECT_CREATED,
 			},
