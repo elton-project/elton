@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"sync"
 	"time"
 )
 
@@ -46,7 +47,7 @@ func checkError(err error) {
 	}
 }
 
-func server(em, ed, el net.Listener) {
+func server(ctx context.Context, em, ed, el net.Listener) {
 	ems := grpc.NewServer()
 	proto2.RegisterEventManagerServer(ems, &p2p.P2PEventManager{
 		L: zap.S().With("server", "P2PEventManager"),
@@ -68,22 +69,32 @@ func server(em, ed, el net.Listener) {
 	}
 	proto2.RegisterEventDelivererServer(eds, d)
 
+	wg := &sync.WaitGroup{}
+	wg.Add(3)
 	go func() {
+		defer wg.Done()
 		checkError(ems.Serve(em))
 	}()
 	go func() {
+		defer wg.Done()
 		checkError(eds.Serve(ed))
 	}()
 	go func() {
-		ctx := context.Background()
+		defer wg.Done()
+		defer ems.GracefulStop()
+		defer eds.GracefulStop()
+		defer func() {
+			ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+			checkError(d.Unregister(ctx))
+		}()
 		checkError(d.Register(ctx))
-		//checkError(d.Unregister(ctx))
+		<-ctx.Done()
 	}()
-	time.Sleep(1 * time.Second)
+	wg.Wait()
 }
 
-func client(em, ed, el *grpc.ClientConn) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func client(ctx context.Context, em, ed, el *grpc.ClientConn) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	func() {
@@ -117,10 +128,30 @@ func client(em, ed, el *grpc.ClientConn) {
 func main() {
 	logger, _ := zap.NewDevelopment()
 	zap.ReplaceGlobals(logger)
+	defer zap.S().Sync()
+
+	ctx, cancel := context.WithCancel(context.Background())
 
 	ems, emc := generateTempSock()
 	eds, edc := generateTempSock()
 	els, elc := generateTempSock()
-	server(ems, eds, els)
-	client(emc, edc, elc)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		zap.S().Infow("Server", "status", "starting")
+		defer wg.Done()
+		server(ctx, ems, eds, els)
+		zap.S().Infow("Server", "status", "stopped")
+	}()
+	go func() {
+		zap.S().Infow("Client", "status", "starting")
+		defer wg.Done()
+		defer cancel()
+		client(ctx, emc, edc, elc)
+		zap.S().Infow("Client", "status", "stopped")
+	}()
+	zap.S().Infow("Main", "status", "waiting")
+	wg.Wait()
+	zap.S().Infow("Main", "status", "done")
 }
