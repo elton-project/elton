@@ -71,6 +71,7 @@ func (em *P2PEventManager) notifyListenChanged(ctx context.Context, eventType pb
 		l.Debugw("notifyListenChanged")
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			conn, err := grpc.Dial(info.Node.Address, grpc.WithInsecure())
 			if err != nil {
 				l.Errorw("notifyListenChanged",
@@ -91,4 +92,6 @@ func (em *P2PEventManager) notifyListenChanged(ctx context.Context, eventType pb
 		}()
 		return nil
 	})
+
+	wg.Wait()
 }
