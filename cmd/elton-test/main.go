@@ -64,7 +64,7 @@ func server(ctx context.Context, em, ed, el net.Listener) {
 		Self: &proto2.Node{
 			Id:      1,
 			Group:   nil,
-			Address: "unix://" + em.Addr().String(),
+			Address: "unix://" + ed.Addr().String(),
 		},
 	}
 	proto2.RegisterEventDelivererServer(eds, d)
