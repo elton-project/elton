@@ -240,6 +240,7 @@ message EventListenerInfo {
 
 message AllEventListenerInfo {
     repeated EventListenerInfo nodes = 1;
+    EventType type = 2;
 }
 
 message EventDelivererInfo {

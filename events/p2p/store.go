@@ -36,6 +36,13 @@ func (s *unsafeListenerStore) Foreach(eventType pb.EventType, fn func(info *pb.E
 	}
 	return nil
 }
+func (s *unsafeListenerStore) ListListeners(eventType pb.EventType) []*pb.EventListenerInfo {
+	var list []*pb.EventListenerInfo
+	for _, info := range s.m[eventType] {
+		list = append(list, info)
+	}
+	return list
+}
 
 type unsafeDelivererStore struct {
 	m map[NodeID]*pb.EventDelivererInfo

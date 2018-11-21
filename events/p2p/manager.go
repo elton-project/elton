@@ -28,7 +28,7 @@ func (em *P2PEventManager) Listen(ctx context.Context, info *pb.EventListenerInf
 
 	em.L.Debugw("Listen", "args", info)
 	em.ls.Add(info)
-	em.notifyListenChanged(ctx)
+	em.notifyListenChanged(ctx, info.Type)
 	return &pb.ListenResult{}, nil
 }
 func (em *P2PEventManager) Unlisten(ctx context.Context, info *pb.EventListenerInfo) (*pb.UnlistenResult, error) {
@@ -37,7 +37,7 @@ func (em *P2PEventManager) Unlisten(ctx context.Context, info *pb.EventListenerI
 
 	em.L.Debugw("Unlisten", "args", info)
 	em.ls.Remove(info)
-	em.notifyListenChanged(ctx)
+	em.notifyListenChanged(ctx, info.Type)
 	return &pb.UnlistenResult{}, nil
 }
 func (em *P2PEventManager) ListenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.ListenStatusChangesResult, error) {
@@ -56,12 +56,14 @@ func (em *P2PEventManager) UnlistenStatusChanges(ctx context.Context, info *pb.E
 	em.ds.Remove(info)
 	return &pb.UnlistenStatusChangesResult{}, nil
 }
-func (em *P2PEventManager) notifyListenChanged(ctx context.Context) {
+func (em *P2PEventManager) notifyListenChanged(ctx context.Context, eventType pb.EventType) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	allNodes := &pb.AllEventListenerInfo{}
-	// TODO: Initialize the allNodes.Nodes field.
+	allNodes := &pb.AllEventListenerInfo{
+		Nodes: em.ls.ListListeners(eventType),
+		Type:  eventType,
+	}
 
 	em.ds.Foreach(func(info *pb.EventDelivererInfo) error {
 		l := em.L.With("to", info.Node)
