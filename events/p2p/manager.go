@@ -4,6 +4,7 @@ import (
 	"context"
 	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"sync"
 )
 
@@ -27,7 +28,7 @@ func (em *P2PEventManager) Listen(ctx context.Context, info *pb.EventListenerInf
 
 	em.L.Debugw("Listen", "args", info)
 	em.ls.Add(info)
-	em.notifyListenChanged()
+	em.notifyListenChanged(ctx)
 	return &pb.ListenResult{}, nil
 }
 func (em *P2PEventManager) Unlisten(ctx context.Context, info *pb.EventListenerInfo) (*pb.UnlistenResult, error) {
@@ -36,7 +37,7 @@ func (em *P2PEventManager) Unlisten(ctx context.Context, info *pb.EventListenerI
 
 	em.L.Debugw("Unlisten", "args", info)
 	em.ls.Remove(info)
-	em.notifyListenChanged()
+	em.notifyListenChanged(ctx)
 	return &pb.UnlistenResult{}, nil
 }
 func (em *P2PEventManager) ListenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.ListenStatusChangesResult, error) {
@@ -55,10 +56,37 @@ func (em *P2PEventManager) UnlistenStatusChanges(ctx context.Context, info *pb.E
 	em.ds.Remove(info)
 	return &pb.UnlistenStatusChangesResult{}, nil
 }
-func (em *P2PEventManager) notifyListenChanged() {
+func (em *P2PEventManager) notifyListenChanged(ctx context.Context) {
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
+	allNodes := &pb.AllEventListenerInfo{}
+	// TODO: Initialize the allNodes.Nodes field.
+
 	em.ds.Foreach(func(info *pb.EventDelivererInfo) error {
-		// TODO: notify to other notes
-		em.L.Debugw("notifyListenChanged", "to", info.Node)
+		l := em.L.With("to", info.Node)
+
+		l.Debugw("notifyListenChanged")
+		wg.Add(1)
+		go func() {
+			conn, err := grpc.Dial(info.Node.Address, grpc.WithInsecure())
+			if err != nil {
+				l.Errorw("notifyListenChanged",
+					"status", "failed",
+					"phase", "connecting",
+					"error", err.Error())
+				return
+			}
+			defer conn.Close()
+
+			client := pb.NewEventDelivererClient(conn)
+			if _, err := client.OnListenChanged(ctx, allNodes); err != nil {
+				l.Errorw("notifyListenChanged",
+					"status", "failed",
+					"phase", "calling",
+					"error", err.Error())
+			}
+		}()
 		return nil
 	})
 }
