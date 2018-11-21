@@ -72,6 +72,7 @@ func (ed *P2PEventDeliverer) withMasterConn(fn func(master pb.EventManagerClient
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 	return fn(pb.NewEventManagerClient(conn))
 }
 
