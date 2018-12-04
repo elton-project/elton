@@ -8,8 +8,6 @@ import (
 	"sync"
 )
 
-type NodeID uint64
-
 // An implementation the EventManagerServer interface.
 type P2PEventManager struct {
 	L *zap.SugaredLogger
@@ -61,18 +59,18 @@ func (em *P2PEventManager) notifyListenChanged(ctx context.Context, eventType pb
 	defer wg.Wait()
 
 	allNodes := &pb.AllEventListenerInfo{
-		Nodes: em.ls.ListListeners(eventType),
-		Type:  eventType,
+		Servers: em.ls.ListListeners(eventType),
+		Type:    eventType,
 	}
 
 	em.ds.Foreach(func(info *pb.EventDelivererInfo) error {
-		l := em.L.With("to", info.Node)
+		l := em.L.With("to", info.Server)
 
 		l.Debugw("notifyListenChanged")
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			conn, err := grpc.Dial(info.Node.Address, grpc.WithInsecure())
+			conn, err := grpc.Dial(info.Server.Address, grpc.WithInsecure())
 			if err != nil {
 				l.Errorw("notifyListenChanged",
 					"status", "failed",
