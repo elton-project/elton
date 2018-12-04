@@ -45,8 +45,6 @@ func (s *ExampleDelivererService) SetAddr(addr string) {
 	s.addr = addr
 }
 func (s *ExampleDelivererService) Register(ctx context.Context) error {
-	// note: EventManagerのアドレスが必要
-	// todo
 	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
 		return nil
 	})
