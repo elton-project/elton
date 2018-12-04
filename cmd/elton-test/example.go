@@ -46,6 +46,13 @@ func (s *ExampleDelivererService) SetAddr(addr string) {
 }
 func (s *ExampleDelivererService) Register(ctx context.Context) error {
 	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
+		c := proto2.NewEventManagerClient(conn)
+		c.ListenStatusChanges(ctx, &proto2.EventDelivererInfo{
+			Node: &proto2.Node{
+				// TODO: 型名 (Node) というのが不適切。
+				// Serverにして、そこにアドレス、ポート番号、提供するサービス(1個)やグループなど。
+			},
+		})
 		return nil
 	})
 }
