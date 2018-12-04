@@ -9,6 +9,8 @@ import (
 )
 
 type ExampleSubsystem struct {
+	EMAddr net.Addr
+
 	m      ServiceManager
 	ds, ls *grpc.Server
 }

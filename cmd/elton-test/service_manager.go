@@ -72,6 +72,12 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 	zap.S().Debugw("SM.Serve", "status", "finished")
 	return
 }
+func (m *ServiceManager) Addrs() (addrs []net.Addr) {
+	for _, s := range m.sockets {
+		addrs = append(addrs, s.Addr())
+	}
+	return
+}
 func (m *ServiceManager) socket() (net.Listener, error) {
 	return net.Listen("tcp", "0.0.0.0:0")
 }
