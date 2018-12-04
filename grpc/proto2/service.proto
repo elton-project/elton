@@ -45,11 +45,11 @@ service EventDeliverer {
 service EventListener {
     // イベントが発生したときに呼び出される。
     // [Deliverer] --> [Listener]
-    rpc OnNodeAdded (Node) returns (Empty);
-    rpc OnNodeStopping (Node) returns (Empty);
-    rpc OnNodeStopped (Node) returns (Empty);
-    rpc OnNodeDetaching (Node) returns (Empty);
-    rpc OnNodeDetached (Node) returns (Empty);
+    rpc OnServerAdded (Server) returns (Empty);
+    rpc OnServerStopping (Server) returns (Empty);
+    rpc OnServerStopped (Server) returns (Empty);
+    rpc OnServerDetaching (Server) returns (Empty);
+    rpc OnServerDetached (Server) returns (Empty);
 
     rpc OnObjectCreated (ObjectInfo) returns (Empty);
     rpc OnObjectDeleted (ObjectInfo) returns (Empty);
@@ -60,9 +60,9 @@ service EventListener {
 service ControllerService {
     rpc StopSystem (Empty) returns (Empty);
 
-    rpc AddNode (Node) returns (Empty);
-    rpc StopNode (Node) returns (Empty);
-    rpc DetachNode (Node) returns (Empty);
+    rpc AddServer (Server) returns (Empty);
+    rpc StopServer (Server) returns (Empty);
+    rpc DetachServer (Server) returns (Empty);
 }
 
 // Storageサブシステムが、他のサブシステムに公開しているサービス。
@@ -89,11 +89,11 @@ service InternalStorageService {
 enum EventType {
     ET_ALL = 0;
     ET_STATUS_CHANGED = 10;
-    ET_NODE_ADDED = 1;
-    ET_NODE_STOPPING = 2;
-    ET_NODE_STOPPED = 3;
-    ET_NODE_DETACHING = 4;
-    ET_NODE_DETACHED = 5;
+    ET_SERVER_ADDED = 1;
+    ET_SERVER_STOPPING = 2;
+    ET_SERVER_STOPPED = 3;
+    ET_SERVER_DETACHING = 4;
+    ET_SERVER_DETACHED = 5;
     ET_OBJECT_CREATED = 6;
     ET_OBJECT_DELETED = 7;
     ET_OBJECT_CACHE_CREATED = 8;
@@ -204,7 +204,7 @@ enum ObjectStatus {
 message Empty {
 }
 
-message Node {
+message Server {
     uint64 id = 1;
     repeated string group = 2;
     string address = 3;
@@ -222,7 +222,7 @@ message Object {
 
 message ObjectCache {
     ObjectInfo obj = 1;
-    Node node = 2;
+    Server server = 2;
 }
 
 message ObjectPath {
@@ -236,17 +236,17 @@ message Status {
 }
 
 message EventListenerInfo {
-    Node node = 1;
+    Server server = 1;
     EventType type = 2;
 }
 
 message AllEventListenerInfo {
-    repeated EventListenerInfo nodes = 1;
+    repeated EventListenerInfo servers = 1;
     EventType type = 2;
 }
 
 message EventDelivererInfo {
-    Node node = 1;
+    Server server = 1;
 }
 
 message ListenResult {
