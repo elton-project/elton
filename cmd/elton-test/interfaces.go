@@ -5,6 +5,9 @@ import (
 	"net"
 )
 
+// システムの構成:
+// System > Subsystems > Services
+
 type Subsystem interface {
 	Name() string
 	Setup(ctx context.Context) error
