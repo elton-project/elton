@@ -48,10 +48,7 @@ func (s *ExampleDelivererService) Register(ctx context.Context) error {
 	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
 		c := proto2.NewEventManagerClient(conn)
 		c.ListenStatusChanges(ctx, &proto2.EventDelivererInfo{
-			ServerInfo: &proto2.ServerInfo{
-				// TODO: 型名 (Node) というのが不適切。
-				// Serverにして、そこにアドレス、ポート番号、提供するサービス(1個)やグループなど。
-			},
+			ServerInfo: proto2.NewServerInfo(s.addr),
 		})
 		return nil
 	})
