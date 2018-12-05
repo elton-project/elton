@@ -119,6 +119,14 @@
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:2e76a73cb51f42d63a2a1a85b3dc5731fd4faf6821b434bd0ef2c099186031d6"
+  name = "github.com/rs/xid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "15d26544def341f036c5f8dca987a4cbe575032c"
+  version = "v1.2.1"
+
+[[projects]]
   digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
   name = "go.uber.org/atomic"
   packages = ["."]
@@ -266,6 +274,7 @@
     "github.com/hanwen/go-fuse/fuse/nodefs",
     "github.com/higanworks/envmap",
     "github.com/jessevdk/go-flags",
+    "github.com/rs/xid",
     "go.uber.org/zap",
     "golang.org/x/net/context",
     "golang.org/x/sync/errgroup",
