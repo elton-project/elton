@@ -34,14 +34,14 @@ func (s *ExampleSubsystem) Serve(ctx context.Context) []error {
 type ExampleDelivererService struct {
 	Subsystem *ExampleSubsystem
 
-	addr   string
+	addr   net.Addr
 	server ExampleDelivererServer
 }
 
 func (s *ExampleDelivererService) Name() string {
 	return "<Service: Example/Deliverer>"
 }
-func (s *ExampleDelivererService) SetAddr(addr string) {
+func (s *ExampleDelivererService) SetAddr(addr net.Addr) {
 	s.addr = addr
 }
 func (s *ExampleDelivererService) Register(ctx context.Context) error {

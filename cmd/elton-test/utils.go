@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"net"
 	"sync"
 )
 
@@ -29,8 +30,9 @@ func WithGrpcServer(parent_ctx context.Context, fn func(srv *grpc.Server) error)
 	return
 }
 
-func WithGrpcConn(addr string, fn func(conn *grpc.ClientConn) error) error {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+func WithGrpcConn(addr net.Addr, fn func(conn *grpc.ClientConn) error) error {
+	target := addr.Network() + "://" + addr.String()
+	conn, err := grpc.Dial(target, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}

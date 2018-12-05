@@ -13,13 +13,13 @@ type ManagerService struct {
 	L *zap.SugaredLogger
 
 	m    p2p.P2PEventManager
-	addr string
+	addr net.Addr
 }
 
 func (s *ManagerService) Name() string {
 	return "<Service: P2PEventManager>"
 }
-func (s *ManagerService) SetAddr(addr string) {
+func (s *ManagerService) SetAddr(addr net.Addr) {
 	s.addr = addr
 }
 func (s *ManagerService) Register(ctx context.Context) error {

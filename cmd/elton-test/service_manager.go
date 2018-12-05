@@ -83,10 +83,6 @@ func (m *ServiceManager) Addrs() (addrs []net.Addr) {
 func (m *ServiceManager) socket() (net.Listener, error) {
 	return net.Listen("tcp", "0.0.0.0:0")
 }
-func (m *ServiceManager) socketAddr(listener net.Listener) string {
-	a := listener.Addr()
-	return a.Network() + "://" + a.String()
-}
 func (m *ServiceManager) allocateListeners() (err error) {
 	defer func() {
 		if err != nil {
@@ -112,7 +108,7 @@ func (m *ServiceManager) unallocateListeners() {
 }
 func (m *ServiceManager) bindListeners() {
 	for i := range m.Services {
-		addr := m.socketAddr(m.sockets[i])
+		addr := m.sockets[i].Addr()
 		m.Services[i].SetAddr(addr)
 	}
 }

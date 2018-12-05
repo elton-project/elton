@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func NewServerInfo(addr net.TCPAddr) *ServerInfo {
+func NewServerInfo(addr net.Addr) *ServerInfo {
 	return &ServerInfo{
 		Guid:    xid.New().String(),
 		Group:   GetGroups(),

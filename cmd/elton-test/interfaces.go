@@ -16,7 +16,7 @@ type Subsystem interface {
 
 type Service interface {
 	Name() string
-	SetAddr(addr string)
+	SetAddr(addr net.Addr)
 	Register(ctx context.Context) error
 	Unregister(ctx context.Context) error
 	Serve(ctx context.Context, listener net.Listener) error
