@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+// 1つのプロセス内で動作しているサービスを管理する。
+// ServiceManager は、 Subsystem ごとに1つ利用する。
 type ServiceManager struct {
 	Services        []Service
 	ShutdownTimeout time.Duration
