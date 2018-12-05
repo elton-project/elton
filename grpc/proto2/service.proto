@@ -45,11 +45,11 @@ service EventDeliverer {
 service EventListener {
     // イベントが発生したときに呼び出される。
     // [Deliverer] --> [Listener]
-    rpc OnServerAdded (Server) returns (Empty);
-    rpc OnServerStopping (Server) returns (Empty);
-    rpc OnServerStopped (Server) returns (Empty);
-    rpc OnServerDetaching (Server) returns (Empty);
-    rpc OnServerDetached (Server) returns (Empty);
+    rpc OnServerAdded (ServerInfo) returns (Empty);
+    rpc OnServerStopping (ServerInfo) returns (Empty);
+    rpc OnServerStopped (ServerInfo) returns (Empty);
+    rpc OnServerDetaching (ServerInfo) returns (Empty);
+    rpc OnServerDetached (ServerInfo) returns (Empty);
 
     rpc OnObjectCreated (ObjectInfo) returns (Empty);
     rpc OnObjectDeleted (ObjectInfo) returns (Empty);
@@ -60,9 +60,9 @@ service EventListener {
 service ControllerService {
     rpc StopSystem (Empty) returns (Empty);
 
-    rpc AddServer (Server) returns (Empty);
-    rpc StopServer (Server) returns (Empty);
-    rpc DetachServer (Server) returns (Empty);
+    rpc AddServerInfo (ServerInfo) returns (Empty);
+    rpc StopServerInfo (ServerInfo) returns (Empty);
+    rpc DetachServerInfo (ServerInfo) returns (Empty);
 }
 
 // Storageサブシステムが、他のサブシステムに公開しているサービス。
@@ -204,7 +204,7 @@ enum ObjectStatus {
 message Empty {
 }
 
-message Server {
+message ServerInfo {
     uint64 id = 1;
     repeated string group = 2;
     string address = 3;
@@ -222,7 +222,7 @@ message Object {
 
 message ObjectCache {
     ObjectInfo obj = 1;
-    Server server = 2;
+    ServerInfo serverInfo = 2;
 }
 
 message ObjectPath {
@@ -236,7 +236,7 @@ message Status {
 }
 
 message EventListenerInfo {
-    Server server = 1;
+    ServerInfo serverInfo = 1;
     EventType type = 2;
 }
 
@@ -246,7 +246,7 @@ message AllEventListenerInfo {
 }
 
 message EventDelivererInfo {
-    Server server = 1;
+    ServerInfo serverInfo = 1;
 }
 
 message ListenResult {

@@ -21,14 +21,14 @@ func (s *unsafeListenerStore) Add(info *pb.EventListenerInfo) {
 	if s.m[info.Type] == nil {
 		s.m[info.Type] = map[ServerID]*pb.EventListenerInfo{}
 	}
-	s.m[info.Type][ServerID(info.Server.Id)] = info
+	s.m[info.Type][ServerID(info.ServerInfo.Id)] = info
 }
 func (s *unsafeListenerStore) Remove(info *pb.EventListenerInfo) {
 	s.init()
 	if s.m[info.Type] == nil {
 		return
 	}
-	delete(s.m[info.Type], ServerID(info.Server.Id))
+	delete(s.m[info.Type], ServerID(info.ServerInfo.Id))
 }
 func (s *unsafeListenerStore) Foreach(eventType pb.EventType, fn func(info *pb.EventListenerInfo) error) error {
 	for _, info := range s.m[eventType] {
@@ -58,11 +58,11 @@ func (s *unsafeDelivererStore) Clear() {
 }
 func (s *unsafeDelivererStore) Add(info *pb.EventDelivererInfo) {
 	s.init()
-	s.m[ServerID(info.Server.Id)] = info
+	s.m[ServerID(info.ServerInfo.Id)] = info
 }
 func (s *unsafeDelivererStore) Remove(info *pb.EventDelivererInfo) {
 	s.init()
-	delete(s.m, ServerID(info.Server.Id))
+	delete(s.m, ServerID(info.ServerInfo.Id))
 }
 func (s *unsafeDelivererStore) Foreach(fn func(info *pb.EventDelivererInfo) error) error {
 	for _, info := range s.m {

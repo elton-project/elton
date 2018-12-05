@@ -64,13 +64,13 @@ func (em *P2PEventManager) notifyListenChanged(ctx context.Context, eventType pb
 	}
 
 	em.ds.Foreach(func(info *pb.EventDelivererInfo) error {
-		l := em.L.With("to", info.Server)
+		l := em.L.With("to", info.ServerInfo)
 
 		l.Debugw("notifyListenChanged")
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			conn, err := grpc.Dial(info.Server.Address, grpc.WithInsecure())
+			conn, err := grpc.Dial(info.ServerInfo.Address, grpc.WithInsecure())
 			if err != nil {
 				l.Errorw("notifyListenChanged",
 					"status", "failed",

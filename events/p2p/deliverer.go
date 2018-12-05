@@ -12,8 +12,8 @@ import (
 // An implementation the EventManagerServer and EventSender interface.
 type P2PEventDeliverer struct {
 	L      *zap.SugaredLogger
-	Master *pb.Server
-	Self   *pb.Server
+	Master *pb.ServerInfo
+	Self   *pb.ServerInfo
 
 	lock sync.Mutex
 	ls   unsafeListenerStore
@@ -36,7 +36,7 @@ func (ed *P2PEventDeliverer) send(eventType pb.EventType) {
 	defer ed.lock.Unlock()
 
 	ed.ls.Foreach(eventType, func(info *pb.EventListenerInfo) error {
-		ed.L.Debugw("Send", "eventType", eventType, "to", info.Server)
+		ed.L.Debugw("Send", "eventType", eventType, "to", info.ServerInfo)
 		return nil
 	})
 }
@@ -78,6 +78,6 @@ func (ed *P2PEventDeliverer) withMasterConn(fn func(master pb.EventManagerClient
 
 func (ed *P2PEventDeliverer) selfInfo() *pb.EventDelivererInfo {
 	return &pb.EventDelivererInfo{
-		Server: ed.Self,
+		ServerInfo: ed.Self,
 	}
 }
