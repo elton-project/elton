@@ -205,7 +205,7 @@ message Empty {
 }
 
 message ServerInfo {
-    uint64 id = 1;
+    string guid = 1;
     repeated string group = 2;
     string address = 3;
 }
