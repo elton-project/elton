@@ -9,6 +9,50 @@ import (
 	"time"
 )
 
+type SubsystemManager struct {
+	Subsystems      []Subsystem
+	ShutdownTimeout time.Duration
+}
+
+func (m *SubsystemManager) Setup(ctx context.Context) error {
+	var eg errgroup.Group
+	for _, s := range m.Subsystems {
+		eg.Go(func() error {
+			return s.Setup(ctx)
+		})
+	}
+	return eg.Wait()
+}
+func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
+	errCh := make(chan error)
+	var wgServe, wgEch sync.WaitGroup
+	ctx, cancel := context.WithCancel(parentCtx)
+
+	wgEch.Add(1)
+	go func() {
+		defer wgEch.Done()
+		for err := range errCh {
+			cancel()
+			errors = append(errors, err)
+		}
+	}()
+
+	for _, s := range m.Subsystems {
+		wgServe.Add(1)
+		go func() {
+			defer wgServe.Done()
+			for _, e := range s.Serve(ctx) {
+				errCh <- e
+			}
+		}()
+	}
+	wgServe.Wait()
+	close(errCh)
+
+	wgEch.Wait()
+	return
+}
+
 // 1つのプロセス内で動作しているサービスを管理する。
 // ServiceManager は、 Subsystem ごとに1つ利用する。
 type ServiceManager struct {
