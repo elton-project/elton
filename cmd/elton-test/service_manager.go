@@ -74,9 +74,24 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 	zap.S().Debugw("SM.Serve", "status", "finished")
 	return
 }
+
+// Addrs returns service addresses reachable from other nodes.
 func (m *ServiceManager) Addrs() (addrs []net.Addr) {
 	for _, s := range m.sockets {
-		addrs = append(addrs, s.Addr())
+		addr, ok := s.Addr().(*net.TCPAddr)
+		if !ok {
+			zap.S().Panicw("SM.Addrs",
+				"reason", "unsupported protocol",
+				"network", s.Addr().Network(),
+				"addr", s.Addr().String())
+			panic("unsupported protocol")
+		}
+
+		newAddr := &net.TCPAddr{
+			IP:   GetPreferredIP(nil),
+			Port: addr.Port,
+		}
+		addrs = append(addrs, newAddr)
 	}
 	return
 }
