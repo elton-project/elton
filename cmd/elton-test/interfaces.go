@@ -49,7 +49,7 @@ type Service interface {
 	// コンテキストが終了前に、能動的にreturnすることも可能だが、やるべきではない。
 	Serve(info *ServerInfo) error
 
-	// Created()は、サーバ起動直前の初期化処理をする。
+	// Created()は、初期化処理をする。
 	// このメソッドは、Serve()が実行される前に呼び出される。
 	// 既にlistenしているのでアドレスやポート番号は決まっているが、いかなる接続もacceptされない。
 	Created(info *ServerInfo) error
