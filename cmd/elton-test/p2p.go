@@ -1,12 +1,35 @@
 package main
 
 import (
+	"context"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/events/p2p"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"net"
 )
+
+type ControllerSubsystem struct {
+}
+
+func (s *ControllerSubsystem) String() string {
+	return "<Subsystem: " + s.Name() + ">"
+}
+func (s *ControllerSubsystem) Name() string {
+	return "P2PControllerSubsystem"
+}
+func (s *ControllerSubsystem) SubsystemType() SubsystemType {
+	return UnknownSubsystemType
+}
+func (s *ControllerSubsystem) Setup(ctx context.Context, manager *ServiceManager) []error {
+	// TODO: add services.
+	// TODO: error handling
+	manager.Setup(ctx)
+	return nil
+}
+func (s *ControllerSubsystem) Serve(ctx context.Context, manager *ServiceManager) []error {
+	return manager.Serve(ctx)
+}
 
 type ControllerService struct {
 	L *zap.SugaredLogger
@@ -19,7 +42,7 @@ func (s *ControllerService) String() string {
 	return "<Service: " + s.Name() + ">"
 }
 func (s *ControllerService) Name() string {
-	return "P2PEventManager"
+	return "P2PController/EventManager"
 }
 func (s *ControllerService) SubsystemType() SubsystemType {
 	return UnknownSubsystemType
