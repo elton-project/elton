@@ -126,6 +126,7 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 			var innerWg sync.WaitGroup
 			defer innerWg.Wait()
 
+			// TODO: created eventは、Setup()で呼び出したほうが良い
 			zap.S().Debugw("SM.Serve", "service", srv, "status", "created")
 			if handleError(srv.Created(info)) {
 				return
