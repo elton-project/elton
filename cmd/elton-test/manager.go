@@ -137,6 +137,7 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 			// Running()が終了するまで待つ。
 			innerWg.Wait()
 
+			// TODO: 外部からの終了要求を受け付ける前に、prestop()を実行する。
 			zap.S().Debugw("SM.Serve", "service", srv, "status", "prestop")
 			if handleError(srv.Prestop(info)) {
 				return
