@@ -4,13 +4,15 @@ import (
 	"context"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
+	"math/rand"
 	"net"
 	"sync"
 	"time"
 )
 
 type SubsystemManager struct {
-	ShutdownTimeout time.Duration
+	ControllerServers []net.Addr
+	ShutdownTimeout   time.Duration
 
 	isConfigured bool
 	subsystems   []Subsystem
@@ -36,7 +38,9 @@ func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
 	defer wg.Wait()
 
 	var lock sync.Mutex
-	m.manager = &ServiceManager{}
+	m.manager = &ServiceManager{
+		ControllerServers: m.ControllerServers,
+	}
 	handleErrors := func(errs []error) {
 		if len(errs) > 0 {
 			lock.Lock()
@@ -86,7 +90,8 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 // 1つのプロセス内で動作しているサービスを管理する。
 // ServiceManager は、 Subsystem ごとに1つ利用する。
 type ServiceManager struct {
-	ShutdownTimeout time.Duration
+	ControllerServers []net.Addr
+	ShutdownTimeout   time.Duration
 
 	isConfigured bool
 	services     []Service
@@ -215,6 +220,15 @@ func (m *ServiceManager) Addrs() (addrs []net.Addr) {
 		addrs = append(addrs, newAddr)
 	}
 	return
+}
+func (m *ServiceManager) ControllerServer() net.Addr {
+	if len(m.ControllerServers) > 0 {
+		// 候補の中からランダムに選ぶ
+		length := len(m.ControllerServers)
+		idx := rand.Intn(length)
+		return m.ControllerServers[idx]
+	}
+	panic("Not found controller server")
 }
 func (m *ServiceManager) socket() (net.Listener, error) {
 	return net.Listen("tcp", "0.0.0.0:0")
