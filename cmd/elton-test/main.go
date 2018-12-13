@@ -19,7 +19,7 @@ func Main() int {
 
 	_ = ServiceManager{
 		Services: []Service{
-			&ManagerService{
+			&ControllerService{
 				L: zap.S(),
 			},
 		},
