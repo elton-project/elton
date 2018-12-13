@@ -44,14 +44,15 @@ type Service interface {
 	SubsystemType() SubsystemType
 	ServiceType() ServiceType
 
-	// Preserve()は、サーバ起動直前の初期化処理をする。
-	// このメソッドは、Serve()が実行される前に呼び出される。
-	Preserve(info *ServerInfo) error
-	// Serving()は、サーバの起動直後に行なうべき処理をする。
-	// Serving()とServe()は、それぞれgoroutineで並行処理される。
-	Serving(info *ServerInfo) error
 	// Serve()は、サービスを提供するメソッドである。
 	Serve(info *ServerInfo) error
+
+	// Created()は、サーバ起動直前の初期化処理をする。
+	// このメソッドは、Serve()が実行される前に呼び出される。
+	Created(info *ServerInfo) error
+	// Running()は、サーバの起動直後に行なうべき処理をする。
+	// Running()とServe()は、それぞれgoroutineで並行処理される。
+	Running(info *ServerInfo) error
 	// Prestop()は、サーバの終了直前に行うべき処理をする。
 	// Prestop()とServe()は、それぞれgoroutineで並行処理される。
 	Prestop(info *ServerInfo) error
