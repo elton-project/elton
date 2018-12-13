@@ -22,7 +22,9 @@ func (s *ControllerSubsystem) SubsystemType() SubsystemType {
 	return UnknownSubsystemType
 }
 func (s *ControllerSubsystem) Setup(ctx context.Context, manager *ServiceManager) []error {
-	// TODO: add services.
+	manager.Add(&ControllerService{
+		L: zap.S(),
+	})
 	// TODO: error handling
 	manager.Setup(ctx)
 	return nil
