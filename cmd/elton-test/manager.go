@@ -10,13 +10,28 @@ import (
 )
 
 type SubsystemManager struct {
-	Subsystems      []Subsystem
 	ShutdownTimeout time.Duration
 
-	manager *ServiceManager
+	isConfigured bool
+	subsystems   []Subsystem
+	manager      *ServiceManager
 }
 
+func (m *SubsystemManager) Add(subsystem Subsystem) {
+	if m.isConfigured {
+		zap.S().Panic("SubsystemManager",
+			"error", "Add() method was called after Setup()")
+		panic("Add() method was called after Setup()")
+	}
+	m.subsystems = append(m.subsystems, subsystem)
+}
 func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
+	if m.isConfigured {
+		zap.S().Panic("SubsystemManager",
+			"error", "Setup() method was called two times")
+		panic("Setup() method was called two times")
+	}
+
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
@@ -30,13 +45,14 @@ func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
 		}
 	}
 
-	for _, s := range m.Subsystems {
+	for _, s := range m.subsystems {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			handleErrors(s.Setup(ctx, m.manager))
 		}()
 	}
+	m.isConfigured = true
 	return
 }
 func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
@@ -57,7 +73,7 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 		}
 	}
 
-	for _, s := range m.Subsystems {
+	for _, s := range m.subsystems {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
