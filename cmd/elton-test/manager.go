@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"net"
 	"sync"
 	"time"
@@ -12,44 +12,58 @@ import (
 type SubsystemManager struct {
 	Subsystems      []Subsystem
 	ShutdownTimeout time.Duration
+
+	manager *ServiceManager
 }
 
-func (m *SubsystemManager) Setup(ctx context.Context) error {
-	var eg errgroup.Group
-	for _, s := range m.Subsystems {
-		eg.Go(func() error {
-			return s.Setup(ctx)
-		})
-	}
-	return eg.Wait()
-}
-func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
-	errCh := make(chan error)
-	var wgServe, wgEch sync.WaitGroup
-	ctx, cancel := context.WithCancel(parentCtx)
+func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
+	var wg sync.WaitGroup
+	defer wg.Wait()
 
-	wgEch.Add(1)
-	go func() {
-		defer wgEch.Done()
-		for err := range errCh {
-			cancel()
-			errors = append(errors, err)
+	var lock sync.Mutex
+	m.manager = &ServiceManager{}
+	handleErrors := func(errs []error) {
+		if len(errs) > 0 {
+			lock.Lock()
+			errors = append(errors, errs...)
+			lock.Unlock()
 		}
-	}()
+	}
 
 	for _, s := range m.Subsystems {
-		wgServe.Add(1)
+		wg.Add(1)
 		go func() {
-			defer wgServe.Done()
-			for _, e := range s.Serve(ctx) {
-				errCh <- e
-			}
+			defer wg.Done()
+			handleErrors(s.Setup(ctx, m.manager))
 		}()
 	}
-	wgServe.Wait()
-	close(errCh)
+	return
+}
+func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
+	var wg sync.WaitGroup
+	defer wg.Wait()
 
-	wgEch.Wait()
+	ctx, cancel := context.WithCancel(parentCtx)
+
+	var lock sync.Mutex
+	handleErrors := func(errs []error) {
+		if len(errs) > 0 {
+			lock.Lock()
+			errors = append(errors, errs...)
+			lock.Unlock()
+
+			// 1つでもサブシステムの起動に失敗したら、全てをキャンセルする。
+			cancel()
+		}
+	}
+
+	for _, s := range m.Subsystems {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			handleErrors(s.Serve(ctx, m.manager))
+		}()
+	}
 	return
 }
 
@@ -66,56 +80,74 @@ func (m *ServiceManager) Setup(ctx context.Context) (err error) {
 	if err = m.allocateListeners(); err != nil {
 		return err
 	}
-
-	m.bindListeners()
-	if err = m.register(ctx); err != nil {
-		return err
-	}
 	return nil
 }
 func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
-	var wgServe, wgEch sync.WaitGroup
-	ech := make(chan error)
+	var wg sync.WaitGroup
+	defer wg.Wait()
 
 	ctx, cancel := context.WithCancel(parentCtx)
 
-	// Serve all services.
-	for i := range m.Services {
-		srv := m.Services[i]
-		wgServe.Add(1)
-		go func() {
-			defer wgServe.Done()
-			zap.S().Debugw("SM.Serve server", "service", srv, "status", "serving")
-			ech <- srv.Serve(ctx, m.sockets[i])
-			zap.S().Debugw("SM.Serve server", "service", srv, "status", "served")
-			shutdownCtx, _ := context.WithTimeout(context.Background(), m.ShutdownTimeout)
-			ech <- srv.Unregister(shutdownCtx)
-		}()
+	var lock sync.Mutex
+	handleError := func(err error) bool {
+		if err != nil {
+			lock.Lock()
+			errors = append(errors, err)
+			lock.Unlock()
+
+			// 1つでもサービスの起動に失敗したら、全てをキャンセルする。
+			cancel()
+			return true
+		}
+		return false
 	}
 
-	// Collect all errors from ech.
-	// どれか1つのサービスでエラー終了した場合、contextをキャンセルして、全てのサービスを停止する。
-	wgEch.Add(1)
-	go func() {
-		defer wgEch.Done()
-		zap.S().Debugw("SM.Serve errorCollector", "status", "waiting")
-		for err := range ech {
-			if err != nil {
-				cancel()
-				errors = append(errors, err)
-			}
+	// Serve all services.
+	for i := range m.Services {
+		sock := m.sockets[i]
+		srv := m.Services[i]
+		info := &ServerInfo{
+			ServerInfo: *proto2.NewServerInfo(sock.Addr()),
+			Ctx:        ctx,
+			Listener:   sock,
 		}
-		zap.S().Debugw("SM.Serve errorCollector", "status", "finished")
-	}()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-	// Wait for all services.
-	zap.S().Debugw("SM.Serve", "status", "server waiting")
-	wgServe.Wait()
-	close(ech)
-	// Wait for the error collector.
-	zap.S().Debugw("SM.Serve", "status", "errorCollector waiting")
-	wgEch.Wait()
-	zap.S().Debugw("SM.Serve", "status", "finished")
+			var innerWg sync.WaitGroup
+			defer innerWg.Wait()
+
+			zap.S().Debugw("SM.Serve", "service", srv, "status", "created")
+			if handleError(srv.Created(info)) {
+				return
+			}
+
+			innerWg.Add(1)
+			go func() {
+				defer innerWg.Done()
+				zap.S().Debugw("SM.Serve", "service", srv, "status", "running")
+				handleError(srv.Running(info))
+			}()
+
+			zap.S().Debugw("SM.Serve", "service", srv, "status", "serve")
+			if handleError(srv.Serve(info)) {
+				return
+			}
+			// Running()が終了するまで待つ。
+			innerWg.Wait()
+
+			zap.S().Debugw("SM.Serve", "service", srv, "status", "prestop")
+			if handleError(srv.Prestop(info)) {
+				return
+			}
+
+			zap.S().Debugw("SM.Serve", "service", srv, "status", "stopped")
+			if handleError(srv.Stopped(info)) {
+				return
+			}
+		}()
+	}
 	return
 }
 
@@ -164,39 +196,4 @@ func (m *ServiceManager) allocateListeners() (err error) {
 }
 func (m *ServiceManager) unallocateListeners() {
 	m.sockets = nil
-}
-func (m *ServiceManager) bindListeners() {
-	for i := range m.Services {
-		addr := m.sockets[i].Addr()
-		m.Services[i].SetAddr(addr)
-	}
-}
-func (m *ServiceManager) register(ctx context.Context) (err error) {
-	defer func() {
-		if err != nil {
-			m.unregister()
-		}
-	}()
-
-	var eg errgroup.Group
-	for _, _srv := range m.Services {
-		srv := _srv
-		eg.Go(func() error {
-			return srv.Register(ctx)
-		})
-	}
-	err = eg.Wait()
-	return
-}
-func (m *ServiceManager) unregister() error {
-	var eg errgroup.Group
-	ctx, _ := context.WithTimeout(context.Background(), m.ShutdownTimeout)
-
-	for _, _srv := range m.Services {
-		srv := _srv
-		eg.Go(func() error {
-			return srv.Unregister(ctx)
-		})
-	}
-	return eg.Wait()
 }
