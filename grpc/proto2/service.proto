@@ -63,6 +63,7 @@ service ControllerService {
     rpc AddServerInfo (ServerInfo) returns (Empty);
     rpc StopServerInfo (ServerInfo) returns (Empty);
     rpc DetachServerInfo (ServerInfo) returns (Empty);
+    rpc GetServerInfo (ServerQuery) returns (ServerInfo);
 }
 
 // Storageサブシステムが、他のサブシステムに公開しているサービス。
@@ -201,13 +202,35 @@ enum ObjectStatus {
     OS_DELETED = 5;
 }
 
+enum SubsystemType {
+    UnknownSubsystemType = 0;
+    ControllerSubsystemType = 1;
+    StorageSubsystemType = 2;
+    ObjectSubsystemType = 3;
+    SchedulerSubsystemType = 4;
+}
+
+enum ServiceType {
+    UnknownServiceType = 0;
+    ListenerServiceType = 1;
+    DelivererServiceType = 2;
+    EventManagerServiceType = 3;
+}
+
 message Empty {
 }
 
 message ServerInfo {
     string guid = 1;
+    SubsystemType subsystemType = 4;
+    ServiceType serviceType = 5;
     repeated string group = 2;
     string address = 3;
+}
+
+message ServerQuery {
+    SubsystemType subsystemType = 1;
+    ServiceType serviceType = 2;
 }
 
 message ObjectInfo {
