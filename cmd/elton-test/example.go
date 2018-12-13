@@ -37,7 +37,6 @@ func (s *ExampleSubsystem) Serve(ctx context.Context, manager *ServiceManager) [
 type ExampleDelivererService struct {
 	Subsystem *ExampleSubsystem
 
-	addr   net.Addr
 	server ExampleDelivererServer
 }
 
@@ -63,6 +62,7 @@ func (s *ExampleDelivererService) Created(info *ServerInfo) error {
 	return nil
 }
 func (s *ExampleDelivererService) Running(info *ServerInfo) error {
+	// TODO: Controllerサーバのアドレスの通知方法を検討
 	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
 		c := proto2.NewEventManagerClient(conn)
 		c.ListenStatusChanges(info.Ctx, &proto2.EventDelivererInfo{
