@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
-	"net"
 	"os"
 	"time"
 )
@@ -64,7 +62,7 @@ func Main() int {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_ := ServiceManager{
+	_ = ServiceManager{
 		Services: []Service{
 			&ManagerService{
 				L: zap.S(),
@@ -72,7 +70,7 @@ func Main() int {
 		},
 	}
 
-	_ := ExampleSubsystem{
+	_ = ExampleSubsystem{
 		//EMAddr: emAddr,
 	}
 
