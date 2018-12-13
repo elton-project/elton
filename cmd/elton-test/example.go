@@ -11,22 +11,30 @@ import (
 type ExampleSubsystem struct {
 	EMAddr net.Addr
 
-	m      ServiceManager
 	ds, ls *grpc.Server
 }
 
-func (s *ExampleSubsystem) Name() string {
-	return "<Subsystem: Example>"
+func (s *ExampleSubsystem) String() string {
+	return "<Subsystem: " + s.Name() + ">"
 }
-func (s *ExampleSubsystem) Setup(ctx context.Context) []error {
-	s.m.Add(&ExampleDelivererService{
+func (s *ExampleSubsystem) Name() string {
+	return "Example"
+}
+func (s *ExampleSubsystem) SubsystemType() SubsystemType {
+	return UnknownSubsystemType
+}
+func (s *ExampleSubsystem) ServiceType() ServiceType {
+	return UnknownServiceType
+}
+func (s *ExampleSubsystem) Setup(ctx context.Context, manager *ServiceManager) []error {
+	manager.Add(&ExampleDelivererService{
 		Subsystem: s,
 	})
-	return s.m.Setup(ctx)
+	return manager.Setup(ctx)
 }
-func (s *ExampleSubsystem) Serve(ctx context.Context) []error {
+func (s *ExampleSubsystem) Serve(ctx context.Context, manager *ServiceManager) []error {
 	zap.S().Debugw("subsystem.Serve", "status", "serving")
-	return s.m.Serve(ctx)
+	return manager.Serve(ctx)
 }
 
 type ExampleDelivererService struct {
