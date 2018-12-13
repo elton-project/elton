@@ -21,6 +21,14 @@ func Main() int {
 	manager.Add(&ControllerSubsystem{})
 	manager.Add(&ExampleSubsystem{})
 
+	if errs := manager.Setup(ctx); len(errs) > 0 {
+		panic(errs)
+	}
+
+	if errs := manager.Serve(ctx); len(errs) > 0 {
+		panic(errs)
+	}
+
 	return 0
 }
 func main() {
