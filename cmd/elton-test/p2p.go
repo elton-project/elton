@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/events/p2p"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
@@ -16,22 +15,26 @@ type ManagerService struct {
 	addr net.Addr
 }
 
+func (s *ManagerService) String() string {
+	return "<Service: " + s.Name() + ">"
+}
 func (s *ManagerService) Name() string {
-	return "<Service: P2PEventManager>"
+	return "P2PEventManager"
 }
-func (s *ManagerService) SetAddr(addr net.Addr) {
-	s.addr = addr
+func (s *ManagerService) SubsystemType() SubsystemType {
+	return UnknownSubsystemType
 }
-func (s *ManagerService) Register(ctx context.Context) error {
-	return nil
+func (s *ManagerService) ServiceType() ServiceType {
+	return UnknownServiceType
 }
-func (s *ManagerService) Unregister(ctx context.Context) error {
-	return nil
-}
-func (s *ManagerService) Serve(ctx context.Context, listener net.Listener) error {
+func (s *ManagerService) Serve(info *ServerInfo) error {
 	s.m.L = s.L
-	return WithGrpcServer(ctx, func(srv *grpc.Server) error {
+	return WithGrpcServer(info.Ctx, func(srv *grpc.Server) error {
 		proto2.RegisterEventManagerServer(srv, &s.m)
-		return srv.Serve(listener)
+		return srv.Serve(info.Listener)
 	})
 }
+func (s *ManagerService) Created(info *ServerInfo) error { return nil }
+func (s *ManagerService) Running(info *ServerInfo) error { return nil } // TODO: Register this service.
+func (s *ManagerService) Prestop(info *ServerInfo) error { return nil } // TODO: Unregister this service.
+func (s *ManagerService) Stopped(info *ServerInfo) error { return nil }
