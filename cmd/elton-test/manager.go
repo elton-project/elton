@@ -73,13 +73,21 @@ type ServiceManager struct {
 	Services        []Service
 	ShutdownTimeout time.Duration
 
-	sockets []net.Listener
+	isConfigured bool
+	sockets      []net.Listener
 }
 
 func (m *ServiceManager) Setup(ctx context.Context) (err error) {
+	if m.isConfigured {
+		zap.S().Panic("ServiceManager",
+			"error", "Setup() method was called two times")
+		panic("Setup() method was called two times")
+	}
+
 	if err = m.allocateListeners(); err != nil {
 		return err
 	}
+	m.isConfigured = true
 	return nil
 }
 func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
