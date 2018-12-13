@@ -17,14 +17,9 @@ func Main() int {
 
 	_ = ctx
 
-	controlelr := ServiceManager{}
-	controlelr.Add(&ControllerService{
-		L: zap.S(),
-	})
-
-	_ = ExampleSubsystem{
-		//EMAddr: emAddr,
-	}
+	manager := SubsystemManager{}
+	manager.Add(&ControllerSubsystem{})
+	manager.Add(&ExampleSubsystem{})
 
 	return 0
 }
