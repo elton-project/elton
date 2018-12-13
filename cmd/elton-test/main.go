@@ -62,6 +62,8 @@ func Main() int {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	_ = ctx
+
 	_ = ServiceManager{
 		Services: []Service{
 			&ManagerService{
