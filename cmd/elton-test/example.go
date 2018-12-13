@@ -23,9 +23,6 @@ func (s *ExampleSubsystem) Name() string {
 func (s *ExampleSubsystem) SubsystemType() SubsystemType {
 	return UnknownSubsystemType
 }
-func (s *ExampleSubsystem) ServiceType() ServiceType {
-	return UnknownServiceType
-}
 func (s *ExampleSubsystem) Setup(ctx context.Context, manager *ServiceManager) []error {
 	manager.Add(&ExampleDelivererService{
 		Subsystem: s,
@@ -54,7 +51,7 @@ func (s *ExampleDelivererService) SubsystemType() SubsystemType {
 	return UnknownSubsystemType
 }
 func (s *ExampleDelivererService) ServiceType() ServiceType {
-	return UnknownServiceType
+	return DelivererServiceType
 }
 func (s *ExampleDelivererService) Serve(info *ServerInfo) error {
 	return WithGrpcServer(info.Ctx, func(srv *grpc.Server) error {

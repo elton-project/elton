@@ -19,8 +19,8 @@ const (
 
 	UnknownServiceType = ServiceType(iota)
 	ListenerServiceType
-	ManagerServiceType
 	DelivererServiceType
+	EventManagerServiceType
 )
 
 type Subsystem interface {

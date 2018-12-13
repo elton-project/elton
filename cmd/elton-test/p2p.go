@@ -19,7 +19,7 @@ func (s *ControllerSubsystem) Name() string {
 	return "P2PControllerSubsystem"
 }
 func (s *ControllerSubsystem) SubsystemType() SubsystemType {
-	return UnknownSubsystemType
+	return ControllerSubsystemType
 }
 func (s *ControllerSubsystem) Setup(ctx context.Context, manager *ServiceManager) []error {
 	manager.Add(&ControllerService{
@@ -47,10 +47,10 @@ func (s *ControllerService) Name() string {
 	return "P2PController/EventManager"
 }
 func (s *ControllerService) SubsystemType() SubsystemType {
-	return UnknownSubsystemType
+	return ControllerSubsystemType
 }
 func (s *ControllerService) ServiceType() ServiceType {
-	return UnknownServiceType
+	return EventManagerServiceType
 }
 func (s *ControllerService) Serve(info *ServerInfo) error {
 	s.m.L = s.L
