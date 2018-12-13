@@ -17,13 +17,10 @@ func Main() int {
 
 	_ = ctx
 
-	_ = ServiceManager{
-		Services: []Service{
-			&ControllerService{
-				L: zap.S(),
-			},
-		},
-	}
+	controlelr := ServiceManager{}
+	controlelr.Add(&ControllerService{
+		L: zap.S(),
+	})
 
 	_ = ExampleSubsystem{
 		//EMAddr: emAddr,

@@ -70,13 +70,21 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 // 1つのプロセス内で動作しているサービスを管理する。
 // ServiceManager は、 Subsystem ごとに1つ利用する。
 type ServiceManager struct {
-	Services        []Service
 	ShutdownTimeout time.Duration
 
 	isConfigured bool
+	services     []Service
 	sockets      []net.Listener
 }
 
+func (m *ServiceManager) Add(service Service) {
+	if m.isConfigured {
+		zap.S().Panic("ServiceManager",
+			"error", "Add() method was called after Setup()")
+		panic("Add() method was called after Setup()")
+	}
+	m.services = append(m.services, service)
+}
 func (m *ServiceManager) Setup(ctx context.Context) (err error) {
 	if m.isConfigured {
 		zap.S().Panic("ServiceManager",
@@ -111,9 +119,9 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 	}
 
 	// Serve all services.
-	for i := range m.Services {
+	for i := range m.services {
 		sock := m.sockets[i]
-		srv := m.Services[i]
+		srv := m.services[i]
 		info := &ServerInfo{
 			ServerInfo: *proto2.NewServerInfo(sock.Addr()),
 			Ctx:        ctx,
@@ -194,7 +202,7 @@ func (m *ServiceManager) allocateListeners() (err error) {
 		}
 	}()
 
-	for range m.Services {
+	for range m.services {
 		var sock net.Listener
 		sock, err = m.socket()
 		if err != nil {

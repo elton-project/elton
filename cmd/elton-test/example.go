@@ -19,11 +19,9 @@ func (s *ExampleSubsystem) Name() string {
 	return "<Subsystem: Example>"
 }
 func (s *ExampleSubsystem) Setup(ctx context.Context) error {
-	s.m.Services = []Service{
-		&ExampleDelivererService{
-			Subsystem: s,
-		},
-	}
+	s.m.Add(&ExampleDelivererService{
+		Subsystem: s,
+	})
 	return s.m.Setup(ctx)
 }
 func (s *ExampleSubsystem) Serve(ctx context.Context) []error {
