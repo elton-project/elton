@@ -18,7 +18,7 @@ type ExampleSubsystem struct {
 func (s *ExampleSubsystem) Name() string {
 	return "<Subsystem: Example>"
 }
-func (s *ExampleSubsystem) Setup(ctx context.Context) error {
+func (s *ExampleSubsystem) Setup(ctx context.Context) []error {
 	s.m.Add(&ExampleDelivererService{
 		Subsystem: s,
 	})

@@ -85,18 +85,35 @@ func (m *ServiceManager) Add(service Service) {
 	}
 	m.services = append(m.services, service)
 }
-func (m *ServiceManager) Setup(ctx context.Context) (err error) {
+func (m *ServiceManager) Setup(ctx context.Context) (errors []error) {
 	if m.isConfigured {
 		zap.S().Panic("ServiceManager",
 			"error", "Setup() method was called two times")
 		panic("Setup() method was called two times")
 	}
 
-	if err = m.allocateListeners(); err != nil {
-		return err
+	if err := m.allocateListeners(); err != nil {
+		// listenできなかったら、即座に中断
+		return []error{err}
+	}
+
+	for i := range m.services {
+		sock := m.sockets[i]
+		srv := m.services[i]
+		info := &ServerInfo{
+			ServerInfo: *proto2.NewServerInfo(sock.Addr()),
+			Ctx:        ctx,
+			Listener:   sock,
+		}
+
+		// Created eventを出す。
+		zap.S().Debugw("SM.Serve", "service", srv, "status", "created")
+		if err := srv.Created(info); err != nil {
+			errors = append(errors, err)
+		}
 	}
 	m.isConfigured = true
-	return nil
+	return
 }
 func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 	var wg sync.WaitGroup
@@ -133,12 +150,6 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 
 			var innerWg sync.WaitGroup
 			defer innerWg.Wait()
-
-			// TODO: created eventは、Setup()で呼び出したほうが良い
-			zap.S().Debugw("SM.Serve", "service", srv, "status", "created")
-			if handleError(srv.Created(info)) {
-				return
-			}
 
 			innerWg.Add(1)
 			go func() {
