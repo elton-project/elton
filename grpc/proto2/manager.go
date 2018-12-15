@@ -10,6 +10,7 @@ import (
 )
 
 type SubsystemManager struct {
+	// TODO: 利用していないっぽい？
 	ControllerServers []net.Addr
 	ShutdownTimeout   time.Duration
 
@@ -109,6 +110,7 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 // ServiceManagerは、同一プロセス同一サブシステム内で動作しているサービスを管理する。
 // サブシステムごとに1つの ServiceManager を用意する。
 type ServiceManager struct {
+	// TODO: 利用していないっぽい?
 	ControllerServers []net.Addr
 	ShutdownTimeout   time.Duration
 	LocalSD           *localServiceDiscoverer
