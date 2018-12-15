@@ -39,3 +39,12 @@ func WithGrpcConn(addr net.Addr, fn func(conn *grpc.ClientConn) error) error {
 	defer conn.Close()
 	return fn(conn)
 }
+
+func ConnectOtherSubsystem(ctx context.Context, subsystemType SubsystemType, discoverer ServiceDiscoverer, fn func(conn *grpc.ClientConn) error) error {
+	addr, err := discoverer.Get(ctx, subsystemType)
+	if err != nil {
+		return err
+	}
+
+	return WithGrpcConn(addr, fn)
+}

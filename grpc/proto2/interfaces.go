@@ -21,8 +21,9 @@ type Subsystem interface {
 
 type ServerConfig struct {
 	ServerInfo
-	Ctx      context.Context
-	Listener net.Listener
+	Ctx        context.Context
+	Listener   net.Listener
+	Discoverer *globalServiceDiscoverer
 }
 
 type Service interface {
@@ -52,4 +53,9 @@ type Service interface {
 	// Serve()の実行終了後に呼び出される。
 	// まだlistenしているが、いかなる接続もacceptされない。
 	Stopped(config *ServerConfig) error
+}
+
+type ServiceDiscoverer interface {
+	Get(ctx context.Context, subsystemType SubsystemType) (addr net.Addr, err error)
+	GetWithServiceType(ctx context.Context, subsystemType SubsystemType, serviceType ServiceType) (addr net.Addr, err error)
 }

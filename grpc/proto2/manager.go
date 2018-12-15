@@ -136,11 +136,7 @@ func (m *ServiceManager) Setup(ctx context.Context) (errors []error) {
 	for i := range m.services {
 		sock := m.sockets[i]
 		srv := m.services[i]
-		config := &ServerConfig{
-			ServerInfo: *NewServerInfo(sock.Addr()),
-			Ctx:        ctx,
-			Listener:   sock,
-		}
+		config := m.serverConfig(ctx, sock, srv)
 
 		// サービスを登録
 		m.LocalSD.Add(sock.Addr(), srv.SubsystemType(), srv.ServiceType())
@@ -178,11 +174,8 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 	for i := range m.services {
 		sock := m.sockets[i]
 		srv := m.services[i]
-		config := &ServerConfig{
-			ServerInfo: *NewServerInfo(sock.Addr()),
-			Ctx:        ctx,
-			Listener:   sock,
-		}
+		config := m.serverConfig(ctx, sock, srv)
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -273,4 +266,11 @@ func (m *ServiceManager) allocateListeners() (err error) {
 }
 func (m *ServiceManager) unallocateListeners() {
 	m.sockets = nil
+}
+func (m *ServiceManager) serverConfig(ctx context.Context, sock net.Listener, srv Service) *ServerConfig {
+	return &ServerConfig{
+		ServerInfo: *NewServerInfo(sock.Addr()),
+		Ctx:        ctx,
+		Listener:   sock,
+	}
 }

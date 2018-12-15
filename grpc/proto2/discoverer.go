@@ -54,7 +54,10 @@ type globalServiceDiscoverer struct {
 	// TODO: controllersのアドレスを自動更新する。
 }
 
-func (d *globalServiceDiscoverer) Get(parentCtx context.Context, subsystemType SubsystemType, serviceType ServiceType) (addr net.Addr, err error) {
+func (d *globalServiceDiscoverer) Get(ctx context.Context, subsystemType SubsystemType) (addr net.Addr, err error) {
+	return d.GetWithServiceType(ctx, subsystemType, ServiceType_ListenerServiceType)
+}
+func (d *globalServiceDiscoverer) GetWithServiceType(parentCtx context.Context, subsystemType SubsystemType, serviceType ServiceType) (addr net.Addr, err error) {
 	addr = d.LocalSD.Get(subsystemType, serviceType)
 	if addr != nil {
 		// fast path

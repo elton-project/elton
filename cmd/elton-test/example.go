@@ -62,18 +62,19 @@ func (s *ExampleDelivererService) Created(config *ServerConfig) error {
 	return nil
 }
 func (s *ExampleDelivererService) Running(config *ServerConfig) error {
-	// TODO: Controllerサーバのアドレスの通知方法を検討
-	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
+	return ConnectOtherSubsystem(config.Ctx, SubsystemType_ControllerSubsystemType, config.Discoverer, func(conn *grpc.ClientConn) error {
 		c := NewEventManagerClient(conn)
+		// TODO: なにかする
 		c.ListenStatusChanges(config.Ctx, &EventDelivererInfo{
-			ServerInfo: NewServerInfo(s.addr),
+			ServerInfo: NewServerInfo(nil),
 		})
 		return nil
 	})
 }
 func (s *ExampleDelivererService) Prestop(config *ServerConfig) error {
-	// todo
-	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
+	return ConnectOtherSubsystem(config.Ctx, SubsystemType_ControllerSubsystemType, config.Discoverer, func(conn *grpc.ClientConn) error {
+		_ = NewEventManagerClient(conn)
+		// TODO: なにかする
 		return nil
 	})
 }
