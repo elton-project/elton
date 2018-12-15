@@ -17,7 +17,7 @@ type SubsystemManager struct {
 	once         sync.Once
 
 	subsystems []Subsystem
-	manager    *ServiceManager
+	managers   []*ServiceManager
 	localSD    *localServiceDiscoverer
 	globalSD   *globalServiceDiscoverer
 }
@@ -27,12 +27,6 @@ func (m *SubsystemManager) init() {
 	m.globalSD = &globalServiceDiscoverer{
 		LocalSD: m.localSD,
 	}
-
-	m.manager = &ServiceManager{
-		ControllerServers: m.ControllerServers,
-		ShutdownTimeout:   m.ShutdownTimeout,
-		LocalSD:           m.localSD,
-	}
 }
 func (m *SubsystemManager) Add(subsystem Subsystem) {
 	m.once.Do(m.init)
@@ -41,7 +35,14 @@ func (m *SubsystemManager) Add(subsystem Subsystem) {
 			"error", "Add() method was called after Setup()")
 		panic("Add() method was called after Setup()")
 	}
+
+	mng := &ServiceManager{
+		ControllerServers: m.ControllerServers,
+		ShutdownTimeout:   m.ShutdownTimeout,
+		LocalSD:           m.localSD,
+	}
 	m.subsystems = append(m.subsystems, subsystem)
+	m.managers = append(m.managers, mng)
 }
 func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
 	m.once.Do(m.init)
@@ -63,11 +64,13 @@ func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
 		}
 	}
 
-	for _, s := range m.subsystems {
+	for i := range m.subsystems {
+		s := m.subsystems[i]
+		mng := m.managers[i]
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			handleErrors(s.Setup(ctx, m.manager))
+			handleErrors(s.Setup(ctx, mng))
 		}()
 	}
 	m.isConfigured = true
@@ -91,18 +94,20 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 		}
 	}
 
-	for _, s := range m.subsystems {
+	for i := range m.subsystems {
+		s := m.subsystems[i]
+		mng := m.managers[i]
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			handleErrors(s.Serve(ctx, m.manager))
+			handleErrors(s.Serve(ctx, mng))
 		}()
 	}
 	return
 }
 
-// 1つのプロセス内で動作しているサービスを管理する。
-// ServiceManager は、 Subsystem ごとに1つ利用する。
+// ServiceManagerは、同一プロセス同一サブシステム内で動作しているサービスを管理する。
+// サブシステムごとに1つの ServiceManager を用意する。
 type ServiceManager struct {
 	ControllerServers []net.Addr
 	ShutdownTimeout   time.Duration
