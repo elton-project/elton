@@ -25,9 +25,7 @@ func (s *ControllerSubsystem) Setup(ctx context.Context, manager *ServiceManager
 	manager.Add(&ControllerService{
 		L: zap.S(),
 	})
-	// TODO: error handling
-	manager.Setup(ctx)
-	return nil
+	return manager.Setup(ctx)
 }
 func (s *ControllerSubsystem) Serve(ctx context.Context, manager *ServiceManager) []error {
 	return manager.Serve(ctx)
