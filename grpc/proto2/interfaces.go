@@ -23,7 +23,7 @@ type ServerConfig struct {
 	ServerInfo
 	Ctx        context.Context
 	Listener   net.Listener
-	Discoverer *globalServiceDiscoverer
+	Discoverer ServiceDiscoverer
 }
 
 type Service interface {
