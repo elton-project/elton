@@ -25,7 +25,9 @@ type SubsystemManager struct {
 
 func (m *SubsystemManager) init() {
 	m.localSD = &localServiceDiscoverer{}
-	m.globalSD = &globalServiceDiscoverer{}
+	m.globalSD = &globalServiceDiscoverer{
+		LocalSD: m.localSD,
+	}
 
 	m.manager = &ServiceManager{
 		ControllerServers: m.ControllerServers,
