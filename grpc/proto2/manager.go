@@ -41,6 +41,7 @@ func (m *SubsystemManager) Add(subsystem Subsystem) {
 		ControllerServers: m.ControllerServers,
 		ShutdownTimeout:   m.ShutdownTimeout,
 		LocalSD:           m.localSD,
+		GlobalSD:          m.globalSD,
 	}
 	m.subsystems = append(m.subsystems, subsystem)
 	m.managers = append(m.managers, mng)
