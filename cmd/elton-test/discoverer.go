@@ -92,6 +92,7 @@ func (d *globalServiceDiscoverer) UpdateControllers(ctx context.Context) error {
 	d.lock.Lock()
 	d.controllers = newControllers
 	d.lock.Unlock()
+	return nil
 }
 func (d *globalServiceDiscoverer) parseTCPAddr(tcpaddr string) (net.Addr, error) {
 	idx := strings.LastIndex(tcpaddr, ":")
