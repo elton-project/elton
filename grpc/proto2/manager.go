@@ -114,6 +114,7 @@ type ServiceManager struct {
 	ControllerServers []net.Addr
 	ShutdownTimeout   time.Duration
 	LocalSD           *localServiceDiscoverer
+	GlobalSD          *globalServiceDiscoverer
 
 	isConfigured bool
 	services     []Service
@@ -279,5 +280,6 @@ func (m *ServiceManager) serverConfig(ctx context.Context, sock net.Listener, sr
 		ServerInfo: *NewServerInfo(sock.Addr()),
 		Ctx:        ctx,
 		Listener:   sock,
+		Discoverer: m.GlobalSD,
 	}
 }
