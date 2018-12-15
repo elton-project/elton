@@ -15,11 +15,26 @@ type SubsystemManager struct {
 	ShutdownTimeout   time.Duration
 
 	isConfigured bool
-	subsystems   []Subsystem
-	manager      *ServiceManager
+	once         sync.Once
+
+	subsystems []Subsystem
+	manager    *ServiceManager
+	localSD    *localServiceDiscoverer
+	globalSD   *globalServiceDiscoverer
 }
 
+func (m *SubsystemManager) init() {
+	m.localSD = &localServiceDiscoverer{}
+	m.globalSD = &globalServiceDiscoverer{}
+
+	m.manager = &ServiceManager{
+		ControllerServers: m.ControllerServers,
+		ShutdownTimeout:   m.ShutdownTimeout,
+		LocalSD:           m.localSD,
+	}
+}
 func (m *SubsystemManager) Add(subsystem Subsystem) {
+	m.once.Do(m.init)
 	if m.isConfigured {
 		zap.S().Panic("SubsystemManager",
 			"error", "Add() method was called after Setup()")
@@ -28,6 +43,7 @@ func (m *SubsystemManager) Add(subsystem Subsystem) {
 	m.subsystems = append(m.subsystems, subsystem)
 }
 func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
+	m.once.Do(m.init)
 	if m.isConfigured {
 		zap.S().Panic("SubsystemManager",
 			"error", "Setup() method was called two times")
@@ -38,9 +54,6 @@ func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
 	defer wg.Wait()
 
 	var lock sync.Mutex
-	m.manager = &ServiceManager{
-		ControllerServers: m.ControllerServers,
-	}
 	handleErrors := func(errs []error) {
 		if len(errs) > 0 {
 			lock.Lock()
@@ -92,6 +105,7 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 type ServiceManager struct {
 	ControllerServers []net.Addr
 	ShutdownTimeout   time.Duration
+	LocalSD           *localServiceDiscoverer
 
 	isConfigured bool
 	services     []Service
@@ -126,6 +140,9 @@ func (m *ServiceManager) Setup(ctx context.Context) (errors []error) {
 			Ctx:        ctx,
 			Listener:   sock,
 		}
+
+		// サービスを登録
+		m.LocalSD.Add(sock.Addr(), srv.SubsystemType(), srv.ServiceType())
 
 		// Created eventを出す。
 		zap.S().Debugw("SM.Serve", "service", srv, "status", "created")
