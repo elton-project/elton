@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
+	. "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"net"
@@ -21,7 +21,7 @@ func (s *ExampleSubsystem) Name() string {
 	return "Example"
 }
 func (s *ExampleSubsystem) SubsystemType() SubsystemType {
-	return UnknownSubsystemType
+	return SubsystemType_UnknownSubsystemType
 }
 func (s *ExampleSubsystem) Setup(ctx context.Context, manager *ServiceManager) []error {
 	manager.Add(&ExampleDelivererService{
@@ -47,44 +47,44 @@ func (s *ExampleDelivererService) Name() string {
 	return "Example/Deliverer"
 }
 func (s *ExampleDelivererService) SubsystemType() SubsystemType {
-	return UnknownSubsystemType
+	return SubsystemType_UnknownSubsystemType
 }
 func (s *ExampleDelivererService) ServiceType() ServiceType {
-	return DelivererServiceType
+	return ServiceType_DelivererServiceType
 }
-func (s *ExampleDelivererService) Serve(info *ServerInfo) error {
-	return WithGrpcServer(info.Ctx, func(srv *grpc.Server) error {
-		proto2.RegisterEventDelivererServer(srv, &s.server)
-		return srv.Serve(info.Listener)
+func (s *ExampleDelivererService) Serve(config *ServerConfig) error {
+	return WithGrpcServer(config.Ctx, func(srv *grpc.Server) error {
+		RegisterEventDelivererServer(srv, &s.server)
+		return srv.Serve(config.Listener)
 	})
 }
-func (s *ExampleDelivererService) Created(info *ServerInfo) error {
+func (s *ExampleDelivererService) Created(config *ServerConfig) error {
 	return nil
 }
-func (s *ExampleDelivererService) Running(info *ServerInfo) error {
+func (s *ExampleDelivererService) Running(config *ServerConfig) error {
 	// TODO: Controllerサーバのアドレスの通知方法を検討
 	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
-		c := proto2.NewEventManagerClient(conn)
-		c.ListenStatusChanges(info.Ctx, &proto2.EventDelivererInfo{
-			ServerInfo: proto2.NewServerInfo(s.addr),
+		c := NewEventManagerClient(conn)
+		c.ListenStatusChanges(config.Ctx, &EventDelivererInfo{
+			ServerInfo: NewServerInfo(s.addr),
 		})
 		return nil
 	})
 }
-func (s *ExampleDelivererService) Prestop(info *ServerInfo) error {
+func (s *ExampleDelivererService) Prestop(config *ServerConfig) error {
 	// todo
 	return WithGrpcConn(s.addr, func(conn *grpc.ClientConn) error {
 		return nil
 	})
 }
-func (s *ExampleDelivererService) Stopped(info *ServerInfo) error {
+func (s *ExampleDelivererService) Stopped(config *ServerConfig) error {
 	return nil
 }
 
 type ExampleDelivererServer struct {
 }
 
-func (s *ExampleDelivererServer) OnListenChanged(ctx context.Context, info *proto2.AllEventListenerInfo) (*proto2.Empty, error) {
+func (s *ExampleDelivererServer) OnListenChanged(ctx context.Context, info *AllEventListenerInfo) (*Empty, error) {
 	// todo
 	panic("not implemented")
 }

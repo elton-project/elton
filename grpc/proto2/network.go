@@ -1,4 +1,4 @@
-package main
+package proto2
 
 import (
 	"go.uber.org/zap"

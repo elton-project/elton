@@ -1,9 +1,8 @@
-package main
+package proto2
 
 import (
 	"context"
 	"errors"
-	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"math/rand"
@@ -65,8 +64,8 @@ func (d *globalServiceDiscoverer) Get(parentCtx context.Context, subsystemType S
 	// slow path
 	err = WithGrpcConn(d.chooseController(), func(conn *grpc.ClientConn) error {
 		ctx, _ := context.WithTimeout(parentCtx, d.Timeout)
-		c := proto2.NewControllerServiceClient(conn)
-		info, err := c.GetServerInfo(ctx, &proto2.ServerQuery{
+		c := NewControllerServiceClient(conn)
+		info, err := c.GetServerInfo(ctx, &ServerQuery{
 			SubsystemType: subsystemType,
 			ServiceType:   serviceType,
 		})

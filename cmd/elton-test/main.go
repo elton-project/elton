@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"os"
 	"time"
@@ -17,7 +18,7 @@ func Main() int {
 
 	_ = ctx
 
-	manager := SubsystemManager{}
+	manager := proto2.SubsystemManager{}
 	manager.Add(&ControllerSubsystem{})
 	manager.Add(&ExampleSubsystem{})
 

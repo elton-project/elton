@@ -1,8 +1,7 @@
-package main
+package proto2
 
 import (
 	"context"
-	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"math/rand"
 	"net"
@@ -137,8 +136,8 @@ func (m *ServiceManager) Setup(ctx context.Context) (errors []error) {
 	for i := range m.services {
 		sock := m.sockets[i]
 		srv := m.services[i]
-		info := &ServerInfo{
-			ServerInfo: *proto2.NewServerInfo(sock.Addr()),
+		config := &ServerConfig{
+			ServerInfo: *NewServerInfo(sock.Addr()),
 			Ctx:        ctx,
 			Listener:   sock,
 		}
@@ -148,7 +147,7 @@ func (m *ServiceManager) Setup(ctx context.Context) (errors []error) {
 
 		// Created eventを出す。
 		zap.S().Debugw("SM.Serve", "service", srv, "status", "created")
-		if err := srv.Created(info); err != nil {
+		if err := srv.Created(config); err != nil {
 			errors = append(errors, err)
 		}
 	}
@@ -179,8 +178,8 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 	for i := range m.services {
 		sock := m.sockets[i]
 		srv := m.services[i]
-		info := &ServerInfo{
-			ServerInfo: *proto2.NewServerInfo(sock.Addr()),
+		config := &ServerConfig{
+			ServerInfo: *NewServerInfo(sock.Addr()),
 			Ctx:        ctx,
 			Listener:   sock,
 		}
@@ -195,11 +194,11 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 			go func() {
 				defer innerWg.Done()
 				zap.S().Debugw("SM.Serve", "service", srv, "status", "running")
-				handleError(srv.Running(info))
+				handleError(srv.Running(config))
 			}()
 
 			zap.S().Debugw("SM.Serve", "service", srv, "status", "serve")
-			if handleError(srv.Serve(info)) {
+			if handleError(srv.Serve(config)) {
 				return
 			}
 			// Running()が終了するまで待つ。
@@ -207,12 +206,12 @@ func (m *ServiceManager) Serve(parentCtx context.Context) (errors []error) {
 
 			// TODO: 外部からの終了要求を受け付ける前に、prestop()を実行する。
 			zap.S().Debugw("SM.Serve", "service", srv, "status", "prestop")
-			if handleError(srv.Prestop(info)) {
+			if handleError(srv.Prestop(config)) {
 				return
 			}
 
 			zap.S().Debugw("SM.Serve", "service", srv, "status", "stopped")
-			if handleError(srv.Stopped(info)) {
+			if handleError(srv.Stopped(config)) {
 				return
 			}
 		}()
