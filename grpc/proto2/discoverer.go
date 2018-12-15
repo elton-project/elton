@@ -28,6 +28,10 @@ func (d *localServiceDiscoverer) Add(addr net.Addr, subsystemType SubsystemType,
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
+	if d.services == nil {
+		d.services = map[typeKey]net.Addr{}
+	}
+
 	d.services[typeKey{
 		Sys: subsystemType,
 		Srv: serviceType,
@@ -36,6 +40,10 @@ func (d *localServiceDiscoverer) Add(addr net.Addr, subsystemType SubsystemType,
 func (d *localServiceDiscoverer) Get(subsystemType SubsystemType, serviceType ServiceType) net.Addr {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
+
+	if d.services == nil {
+		return nil
+	}
 
 	return d.services[typeKey{
 		Sys: subsystemType,
