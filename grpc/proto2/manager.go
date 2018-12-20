@@ -266,9 +266,20 @@ func (m *ServiceManager) allocateListeners() (err error) {
 		}
 	}()
 
-	for range m.services {
+	for i := range m.services {
 		var sock net.Listener
-		sock, err = m.socket()
+		isController := m.services[i].SubsystemType() == SubsystemType_ControllerSubsystemType &&
+			m.services[i].ServiceType() == ServiceType_ControllerServiceType
+
+		if isController {
+			// controllerは、configで指定されたportをlistenする
+			addr := m.Config.Controller.ListenAddr
+			sock, err = net.Listen(addr.Network(), addr.String())
+		} else {
+			// controller以外は、ランダムなportをlistenする
+			sock, err = m.socket()
+		}
+
 		if err != nil {
 			return
 		}
