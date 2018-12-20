@@ -10,6 +10,18 @@ func toServerID(info *pb.ServerInfo) ServerID {
 	return ServerID(info.Guid)
 }
 
+type serverTypeKey struct {
+	subsystem pb.SubsystemType
+	service   pb.ServiceType
+}
+
+func toServerTypeKey(info *pb.ServerInfo) serverTypeKey {
+	return serverTypeKey{
+		subsystem: info.SubsystemType,
+		service:   info.ServiceType,
+	}
+}
+
 type unsafeListenerStore struct {
 	m map[pb.EventType]map[ServerID]*pb.EventListenerInfo
 }
@@ -73,6 +85,35 @@ func (s *unsafeDelivererStore) Remove(info *pb.EventDelivererInfo) {
 	delete(s.m, toServerID(info.ServerInfo))
 }
 func (s *unsafeDelivererStore) Foreach(fn func(info *pb.EventDelivererInfo) error) error {
+	for _, info := range s.m {
+		if err := fn(info); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type unsafeServerStore struct {
+	m map[serverTypeKey]*pb.ServerInfo
+}
+
+func (s *unsafeServerStore) init() {
+	if s.m == nil {
+		s.m = map[serverTypeKey]*pb.ServerInfo{}
+	}
+}
+func (s *unsafeServerStore) Clear() {
+	s.m = nil
+}
+func (s *unsafeServerStore) Add(info *pb.ServerInfo) {
+	s.init()
+	s.m[toServerTypeKey(info)] = info
+}
+func (s *unsafeServerStore) Remove(info *pb.ServerInfo) {
+	s.init()
+	delete(s.m, toServerTypeKey(info))
+}
+func (s *unsafeServerStore) Search(query *pb.ServerQuery, fn func(info *pb.ServerInfo) error) error {
 	for _, info := range s.m {
 		if err := fn(info); err != nil {
 			return err

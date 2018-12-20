@@ -2,17 +2,22 @@ package p2p
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"sync"
 )
 
+var stopIteration = errors.New("stop iteration")
+
 // An implementation the EventManagerServer interface.
 type Controller struct {
 	L *zap.SugaredLogger
 
 	lock sync.RWMutex
+	ss   unsafeServerStore
 	// listenerのマップ。
 	// イベントが発生したときの送信先になる。
 	ls unsafeListenerStore
@@ -20,6 +25,38 @@ type Controller struct {
 	ds unsafeDelivererStore
 }
 
+func (em *Controller) StopSystem(ctx context.Context, empty *pb.Empty) (*pb.Empty, error) {
+	panic("Controller.StopSystem: not implemented") // TODO
+}
+func (em *Controller) AddServerInfo(ctx context.Context, info *pb.ServerInfo) (*pb.Empty, error) {
+	em.lock.Lock()
+	defer em.lock.Unlock()
+	em.ss.Add(info)
+	return &pb.Empty{}, nil
+}
+func (em *Controller) StopServerInfo(ctx context.Context, info *pb.ServerInfo) (*pb.Empty, error) {
+	panic("Controller.StopServerInfo: not implemented") // TODO
+}
+func (em *Controller) DetachServerInfo(ctx context.Context, info *pb.ServerInfo) (*pb.Empty, error) {
+	panic("Controller.DetachServerInfo: not implemented") // TODO
+}
+func (em *Controller) GetServerInfo(ctx context.Context, query *pb.ServerQuery) (*pb.ServerInfo, error) {
+	em.lock.Lock()
+	defer em.lock.Unlock()
+
+	var info *pb.ServerInfo
+	err := em.ss.Search(query, func(i *pb.ServerInfo) error {
+		info = i
+		return stopIteration
+	})
+	if err == nil {
+		return nil, fmt.Errorf("not found server: query=%s", query.String())
+	} else if err == stopIteration {
+		return info, nil
+	} else {
+		return nil, err
+	}
+}
 func (em *Controller) Listen(ctx context.Context, info *pb.EventListenerInfo) (*pb.ListenResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
