@@ -6,6 +6,7 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/events/p2p"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
+	"io"
 	"os"
 	"time"
 )
@@ -41,12 +42,12 @@ func Main() int {
 	manager.Add(&ExampleSubsystem{})
 
 	if errs := manager.Setup(ctx); len(errs) > 0 {
-		zap.S().Fatalw("setup", "errors", errs)
+		fprintErrors(os.Stderr, "SubsystemManager.Setup()", errs)
 		return 1
 	}
 
 	if errs := manager.Serve(ctx); len(errs) > 0 {
-		zap.S().Fatalw("serve", "errors", errs)
+		fprintErrors(os.Stderr, "SubsystemManager.Serve()", errs)
 		return 1
 	}
 
@@ -54,4 +55,9 @@ func Main() int {
 }
 func main() {
 	os.Exit(Main())
+}
+func fprintErrors(writer io.Writer, prefix string, errs []error) {
+	for i, err := range errs {
+		fmt.Fprintf(os.Stderr, "%s ERROR[%d]:\n%+v\n\n", prefix, i, err)
+	}
 }
