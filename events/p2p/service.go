@@ -24,8 +24,7 @@ func (s *ControllerService) SubsystemType() SubsystemType {
 	return SubsystemType_ControllerSubsystemType
 }
 func (s *ControllerService) ServiceType() ServiceType {
-	// TODO: どのような値を返せば良いのか
-	return ServiceType_UnknownServiceType
+	return ServiceType_ControllerServiceType
 }
 func (s *ControllerService) Serve(config *ServerConfig) error {
 	s.m.L = s.L

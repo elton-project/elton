@@ -219,6 +219,7 @@ enum ServiceType {
     UnknownServiceType = 0;
     ListenerServiceType = 1;
     DelivererServiceType = 2;
+    ControllerServiceType = 3;
 }
 
 message Empty {
