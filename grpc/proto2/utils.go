@@ -32,7 +32,7 @@ func WithGrpcServer(parent_ctx context.Context, fn func(srv *grpc.Server) error)
 }
 
 func WithGrpcConn(addr net.Addr, fn func(conn *grpc.ClientConn) error) error {
-	target := addr.Network() + "://" + addr.String()
+	target := addr.String()
 	conn, err := grpc.Dial(target, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrapf(err, "grpc.Dial(addr=%s)", addr)
