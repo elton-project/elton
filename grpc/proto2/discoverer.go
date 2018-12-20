@@ -2,7 +2,7 @@ package proto2
 
 import (
 	"context"
-	"errors"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"math/rand"
@@ -81,14 +81,14 @@ func (d *globalServiceDiscoverer) GetWithServiceType(parentCtx context.Context, 
 			ServiceType:   serviceType,
 		})
 		if err != nil {
-			return err
+			return errors.Wrap(err, "GetWithServiceType(): GetServerInfo()")
 		}
 		addr, err = d.parseTCPAddr(info.Address)
 		if err != nil {
 			zap.S().Error("globalServiceDiscoverer",
 				"error", err.Error(),
 				"value", info.Address)
-			return err
+			return errors.Wrap(err, "GetWithServiceType(): parseTCPAddr()")
 		}
 		return nil
 	})
