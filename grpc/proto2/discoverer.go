@@ -94,29 +94,32 @@ func (d *globalServiceDiscoverer) GetWithServiceType(parentCtx context.Context, 
 	})
 	return
 }
-func (d *globalServiceDiscoverer) UpdateControllers(ctx context.Context) error {
-	// 既存のコントローラのアドレスを登録
-	// アドレスの重複を排除するため、map型を使う。
-	addrMap := map[string]net.Addr{}
-	d.lock.RLock()
-	for _, addr := range d.controllers {
-		addrMap[addr.String()] = addr
-	}
-	d.lock.RUnlock()
-
-	// TODO: コントローラのアドレス一覧を取得してくる。
-
-	// mapからsliceに変換
-	newControllers := []net.Addr{}
-	for _, addr := range addrMap {
-		newControllers = append(newControllers, addr)
-	}
-
-	// 排他ロックがかかる時間を最小限にするため、updateのたびにスライスを差し替える手法を採用。
+func (d *globalServiceDiscoverer) AddControllers(addrs []net.Addr) {
 	d.lock.Lock()
-	d.controllers = newControllers
-	d.lock.Unlock()
-	return nil
+	defer d.lock.Unlock()
+
+	addrMap := map[string]struct{}{}
+
+	// 既存のコントローラのアドレスを登録
+	for _, addr := range d.controllers {
+		addrMap[addr.String()] = struct{}{}
+	}
+
+	// 新規に追加するアドレスを登録。
+	for _, addr := range addrs {
+		if _, ok := addrMap[addr.String()]; ok {
+			// 既に登録済みなのでスキップ
+			continue
+		}
+		// addrは、まだ登録されていない。
+		d.controllers = append(d.controllers, addr)
+	}
+}
+func (d *globalServiceDiscoverer) UpdateControllers(ctx context.Context) error {
+	// TODO: コントローラのアドレス一覧を取得してくる。
+	panic("UpdateControllers: not implemented")
+	//newControllers := []net.Addr{}
+	//d.AddControllers(newControllers)
 }
 func (d *globalServiceDiscoverer) parseTCPAddr(tcpaddr string) (net.Addr, error) {
 	idx := strings.LastIndex(tcpaddr, ":")

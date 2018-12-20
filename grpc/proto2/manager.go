@@ -3,7 +3,6 @@ package proto2
 import (
 	"context"
 	"go.uber.org/zap"
-	"math/rand"
 	"net"
 	"sync"
 )
@@ -24,6 +23,21 @@ func (m *SubsystemManager) init() {
 	m.localSD = &localServiceDiscoverer{}
 	m.globalSD = &globalServiceDiscoverer{
 		LocalSD: m.localSD,
+	}
+
+	// 同一ノード上で動作しているcontrollerを登録。
+	if m.Config.Controller.ListenAddr != nil {
+		m.globalSD.AddControllers([]net.Addr{
+			&net.TCPAddr{
+				// 同一ノード上なので、宛先アドレスは"127.0.0.1"になる。
+				IP:   net.IPv4(127, 0, 0, 1),
+				Port: m.Config.Controller.ListenAddr.(*net.TCPAddr).Port,
+			},
+		})
+	}
+	// controllersの初期ノードを登録。
+	if len(m.Config.Controller.Servers) > 0 {
+		m.globalSD.AddControllers(m.Config.Controller.Servers)
 	}
 }
 func (m *SubsystemManager) Add(subsystem Subsystem) {
@@ -237,14 +251,7 @@ func (m *ServiceManager) Addrs() (addrs []net.Addr) {
 	return
 }
 func (m *ServiceManager) ControllerServer() net.Addr {
-	servers := m.Config.Controller.Servers
-	if len(servers) > 0 {
-		// 候補の中からランダムに選ぶ
-		length := len(servers)
-		idx := rand.Intn(length)
-		return servers[idx]
-	}
-	panic("Not found controller server")
+	return m.GlobalSD.chooseController()
 }
 func (m *ServiceManager) socket() (net.Listener, error) {
 	return net.Listen("tcp", "0.0.0.0:0")
