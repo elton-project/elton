@@ -41,11 +41,13 @@ func Main() int {
 	manager.Add(&ExampleSubsystem{})
 
 	if errs := manager.Setup(ctx); len(errs) > 0 {
-		panic(errs)
+		zap.S().Fatalw("setup", "errors", errs)
+		return 1
 	}
 
 	if errs := manager.Serve(ctx); len(errs) > 0 {
-		panic(errs)
+		zap.S().Fatalw("serve", "errors", errs)
+		return 1
 	}
 
 	return 0
