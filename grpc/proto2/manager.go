@@ -6,13 +6,10 @@ import (
 	"math/rand"
 	"net"
 	"sync"
-	"time"
 )
 
 type SubsystemManager struct {
-	// TODO: 利用していないっぽい？
-	ControllerServers []net.Addr
-	ShutdownTimeout   time.Duration
+	Config *Config
 
 	isConfigured bool
 	once         sync.Once
@@ -38,10 +35,9 @@ func (m *SubsystemManager) Add(subsystem Subsystem) {
 	}
 
 	mng := &ServiceManager{
-		ControllerServers: m.ControllerServers,
-		ShutdownTimeout:   m.ShutdownTimeout,
-		LocalSD:           m.localSD,
-		GlobalSD:          m.globalSD,
+		Config:   m.Config,
+		LocalSD:  m.localSD,
+		GlobalSD: m.globalSD,
 	}
 	m.subsystems = append(m.subsystems, subsystem)
 	m.managers = append(m.managers, mng)
@@ -112,10 +108,9 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 // サブシステムごとに1つの ServiceManager を用意する。
 type ServiceManager struct {
 	// TODO: 利用していないっぽい?
-	ControllerServers []net.Addr
-	ShutdownTimeout   time.Duration
-	LocalSD           *localServiceDiscoverer
-	GlobalSD          *globalServiceDiscoverer
+	Config   *Config
+	LocalSD  *localServiceDiscoverer
+	GlobalSD *globalServiceDiscoverer
 
 	isConfigured bool
 	services     []Service
@@ -242,11 +237,12 @@ func (m *ServiceManager) Addrs() (addrs []net.Addr) {
 	return
 }
 func (m *ServiceManager) ControllerServer() net.Addr {
-	if len(m.ControllerServers) > 0 {
+	servers := m.Config.Controller.Servers
+	if len(servers) > 0 {
 		// 候補の中からランダムに選ぶ
-		length := len(m.ControllerServers)
+		length := len(servers)
 		idx := rand.Intn(length)
-		return m.ControllerServers[idx]
+		return servers[idx]
 	}
 	panic("Not found controller server")
 }

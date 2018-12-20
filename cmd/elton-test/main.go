@@ -29,7 +29,14 @@ func Main() int {
 
 	_ = ctx
 
-	manager := proto2.SubsystemManager{}
+	manager := proto2.SubsystemManager{
+		Config: &proto2.Config{
+			Controller: &proto2.ControllerConfig{
+				ListenAddr: conf.ControllerListenAddr.Addr,
+				Servers:    conf.Controllers.Addrs,
+			},
+		},
+	}
 	manager.Add(&p2p.ControllerSubsystem{})
 	manager.Add(&ExampleSubsystem{})
 
