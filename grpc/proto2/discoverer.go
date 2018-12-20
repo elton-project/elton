@@ -95,8 +95,22 @@ func (d *globalServiceDiscoverer) GetWithServiceType(parentCtx context.Context, 
 	return
 }
 func (d *globalServiceDiscoverer) UpdateControllers(ctx context.Context) error {
-	newControllers := []net.Addr{}
+	// 既存のコントローラのアドレスを登録
+	// アドレスの重複を排除するため、map型を使う。
+	addrMap := map[string]net.Addr{}
+	d.lock.RLock()
+	for _, addr := range d.controllers {
+		addrMap[addr.String()] = addr
+	}
+	d.lock.RUnlock()
+
 	// TODO: コントローラのアドレス一覧を取得してくる。
+
+	// mapからsliceに変換
+	newControllers := []net.Addr{}
+	for _, addr := range addrMap {
+		newControllers = append(newControllers, addr)
+	}
 
 	// 排他ロックがかかる時間を最小限にするため、updateのたびにスライスを差し替える手法を採用。
 	d.lock.Lock()
