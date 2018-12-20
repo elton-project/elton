@@ -6,6 +6,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const subsystemName = "P2PController"
+
 type ControllerSubsystem struct {
 }
 
@@ -13,7 +15,7 @@ func (s *ControllerSubsystem) String() string {
 	return "<Subsystem: " + s.Name() + ">"
 }
 func (s *ControllerSubsystem) Name() string {
-	return "P2PControllerSubsystem"
+	return subsystemName
 }
 func (s *ControllerSubsystem) SubsystemType() SubsystemType {
 	return SubsystemType_ControllerSubsystemType

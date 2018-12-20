@@ -18,7 +18,7 @@ func (s *ControllerService) String() string {
 	return "<Service: " + s.Name() + ">"
 }
 func (s *ControllerService) Name() string {
-	return "P2PController/EventManager"
+	return subsystemName + "/Controller"
 }
 func (s *ControllerService) SubsystemType() SubsystemType {
 	return SubsystemType_ControllerSubsystemType
