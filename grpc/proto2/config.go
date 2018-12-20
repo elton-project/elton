@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	Controller      *ControllerConfig
+	RPCTimeout      time.Duration
 	ShutdownTimeout time.Duration
 }
 

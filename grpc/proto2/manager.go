@@ -22,6 +22,7 @@ type SubsystemManager struct {
 func (m *SubsystemManager) init() {
 	m.localSD = &localServiceDiscoverer{}
 	m.globalSD = &globalServiceDiscoverer{
+		Timeout: m.Config.RPCTimeout,
 		LocalSD: m.localSD,
 	}
 
