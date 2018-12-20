@@ -42,7 +42,7 @@ func (ed *P2PEventDeliverer) send(eventType pb.EventType) {
 }
 
 func (ed *P2PEventDeliverer) Register(ctx context.Context) error {
-	return ed.withMasterConn(func(master pb.EventManagerClient) error {
+	return ed.withMasterConn(func(master pb.ControllerServiceClient) error {
 		result, err := master.ListenStatusChanges(ctx, ed.selfInfo())
 		if err != nil {
 			return err
@@ -55,7 +55,7 @@ func (ed *P2PEventDeliverer) Register(ctx context.Context) error {
 }
 
 func (ed *P2PEventDeliverer) Unregister(ctx context.Context) error {
-	return ed.withMasterConn(func(master pb.EventManagerClient) error {
+	return ed.withMasterConn(func(master pb.ControllerServiceClient) error {
 		result, err := master.UnlistenStatusChanges(ctx, ed.selfInfo())
 		if err != nil {
 			return err
@@ -67,13 +67,13 @@ func (ed *P2PEventDeliverer) Unregister(ctx context.Context) error {
 	})
 }
 
-func (ed *P2PEventDeliverer) withMasterConn(fn func(master pb.EventManagerClient) error) error {
+func (ed *P2PEventDeliverer) withMasterConn(fn func(master pb.ControllerServiceClient) error) error {
 	conn, err := grpc.Dial(ed.Master.Address, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
-	return fn(pb.NewEventManagerClient(conn))
+	return fn(pb.NewControllerServiceClient(conn))
 }
 
 func (ed *P2PEventDeliverer) selfInfo() *pb.EventDelivererInfo {

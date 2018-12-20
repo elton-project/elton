@@ -34,7 +34,7 @@ func (s *ControllerSubsystem) Serve(ctx context.Context, manager *ServiceManager
 type ControllerService struct {
 	L *zap.SugaredLogger
 
-	m    p2p.P2PEventManager
+	m    p2p.P2PEventManager // TODO: 名前の変更と、足りないメソッドを実装。 新しい名前はP2PControllerにする。
 	addr net.Addr
 }
 
@@ -48,12 +48,13 @@ func (s *ControllerService) SubsystemType() SubsystemType {
 	return SubsystemType_ControllerSubsystemType
 }
 func (s *ControllerService) ServiceType() ServiceType {
-	return ServiceType_EventManagerServiceType
+	// TODO: どのような値を返せば良いのか
+	return ServiceType_UnknownServiceType
 }
 func (s *ControllerService) Serve(config *ServerConfig) error {
 	s.m.L = s.L
 	return WithGrpcServer(config.Ctx, func(srv *grpc.Server) error {
-		RegisterEventManagerServer(srv, &s.m)
+		RegisterControllerServiceServer(srv, &s.m)
 		return srv.Serve(config.Listener)
 	})
 }

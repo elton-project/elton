@@ -63,7 +63,7 @@ func (s *ExampleDelivererService) Created(config *ServerConfig) error {
 }
 func (s *ExampleDelivererService) Running(config *ServerConfig) error {
 	return ConnectOtherSubsystem(config.Ctx, SubsystemType_ControllerSubsystemType, config.Discoverer, func(conn *grpc.ClientConn) error {
-		c := NewEventManagerClient(conn)
+		c := NewControllerServiceClient(conn)
 		// TODO: なにかする
 		c.ListenStatusChanges(config.Ctx, &EventDelivererInfo{
 			ServerInfo: NewServerInfo(nil),
@@ -73,7 +73,7 @@ func (s *ExampleDelivererService) Running(config *ServerConfig) error {
 }
 func (s *ExampleDelivererService) Prestop(config *ServerConfig) error {
 	return ConnectOtherSubsystem(config.Ctx, SubsystemType_ControllerSubsystemType, config.Discoverer, func(conn *grpc.ClientConn) error {
-		_ = NewEventManagerClient(conn)
+		_ = NewControllerServiceClient(conn)
 		// TODO: なにかする
 		return nil
 	})
