@@ -15,7 +15,9 @@ type unsafeListenerStore struct {
 }
 
 func (s *unsafeListenerStore) init() {
-	s.m = map[pb.EventType]map[ServerID]*pb.EventListenerInfo{}
+	if s.m == nil {
+		s.m = map[pb.EventType]map[ServerID]*pb.EventListenerInfo{}
+	}
 }
 func (s *unsafeListenerStore) Clear() {
 	s.m = nil
@@ -55,7 +57,9 @@ type unsafeDelivererStore struct {
 }
 
 func (s *unsafeDelivererStore) init() {
-	s.m = map[ServerID]*pb.EventDelivererInfo{}
+	if s.m == nil {
+		s.m = map[ServerID]*pb.EventDelivererInfo{}
+	}
 }
 func (s *unsafeDelivererStore) Clear() {
 	s.m = nil
