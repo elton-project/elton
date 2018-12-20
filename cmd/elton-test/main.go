@@ -21,14 +21,9 @@ func Main() int {
 		zap.S().Fatalw("config", "error", err.Error())
 		return 1
 	}
-	fmt.Println(err)
-	fmt.Println(conf)
-	_ = conf
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-
-	_ = ctx
 
 	manager := proto2.SubsystemManager{
 		Config: &proto2.Config{
