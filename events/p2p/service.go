@@ -10,7 +10,7 @@ import (
 type ControllerService struct {
 	L *zap.SugaredLogger
 
-	m    Controller // TODO: 足りないメソッドを実装。
+	m    Controller
 	addr net.Addr
 }
 
