@@ -21,7 +21,7 @@ import (
 // Tests should set to true.
 var paranoia = false
 
-// FilesystemConnector translates the raw FUSE protocol (serialized
+// FileSystemConnector translates the raw FUSE protocol (serialized
 // structs of uint32/uint64) to operations on Go objects representing
 // files and directories.
 type FileSystemConnector struct {
@@ -371,17 +371,70 @@ func (c *FileSystemConnector) Unmount(node *Inode) fuse.Status {
 // Use negative offset for metadata-only invalidation, and zero-length
 // for invalidating all content.
 func (c *FileSystemConnector) FileNotify(node *Inode, off int64, length int64) fuse.Status {
-	var nId uint64
+	var nID uint64
 	if node == c.rootNode {
-		nId = fuse.FUSE_ROOT_ID
+		nID = fuse.FUSE_ROOT_ID
 	} else {
-		nId = c.inodeMap.Handle(&node.handled)
+		nID = c.inodeMap.Handle(&node.handled)
 	}
 
-	if nId == 0 {
+	if nID == 0 {
 		return fuse.OK
 	}
-	return c.server.InodeNotify(nId, off, length)
+	return c.server.InodeNotify(nID, off, length)
+}
+
+// FileNotifyStoreCache notifies the kernel about changed data of the inode.
+//
+// This call is similar to FileNotify, but instead of only invalidating a data
+// region, it puts updated data directly to the kernel cache:
+//
+// After this call completes, the kernel has put updated data into the inode's cache,
+// and will use data from that cache for non direct-IO reads from the inode
+// in corresponding data region. After kernel's cache data is evicted, the kernel
+// will have to issue new Read calls on user request to get data content.
+//
+// ENOENT is returned if the kernel does not currently have entry for this
+// inode in its dentry cache.
+func (c *FileSystemConnector) FileNotifyStoreCache(node *Inode, off int64, data []byte) fuse.Status {
+	var nID uint64
+	if node == c.rootNode {
+		nID = fuse.FUSE_ROOT_ID
+	} else {
+		nID = c.inodeMap.Handle(&node.handled)
+	}
+
+	if nID == 0 {
+		// the kernel does not currently know about this inode.
+		return fuse.ENOENT
+	}
+	return c.server.InodeNotifyStoreCache(nID, off, data)
+}
+
+// FileRetrieveCache retrieves data from kernel's inode cache.
+//
+// This call retrieves data from kernel's inode cache @ offset and up to
+// len(dest) bytes. If kernel cache has fewer consecutive data starting at
+// offset, that fewer amount is returned. In particular if inode data at offset
+// is not cached (0, OK) is returned.
+//
+// If the kernel does not currently have entry for this inode in its dentry
+// cache (0, OK) is still returned, pretending that the inode could be known to
+// the kernel, but kernel's inode cache is empty.
+func (c *FileSystemConnector) FileRetrieveCache(node *Inode, off int64, dest []byte) (n int, st fuse.Status) {
+	var nID uint64
+	if node == c.rootNode {
+		nID = fuse.FUSE_ROOT_ID
+	} else {
+		nID = c.inodeMap.Handle(&node.handled)
+	}
+
+	if nID == 0 {
+		// the kernel does not currently know about this inode.
+		// -> we can pretend that its cache for the inode is empty.
+		return 0, fuse.OK
+	}
+	return c.server.InodeRetrieveCache(nID, off, dest)
 }
 
 // EntryNotify makes the kernel forget the entry data from the given
@@ -389,36 +442,36 @@ func (c *FileSystemConnector) FileNotify(node *Inode, off int64, length int64) f
 // new lookup request for the given name when necessary. No filesystem
 // related locks should be held when calling this.
 func (c *FileSystemConnector) EntryNotify(node *Inode, name string) fuse.Status {
-	var nId uint64
+	var nID uint64
 	if node == c.rootNode {
-		nId = fuse.FUSE_ROOT_ID
+		nID = fuse.FUSE_ROOT_ID
 	} else {
-		nId = c.inodeMap.Handle(&node.handled)
+		nID = c.inodeMap.Handle(&node.handled)
 	}
 
-	if nId == 0 {
+	if nID == 0 {
 		return fuse.OK
 	}
-	return c.server.EntryNotify(nId, name)
+	return c.server.EntryNotify(nID, name)
 }
 
 // DeleteNotify signals to the kernel that the named entry in dir for
 // the child disappeared. No filesystem related locks should be held
 // when calling this.
 func (c *FileSystemConnector) DeleteNotify(dir *Inode, child *Inode, name string) fuse.Status {
-	var nId uint64
+	var nID uint64
 
 	if dir == c.rootNode {
-		nId = fuse.FUSE_ROOT_ID
+		nID = fuse.FUSE_ROOT_ID
 	} else {
-		nId = c.inodeMap.Handle(&dir.handled)
+		nID = c.inodeMap.Handle(&dir.handled)
 	}
 
-	if nId == 0 {
+	if nID == 0 {
 		return fuse.OK
 	}
 
 	chId := c.inodeMap.Handle(&child.handled)
 
-	return c.server.DeleteNotify(nId, chId, name)
+	return c.server.DeleteNotify(nID, chId, name)
 }

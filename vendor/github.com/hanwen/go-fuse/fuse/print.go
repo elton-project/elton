@@ -46,6 +46,9 @@ func init() {
 		CAP_ASYNC_DIO:        "ASYNC_DIO",
 		CAP_WRITEBACK_CACHE:  "WRITEBACK_CACHE",
 		CAP_NO_OPEN_SUPPORT:  "NO_OPEN_SUPPORT",
+		CAP_PARALLEL_DIROPS:  "CAP_PARALLEL_DIROPS",
+		CAP_POSIX_ACL:        "CAP_POSIX_ACL",
+		CAP_HANDLE_KILLPRIV:  "CAP_PARALLEL_DIROPS",
 	}
 	releaseFlagNames = map[int64]string{
 		RELEASE_FLUSH: "FLUSH",
@@ -227,6 +230,18 @@ func (o *NotifyInvalInodeOut) string() string {
 
 func (o *NotifyInvalDeleteOut) string() string {
 	return fmt.Sprintf("{parent %d ch %d sz %d}", o.Parent, o.Child, o.NameLen)
+}
+
+func (o *NotifyStoreOut) string() string {
+	return fmt.Sprintf("{nodeid %d off %d sz %d}", o.Nodeid, o.Offset, o.Size)
+}
+
+func (o *NotifyRetrieveOut) string() string {
+	return fmt.Sprintf("{notifyUnique %d nodeid %d off %d sz %d}", o.NotifyUnique, o.Nodeid, o.Offset, o.Size)
+}
+
+func (i *NotifyRetrieveIn) string() string {
+	return fmt.Sprintf("{off %d sz %d}", i.Offset, i.Size)
 }
 
 func (f *FallocateIn) string() string {

@@ -5,6 +5,7 @@
 package fuse
 
 import (
+	"io"
 	"syscall"
 )
 
@@ -44,6 +45,9 @@ const (
 
 	// ENOTDIR Not a directory
 	ENOTDIR = Status(syscall.ENOTDIR)
+
+	// EISDIR Is a directory
+	EISDIR = Status(syscall.EISDIR)
 
 	// EPERM Operation not permitted
 	EPERM = Status(syscall.EPERM)
@@ -85,6 +89,9 @@ type _BatchForgetIn struct {
 
 type MkdirIn struct {
 	InHeader
+
+	// The mode for the new directory. The calling process' umask
+	// is already factored into the mode.
 	Mode  uint32
 	Umask uint32
 }
@@ -194,6 +201,9 @@ const (
 	CAP_ASYNC_DIO        = (1 << 15)
 	CAP_WRITEBACK_CACHE  = (1 << 16)
 	CAP_NO_OPEN_SUPPORT  = (1 << 17)
+	CAP_PARALLEL_DIROPS  = (1 << 18)
+	CAP_POSIX_ACL        = (1 << 19)
+	CAP_HANDLE_KILLPRIV  = (1 << 20)
 )
 
 type InitIn struct {
@@ -303,24 +313,24 @@ type GetXAttrOut struct {
 	Padding uint32
 }
 
-type _FileLock struct {
+type FileLock struct {
 	Start uint64
 	End   uint64
 	Typ   uint32
 	Pid   uint32
 }
 
-type _LkIn struct {
+type LkIn struct {
 	InHeader
 	Fh      uint64
 	Owner   uint64
-	Lk      _FileLock
+	Lk      FileLock
 	LkFlags uint32
 	Padding uint32
 }
 
-type _LkOut struct {
-	Lk _FileLock
+type LkOut struct {
+	Lk FileLock
 }
 
 // For AccessIn.Mask.
@@ -369,13 +379,38 @@ type NotifyInvalDeleteOut struct {
 	Padding uint32
 }
 
+type NotifyStoreOut struct {
+	Nodeid  uint64
+	Offset  uint64
+	Size    uint32
+	Padding uint32
+}
+
+type NotifyRetrieveOut struct {
+	NotifyUnique uint64
+	Nodeid       uint64
+	Offset       uint64
+	Size         uint32
+	Padding      uint32
+}
+
+type NotifyRetrieveIn struct {
+	InHeader
+	Dummy1 uint64
+	Offset uint64
+	Size   uint32
+	Dummy2 uint32
+	Dummy3 uint64
+	Dummy4 uint64
+}
+
 const (
-	//	NOTIFY_POLL         = -1
-	NOTIFY_INVAL_INODE = -2
-	NOTIFY_INVAL_ENTRY = -3
-	//	NOTIFY_STORE        = -4
-	//	NOTIFY_RETRIEVE     = -5
-	NOTIFY_INVAL_DELETE = -6
+	//	NOTIFY_POLL         = -1 // notify kernel that a poll waiting for IO on a file handle should wake up
+	NOTIFY_INVAL_INODE    = -2 // notify kernel that an inode should be invalidated
+	NOTIFY_INVAL_ENTRY    = -3 // notify kernel that a directory entry should be invalidated
+	NOTIFY_STORE_CACHE    = -4 // store data into kernel cache of an inode
+	NOTIFY_RETRIEVE_CACHE = -5 // retrieve data from kernel cache of an inode
+	NOTIFY_DELETE         = -6 // notify kernel that a directory entry has been deleted
 
 //	NOTIFY_CODE_MAX     = -6
 )
@@ -464,7 +499,26 @@ type FallocateIn struct {
 	Padding uint32
 }
 
-type FlockIn struct {
-	InHeader
-	Fh uint64
+func (lk *FileLock) ToFlockT(flockT *syscall.Flock_t) {
+	flockT.Start = int64(lk.Start)
+	if lk.End == (1<<63)-1 {
+		flockT.Len = 0
+	} else {
+		flockT.Len = int64(lk.End - lk.Start + 1)
+	}
+	flockT.Whence = int16(io.SeekStart)
+	flockT.Type = int16(lk.Typ)
+}
+
+func (lk *FileLock) FromFlockT(flockT *syscall.Flock_t) {
+	lk.Typ = uint32(flockT.Type)
+	if flockT.Type != syscall.F_UNLCK {
+		lk.Start = uint64(flockT.Start)
+		if flockT.Len == 0 {
+			lk.End = (1 << 63) - 1
+		} else {
+			lk.End = uint64(flockT.Start + flockT.Len - 1)
+		}
+	}
+	lk.Pid = uint32(flockT.Pid)
 }

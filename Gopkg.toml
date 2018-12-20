@@ -50,8 +50,8 @@
   version = "1.6.2"
 
 [[constraint]]
+  branch = "master"
   name = "github.com/hanwen/go-fuse"
-  version = "20170619.0.0"
 
 [[constraint]]
   branch = "master"

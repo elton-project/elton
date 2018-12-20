@@ -38,7 +38,8 @@ type Node interface {
 	OnUnmount()
 
 	// Lookup finds a child node to this node; it is only called
-	// for directory Nodes.
+	// for directory Nodes. Lookup may be called on nodes that are
+	// already known.
 	Lookup(out *fuse.Attr, name string, context *fuse.Context) (*Inode, fuse.Status)
 
 	// Deletable() should return true if this node may be discarded once
@@ -102,6 +103,17 @@ type Node interface {
 	SetXAttr(attr string, data []byte, flags int, context *fuse.Context) fuse.Status
 	ListXAttr(context *fuse.Context) (attrs []string, code fuse.Status)
 
+	// File locking
+	//
+	// GetLk returns existing lock information for file.
+	GetLk(file File, owner uint64, lk *fuse.FileLock, flags uint32, out *fuse.FileLock, context *fuse.Context) (code fuse.Status)
+
+	// Sets or clears the lock described by lk on file.
+	SetLk(file File, owner uint64, lk *fuse.FileLock, flags uint32, context *fuse.Context) (code fuse.Status)
+
+	// Sets or clears the lock described by lk. This call blocks until the operation can be completed.
+	SetLkw(file File, owner uint64, lk *fuse.FileLock, flags uint32, context *fuse.Context) (code fuse.Status)
+
 	// Attributes
 	GetAttr(out *fuse.Attr, file File, context *fuse.Context) (code fuse.Status)
 	Chmod(file File, perms uint32, context *fuse.Context) (code fuse.Status)
@@ -130,7 +142,10 @@ type File interface {
 	Read(dest []byte, off int64) (fuse.ReadResult, fuse.Status)
 	Write(data []byte, off int64) (written uint32, code fuse.Status)
 
-	Flock(flags int) fuse.Status
+	// File locking
+	GetLk(owner uint64, lk *fuse.FileLock, flags uint32, out *fuse.FileLock) (code fuse.Status)
+	SetLk(owner uint64, lk *fuse.FileLock, flags uint32) (code fuse.Status)
+	SetLkw(owner uint64, lk *fuse.FileLock, flags uint32) (code fuse.Status)
 
 	// Flush is called for close() call on a file descriptor. In
 	// case of duplicated descriptor, it may be called more than
@@ -187,4 +202,9 @@ type Options struct {
 
 	// If set, print debug information.
 	Debug bool
+
+	// If set, issue Lookup rather than GetAttr calls for known
+	// children. This allows the filesystem to update its inode
+	// hierarchy in response to kernel calls.
+	LookupKnownChildren bool
 }

@@ -91,16 +91,17 @@
   version = "v1.6.2"
 
 [[projects]]
-  digest = "1:5f90bc125ec78cbf10b28e7d08b5fe2aecd04cd1ae93c74bb71c4c61151ad6ec"
+  branch = "master"
+  digest = "1:06612564e7b2d839899f183e604196075d55dd2c5d64f6e41d8dddf8ab4fa31d"
   name = "github.com/hanwen/go-fuse"
   packages = [
     "fuse",
     "fuse/nodefs",
+    "internal/utimens",
     "splice",
   ]
   pruneopts = "UT"
-  revision = "5690be47d614355a22931c129e1075c25a62e9ac"
-  version = "v20170619"
+  revision = "f520193c2228d18ac98d8d83792c470803f26be5"
 
 [[projects]]
   branch = "master"

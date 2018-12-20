@@ -5,6 +5,7 @@
 package nodefs
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -23,10 +24,6 @@ type parentData struct {
 // implementers should supply.
 type Inode struct {
 	handled handled
-
-	// Generation number of the inode. Each (re)use of an inode
-	// should have a unique generation number.
-	generation uint64
 
 	// Number of open files and its protection.
 	openFilesMutex sync.Mutex
@@ -62,6 +59,13 @@ func newInode(isDir bool, fsNode Node) *Inode {
 
 // public methods.
 
+// Print the inode. The default print method may not be used for
+// debugging, as dumping the map requires synchronization.
+func (n *Inode) String() string {
+
+	return fmt.Sprintf("node{%d}", n.handled.handle)
+}
+
 // Returns any open file, preferably a r/w one.
 func (n *Inode) AnyFile() (file File) {
 	n.openFilesMutex.Lock()
@@ -94,6 +98,8 @@ func (n *Inode) Parent() (parent *Inode, name string) {
 	if n.mountPoint != nil {
 		return nil, ""
 	}
+	n.mount.treeLock.RLock()
+	defer n.mount.treeLock.RUnlock()
 	for k := range n.parents {
 		return k.parent, k.name
 	}
