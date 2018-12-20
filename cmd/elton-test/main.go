@@ -32,7 +32,7 @@ func Main() int {
 				Servers:    conf.Controllers.Addrs,
 			},
 			RPCTimeout:      10 * time.Second, // TODO: update timeout
-			ShutdownTimeout: 1 * time.Minute, // TODO: update timeout
+			ShutdownTimeout: 1 * time.Minute,  // TODO: update timeout
 		},
 	}
 	manager.Add(&p2p.ControllerSubsystem{})
