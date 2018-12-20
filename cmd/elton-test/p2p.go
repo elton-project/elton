@@ -34,7 +34,7 @@ func (s *ControllerSubsystem) Serve(ctx context.Context, manager *ServiceManager
 type ControllerService struct {
 	L *zap.SugaredLogger
 
-	m    p2p.P2PEventManager // TODO: 名前の変更と、足りないメソッドを実装。 新しい名前はP2PControllerにする。
+	m    p2p.Controller // TODO: 足りないメソッドを実装。
 	addr net.Addr
 }
 

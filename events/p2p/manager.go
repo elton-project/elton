@@ -9,7 +9,7 @@ import (
 )
 
 // An implementation the EventManagerServer interface.
-type P2PEventManager struct {
+type Controller struct {
 	L *zap.SugaredLogger
 
 	lock sync.RWMutex
@@ -20,7 +20,7 @@ type P2PEventManager struct {
 	ds unsafeDelivererStore
 }
 
-func (em *P2PEventManager) Listen(ctx context.Context, info *pb.EventListenerInfo) (*pb.ListenResult, error) {
+func (em *Controller) Listen(ctx context.Context, info *pb.EventListenerInfo) (*pb.ListenResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 
@@ -29,7 +29,7 @@ func (em *P2PEventManager) Listen(ctx context.Context, info *pb.EventListenerInf
 	em.notifyListenChanged(ctx, info.Type)
 	return &pb.ListenResult{}, nil
 }
-func (em *P2PEventManager) Unlisten(ctx context.Context, info *pb.EventListenerInfo) (*pb.UnlistenResult, error) {
+func (em *Controller) Unlisten(ctx context.Context, info *pb.EventListenerInfo) (*pb.UnlistenResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 
@@ -38,7 +38,7 @@ func (em *P2PEventManager) Unlisten(ctx context.Context, info *pb.EventListenerI
 	em.notifyListenChanged(ctx, info.Type)
 	return &pb.UnlistenResult{}, nil
 }
-func (em *P2PEventManager) ListenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.ListenStatusChangesResult, error) {
+func (em *Controller) ListenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.ListenStatusChangesResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 
@@ -46,7 +46,7 @@ func (em *P2PEventManager) ListenStatusChanges(ctx context.Context, info *pb.Eve
 	em.ds.Add(info)
 	return &pb.ListenStatusChangesResult{}, nil
 }
-func (em *P2PEventManager) UnlistenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.UnlistenStatusChangesResult, error) {
+func (em *Controller) UnlistenStatusChanges(ctx context.Context, info *pb.EventDelivererInfo) (*pb.UnlistenStatusChangesResult, error) {
 	em.lock.Lock()
 	defer em.lock.Unlock()
 
@@ -54,7 +54,7 @@ func (em *P2PEventManager) UnlistenStatusChanges(ctx context.Context, info *pb.E
 	em.ds.Remove(info)
 	return &pb.UnlistenStatusChangesResult{}, nil
 }
-func (em *P2PEventManager) notifyListenChanged(ctx context.Context, eventType pb.EventType) {
+func (em *Controller) notifyListenChanged(ctx context.Context, eventType pb.EventType) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
