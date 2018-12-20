@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/events/p2p"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"os"
@@ -19,7 +20,7 @@ func Main() int {
 	_ = ctx
 
 	manager := proto2.SubsystemManager{}
-	manager.Add(&ControllerSubsystem{})
+	manager.Add(&p2p.ControllerSubsystem{})
 	manager.Add(&ExampleSubsystem{})
 
 	if errs := manager.Setup(ctx); len(errs) > 0 {
