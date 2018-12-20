@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/events/p2p"
 	"gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
@@ -13,6 +14,15 @@ func Main() int {
 	logger, _ := zap.NewDevelopment()
 	zap.ReplaceGlobals(logger)
 	defer zap.S().Sync()
+
+	conf, err := loadFromEnvironment()
+	if err != nil {
+		zap.S().Fatalw("config", "error", err.Error())
+		return 1
+	}
+	fmt.Println(err)
+	fmt.Println(conf)
+	_ = conf
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
