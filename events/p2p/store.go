@@ -1,7 +1,9 @@
 package p2p
 
 import (
+	"fmt"
 	pb "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
+	"strings"
 )
 
 type ServerID string
@@ -120,4 +122,17 @@ func (s *unsafeServerStore) Search(query *pb.ServerQuery, fn func(info *pb.Serve
 		}
 	}
 	return nil
+}
+func (s *unsafeServerStore) Dump() string {
+	b := strings.Builder{}
+	fmt.Fprintln(&b, "<unsafeServerStore>")
+	for key, server := range s.m {
+		fmt.Fprintf(&b, "  %s/%s: id=%s, address=%s\n",
+			key.subsystem,
+			key.service,
+			server.Guid,
+			server.Address,
+		)
+	}
+	return b.String()
 }
