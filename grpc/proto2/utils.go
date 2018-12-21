@@ -42,9 +42,27 @@ func WithGrpcConn(addr net.Addr, fn func(conn *grpc.ClientConn) error) error {
 }
 
 func ConnectOtherSubsystem(ctx context.Context, subsystemType SubsystemType, discoverer ServiceDiscoverer, fn func(conn *grpc.ClientConn) error) error {
-	addr, err := discoverer.Get(ctx, subsystemType)
+	var addr net.Addr
+	var err error
+
+	switch subsystemType {
+	case SubsystemType_ControllerSubsystemType:
+		addr, err = discoverer.GetWithServiceType(ctx,
+			SubsystemType_ControllerSubsystemType,
+			ServiceType_ControllerServiceType)
+	default:
+		addr, err = discoverer.Get(ctx, subsystemType)
+	}
+
 	if err != nil {
 		return errors.Wrapf(err, "ServiceDiscoverer.Get(subsystem=%s)")
 	}
 	return WithGrpcConn(addr, fn)
+}
+
+func ConnectController(ctx context.Context, discoverer ServiceDiscoverer, fn func(c ControllerServiceClient) error) error {
+	return ConnectOtherSubsystem(ctx, SubsystemType_ControllerSubsystemType, discoverer, func(conn *grpc.ClientConn) error {
+		c := NewControllerServiceClient(conn)
+		return fn(c)
+	})
 }

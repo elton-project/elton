@@ -68,7 +68,12 @@ func (d *globalServiceDiscoverer) Get(ctx context.Context, subsystemType Subsyst
 func (d *globalServiceDiscoverer) GetWithServiceType(parentCtx context.Context, subsystemType SubsystemType, serviceType ServiceType) (addr net.Addr, err error) {
 	addr = d.LocalSD.Get(subsystemType, serviceType)
 	if addr != nil {
-		// fast path
+		// fast path (1)
+		return
+	}
+	if subsystemType == SubsystemType_ControllerSubsystemType && serviceType == ServiceType_ControllerServiceType {
+		// fast path (2)
+		addr = d.chooseController()
 		return
 	}
 
