@@ -79,7 +79,10 @@ func (s *ExampleDelivererService) Prestop(config *ServerConfig) error {
 		})
 		// TODO: resultの中身を見て、エラーチェックする
 		_ = result
-		return errors.Wrapf(err, "%s.Prestop()", s.Name())
+		// TODO: システム停止時に、controllerが先に終了してしまうとここでエラーが発生する。仕方がないので、当面はこのエラーは握りつぶす。
+		_ = err
+		return nil
+		//return errors.Wrapf(err, "%s.Prestop()", s.Name())
 	})
 }
 func (s *ExampleDelivererService) Stopped(config *ServerConfig) error {
