@@ -44,6 +44,8 @@ func (em *Controller) GetServerInfo(ctx context.Context, query *pb.ServerQuery) 
 	em.lock.Lock()
 	defer em.lock.Unlock()
 
+	// TODO: GetServerInfo()経由では、controllerのアドレスが取得できない。
+
 	var info *pb.ServerInfo
 	err := em.ss.Search(query, func(i *pb.ServerInfo) error {
 		info = i
