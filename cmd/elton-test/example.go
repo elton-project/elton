@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	. "gitlab.t-lab.cs.teu.ac.jp/kaimag/Elton/grpc/proto2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -63,17 +64,22 @@ func (s *ExampleDelivererService) Created(config *ServerConfig) error {
 }
 func (s *ExampleDelivererService) Running(config *ServerConfig) error {
 	return ConnectController(config.Ctx, config.Discoverer, func(c ControllerServiceClient) error {
-		// TODO: なにかする
-		c.ListenStatusChanges(config.Ctx, &EventDelivererInfo{
-			ServerInfo: NewServerInfo(nil),
+		result, err := c.ListenStatusChanges(config.Ctx, &EventDelivererInfo{
+			ServerInfo: &config.ServerInfo,
 		})
-		return nil
+		// TODO: resultの中身を見て、エラーチェックする
+		_ = result
+		return errors.Wrapf(err, "%s.Running()", s.Name())
 	})
 }
 func (s *ExampleDelivererService) Prestop(config *ServerConfig) error {
 	return ConnectController(config.Ctx, config.Discoverer, func(c ControllerServiceClient) error {
-		// TODO: なにかする
-		return nil
+		result, err := c.UnlistenStatusChanges(config.Ctx, &EventDelivererInfo{
+			ServerInfo: &config.ServerInfo,
+		})
+		// TODO: resultの中身を見て、エラーチェックする
+		_ = result
+		return errors.Wrapf(err, "%s.Prestop()", s.Name())
 	})
 }
 func (s *ExampleDelivererService) Stopped(config *ServerConfig) error {
