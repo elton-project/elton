@@ -20,6 +20,8 @@ type SubsystemManager struct {
 }
 
 func (m *SubsystemManager) init() {
+	SetSystemStatus(SystemStatus_SS_INIT_PHASE_0)
+
 	m.localSD = &localServiceDiscoverer{}
 	m.globalSD = &globalServiceDiscoverer{
 		Timeout: m.Config.RPCTimeout,
@@ -56,6 +58,10 @@ func (m *SubsystemManager) Add(subsystem Subsystem) {
 	}
 	m.subsystems = append(m.subsystems, subsystem)
 	m.managers = append(m.managers, mng)
+
+	if subsystem.SubsystemType() == SubsystemType_ControllerSubsystemType {
+		IsControllerServerRunning = true
+	}
 }
 func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
 	m.once.Do(m.init)
@@ -64,6 +70,8 @@ func (m *SubsystemManager) Setup(ctx context.Context) (errors []error) {
 			"error", "Setup() method was called two times")
 		panic("Setup() method was called two times")
 	}
+
+	SetSystemStatus(SystemStatus_SS_INIT_PHASE_1)
 
 	var wg sync.WaitGroup
 	defer wg.Wait()
@@ -116,6 +124,8 @@ func (m *SubsystemManager) Serve(parentCtx context.Context) (errors []error) {
 			handleErrors(s.Serve(ctx, mng))
 		}()
 	}
+
+	SetSystemStatus(SystemStatus_SS_INIT_PHASE_2)
 	return
 }
 
