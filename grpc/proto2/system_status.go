@@ -26,6 +26,7 @@ var allowedSystemStateTransitions = map[systemStateTransition]struct{}{
 	{SystemStatus_SS_OPERATING_RW, SystemStatus_SS_OPERATING_RW_TO_RO}: {},
 	{SystemStatus_SS_OPERATING_RW_TO_RO, SystemStatus_SS_OPERATING_RO}: {},
 	{SystemStatus_SS_OPERATING_RO, SystemStatus_SS_OPERATING_RW}:       {},
+	{SystemStatus_SS_OPERATING_RO, SystemStatus_SS_SHUTDOWN}:           {},
 }
 
 // SystemStatusを更新する。
