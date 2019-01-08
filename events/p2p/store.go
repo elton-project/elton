@@ -63,6 +63,13 @@ func (s *unsafeListenerStore) ListListeners(eventType pb.EventType) []*pb.EventL
 	for _, info := range s.m[eventType] {
 		list = append(list, info)
 	}
+
+	if eventType != pb.EventType_ET_ALL {
+		// 全てのイベントを監視しているEventListenerInfoも追加
+		for _, info := range s.m[pb.EventType_ET_ALL] {
+			list = append(list, info)
+		}
+	}
 	return list
 }
 
