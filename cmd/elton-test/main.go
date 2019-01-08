@@ -54,7 +54,11 @@ func Main() int {
 			ShutdownTimeout: 1 * time.Minute,  // TODO: update timeout
 		},
 	}
-	manager.Add(&p2p.ControllerSubsystem{})
+	if conf.ControllerListenAddr.Addr != nil {
+		// controllerがlistenするアドレスが指定されていた。
+		// なので、controller subsystemを起動する。
+		manager.Add(&p2p.ControllerSubsystem{})
+	}
 	manager.Add(&ExampleSubsystem{})
 
 	if errs := manager.Setup(ctx); len(errs) > 0 {
