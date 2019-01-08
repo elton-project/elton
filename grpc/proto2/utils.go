@@ -55,7 +55,7 @@ func ConnectOtherSubsystem(ctx context.Context, subsystemType SubsystemType, dis
 	}
 
 	if err != nil {
-		return errors.Wrapf(err, "ServiceDiscoverer.Get(subsystem=%s)")
+		return errors.Wrapf(err, "ServiceDiscoverer.Get(subsystem=%s)", subsystemType)
 	}
 	return WithGrpcConn(addr, fn)
 }
