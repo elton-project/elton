@@ -8,9 +8,27 @@ import (
 	"go.uber.org/zap"
 	"io"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
+func handleSignals(cancel context.CancelFunc, signals ...os.Signal) {
+	stopSignal := make(chan os.Signal, 2)
+	signal.Notify(stopSignal, signals...)
+
+	<-stopSignal
+	cancel()
+
+	go func() {
+		// close()する前に送信されたシグナルを捨てる。
+		for range stopSignal {
+		}
+	}()
+
+	signal.Stop(stopSignal)
+	close(stopSignal)
+}
 func Main() int {
 	logger, _ := zap.NewDevelopment()
 	zap.ReplaceGlobals(logger)
@@ -22,8 +40,9 @@ func Main() int {
 		return 1
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	go handleSignals(cancel, syscall.SIGTERM, syscall.SIGINT)
 
 	manager := proto2.SubsystemManager{
 		Config: &proto2.Config{
