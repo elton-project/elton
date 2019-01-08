@@ -70,13 +70,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3638dd58eb7a77bb1ed3f57e81f46ce636f0325f68e0900bb9170f71df93b9bc"
+  digest = "1:682e7e3789287aba88b1d2394d7770517b531ad2c5a17996cc8259a4668c9d15"
   name = "github.com/golang/protobuf"
   packages = [
+    "jsonpb",
     "proto",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/struct",
     "ptypes/timestamp",
   ]
   pruneopts = "UT"
@@ -97,6 +99,21 @@
   pruneopts = "UT"
   revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
   version = "v1.6.2"
+
+[[projects]]
+  digest = "1:6d9ec638c0f60d01a25e43940f20dff30cf8b468371ea4df54cbc5b73e07e223"
+  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+  packages = [
+    ".",
+    "logging",
+    "logging/zap",
+    "logging/zap/ctxzap",
+    "tags",
+    "tags/zap",
+  ]
+  pruneopts = "UT"
+  revision = "c250d6563d4d4c20252cd865923440e829844f4e"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -308,6 +325,9 @@
     "github.com/docker/go-plugins-helpers/volume",
     "github.com/golang/protobuf/proto",
     "github.com/gorilla/mux",
+    "github.com/grpc-ecosystem/go-grpc-middleware",
+    "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
+    "github.com/grpc-ecosystem/go-grpc-middleware/tags",
     "github.com/hanwen/go-fuse/fuse",
     "github.com/hanwen/go-fuse/fuse/nodefs",
     "github.com/higanworks/envmap",

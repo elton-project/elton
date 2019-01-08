@@ -2,6 +2,9 @@ package proto2
 
 import (
 	"context"
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -11,7 +14,16 @@ import (
 
 func WithGrpcServer(parent_ctx context.Context, fn func(srv *grpc.Server) error) (err error) {
 	var wg sync.WaitGroup
-	srv := grpc.NewServer()
+
+	srv := grpc.NewServer(
+		// gRPCのログは、zapに流す。
+		grpc_middleware.WithStreamServerChain(
+			grpc_ctxtags.StreamServerInterceptor(),
+			grpc_zap.StreamServerInterceptor(zap.L())),
+		grpc_middleware.WithUnaryServerChain(
+			grpc_ctxtags.UnaryServerInterceptor(),
+			grpc_zap.UnaryServerInterceptor(zap.L())),
+	)
 
 	ctx, cancel := context.WithCancel(parent_ctx)
 	wg.Add(2)
