@@ -13,7 +13,7 @@ type Config struct {
 
 type ControllerConfig struct {
 	// controllerがlistenするアドレス。
-	// controllerを起動しないノードでこれを指定しても、何も影響しない。
+	// controllerを起動しないノードでは、nilになる。
 	ListenAddr net.Addr
 	// 初期ノードのアドレス。
 	// 他のノードのアドレスは、初期ノードから取得してくるr。
