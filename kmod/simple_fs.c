@@ -32,6 +32,7 @@ static struct dentry *mount(struct file_system_type *fs_type,
 static void kill_sb(struct super_block *sb);
 
 
+static bool is_registered = 0;
 static struct file_system_type simplefs_type = {
 	.name = FS_NAME,
 	.mount = mount,
@@ -78,6 +79,7 @@ static int __init fs_module_init(void) {
 		return error;
 	}
 
+	is_registered = 1;
 	INFO("The module loaded");
 	return 0;
 }
@@ -86,9 +88,11 @@ static void __exit fs_module_exit(void) {
 	int error;
 	DEBUG("Unloading the module ...");
 
-	error = unregister_filesystem(&simplefs_type);
-	if(CHECK_ERROR(error)) {
-		return;
+	if(is_registered) {
+		error = unregister_filesystem(&simplefs_type);
+		if(CHECK_ERROR(error)) {
+			return;
+		}
 	}
 
 	INFO("The module unloaded");
