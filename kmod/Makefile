@@ -13,7 +13,7 @@ all: build test
 build:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
-test: insmod test_fs rmmod
+test: force_rmmod insmod test_fs rmmod
 
 insmod:
 	insmod $(MODULE_NAME).ko
@@ -26,4 +26,7 @@ test_fs:
 
 rmmod:
 	rmmod $(MODULE_NAME)
+
+force_rmmod:
+	rmmod $(MODULE_NAME) || :
 
