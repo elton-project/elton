@@ -1,4 +1,5 @@
 MODULE_NAME := simple_fs
+FS_NAME := simple_fs
 
 obj-m := $(MODULE_NAME).o
 
@@ -20,6 +21,8 @@ insmod:
 test_fs:
 	# Check if the module is loaded.
 	grep $(MODULE_NAME) /proc/modules
+	# Check if the fs is mountable.
+	mount -t $(FS_NAME) dummy /mnt
 
 rmmod:
 	rmmod $(MODULE_NAME)
