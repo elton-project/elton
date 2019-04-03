@@ -23,6 +23,7 @@
 
 
 static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
+	// not implemented
 	return -ENOSYS;
 }
 static struct dentry *mount(struct file_system_type *fs_type,
