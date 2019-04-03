@@ -19,12 +19,48 @@
 	} \
 	error; \
 })
+#define ASSERT_NOT_NULL(p) ({ \
+	if(!p) { \
+		ERR(#p " is NULL "); \
+		BUG_ON(p); \
+	} \
+	p; \
+})
 
+static struct dentry *mount(struct file_system_type *fs_type,
+		int flags, const char *dev_name, void *data);
+static void kill_sb(struct super_block *sb);
+
+
+static struct file_system_type simplefs_type = {
+	.name = FS_NAME,
+	.mount = mount,
+	.kill_sb = kill_sb,
+	.fs_flags = 0
+};
+static struct super_operations simplefs_s_op = {
+	// TODO
+};
 
 
 static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
-	// not implemented
-	return -ENOSYS;
+	struct inode *inode;
+	struct dentry *root;
+
+	save_mount_options(sb, data);
+	sb->s_blocksize_bits = PAGE_SHIFT;
+	sb->s_blocksize = PAGE_SIZE;
+	sb->s_maxbytes = PAGE_SIZE;
+	sb->s_type = &simplefs_type;
+	sb->s_op = &simplefs_s_op;
+	sb->s_time_gran = 1;
+
+	inode = new_inode(sb);
+	ASSERT_NOT_NULL(inode);
+	root = d_make_root(inode);
+	ASSERT_NOT_NULL(root);
+	sb->s_root = root;
+	return 0;
 }
 static struct dentry *mount(struct file_system_type *fs_type,
 		int flags, const char *dev_name, void *data) {
@@ -32,13 +68,6 @@ static struct dentry *mount(struct file_system_type *fs_type,
 }
 static void kill_sb(struct super_block *sb) {}
 
-
-static struct file_system_type simplefs_type = {
-	.name = "simple_fs",
-	.mount = mount,
-	.kill_sb = kill_sb,
-	.fs_flags = 0
-};
 
 static int __init fs_module_init(void) {
 	int error;
