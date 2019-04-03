@@ -40,7 +40,9 @@ static struct file_system_type simplefs_type = {
 	.fs_flags = 0
 };
 static struct super_operations simplefs_s_op = {
-	// TODO
+	.statfs		= simple_statfs,
+	.drop_inode	= generic_delete_inode,
+	.show_options	= generic_show_options,
 };
 
 
