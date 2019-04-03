@@ -2,6 +2,7 @@
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/dcache.h>
+#include <linux/pagemap.h>
 
 #define MODULE_NAME "simple_fs"
 #define FS_NAME MODULE_NAME
@@ -44,7 +45,52 @@ static struct super_operations simplefs_s_op = {
 	.drop_inode	= generic_delete_inode,
 	.show_options	= generic_show_options,
 };
+static struct address_space_operations simplefs_aops = {
+	.readpage	= simple_readpage,
+	.write_begin	= simple_write_begin,
+	.write_end	= simple_write_end,
+	.set_page_dirty	= set_page_dirty,
+};
+static struct inode_operations simplefs_file_inode_operations = {};
+static struct inode_operations simplefs_dir_inode_operations = {};
+const struct file_operations simplefs_file_operations = {};
 
+struct inode *simplefs_get_inode(struct super_block *sb,
+				const struct inode *dir, umode_t mode, dev_t dev) {
+	struct inode *inode;
+	inode = new_inode(sb);
+	if(! inode) {
+		return inode;
+	}
+
+	inode->i_ino = get_next_ino();
+	inode_init_owner(inode, dir, mode);
+	inode->i_mapping->a_ops = &simplefs_aops;
+	mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
+	mapping_set_unevictable(inode->i_mapping);
+	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+	switch (mode & S_IFMT) {
+	default:
+		init_special_inode(inode, mode, dev);
+		break;
+	case S_IFREG:
+		inode->i_op = &simplefs_file_inode_operations;
+		inode->i_fop = &simplefs_file_operations;
+		break;
+	case S_IFDIR:
+		inode->i_op = &simplefs_dir_inode_operations;
+		inode->i_fop = &simple_dir_operations;
+
+		/* directory inodes start off with i_nlink == 2 (for "." entry) */
+		inc_nlink(inode);
+		break;
+	case S_IFLNK:
+		inode->i_op = &page_symlink_inode_operations;
+		inode_nohighmem(inode);
+		break;
+	}
+	return inode;
+}
 
 static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct inode *inode;
@@ -59,7 +105,7 @@ static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	sb->s_op = &simplefs_s_op;
 	sb->s_time_gran = 1;
 
-	inode = new_inode(sb);
+	inode = simplefs_get_inode(sb, NULL, S_IFDIR, 0);
 	ASSERT_NOT_NULL(inode);
 	root = d_make_root(inode);
 	ASSERT_NOT_NULL(root);
