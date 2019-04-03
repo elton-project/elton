@@ -13,11 +13,11 @@
 
 // エラーならtrueを返す。
 // また、エラー発生時にログを残す。
-#define CHECK_ERROR(ret) ({ \
-	if(ret) { \
-		ERR("Occurred an error %d on %s (%s:%d)", ret, __func__, __FILE__, __LINE__); \
+#define CHECK_ERROR(error) ({ \
+	if(error) { \
+		ERR("Occurred an error %d on %s (%s:%d)", error, __func__, __FILE__, __LINE__); \
 	} \
-	ret; \
+	error; \
 })
 
 
@@ -40,12 +40,12 @@ static struct file_system_type simplefs_type = {
 };
 
 static int __init fs_module_init(void) {
-	int ret;
+	int error;
 	DEBUG("Loading the module ...");
 
-	ret = register_filesystem(&simplefs_type);
-	if(CHECK_ERROR(ret)) {
-		return ret;
+	error = register_filesystem(&simplefs_type);
+	if(CHECK_ERROR(error)) {
+		return error;
 	}
 
 	INFO("The module loaded");
@@ -53,11 +53,11 @@ static int __init fs_module_init(void) {
 }
 
 static void __exit fs_module_exit(void) {
-	int ret;
+	int error;
 	DEBUG("Unloading the module ...");
 
-	ret = unregister_filesystem(&simplefs_type);
-	if(CHECK_ERROR(ret)) {
+	error = unregister_filesystem(&simplefs_type);
+	if(CHECK_ERROR(error)) {
 		return;
 	}
 
