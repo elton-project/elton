@@ -48,6 +48,7 @@ static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct inode *inode;
 	struct dentry *root;
 
+	DEBUG("Preparing for super block ...");
 	save_mount_options(sb, data);
 	sb->s_blocksize_bits = PAGE_SHIFT;
 	sb->s_blocksize = PAGE_SIZE;
@@ -61,6 +62,7 @@ static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	root = d_make_root(inode);
 	ASSERT_NOT_NULL(root);
 	sb->s_root = root;
+	DEBUG("Prepared the super block");
 	return 0;
 }
 static struct dentry *mount(struct file_system_type *fs_type,
