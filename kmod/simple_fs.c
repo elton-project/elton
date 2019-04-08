@@ -39,7 +39,6 @@ static struct inode_operations simplefs_dir_inode_operations;
 static struct file_operations simplefs_file_operations;
 
 
-
 struct inode *simplefs_get_inode(struct super_block *sb,
 				const struct inode *dir, umode_t mode, dev_t dev) {
 	struct inode *inode;
@@ -75,6 +74,21 @@ struct inode *simplefs_get_inode(struct super_block *sb,
 		break;
 	}
 	return inode;
+}
+
+int simplefs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev) {
+	struct inode *inode = simplefs_get_inode(dir->i_sb, dir, mode, dev);
+	if(! inode) {
+		return -ENOSPC;
+	}
+	d_instantiate(dentry, inode);
+	dget(dentry);
+	dir->i_mtime = dir->i_ctime = current_time(dir);
+	return 0;
+}
+
+int simplefs_create(struct inode *dir, struct dentry *dentry, umode_t mode, bool excl) {
+	return simplefs_mknod(dir, dentry, mode | S_IFREG, 0);
 }
 
 static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
@@ -157,14 +171,14 @@ static struct inode_operations simplefs_file_inode_operations = {
 };
 static struct inode_operations simplefs_dir_inode_operations = {
 	// TODO
-	.create = NULL,
+	.create = simplefs_create,
 	.lookup = NULL,
 	.link = NULL,
 	.unlink = NULL,
 	.symlink = NULL,
 	.mkdir = NULL,
 	.rmdir = NULL,
-	.mknod = NULL,
+	.mknod = simplefs_mknod,
 	.rename = NULL,
 };
 static struct file_operations simplefs_file_operations = {
