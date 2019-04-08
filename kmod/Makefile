@@ -31,9 +31,13 @@ test_fs:
 	rm /mnt/a
 
 rmmod:
+	umount /mnt
 	rmmod $(MODULE_NAME)
 
 force_rmmod:
+	# umount
+	umount /mnt || :
+	! grep /proc/mounts /mnt
+	# unload the module.
 	rmmod $(MODULE_NAME) || :
-	# Check if the module is NOT loaded.
 	! grep $(MODULE_NAME) /proc/modules
