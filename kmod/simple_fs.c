@@ -28,32 +28,17 @@
 	p; \
 })
 
-static struct dentry *mount(struct file_system_type *fs_type,
-		int flags, const char *dev_name, void *data);
-static void kill_sb(struct super_block *sb);
 
 
 static bool is_registered = 0;
-static struct file_system_type simplefs_type = {
-	.name = FS_NAME,
-	.mount = mount,
-	.kill_sb = kill_sb,
-	.fs_flags = 0
-};
-static struct super_operations simplefs_s_op = {
-	.statfs		= simple_statfs,
-	.drop_inode	= generic_delete_inode,
-	.show_options	= generic_show_options,
-};
-static struct address_space_operations simplefs_aops = {
-	.readpage	= simple_readpage,
-	.write_begin	= simple_write_begin,
-	.write_end	= simple_write_end,
-	.set_page_dirty	= set_page_dirty,
-};
-static struct inode_operations simplefs_file_inode_operations = {};
-static struct inode_operations simplefs_dir_inode_operations = {};
-const struct file_operations simplefs_file_operations = {};
+static struct file_system_type simplefs_type;
+static struct super_operations simplefs_s_op;
+static struct address_space_operations simplefs_aops;
+static struct inode_operations simplefs_file_inode_operations;
+static struct inode_operations simplefs_dir_inode_operations;
+static struct file_operations simplefs_file_operations;
+
+
 
 struct inode *simplefs_get_inode(struct super_block *sb,
 				const struct inode *dir, umode_t mode, dev_t dev) {
@@ -147,6 +132,31 @@ static void __exit fs_module_exit(void) {
 
 	INFO("The module unloaded");
 }
+
+
+
+static struct file_system_type simplefs_type = {
+	.name = FS_NAME,
+	.mount = mount,
+	.kill_sb = kill_sb,
+	.fs_flags = 0
+};
+static struct super_operations simplefs_s_op = {
+	.statfs		= simple_statfs,
+	.drop_inode	= generic_delete_inode,
+	.show_options	= generic_show_options,
+};
+static struct address_space_operations simplefs_aops = {
+	.readpage	= simple_readpage,
+	.write_begin	= simple_write_begin,
+	.write_end	= simple_write_end,
+	.set_page_dirty	= set_page_dirty,
+};
+static struct inode_operations simplefs_file_inode_operations = {};
+static struct inode_operations simplefs_dir_inode_operations = {};
+static struct file_operations simplefs_file_operations = {};
+
+
 
 module_init(fs_module_init);
 module_exit(fs_module_exit);
