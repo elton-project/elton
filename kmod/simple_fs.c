@@ -152,9 +152,24 @@ static struct address_space_operations simplefs_aops = {
 	.write_end	= simple_write_end,
 	.set_page_dirty	= set_page_dirty,
 };
-static struct inode_operations simplefs_file_inode_operations = {};
-static struct inode_operations simplefs_dir_inode_operations = {};
-static struct file_operations simplefs_file_operations = {};
+static struct inode_operations simplefs_file_inode_operations = {
+	// TODO
+};
+static struct inode_operations simplefs_dir_inode_operations = {
+	// TODO
+	.create = NULL,
+	.lookup = NULL,
+	.link = NULL,
+	.unlink = NULL,
+	.symlink = NULL,
+	.mkdir = NULL,
+	.rmdir = NULL,
+	.mknod = NULL,
+	.rename = NULL,
+};
+static struct file_operations simplefs_file_operations = {
+	// TODO
+};
 
 
 
