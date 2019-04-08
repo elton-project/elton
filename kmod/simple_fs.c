@@ -91,6 +91,35 @@ int simplefs_create(struct inode *dir, struct dentry *dentry, umode_t mode, bool
 	return simplefs_mknod(dir, dentry, mode | S_IFREG, 0);
 }
 
+int simplefs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode) {
+	int error = simplefs_mknod(dir, dentry, mode | S_IFDIR, 0);
+	if(error) {
+		return error;
+	}
+	inc_nlink(dir);
+	return 0;
+}
+
+int simplefs_symlink(struct inode *dir, struct dentry *dentry, const char *symname) {
+	struct inode *inode;
+	int len, error;
+
+	inode = simplefs_get_inode(dir->i_sb, dir, S_IFLNK | S_IRWXUGO, 0);
+	if(! inode) {
+		return -ENOSPC;
+	}
+	len = strlen(symname) + 1;
+	// TODO: allocate physical pages.
+	error = page_symlink(inode, symname, len);
+	if(error){
+		iput(inode);
+	}
+	d_instantiate(dentry, inode);
+	dget(dentry);
+	dir->i_mtime = dir->i_ctime = current_time(dir);
+	return 0;
+}
+
 static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct inode *inode;
 	struct dentry *root;
@@ -172,14 +201,14 @@ static struct inode_operations simplefs_file_inode_operations = {
 static struct inode_operations simplefs_dir_inode_operations = {
 	// TODO
 	.create = simplefs_create,
-	.lookup = NULL,
-	.link = NULL,
-	.unlink = NULL,
-	.symlink = NULL,
-	.mkdir = NULL,
-	.rmdir = NULL,
+	.lookup = simple_lookup,
+	.link = simple_link,
+	.unlink = simple_unlink,
+	.symlink = simplefs_symlink,
+	.mkdir = simplefs_mkdir,
+	.rmdir = simple_rmdir,
 	.mknod = simplefs_mknod,
-	.rename = NULL,
+	.rename = simple_rename,
 };
 static struct file_operations simplefs_file_operations = {
 	// TODO
