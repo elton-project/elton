@@ -29,6 +29,8 @@ test_fs:
 	# echo foo >/mnt/a
 	# cmp /mnt/a <(echo foo)
 	ls /mnt
+	ls -l /mnt
+	stat /mnt/a
 	rm /mnt/a
 
 rmmod:
