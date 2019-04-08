@@ -23,10 +23,17 @@ test_fs:
 	grep $(MODULE_NAME) /proc/modules
 	# Check if the fs is mountable.
 	mount -t $(FS_NAME) dummy /mnt
+	# Test basic operations.
+	touch /mnt/a
+	echo foo >/mnt/a
+	cmp /mnt/a <(echo foo)
+	ls /mnt
+	rm /mnt/a
 
 rmmod:
 	rmmod $(MODULE_NAME)
 
 force_rmmod:
 	rmmod $(MODULE_NAME) || :
-
+	# Check if the module is NOT loaded.
+	! grep $(MODULE_NAME) /proc/modules
