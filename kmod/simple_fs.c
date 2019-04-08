@@ -199,7 +199,6 @@ static struct inode_operations simplefs_file_inode_operations = {
 	// TODO
 };
 static struct inode_operations simplefs_dir_inode_operations = {
-	// TODO
 	.create = simplefs_create,
 	.lookup = simple_lookup,
 	.link = simple_link,
