@@ -120,6 +120,10 @@ int simplefs_symlink(struct inode *dir, struct dentry *dentry, const char *symna
 	return 0;
 }
 
+static unsigned long simplefs_get_unmapped_area(struct file *file, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags) {
+	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
+}
+
 static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct inode *inode;
 	struct dentry *root;
@@ -211,7 +215,14 @@ static struct inode_operations simplefs_dir_inode_operations = {
 	.rename = simple_rename,
 };
 static struct file_operations simplefs_file_operations = {
-	// TODO
+	.read_iter = generic_file_read_iter,
+	.write_iter = generic_file_write_iter,
+	.mmap = generic_file_mmap,
+	.fsync = noop_fsync,
+	.splice_read = generic_file_splice_read,
+	.splice_write = iter_file_splice_write,
+	.llseek = generic_file_llseek,
+	.get_unmapped_area = simplefs_get_unmapped_area,
 };
 
 
