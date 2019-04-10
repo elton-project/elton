@@ -196,7 +196,8 @@ static struct address_space_operations simplefs_aops = {
 	.set_page_dirty	= set_page_dirty,
 };
 static struct inode_operations simplefs_file_inode_operations = {
-	// TODO
+	.setattr = simple_setattr,
+	.getattr = simple_getattr,
 };
 static struct inode_operations simplefs_dir_inode_operations = {
 	.create = simplefs_create,
