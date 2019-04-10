@@ -28,6 +28,7 @@ test_fs:
 	ls /mnt
 	ls -l /mnt
 	stat /mnt/a
+	chmod a=rw /mnt/a
 	echo foo >/mnt/a
 	cmp /mnt/a <(echo foo)
 	rm /mnt/a
