@@ -30,7 +30,7 @@ test_fs:
 	stat /mnt/a
 	chmod a=rw /mnt/a
 	echo foo >/mnt/a
-	cmp /mnt/a <(echo foo)
+	grep foo /mnt/a
 	rm /mnt/a
 
 rmmod:
