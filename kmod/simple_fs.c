@@ -76,6 +76,14 @@ struct inode *simplefs_get_inode(struct super_block *sb,
 	return inode;
 }
 
+static int simplefs_set_page_dirty(struct page *page) {
+	if(PageDirty(page)) {
+		return 0;
+	}
+	SetPagePrivate(page);
+	return 0;
+}
+
 int simplefs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev) {
 	struct inode *inode = simplefs_get_inode(dir->i_sb, dir, mode, dev);
 	if(! inode) {
@@ -197,7 +205,7 @@ static struct address_space_operations simplefs_aops = {
 	.readpage	= simple_readpage,
 	.write_begin	= simple_write_begin,
 	.write_end	= simple_write_end,
-	.set_page_dirty	= set_page_dirty,
+	.set_page_dirty	= simplefs_set_page_dirty,
 };
 static struct inode_operations simplefs_file_inode_operations = {
 	.setattr = simple_setattr,
