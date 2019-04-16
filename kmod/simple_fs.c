@@ -80,7 +80,7 @@ static int simplefs_set_page_dirty(struct page *page) {
 	if(PageDirty(page)) {
 		return 0;
 	}
-	SetPagePrivate(page);
+	SetPageDirty(page);
 	return 0;
 }
 
