@@ -39,7 +39,7 @@ static struct inode_operations simplefs_dir_inode_operations;
 static struct file_operations simplefs_file_operations;
 
 
-struct inode *simplefs_get_inode(struct super_block *sb,
+static struct inode *simplefs_get_inode(struct super_block *sb,
 				const struct inode *dir, umode_t mode, dev_t dev) {
 	struct inode *inode;
 	inode = new_inode(sb);
@@ -84,7 +84,7 @@ static int simplefs_set_page_dirty(struct page *page) {
 	return 0;
 }
 
-int simplefs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev) {
+static int simplefs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev) {
 	struct inode *inode = simplefs_get_inode(dir->i_sb, dir, mode, dev);
 	if(! inode) {
 		return -ENOSPC;
@@ -95,11 +95,11 @@ int simplefs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t
 	return 0;
 }
 
-int simplefs_create(struct inode *dir, struct dentry *dentry, umode_t mode, bool excl) {
+static int simplefs_create(struct inode *dir, struct dentry *dentry, umode_t mode, bool excl) {
 	return simplefs_mknod(dir, dentry, mode | S_IFREG, 0);
 }
 
-int simplefs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode) {
+static int simplefs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode) {
 	int error = simplefs_mknod(dir, dentry, mode | S_IFDIR, 0);
 	if(error) {
 		return error;
@@ -108,7 +108,7 @@ int simplefs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode) {
 	return 0;
 }
 
-int simplefs_symlink(struct inode *dir, struct dentry *dentry, const char *symname) {
+static int simplefs_symlink(struct inode *dir, struct dentry *dentry, const char *symname) {
 	struct inode *inode;
 	int len, error;
 
