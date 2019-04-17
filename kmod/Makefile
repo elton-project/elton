@@ -16,7 +16,7 @@ build:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 .PHONY: test
-test: force_rmmod insmod test_basic_op rmmod
+test: force_rmmod insmod test_basic_op test_syscalls rmmod
 
 .PHONY: insmod
 insmod:
@@ -37,6 +37,10 @@ test_basic_op:
 	echo foo >/mnt/a
 	grep foo /mnt/a
 	rm /mnt/a
+
+.PHONY: test_syscalls
+test_syscalls:
+	/opt/ltp/runltp -t 10m -d /mnt/tmp -S /mnt/out/skipfile -o /mnt/out/outfile
 
 .PHONY: rmmod
 rmmod:
