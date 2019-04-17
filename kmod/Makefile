@@ -13,7 +13,7 @@ all: build test
 build:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
-test: force_rmmod insmod test_fs rmmod
+test: force_rmmod insmod test_basic_op rmmod
 
 insmod:
 	insmod $(MODULE_NAME).ko
@@ -22,7 +22,7 @@ insmod:
 	# Check if the fs is mountable.
 	mount -t $(FS_NAME) dummy /mnt
 
-test_fs:
+test_basic_op:
 	# Test basic operations.
 	touch /mnt/a
 	ls /mnt
