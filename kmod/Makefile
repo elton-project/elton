@@ -8,13 +8,17 @@ obj-m := $(MODULE_NAME).o
 KDIR := /lib/modules/$(shell uname -r)/build
 
 
+.PHONY: all
 all: build test
 
+.PHONY: build
 build:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
+.PHONY: test
 test: force_rmmod insmod test_basic_op rmmod
 
+.PHONY: insmod
 insmod:
 	insmod $(MODULE_NAME).ko
 	# Check if the module is loaded.
@@ -22,6 +26,7 @@ insmod:
 	# Check if the fs is mountable.
 	mount -t $(FS_NAME) dummy /mnt
 
+.PHONY: test_basic_op
 test_basic_op:
 	# Test basic operations.
 	touch /mnt/a
@@ -33,10 +38,12 @@ test_basic_op:
 	grep foo /mnt/a
 	rm /mnt/a
 
+.PHONY: rmmod
 rmmod:
 	umount /mnt
 	rmmod $(MODULE_NAME)
 
+.PHONY: force_rmmod
 force_rmmod:
 	# umount
 	umount /mnt || :
