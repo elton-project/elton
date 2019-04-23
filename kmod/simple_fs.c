@@ -3,6 +3,7 @@
 #include <linux/fs.h>
 #include <linux/dcache.h>
 #include <linux/pagemap.h>
+#include <linux/seq_file.h>
 
 #define MODULE_NAME "simple_fs"
 #define FS_NAME MODULE_NAME
@@ -137,7 +138,6 @@ static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct dentry *root;
 
 	DEBUG("Preparing for super block ...");
-	save_mount_options(sb, data);
 	sb->s_blocksize_bits = PAGE_SHIFT;
 	sb->s_blocksize = PAGE_SIZE;
 	sb->s_maxbytes = 1<<30;  // 1GiB
@@ -158,6 +158,11 @@ static struct dentry *mount(struct file_system_type *fs_type,
 	return mount_nodev(fs_type, flags, data, simplefs_fill_super);
 }
 static void kill_sb(struct super_block *sb) {}
+// Display the mount options in /proc/mounts.
+static int simplefs_show_options(struct seq_file *m, struct dentry *root) {
+	// seq_puts(m, ",default");
+	return 0;
+}
 
 
 static int __init fs_module_init(void) {
@@ -199,7 +204,7 @@ static struct file_system_type simplefs_type = {
 static struct super_operations simplefs_s_op = {
 	.statfs		= simple_statfs,
 	.drop_inode	= generic_delete_inode,
-	.show_options	= generic_show_options,
+	.show_options	= simplefs_show_options,
 };
 static struct address_space_operations simplefs_aops = {
 	.readpage	= simple_readpage,
