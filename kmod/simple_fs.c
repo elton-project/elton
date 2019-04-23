@@ -196,6 +196,7 @@ static void __exit fs_module_exit(void) {
 
 
 static struct file_system_type simplefs_type = {
+	.owner = THIS_MODULE,
 	.name = FS_NAME,
 	.mount = mount,
 	.kill_sb = kill_sb,
