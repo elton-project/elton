@@ -244,6 +244,7 @@ static struct file_operations simplefs_file_operations = {
 module_init(fs_module_init);
 module_exit(fs_module_exit);
 
+MODULE_ALIAS_FS("simple");
 MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR("yuuki0xff <yuuki0xff@gmail.com>");
 MODULE_DESCRIPTION(MODULE_NAME " module");
