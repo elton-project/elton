@@ -41,7 +41,8 @@ test_basic_op:
 
 .PHONY: test_syscalls
 test_syscalls:
-	/opt/ltp/runltp -t 10m -d /mnt/tmp -S /mnt/out/skipfile -o /mnt/out/outfile
+	mkdir -p /mnt/tmp /mnt/out
+	/opt/ltp/runltp -R -d /mnt/tmp -S /mnt/out/skipfile -o /mnt/out/outfile
 
 .PHONY: rmmod
 rmmod:
