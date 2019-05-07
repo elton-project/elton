@@ -133,6 +133,38 @@ static unsigned long simplefs_get_unmapped_area(struct file *file, unsigned long
 	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
 }
 
+static long simplefs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
+	struct inode *inode = file_inode(file);
+	unsigned int flags;
+
+	switch(cmd) {
+		case FS_IOC_GETFLAGS: {
+			// TODO: 拡張属性に対応する。
+			flags = 0;
+			return put_user(flags, (int __user*)arg);
+		}
+		case FS_IOC_GETVERSION:
+			return put_user(inode->i_generation, (int __user*)arg);
+	}
+	return -ENOSYS;  // Not implemented
+}
+
+#ifdef CONFIG_COMPAT
+static long simplefs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
+	switch(cmd) {
+		case FS_IOC32_GETFLAGS:
+			cmd = FS_IOC_GETFLAGS;
+			break;
+		case FS_IOC32_GETVERSION:
+			cmd = FS_IOC_GETVERSION;
+			break;
+		default:
+			return -ENOSYS;
+	}
+	return simplefs_ioctl(file, cmd, arg);
+}
+#endif
+
 static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct inode *inode;
 	struct dentry *root;
@@ -237,6 +269,10 @@ static struct file_operations simplefs_file_operations = {
 	.splice_write = iter_file_splice_write,
 	.llseek = generic_file_llseek,
 	.get_unmapped_area = simplefs_get_unmapped_area,
+	.unlocked_ioctl = simplefs_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl = simplefs_compat_ioctl,  // for 32bit application.  See https://qiita.com/akachochin/items/94ba679b2941f55c1d2d
+#endif
 };
 
 
