@@ -172,7 +172,7 @@ static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	DEBUG("Preparing for super block ...");
 	sb->s_blocksize_bits = PAGE_SHIFT;
 	sb->s_blocksize = PAGE_SIZE;
-	sb->s_maxbytes = 1<<30;  // 1GiB
+	sb->s_maxbytes = MAX_LFS_FILESIZE;
 	sb->s_type = &simplefs_type;
 	sb->s_op = &simplefs_s_op;
 	sb->s_time_gran = 1;
