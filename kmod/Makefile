@@ -1,5 +1,6 @@
 MODULE_NAME := simple_fs
 FS_NAME := simple_fs
+LTP_DIR := /mnt/ltp
 
 obj-m := $(MODULE_NAME).o
 
@@ -41,8 +42,8 @@ test_basic_op:
 
 .PHONY: test_syscalls
 test_syscalls:
-	mkdir -p /mnt/tmp /mnt/out
-	/opt/ltp/runltp -R -d /mnt/tmp -S /mnt/out/skipfile -o /mnt/out/outfile
+	mkdir -p $(LTP_DIR)
+	/opt/ltp/runltp -R -d $(LTP_DIR) -S $(LTP_DIR)/skipfile -o $(LTP_DIR)/outfile
 
 .PHONY: rmmod
 rmmod:
