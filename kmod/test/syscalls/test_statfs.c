@@ -3,8 +3,7 @@
 
 int main(int argc, char **argv) {
 	struct statfs buf;
-	statfs("/mnt", &buf);
-	CHECK_ERROR();
+	CHECK_ERROR(statfs("/mnt", &buf));
 
 	printf(
 		"struct statfs {\n"

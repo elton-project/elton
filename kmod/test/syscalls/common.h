@@ -5,9 +5,12 @@
 #include <errno.h>
 #include <fcntl.h>  // For O_xxx constant values
 
-#define CHECK_ERROR() \
+#define CHECK_ERROR(expr) \
 	do{ \
-		if(errno != 0) { \
+		int ret; \
+		errno = 0; \
+		ret = (expr); \
+		if(ret && errno) { \
 			perror("ERROR"); \
 			exit(1); \
 		} \
