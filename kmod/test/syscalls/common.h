@@ -36,3 +36,8 @@
 		exit(1); \
 	}
 
+#define LOG_PRINTLN(level, msg) \
+	fprintf(stderr, "%s: %s  (%s:%d %s)\n", level, msg, __FILE__, __LINE__, __func__);
+
+#define LOG_INFO(msg) LOG_PRINTLN("INFO", msg)
+
