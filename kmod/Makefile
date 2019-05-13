@@ -17,7 +17,7 @@ build:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 .PHONY: test
-test: force_rmmod insmod test_basic_op test_syscalls rmmod
+test: force_rmmod insmod test_basic_op test_syscalls test_ltp rmmod
 
 .PHONY: insmod
 insmod:
@@ -42,6 +42,10 @@ test_basic_op:
 
 .PHONY: test_syscalls
 test_syscalls:
+	$(MAKE) -C test/syscalls
+
+.PHONY: test_ltp
+test_ltp:
 	mkdir -p $(LTP_DIR)
 	/opt/ltp/runltp -R -d $(LTP_DIR) -S $(LTP_DIR)/skipfile -o $(LTP_DIR)/outfile
 	# show failed test cases
