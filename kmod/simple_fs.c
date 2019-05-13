@@ -4,9 +4,11 @@
 #include <linux/dcache.h>
 #include <linux/pagemap.h>
 #include <linux/seq_file.h>
+#include <linux/statfs.h>
 
 #define MODULE_NAME "simple_fs"
 #define FS_NAME MODULE_NAME
+#define SIMPLEFS_SUPER_MAGIC 0x51891f5
 
 #define _PRINTLNK(level, fmt, ...) (printk(level MODULE_NAME ": " fmt "\n", ##__VA_ARGS__))
 #define DEBUG(fmt, ...) _PRINTLNK(KERN_DEBUG, fmt, ##__VA_ARGS__)
@@ -190,6 +192,27 @@ static struct dentry *mount(struct file_system_type *fs_type,
 	return mount_nodev(fs_type, flags, data, simplefs_fill_super);
 }
 static void kill_sb(struct super_block *sb) {}
+
+static int simplefs_statfs(struct dentry *dentry, struct kstatfs *buf) {
+	// TODO: ダミーデータではなく、本当の値を設定する。
+	int total_blocks = 10000;
+	int used_blocks = 1000;
+	int total_files = 1000;
+	int used_files = 50;
+
+	struct kstatfs stat = {
+		.f_type = SIMPLEFS_SUPER_MAGIC,
+		.f_bsize = PAGE_SIZE,
+		.f_blocks = total_blocks,
+		.f_bfree = total_blocks - used_blocks,
+		.f_bavail = total_blocks - used_blocks,
+		.f_files = total_files,
+		.f_ffree = total_files - used_files,
+	};
+	*buf = stat;
+	return 0;
+}
+
 // Display the mount options in /proc/mounts.
 static int simplefs_show_options(struct seq_file *m, struct dentry *root) {
 	// seq_puts(m, ",default");
@@ -235,7 +258,7 @@ static struct file_system_type simplefs_type = {
 	.fs_flags = 0
 };
 static struct super_operations simplefs_s_op = {
-	.statfs		= simple_statfs,
+	.statfs		= simplefs_statfs,
 	.drop_inode	= generic_delete_inode,
 	.show_options	= simplefs_show_options,
 };
