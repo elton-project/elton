@@ -1,3 +1,5 @@
+#include <linux/slab.h>
+#include <linux/mount.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
@@ -40,6 +42,13 @@ static struct address_space_operations simplefs_aops;
 static struct inode_operations simplefs_file_inode_operations;
 static struct inode_operations simplefs_dir_inode_operations;
 static struct file_operations simplefs_file_operations;
+
+struct simplefs_info {
+#ifdef SIMPLEFS_STATISTIC
+	unsigned long mmap_size;
+	rwlock_t mmap_size_lock;
+#endif
+};
 
 
 static struct inode *simplefs_get_inode(struct super_block *sb,
@@ -171,6 +180,12 @@ static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct inode *inode;
 	struct dentry *root;
 
+	struct simplefs_info *info = kmalloc(sizeof(struct simplefs_info), GFP_KERNEL);
+#ifdef SIMPLEFS_STATISTIC
+	rwlock_init(&info->mmap_size_lock);
+	info->mmap_size = 0;
+#endif
+
 	DEBUG("Preparing for super block ...");
 	sb->s_blocksize_bits = PAGE_SHIFT;
 	sb->s_blocksize = PAGE_SIZE;
@@ -178,6 +193,7 @@ static int simplefs_fill_super(struct super_block *sb, void *data, int silent) {
 	sb->s_type = &simplefs_type;
 	sb->s_op = &simplefs_s_op;
 	sb->s_time_gran = 1;
+	sb->s_fs_info = info;
 
 	inode = simplefs_get_inode(sb, NULL, S_IFDIR, 0);
 	ASSERT_NOT_NULL(inode);
@@ -248,6 +264,25 @@ static void __exit fs_module_exit(void) {
 	INFO("The module unloaded");
 }
 
+int simplefs_file_mmap(struct file *file, struct vm_area_struct *vma) {
+#ifdef SIMPLEFS_STATISTIC
+	struct simplefs_info *info = file->f_path.mnt->mnt_sb->s_fs_info;
+	unsigned long size = vma->vm_end - vma->vm_start;
+	int need_logging = 0;
+
+	write_lock(&info->mmap_size_lock);
+	if(info->mmap_size < size) {
+		info->mmap_size = size;
+		need_logging = 1;
+	}
+	write_unlock(&info->mmap_size_lock);
+
+	if(need_logging)
+		DEBUG("mmap size: file=%s, size=%ld", file->f_path.dentry->d_name.name, size);
+#endif
+
+	return generic_file_mmap(file, vma);
+}
 
 
 static struct file_system_type simplefs_type = {
@@ -286,7 +321,7 @@ static struct inode_operations simplefs_dir_inode_operations = {
 static struct file_operations simplefs_file_operations = {
 	.read_iter = generic_file_read_iter,
 	.write_iter = generic_file_write_iter,
-	.mmap = generic_file_mmap,
+	.mmap = simplefs_file_mmap,
 	.fsync = noop_fsync,
 	.splice_read = generic_file_splice_read,
 	.splice_write = iter_file_splice_write,

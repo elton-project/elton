@@ -1,6 +1,7 @@
 MODULE_NAME := simple_fs
 FS_NAME := simple_fs
 LTP_DIR := /mnt/ltp
+CC := gcc -DSIMPLEFS_STATISTIC
 
 obj-m := $(MODULE_NAME).o
 
