@@ -6,15 +6,22 @@
 #include <fcntl.h>  // For O_xxx constant values
 
 #define CHECK_ERROR(expr) \
-	do{ \
+	({ \
 		int ret; \
 		errno = 0; \
 		ret = (expr); \
-		if(ret && errno) { \
+		if(ret == -1 && errno) { \
 			perror("ERROR"); \
+			fprintf(stderr, \
+					"  Occurred on %s (%s:%d)\n" \
+					"  Expr: %s\n", \
+					__func__, __FILE__, __LINE__, \
+					#expr \
+					); \
 			exit(1); \
 		} \
-	}while(0)
+		ret; \
+	})
 
 #define ASSERT(expr, msg) \
 	if(! (expr)) { \
