@@ -48,6 +48,7 @@ test_syscalls:
 .PHONY: test_ltp
 test_ltp:
 	mkdir -p $(LTP_DIR)
+	ulimit -n `ulimit -Hn` && \
 	if /opt/ltp/runltp -s mmap -d $(LTP_DIR) -S $(LTP_DIR)/skipfile -o $(LTP_DIR)/outfile; then \
 		echo OK; \
 	else \
