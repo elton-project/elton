@@ -47,9 +47,11 @@ test_syscalls:
 .PHONY: test_ltp
 test_ltp:
 	mkdir -p $(LTP_DIR)
-	/opt/ltp/runltp -R -d $(LTP_DIR) -S $(LTP_DIR)/skipfile -o $(LTP_DIR)/outfile
-	# show failed test cases
-	sed -n '/^tag=/p; /^Summary:$$/,+4p' $(LTP_DIR)/outfile |grep -E -A2 -B5 '^failed   [^0]'
+	if /opt/ltp/runltp -s mmap -d $(LTP_DIR) -S $(LTP_DIR)/skipfile -o $(LTP_DIR)/outfile; then \
+		echo OK; \
+	else \
+		sed -n '/^tag=/p; /^Summary:$$/,+4p' $(LTP_DIR)/outfile |grep -E -A2 -B5 '^failed   [^0]'; \
+	fi
 
 .PHONY: rmmod
 rmmod:
