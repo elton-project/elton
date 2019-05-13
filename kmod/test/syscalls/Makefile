@@ -5,7 +5,9 @@ test_all: $(TEST_CACES)
 
 .SUFFIXES: .out .run
 .out.run:
+	@echo '================ start $< ================'
 	./$<
+	@echo '================ end $< ================'
 
 .SUFFIXES: .c .out
 .c.out:

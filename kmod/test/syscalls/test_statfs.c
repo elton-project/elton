@@ -5,14 +5,17 @@ int main(int argc, char **argv) {
 	struct statfs buf;
 	statfs("/mnt", &buf);
 	CHECK_ERROR();
+
 	printf(
-		"f_type = 0x%lx\n"
-		"f_bsize = %ld\n"
-		"f_blocks = %ld\n"
-		"f_bfree = %ld\n"
-		"f_bavail = %ld\n"
-		"f_files = %ld\n"
-		"f_ffree = %ld\n",
+		"struct statfs {\n"
+		"    f_type = 0x%lx\n"
+		"    f_bsize = %ld\n"
+		"    f_blocks = %ld\n"
+		"    f_bfree = %ld\n"
+		"    f_bavail = %ld\n"
+		"    f_files = %ld\n"
+		"    f_ffree = %ld\n"
+		"}\n",
 		buf.f_type,
 		buf.f_bsize,
 		buf.f_blocks,
