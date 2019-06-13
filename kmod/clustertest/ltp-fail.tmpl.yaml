@@ -44,7 +44,7 @@ specs:
             type: remote-shell
             commands:
               # Run the specified test case.
-              - '/opt/ltp/runltp -s {{r.cmd}} -p -d /mnt -l /logfile -o /outfile'
+              - '/opt/ltp/runltp -s {{r.cmd}} -p -d /mnt -l /logfile -o /outfile || :'
               # Show result
               - 'find /mnt -ls'
               - 'df -h'
