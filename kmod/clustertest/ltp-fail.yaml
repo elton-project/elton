@@ -42,7 +42,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -72,7 +72,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -102,7 +102,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -132,7 +132,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -162,7 +162,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -192,7 +192,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -222,7 +222,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -252,7 +252,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -282,7 +282,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -312,7 +312,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -342,7 +342,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -372,7 +372,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -402,7 +402,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -432,7 +432,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -462,7 +462,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -492,7 +492,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -522,7 +522,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -552,7 +552,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -582,7 +582,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -612,7 +612,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -642,7 +642,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -672,7 +672,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
@@ -702,7 +702,7 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://github.com/yuuki0xff/samplefs'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
               - 'cd samplefs/kmod && make build'
               - 'cd samplefs/kmod && make insmod'
           main:
