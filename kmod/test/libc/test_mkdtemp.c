@@ -3,8 +3,8 @@
 #include "common.h"
 
 int main(int argc, char **argv) {
-	char *name;
-	name = mkdtemp("/mnt/mkdtemp-testXXXXXX");
+	char template[] = "/mnt/mkdtemp-testXXXXXX";
+	char *name = mkdtemp(template);
 	if(name == NULL) {
 		PRINT_ERROR();
 		exit(1);
