@@ -11,4 +11,4 @@ test_all: $(TEST_CACES)
 
 .SUFFIXES: .c .out
 .c.out:
-	gcc -I../include -o $@ $<
+	gcc -ggdb -I../include -o $@ $<
