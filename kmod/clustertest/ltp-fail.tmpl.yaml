@@ -43,6 +43,7 @@ specs:
           main:
             type: remote-shell
             commands:
+              - 'chmod 1777 /mnt'
               # Run the specified test case.
               - '/opt/ltp/runltp -s {{r.cmd}} -p -d /mnt -l /logfile -o /outfile || :'
               # Show result

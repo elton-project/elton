@@ -45,6 +45,7 @@ specs:
           main:
             type: remote-shell
             commands:
+              - 'chmod 1777 /mnt'
               # Run the LTP.
               # Options:
               #   -t  -- running time
