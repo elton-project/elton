@@ -40,3 +40,4 @@ specs:
               # Run test cases.
               - 'cd samplefs/kmod && make test_basic_op'
               - 'cd samplefs/kmod && make test_syscalls'
+              - 'cd samplefs/kmod && make test_libc'

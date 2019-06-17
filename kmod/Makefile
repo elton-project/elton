@@ -18,7 +18,7 @@ build:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 .PHONY: test
-test: force_rmmod insmod test_basic_op test_syscalls rmmod
+test: force_rmmod insmod test_basic_op test_syscalls test_libc rmmod
 
 .PHONY: insmod
 insmod:
@@ -44,6 +44,10 @@ test_basic_op:
 .PHONY: test_syscalls
 test_syscalls:
 	$(MAKE) -C test/syscalls
+
+.PHONY: test_libc
+test_libc:
+	$(MAKE) -C test/libc
 
 .PHONY: test_ltp
 test_ltp:
