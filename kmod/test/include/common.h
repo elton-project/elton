@@ -5,6 +5,15 @@
 #include <errno.h>
 #include <fcntl.h>  // For O_xxx constant values
 
+#define PRINT_ERROR() \
+	do{ \
+		perror("ERROR"); \
+		fprintf(stderr, \
+				"  Occurred on %s (%s:%d)\n", \
+				__func__, __FILE__, __LINE__ \
+				); \
+	}while(0)
+
 #define CHECK_ERROR(expr) \
 	({ \
 		int ret; \

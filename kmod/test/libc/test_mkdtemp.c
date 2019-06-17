@@ -4,7 +4,10 @@
 
 int main(int argc, char **argv) {
 	char *name;
-	name = CHECK_ERROR(mkdtemp("/mnt/mkdtemp-testXXXXXX"));
+	name = mkdtemp("/mnt/mkdtemp-testXXXXXX");
+	if(name == NULL) {
+		PRINT_ERROR();
+	}
 	LOG_INFO(name);
 	return 0;
 }
