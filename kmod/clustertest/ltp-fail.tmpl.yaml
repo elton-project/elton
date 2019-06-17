@@ -27,7 +27,7 @@ specs:
     vms:
       {% for r in rules %}
       {{r.vmname}}:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2

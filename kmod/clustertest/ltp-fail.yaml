@@ -32,7 +32,7 @@ specs:
     vms:
       
       chmod03:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -62,7 +62,7 @@ specs:
               - 'cat /logfile'
       
       chmod04:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -92,7 +92,7 @@ specs:
               - 'cat /logfile'
       
       chroot01:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -122,7 +122,7 @@ specs:
               - 'cat /logfile'
       
       execveat03:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -152,7 +152,7 @@ specs:
               - 'cat /logfile'
       
       fchmod03:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -182,7 +182,7 @@ specs:
               - 'cat /logfile'
       
       fchmod04:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -212,7 +212,7 @@ specs:
               - 'cat /logfile'
       
       fchown03:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -242,7 +242,7 @@ specs:
               - 'cat /logfile'
       
       fchown03-16:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -272,7 +272,7 @@ specs:
               - 'cat /logfile'
       
       fcntl24:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -302,7 +302,7 @@ specs:
               - 'cat /logfile'
       
       fcntl24-64:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -332,7 +332,7 @@ specs:
               - 'cat /logfile'
       
       fcntl25:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -362,7 +362,7 @@ specs:
               - 'cat /logfile'
       
       fcntl25-64:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -392,7 +392,7 @@ specs:
               - 'cat /logfile'
       
       fcntl26:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -422,7 +422,7 @@ specs:
               - 'cat /logfile'
       
       fcntl26-64:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -452,7 +452,7 @@ specs:
               - 'cat /logfile'
       
       fcntl33:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -482,7 +482,7 @@ specs:
               - 'cat /logfile'
       
       fcntl33-64:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -512,7 +512,7 @@ specs:
               - 'cat /logfile'
       
       fstat02:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -542,7 +542,7 @@ specs:
               - 'cat /logfile'
       
       fstat02-64:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -572,7 +572,7 @@ specs:
               - 'cat /logfile'
       
       fstat05:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -602,7 +602,7 @@ specs:
               - 'cat /logfile'
       
       fstat05-64:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -632,7 +632,7 @@ specs:
               - 'cat /logfile'
       
       inotify07:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -662,7 +662,7 @@ specs:
               - 'cat /logfile'
       
       inotify08:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
@@ -692,7 +692,7 @@ specs:
               - 'cat /logfile'
       
       keyctl02:
-        template: template-ubuntu-19.04-ltp-20190612
+        template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
         nodes: 1
         processors: 2
