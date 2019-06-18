@@ -63,6 +63,9 @@ specs:
               - 'df -h'
               - 'free -h'
               - 'mount --all'
+          after:
+            type: remote-shell
+            commands:
               # Show logs
               - 'cat /outfile'
               - 'cat /logfile'
