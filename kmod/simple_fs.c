@@ -217,12 +217,19 @@ static int simplefs_statfs(struct dentry *dentry, struct kstatfs *buf) {
 	int used_files = 50;
 
 	struct kstatfs stat = {
+		/* Type of filesystem */
 		.f_type = SIMPLEFS_SUPER_MAGIC,
+		/* Optimal transfer block size */
 		.f_bsize = PAGE_SIZE,
+		/* Total data blocks in filesystem */
 		.f_blocks = total_blocks,
+		/* Free blocks in filesystem */
 		.f_bfree = total_blocks - used_blocks,
+		/* Free blocks available to unprivileged user */
 		.f_bavail = total_blocks - used_blocks,
+		/* Total file nodes in filesystem */
 		.f_files = total_files,
+		/* Free file nodes in filesystem */
 		.f_ffree = total_files - used_files,
 	};
 	*buf = stat;
