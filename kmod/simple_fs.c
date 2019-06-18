@@ -11,6 +11,7 @@
 #define MODULE_NAME "simple_fs"
 #define FS_NAME MODULE_NAME
 #define SIMPLEFS_SUPER_MAGIC 0x51891f5
+#define SIMPLEFS_NAME_LEN 255
 
 #define _PRINTLNK(level, fmt, ...) (printk(level MODULE_NAME ": " fmt "\n", ##__VA_ARGS__))
 #define DEBUG(fmt, ...) _PRINTLNK(KERN_DEBUG, fmt, ##__VA_ARGS__)
@@ -231,6 +232,14 @@ static int simplefs_statfs(struct dentry *dentry, struct kstatfs *buf) {
 		.f_files = total_files,
 		/* Free file nodes in filesystem */
 		.f_ffree = total_files - used_files,
+		/* Filesystem ID */
+		/* .f_fsid = ..., */
+		/* Maximum length of filenames */
+		.f_namelen = SIMPLEFS_NAME_LEN,
+		/* Fragment size (since Linux 2.6) */
+		/* .f_frsize = ..., */
+		/* Mount flags of filesystem (since Linux 2.6.36) */
+		/* .f_flags = , */
 	};
 	*buf = stat;
 	return 0;
