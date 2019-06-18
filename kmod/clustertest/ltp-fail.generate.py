@@ -4,14 +4,7 @@ env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 tpl = env.get_template('ltp-fail.tmpl.yaml')
 
 names = '''
-chmod03
-chmod04
-chroot01
 execveat03
-fchmod03
-fchmod04
-fchown03
-fchown03_16
 fcntl24
 fcntl24_64
 fcntl25
@@ -20,10 +13,6 @@ fcntl26
 fcntl26_64
 fcntl33
 fcntl33_64
-fstat02
-fstat02_64
-fstat05
-fstat05_64
 inotify07
 inotify08
 keyctl02
