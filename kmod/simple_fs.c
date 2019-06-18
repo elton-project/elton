@@ -325,6 +325,12 @@ static struct inode_operations simplefs_file_inode_operations = {
 };
 static struct inode_operations simplefs_dir_inode_operations = {
 	.create = simplefs_create,
+	// on-memory filesystemでは、保持しているファイルに対応するdentryは、必ず存在する。
+	// オンメモリファイルシステムでのlookupが呼び出されるタイミングは、存在しないファイル
+	// にアクセスしたときだけである。
+	// このため、simple_lookupは常にnegative dentryを返す。
+	//
+	// on-disk filesystemでは、lookup関数を自前実装する必要がある。
 	.lookup = simple_lookup,
 	.link = simple_link,
 	.unlink = simple_unlink,
