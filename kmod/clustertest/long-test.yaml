@@ -65,4 +65,5 @@ specs:
               - 'free -h'
               - 'mount --all'
               # Show logs
+              - 'cat /mnt/outfile'
               - 'cat /mnt/logfile'
