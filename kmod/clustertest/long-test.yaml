@@ -57,13 +57,12 @@ specs:
               #   -l  -- log file
               #   -o  -- output file
               # Note: runltp command will return exit code 1.  We should ignore it.
-              - 'touch /mnt/logfile /mnt/outfile'
-              - '/opt/ltp/runltp -t 10m -i 2 -m 4,50,10240,1 -D 4,100,80000,1 -p -d /mnt/tmp -l /mnt/logfile -o /mnt/outfile || :'
+              - '/opt/ltp/runltp -t 10m -i 2 -m 4,50,10240,1 -D 4,100,80000,1 -p -d /mnt/tmp -l /logfile -o /outfile || :'
               # Show result
               - 'find /mnt -ls'
               - 'df -h'
               - 'free -h'
               - 'mount --all'
               # Show logs
-              - 'cat /mnt/outfile'
-              - 'cat /mnt/logfile'
+              - 'cat /outfile'
+              - 'cat /logfile'
