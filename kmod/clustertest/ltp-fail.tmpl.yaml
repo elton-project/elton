@@ -50,7 +50,7 @@ specs:
               - 'find /mnt -ls'
               - 'df -h'
               - 'free -h'
-              - 'mount --all'
+              - 'mount'
           after:
             type: remote-shell
             commands:
