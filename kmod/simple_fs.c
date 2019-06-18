@@ -235,7 +235,7 @@ static int simplefs_statfs(struct dentry *dentry, struct kstatfs *buf) {
 		/* Filesystem ID */
 		/* .f_fsid = ..., */
 		/* Maximum length of filenames */
-		// .f_namelen = SIMPLEFS_NAME_LEN - 1,
+		.f_namelen = 100,
 		/* Fragment size (since Linux 2.6) */
 		/* .f_frsize = ..., */
 		/* Mount flags of filesystem (since Linux 2.6.36) */
