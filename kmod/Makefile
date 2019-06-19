@@ -1,9 +1,9 @@
-MODULE_NAME := simple_fs
-FS_NAME := simple_fs
+MODULE_NAME := eltonfs
+FS_NAME := elton
 LTP_DIR := /mnt/ltp
 CC := gcc -DSIMPLEFS_STATISTIC
 
-obj-m := $(MODULE_NAME).o
+obj-m := elton.o
 
 # Need following packages:
 #   * linux-headers-amd64
@@ -39,7 +39,7 @@ test_basic_op:
 	echo foo >/mnt/a
 	grep foo /mnt/a
 	rm /mnt/a
-	mount |grep /mnt |fgrep ' type simple_fs (rw,relatime)'
+	mount |grep /mnt |fgrep ' type $(MODULE_NAME) (rw,relatime)'
 
 .PHONY: test_syscalls
 test_syscalls:

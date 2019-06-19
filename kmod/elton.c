@@ -8,8 +8,8 @@
 #include <linux/seq_file.h>
 #include <linux/statfs.h>
 
-#define MODULE_NAME "simple_fs"
-#define FS_NAME MODULE_NAME
+#define MODULE_NAME "eltonfs"
+#define FS_NAME "elton"
 #define SIMPLEFS_SUPER_MAGIC 0x51891f5
 #define SIMPLEFS_NAME_LEN 255
 
