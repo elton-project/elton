@@ -35,7 +35,7 @@
 #define ASSERT(expr, msg) \
 	if(! (expr)) { \
 		fprintf(stderr, \
-				"ERROR: %s\n" \
+				"ASSERT: %s\n" \
 				"  Occurred on %s (%s:%d)\n" \
 				"  Expr: %s\n", \
 				msg, \
