@@ -9,6 +9,7 @@
 #include <linux/statfs.h>
 #include "elton.h"
 #include "assert.h"
+#include "xattr.h"
 
 static bool is_registered = 0;
 static struct file_system_type eltonfs_type;
@@ -162,6 +163,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
 	sb->s_op = &eltonfs_s_op;
 	sb->s_time_gran = 1;
 	sb->s_fs_info = info;
+	sb->s_xattr = elton_xattr_handlers;
 
 	inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
 	ASSERT_NOT_NULL(inode);
@@ -289,6 +291,7 @@ static struct address_space_operations eltonfs_aops = {
 static struct inode_operations eltonfs_file_inode_operations = {
 	.setattr = simple_setattr,
 	.getattr = simple_getattr,
+	.listxattr = elton_listxattr,
 };
 static struct inode_operations eltonfs_dir_inode_operations = {
 	.create = eltonfs_create,
@@ -306,6 +309,7 @@ static struct inode_operations eltonfs_dir_inode_operations = {
 	.rmdir = simple_rmdir,
 	.mknod = eltonfs_mknod,
 	.rename = simple_rename,
+	.listxattr = elton_listxattr,
 };
 static struct file_operations eltonfs_file_operations = {
 	.read_iter = generic_file_read_iter,
