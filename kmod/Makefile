@@ -1,7 +1,7 @@
 MODULE_NAME := eltonfs
 FS_NAME := elton
 LTP_DIR := /mnt/ltp
-CC := gcc -DSIMPLEFS_STATISTIC
+CC := gcc -DELTONFS_STATISTIC
 
 obj-m := elton.o
 
