@@ -7,34 +7,8 @@
 #include <linux/pagemap.h>
 #include <linux/seq_file.h>
 #include <linux/statfs.h>
-
-#define MODULE_NAME "elton"
-#define FS_NAME "elton"
-#define ELTONFS_SUPER_MAGIC 0x51891f5
-#define ELTONFS_NAME_LEN 255
-
-#define _PRINTLNK(level, fmt, ...) (printk(level MODULE_NAME ": " fmt "\n", ##__VA_ARGS__))
-#define DEBUG(fmt, ...) _PRINTLNK(KERN_DEBUG, fmt, ##__VA_ARGS__)
-#define INFO(fmt, ...) _PRINTLNK(KERN_INFO, fmt, ##__VA_ARGS__)
-#define ERR(fmt, ...) _PRINTLNK(KERN_ERR, fmt, ##__VA_ARGS__)
-
-// エラーならtrueを返す。
-// また、エラー発生時にログを残す。
-#define CHECK_ERROR(error) ({ \
-	if(error) { \
-		ERR("Occurred an error %d on %s (%s:%d)", error, __func__, __FILE__, __LINE__); \
-	} \
-	error; \
-})
-#define ASSERT_NOT_NULL(p) ({ \
-	if(!p) { \
-		ERR(#p " is NULL "); \
-		BUG_ON(p); \
-	} \
-	p; \
-})
-
-
+#include "elton.h"
+#include "assert.h"
 
 static bool is_registered = 0;
 static struct file_system_type eltonfs_type;
@@ -43,13 +17,6 @@ static struct address_space_operations eltonfs_aops;
 static struct inode_operations eltonfs_file_inode_operations;
 static struct inode_operations eltonfs_dir_inode_operations;
 static struct file_operations eltonfs_file_operations;
-
-struct eltonfs_info {
-#ifdef ELTONFS_STATISTIC
-	unsigned long mmap_size;
-	rwlock_t mmap_size_lock;
-#endif
-};
 
 
 static struct inode *eltonfs_get_inode(struct super_block *sb,
