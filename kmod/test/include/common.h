@@ -14,6 +14,36 @@
 				); \
 	}while(0)
 
+#define EQUAL_ERROR(expect, expr) \
+	({ \
+		int ret; \
+		int ok = 0; \
+		errno = 0; \
+		ret = (expr); \
+		if(ret == -1 && errno==expect) ok = 1; \
+		else if(ret == -1 && errno) { \
+			perror("ERROR"); \
+			fprintf(stderr, \
+					"  Occurred on %s (%s:%d)\n" \
+					"  Expr: %s\n", \
+					__func__, __FILE__, __LINE__, \
+					#expr \
+					); \
+			exit(1); \
+	    }else{ \
+			fprintf(stderr, \
+					"Received unexpected value: %d\n" \
+					"  Occurred on %s (%s:%d)\n" \
+					"  Expr: %s\n", \
+					ret, \
+					__func__, __FILE__, __LINE__, \
+					#expr \
+					); \
+			exit(1); \
+		} \
+		ok; \
+	})
+
 #define CHECK_ERROR(expr) \
 	({ \
 		int ret; \
@@ -44,6 +74,26 @@
 				); \
 		exit(1); \
 	}
+
+#define EQUAL_INT(expect, expr, msg) ({ \
+		int ret; \
+		ret = (expr); \
+		if((expect) != ret) { \
+			fprintf(stderr, \
+					"ASSERT: %s\n" \
+					"  Occurred on %s (%s:%d)\n" \
+					"  Expr: %s\n" \
+					"  Result: %d\n" \
+					"  Expected: %d\n", \
+					msg, \
+					__func__, __FILE__, __LINE__, \
+					#expr, \
+					ret, \
+					expect \
+					); \
+			exit(1); \
+		} \
+	})
 
 #define LOG_PRINTLN(level, msg) \
 	fprintf(stderr, "%s: %s  (%s:%d %s)\n", level, msg, __FILE__, __LINE__, __func__);
