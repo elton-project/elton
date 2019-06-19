@@ -8,7 +8,7 @@
 #include <linux/seq_file.h>
 #include <linux/statfs.h>
 
-#define MODULE_NAME "eltonfs"
+#define MODULE_NAME "elton"
 #define FS_NAME "elton"
 #define ELTONFS_SUPER_MAGIC 0x51891f5
 #define ELTONFS_NAME_LEN 255

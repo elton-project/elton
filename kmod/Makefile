@@ -1,4 +1,4 @@
-MODULE_NAME := eltonfs
+MODULE_NAME := elton
 FS_NAME := elton
 LTP_DIR := /mnt/ltp
 CC := gcc -DELTONFS_STATISTIC
