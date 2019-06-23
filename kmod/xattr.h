@@ -4,8 +4,11 @@
 
 #include <linux/xattr.h>
 
-extern ssize_t elton_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size);
-extern const struct xattr_handler *elton_xattr_handlers[];
+ssize_t elton_listxattr(struct inode *inode, char *buffer, size_t buffer_size);
+int elton_set_xattr(struct inode *inode, char *name, void *value, size_t size, int flags);
+int elton_get_xattr(struct inode *inode, char *name, void *value, size_t size);
+
+extern struct xattr_handler elton_xattr_user_handler;
 
 
 #endif // _ELTON_XATTR_H
