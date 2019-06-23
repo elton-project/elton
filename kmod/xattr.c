@@ -31,7 +31,7 @@ static int elton_xattr_handler_get(const struct xattr_handler *handler, struct d
                          struct inode *inode, const char *name, void *buffer, size_t size)
 {
     const char *full_name = xattr_full_name(handler, name);
-	return elton_get_xattr(inode, name, buffer, size);
+	return elton_get_xattr(inode, full_name, buffer, size);
 }
 
 const static struct xattr_handler elton_xattr_user_handler = {
