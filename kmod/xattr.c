@@ -9,12 +9,12 @@ ssize_t elton_list_xattr(struct inode *inode, char *buffer, size_t buffer_size) 
 	return simple_xattr_list(inode, &i->xattrs, buffer, buffer_size);
 }
 
-int elton_set_xattr(struct inode *inode, char *name, void *value, size_t size, int flags) {
+int elton_set_xattr(struct inode *inode, const char *name, const void *value, size_t size, int flags) {
 	struct eltonfs_inode *i = eltonfs_i(inode);
 	return simple_xattr_set(&i->xattrs, name, value, size, flags);
 }
 
-int elton_get_xattr(struct inode *inode, char *name, void *value, size_t size) {
+int elton_get_xattr(struct inode *inode, const char *name, const void *value, size_t size) {
 	struct eltonfs_inode *i = eltonfs_i(inode);
 	return simple_xattr_get(&i->xattrs, name, value, size);
 }
@@ -23,7 +23,7 @@ static int elton_xattr_handler_set(const struct xattr_handler *handler, struct d
                          struct inode *inode, const char *name, const void *buffer,
                          size_t size, int flags)
 {
-    char *full_name = xattr_full_name(handler, name);
+    const char *full_name = xattr_full_name(handler, name);
 	return elton_set_xattr(inode, name, buffer, size, flags);
 }
 
