@@ -23,8 +23,8 @@ static int elton_xattr_handler_set(const struct xattr_handler *handler, struct d
                          struct inode *inode, const char *name, const void *buffer,
                          size_t size, int flags)
 {
-    const char *full_name = xattr_full_name(handler, name);
-	return elton_set_xattr(inode, name, buffer, size, flags);
+	const char *full_name = xattr_full_name(handler, name);
+	return elton_set_xattr(inode, full_name, buffer, size, flags);
 }
 
 static int elton_xattr_handler_get(const struct xattr_handler *handler, struct dentry *dentry,
