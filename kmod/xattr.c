@@ -1,7 +1,7 @@
 #include "elton.h"
 #include "xattr.h"
 
-ssize_t elton_listxattr(struct inode *inode, char *buffer, size_t buffer_size) {
+ssize_t elton_list_xattr(struct inode *inode, char *buffer, size_t buffer_size) {
 	struct eltonfs_inode *i = eltonfs_i(inode);
 	return simple_xattr_list(inode, &i->xattrs, buffer, buffer_size);
 }

@@ -302,7 +302,7 @@ static struct address_space_operations eltonfs_aops = {
 static struct inode_operations eltonfs_file_inode_operations = {
 	.setattr = simple_setattr,
 	.getattr = simple_getattr,
-	.listxattr = elton_listxattr,
+	.listxattr = elton_list_xattr,
 };
 static struct inode_operations eltonfs_dir_inode_operations = {
 	.create = eltonfs_create,
@@ -320,7 +320,7 @@ static struct inode_operations eltonfs_dir_inode_operations = {
 	.rmdir = simple_rmdir,
 	.mknod = eltonfs_mknod,
 	.rename = simple_rename,
-	.listxattr = elton_listxattr,
+	.listxattr = elton_list_xattr,
 };
 static struct file_operations eltonfs_file_operations = {
 	.read_iter = generic_file_read_iter,
