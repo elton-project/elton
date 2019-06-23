@@ -179,6 +179,15 @@ static struct dentry *mount(struct file_system_type *fs_type,
 }
 static void kill_sb(struct super_block *sb) {}
 
+struct inode *eltonfs_alloc_inode(struct super_block *sb) {
+	struct eltonfs_inode *i = kmalloc(sizeof(struct eltonfs_inode), GFP_KERNEL);
+	return vfs_i(i);
+}
+void eltonfs_destory_inode(struct inode *inode) {
+	struct eltonfs_inode *i = eltonfs_i(inode);
+	kfree(i);
+}
+
 static int eltonfs_statfs(struct dentry *dentry, struct kstatfs *buf) {
 	// TODO: ダミーデータではなく、本当の値を設定する。
 	int total_blocks = 10000;
@@ -278,6 +287,8 @@ static struct file_system_type eltonfs_type = {
 	.fs_flags = 0
 };
 static struct super_operations eltonfs_s_op = {
+	.alloc_inode = eltonfs_alloc_inode,
+	.destroy_inode = eltonfs_destory_inode,
 	.statfs		= eltonfs_statfs,
 	.drop_inode	= generic_delete_inode,
 	.show_options	= eltonfs_show_options,
