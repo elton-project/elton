@@ -3,6 +3,7 @@
 
 #include <linux/kernel.h>
 #include <linux/fs.h>
+#include <linux/xattr.h>
 
 
 #define MODULE_NAME "elton"
