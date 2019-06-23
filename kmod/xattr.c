@@ -14,7 +14,7 @@ int elton_set_xattr(struct inode *inode, const char *name, const void *value, si
 	return simple_xattr_set(&i->xattrs, name, value, size, flags);
 }
 
-int elton_get_xattr(struct inode *inode, const char *name, const void *value, size_t size) {
+int elton_get_xattr(struct inode *inode, const char *name, void *value, size_t size) {
 	struct eltonfs_inode *i = eltonfs_i(inode);
 	return simple_xattr_get(&i->xattrs, name, value, size);
 }
