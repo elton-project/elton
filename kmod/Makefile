@@ -3,7 +3,7 @@ FS_NAME := elton
 LTP_DIR := /mnt/ltp
 CC := gcc -DELTONFS_STATISTIC
 
-obj-elton += elton.o xattr.c
+elton-y += elton.o xattr.o
 obj-m := elton.o
 
 # Need following packages:
