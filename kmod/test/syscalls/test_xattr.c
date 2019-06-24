@@ -47,6 +47,7 @@ void test_list() {
 	LOG_INFO("Get attribute names list");
 	size = CHECK_ERROR(flistxattr(fd, list, VALUE_SIZE));
 	EQUAL_INT(2, size, "invalid list size");
+	close(fd);
 }
 
 int main(int argc, char **argv) {
