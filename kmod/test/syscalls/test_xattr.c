@@ -36,7 +36,7 @@ void test_list() {
 	char list[VALUE_SIZE];
 	ssize_t size;
 	ssize_t i;
-	int pos;
+	int key_pos, val_pos;
 
 	LOG_INFO("Get attribute names list");
 	size = CHECK_ERROR(flistxattr(fd, list, VALUE_SIZE));
@@ -49,8 +49,12 @@ void test_list() {
 	LOG_INFO("Get attribute names list");
 	size = CHECK_ERROR(flistxattr(fd, list, VALUE_SIZE));
 	LOG_INFOF("list size = %ld", size);
-	for(i=0, pos=0; i<size; i++, pos+=strlen(&list[pos])) {
-		LOG_INFOF("list elm[%ld] = %s", i, &list[pos]);
+	for (i = 0, key_pos = 0;
+		 i < size;
+		 i++, key_pos += strlen(&list[val_pos]) + 1)
+	{
+		val_pos = key_pos + strlen(&list[key_pos]) + 1;
+		LOG_INFOF("list elm[%ld] = key:%s val:%s", i, &list[key_pos], &list[val_pos]);
 	}
 	EQUAL_INT(2, size, "invalid list size");
 	close(fd);
