@@ -61,8 +61,9 @@ static int elton_update_time(struct inode *inode, struct timespec64 *time, int f
 	spin_lock(&inode->i_lock);
 	if (flags & S_ATIME)
 		inode->i_atime = *time;
-	if (flags & S_VERSION)
-		inode_maybe_inc_iversion(inode, false);
+    // Elton is not supported the inode->i_version.
+	// if (flags & S_VERSION)
+	// 	inode_maybe_inc_iversion(inode, false);
 	if (flags & S_CTIME)
 		inode->i_ctime = *time;
 	if (flags & S_MTIME)
