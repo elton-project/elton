@@ -23,6 +23,7 @@ test: force_rmmod insmod test_basic_op test_syscalls test_libc rmmod
 
 .PHONY: insmod
 insmod:
+	modinfo $(MODULE_NAME).ko
 	insmod $(MODULE_NAME).ko
 	# Check if the module is loaded.
 	grep $(MODULE_NAME) /proc/modules
