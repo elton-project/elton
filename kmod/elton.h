@@ -20,7 +20,10 @@ struct eltonfs_info {
 
 struct eltonfs_inode {
 	struct inode vfs_inode;
+
+#ifdef ELTONFS_XATTRS
 	struct simple_xattrs xattrs;
+#endif
 };
 
 
