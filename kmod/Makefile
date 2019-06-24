@@ -1,7 +1,8 @@
 MODULE_NAME := elton
 FS_NAME := elton
 LTP_DIR := /mnt/ltp
-CC := gcc -DELTONFS_STATISTIC
+CC := gcc -DELTONFS_STATISTIC \
+	-DELTONFS_XATTRS
 
 elton-y += super.o simple_xattr.o xattr.o
 obj-m := elton.o

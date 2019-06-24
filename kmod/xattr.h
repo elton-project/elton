@@ -1,3 +1,4 @@
+#ifdef ELTONFS_XATTRS
 #ifndef _ELTON_XATTR_H
 #define _ELTON_XATTR_H
 
@@ -13,3 +14,4 @@ extern const struct xattr_handler *elton_xattr_handlers[];
 
 
 #endif // _ELTON_XATTR_H
+#endif // ELTONFS_XATTRS

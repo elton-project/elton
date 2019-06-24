@@ -1,3 +1,6 @@
+#ifdef ELTONFS_XATTRS
+
+
 #include "elton.h"
 #include "xattr.h"
 
@@ -62,3 +65,6 @@ const struct xattr_handler *elton_xattr_handlers[] = {
 	&elton_xattr_trusted_handler,
 	NULL,
 };
+
+
+#endif // ELTONFS_XATTRS

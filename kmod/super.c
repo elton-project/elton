@@ -177,7 +177,9 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
 	sb->s_op = &eltonfs_s_op;
 	sb->s_time_gran = 1;
 	sb->s_fs_info = info;
+#ifdef ELTONFS_XATTRS
 	sb->s_xattr = elton_xattr_handlers;
+#endif
 
 	inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
 	ASSERT_NOT_NULL(inode);
@@ -318,7 +320,9 @@ static struct address_space_operations eltonfs_aops = {
 static struct inode_operations eltonfs_file_inode_operations = {
 	.setattr = simple_setattr,
 	.getattr = simple_getattr,
+#ifdef ELTONFS_XATTRS
 	.listxattr = elton_list_xattr_vfs,
+#endif
 	.update_time = elton_update_time,
 };
 static struct inode_operations eltonfs_dir_inode_operations = {
@@ -337,7 +341,9 @@ static struct inode_operations eltonfs_dir_inode_operations = {
 	.rmdir = simple_rmdir,
 	.mknod = eltonfs_mknod,
 	.rename = simple_rename,
+#ifdef ELTONFS_XATTRS
 	.listxattr = elton_list_xattr_vfs,
+#endif
 	.update_time = elton_update_time,
 };
 static struct file_operations eltonfs_file_operations = {
