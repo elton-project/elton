@@ -197,13 +197,14 @@ static struct dentry *mount(struct file_system_type *fs_type,
 static void kill_sb(struct super_block *sb) {}
 
 struct inode *eltonfs_alloc_inode(struct super_block *sb) {
+	struct inode *inode;
 	struct eltonfs_inode *i = kmalloc(sizeof(struct eltonfs_inode), GFP_KERNEL);
 
 #ifdef ELTONFS_XATTRS
 	simple_xattrs_init(&i->xattrs);
 #endif
 
-	struct inode *inode = vfs_i(i);
+	inode = vfs_i(i);
 	inode_init_once(inode);
 	return inode;
 }
