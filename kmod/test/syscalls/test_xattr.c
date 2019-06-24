@@ -12,7 +12,7 @@
 #define SHORT_STRING_LEN strlen(SHORT_STRING)
 
 void test_get_set_remove() {
-	int fd = SAFE_MKTEMP();
+	const int fd = SAFE_MKTEMP();
 	char value[VALUE_SIZE];
 	ssize_t size;
 
@@ -32,12 +32,12 @@ void test_get_set_remove() {
 }
 
 void test_list() {
-	int fd = SAFE_MKTEMP();
+	const int fd = SAFE_MKTEMP();
 	char list[VALUE_SIZE];
 	ssize_t size;
 	ssize_t pos;
 	int i;
-	size_t expected_list_size = strlen(ATTR_NAME "-" ATTR_NAME "2-");  // '-' means '\0'
+	const size_t expected_list_size = strlen(ATTR_NAME "-" ATTR_NAME "2-");  // '-' means '\0'
 
 	LOG_INFO("Get attribute names list");
 	size = CHECK_ERROR(flistxattr(fd, list, VALUE_SIZE));
