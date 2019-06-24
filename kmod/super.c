@@ -57,6 +57,19 @@ static struct inode *eltonfs_get_inode(struct super_block *sb,
 	return inode;
 }
 
+static int elton_update_time(struct inode *inode, struct timespec64 *time, int flags) {
+	spin_lock(&inode->i_lock);
+	if (flags & S_ATIME)
+		inode->i_atime = *time;
+	if (flags & S_VERSION)
+		inode_maybe_inc_iversion(inode, false);
+	if (flags & S_CTIME)
+		inode->i_ctime = *time;
+	if (flags & S_MTIME)
+		inode->i_mtime = *time;
+	spin_unlock(&inode->i_lock);
+}
+
 static int eltonfs_set_page_dirty(struct page *page) {
 	if(PageDirty(page)) {
 		return 0;
@@ -305,6 +318,7 @@ static struct inode_operations eltonfs_file_inode_operations = {
 	.setattr = simple_setattr,
 	.getattr = simple_getattr,
 	.listxattr = elton_list_xattr_vfs,
+	.update_time = elton_update_time,
 };
 static struct inode_operations eltonfs_dir_inode_operations = {
 	.create = eltonfs_create,
@@ -323,6 +337,7 @@ static struct inode_operations eltonfs_dir_inode_operations = {
 	.mknod = eltonfs_mknod,
 	.rename = simple_rename,
 	.listxattr = elton_list_xattr_vfs,
+	.update_time = elton_update_time,
 };
 static struct file_operations eltonfs_file_operations = {
 	.read_iter = generic_file_read_iter,
