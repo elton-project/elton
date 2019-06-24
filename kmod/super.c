@@ -202,7 +202,9 @@ struct inode *eltonfs_alloc_inode(struct super_block *sb) {
 	simple_xattrs_init(&i->xattrs);
 #endif
 
-	return vfs_i(i);
+	struct inode *inode = vfs_i(i);
+	inode_init_once(inode);
+	return inode;
 }
 void eltonfs_destory_inode(struct inode *inode) {
 	struct eltonfs_inode *i = eltonfs_i(inode);
