@@ -69,6 +69,7 @@ static int elton_update_time(struct inode *inode, struct timespec64 *time, int f
 	if (flags & S_MTIME)
 		inode->i_mtime = *time;
 	spin_unlock(&inode->i_lock);
+	return 0;
 }
 
 static int eltonfs_set_page_dirty(struct page *page) {
