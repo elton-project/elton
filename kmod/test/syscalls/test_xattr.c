@@ -50,7 +50,7 @@ void test_list() {
 	size = CHECK_ERROR(flistxattr(fd, list, VALUE_SIZE));
 	LOG_INFOF("list size = %ld", size);
 	for(i=0, pos=0; i<size; i++, pos+=strlen(&list[pos])) {
-		LOG_INFOF("list elm[%ld] = %s", i, list[pos]);
+		LOG_INFOF("list elm[%ld] = %s", i, &list[pos]);
 	}
 	EQUAL_INT(2, size, "invalid list size");
 	close(fd);
