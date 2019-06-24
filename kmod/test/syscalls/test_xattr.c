@@ -37,6 +37,7 @@ void test_list() {
 	ssize_t size;
 	ssize_t pos;
 	int i;
+	size_t expected_list_size = strlen(ATTR_NAME "-" ATTR_NAME "2-");  // '-' means '\0'
 
 	LOG_INFO("Get attribute names list");
 	size = CHECK_ERROR(flistxattr(fd, list, VALUE_SIZE));
@@ -54,7 +55,7 @@ void test_list() {
 		 i++, pos += strlen(&list[pos]) + 1) {
 		LOG_INFOF("list elm[%ld] = key:%s", i, &list[pos]);
 	}
-	EQUAL_INT(2, size, "invalid list size");
+	EQUAL_INT(expected_list_size, size, "invalid list size");
 	close(fd);
 }
 
