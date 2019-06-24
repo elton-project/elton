@@ -181,10 +181,12 @@ static void kill_sb(struct super_block *sb) {}
 
 struct inode *eltonfs_alloc_inode(struct super_block *sb) {
 	struct eltonfs_inode *i = kmalloc(sizeof(struct eltonfs_inode), GFP_KERNEL);
+	simple_xattrs_init(&i->xattrs);
 	return vfs_i(i);
 }
 void eltonfs_destory_inode(struct inode *inode) {
 	struct eltonfs_inode *i = eltonfs_i(inode);
+	simple_xattrs_free(&i->xattrs);
 	kfree(i);
 }
 
