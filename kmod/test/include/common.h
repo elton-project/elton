@@ -97,6 +97,9 @@
 
 #define LOG_PRINTLN(level, msg) \
 	fprintf(stderr, "%s: %s  (%s:%d %s)\n", level, msg, __FILE__, __LINE__, __func__);
+#define LOG_PRINTF(level, msg, ...) \
+	fprintf(stderr, "%s: " msg "  (%s:%d %s)\n", level, __VA_ARGS__, __FILE__, __LINE__, __func__);
 
 #define LOG_INFO(msg) LOG_PRINTLN("INFO", msg)
+#define LOG_INFOF(msg, ...) LOG_PRINTF("INFO", msg, __VA_ARGS__)
 
