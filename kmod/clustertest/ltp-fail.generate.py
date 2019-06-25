@@ -3,8 +3,11 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 tpl = env.get_template('ltp-fail.tmpl.yaml')
 
+# このテストは、カーネルがハングしてしまい、clustertestが完走しない。
+# execveat03
+
+# FAILしたテストケース
 names = '''
-execveat03
 fcntl24
 fcntl24_64
 fcntl25
@@ -16,6 +19,60 @@ fcntl33_64
 inotify07
 inotify08
 keyctl02
+'''.strip().splitlines()
+
+# CONFで失敗したテストケース
+names += '''
+bdflush01
+cacheflush01
+chown01_16
+chown02_16
+chown03_16
+chown04_16
+chown05_16
+eventfd01
+fallocate01
+fallocate03
+fsetxattr02
+fchown01_16
+fchown02_16
+fchown03_16
+fchown04_16
+fchown05_16
+fcntl06
+fcntl06_64
+fgetxattr02
+fgetxattr03
+flistxattr01
+flistxattr02
+flistxattr03
+getegid01_16
+getegid02_16
+geteuid01_16
+geteuid02_16
+getgid01_16
+getgid03_16
+getgroups01_16
+getgroups03_16
+getresgid01_16
+getresgid02_16
+getresgid03_16
+getresuid01_16
+getresuid02_16
+getresuid03_16
+get_mempolicy01
+getrusage04
+getuid01_16
+getuid03_16
+getxattr01
+getxattr02
+getxattr03
+getxattr05
+io_cancel01
+io_destroy01
+io_getevents01
+io_setup01
+io_submit01
 '''.strip().splitlines()
 
 tpl_data = {

@@ -31,37 +31,6 @@ specs:
       ssh_public_key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz2CNhpZjPTf9Kp/rynfb5kzVYM7Hb2rXLZhJZ1IDyHYAsxAeTuQGQqvwX8CoVWwoU+ltCt+Ce2dqWIbSJD6R4ce30CNLC30UiXhXHPopBJAFQQolbI8/e65gYuwDDs8/DAkQRtn6tFxM3I+4Z5sRURH21rNZPQDKofE1tDcfyb/R6Kvvcl+D2e7gsuPj5FXaxoS3DQsNuvPHFeEfDPy+Tu6YtmYy3rxS4YzGxaOeWjlk3LA/iRzqMsKove1lUGBmD8a0s7f4S7A+Atc7JG76YX6NDnrFX+Cxde978q0bcRD2SG4IE98/B9uzfEcPBL6TEc9uE1PsDGDNxTW1Ya0Hf yuuki@tagoken-desktop1'
     vms:
       
-      execveat03:
-        template: template-ubuntu-19.04-ltp-20190617
-        pool: clustertest
-        nodes: 1
-        processors: 2
-        memory_size: 2048
-        storage_size: 10
-        scripts:
-          before:
-            type: remote-shell
-            commands:
-              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
-              - 'cd samplefs/kmod && make build'
-              - 'cd samplefs/kmod && make insmod'
-          main:
-            type: remote-shell
-            commands:
-              - 'chmod 1777 /mnt'
-              # Run the specified test case.
-              - '/opt/ltp/runltp -s execveat03 -p -d /mnt -l /logfile -o /outfile || :'
-              # Show result
-              - 'find /mnt -ls'
-              - 'df -h'
-              - 'free -h'
-              - 'mount'
-          after:
-            type: remote-shell
-            commands:
-              - 'cat /outfile'
-              - 'cat /logfile'
-      
       fcntl24:
         template: template-ubuntu-19.04-ltp-20190617
         pool: clustertest
@@ -392,6 +361,1556 @@ specs:
               - 'chmod 1777 /mnt'
               # Run the specified test case.
               - '/opt/ltp/runltp -s keyctl02 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      bdflush01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s bdflush01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      cacheflush01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s cacheflush01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      chown01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s chown01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      chown02-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s chown02_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      chown03-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s chown03_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      chown04-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s chown04_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      chown05-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s chown05_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      eventfd01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s eventfd01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fallocate01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fallocate01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fallocate03:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fallocate03 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fsetxattr02:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fsetxattr02 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fchown01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fchown01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fchown02-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fchown02_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fchown03-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fchown03_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fchown04-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fchown04_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fchown05-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fchown05_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fcntl06:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fcntl06 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fcntl06-64:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fcntl06_64 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fgetxattr02:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fgetxattr02 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      fgetxattr03:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s fgetxattr03 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      flistxattr01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s flistxattr01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      flistxattr02:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s flistxattr02 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      flistxattr03:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s flistxattr03 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getegid01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getegid01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getegid02-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getegid02_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      geteuid01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s geteuid01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      geteuid02-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s geteuid02_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getgid01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getgid01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getgid03-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getgid03_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getgroups01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getgroups01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getgroups03-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getgroups03_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getresgid01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getresgid01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getresgid02-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getresgid02_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getresgid03-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getresgid03_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getresuid01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getresuid01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getresuid02-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getresuid02_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getresuid03-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getresuid03_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      get-mempolicy01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s get_mempolicy01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getrusage04:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getrusage04 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getuid01-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getuid01_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getuid03-16:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getuid03_16 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getxattr01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getxattr01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getxattr02:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getxattr02 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getxattr03:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getxattr03 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      getxattr05:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s getxattr05 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      io-cancel01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s io_cancel01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      io-destroy01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s io_destroy01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      io-getevents01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s io_getevents01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      io-setup01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s io_setup01 -p -d /mnt -l /logfile -o /outfile || :'
+              # Show result
+              - 'find /mnt -ls'
+              - 'df -h'
+              - 'free -h'
+              - 'mount'
+          after:
+            type: remote-shell
+            commands:
+              - 'cat /outfile'
+              - 'cat /logfile'
+      
+      io-submit01:
+        template: template-ubuntu-19.04-ltp-20190617
+        pool: clustertest
+        nodes: 1
+        processors: 2
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
+              - 'cd samplefs/kmod && make build'
+              - 'cd samplefs/kmod && make insmod'
+          main:
+            type: remote-shell
+            commands:
+              - 'chmod 1777 /mnt'
+              # Run the specified test case.
+              - '/opt/ltp/runltp -s io_submit01 -p -d /mnt -l /logfile -o /outfile || :'
               # Show result
               - 'find /mnt -ls'
               - 'df -h'
