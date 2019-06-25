@@ -26,6 +26,10 @@ specs:
         end_address: 192.168.189.89
         cidr: 24
         gateway: 192.168.189.1
+      - start_address: 192.168.189.130
+        end_address: 192.168.189.149
+        cidr: 24
+        gateway: 192.168.189.1
     user:
       user: root
       ssh_public_key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz2CNhpZjPTf9Kp/rynfb5kzVYM7Hb2rXLZhJZ1IDyHYAsxAeTuQGQqvwX8CoVWwoU+ltCt+Ce2dqWIbSJD6R4ce30CNLC30UiXhXHPopBJAFQQolbI8/e65gYuwDDs8/DAkQRtn6tFxM3I+4Z5sRURH21rNZPQDKofE1tDcfyb/R6Kvvcl+D2e7gsuPj5FXaxoS3DQsNuvPHFeEfDPy+Tu6YtmYy3rxS4YzGxaOeWjlk3LA/iRzqMsKove1lUGBmD8a0s7f4S7A+Atc7JG76YX6NDnrFX+Cxde978q0bcRD2SG4IE98/B9uzfEcPBL6TEc9uE1PsDGDNxTW1Ya0Hf yuuki@tagoken-desktop1'
