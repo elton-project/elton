@@ -4,7 +4,8 @@ LTP_DIR := /mnt/ltp
 CC := gcc -DELTONFS_STATISTIC \
 	-DELTONFS_XATTRS
 
-elton-y += super.o simple_xattr.o xattr.o
+elton-y += super.o
+elton-y += simple_xattr.o xattr.o
 obj-m := elton.o
 
 # Need following packages:
