@@ -26,9 +26,6 @@ fcntl26
 fcntl26_64
 fcntl33
 fcntl33_64
-inotify07
-inotify08
-keyctl02
 '''.strip().splitlines()
 
 # CONFで失敗したテストケース
@@ -43,7 +40,6 @@ chown05_16
 eventfd01
 fallocate01
 fallocate03
-fsetxattr02
 fchown01_16
 fchown02_16
 fchown03_16
@@ -51,11 +47,7 @@ fchown04_16
 fchown05_16
 fcntl06
 fcntl06_64
-fgetxattr02
-fgetxattr03
-flistxattr01
-flistxattr02
-flistxattr03
+get_mempolicy01
 getegid01_16
 getegid02_16
 geteuid01_16
@@ -70,19 +62,18 @@ getresgid03_16
 getresuid01_16
 getresuid02_16
 getresuid03_16
-get_mempolicy01
 getrusage04
 getuid01_16
 getuid03_16
-getxattr01
-getxattr02
-getxattr03
 getxattr05
 io_cancel01
 io_destroy01
 io_getevents01
 io_setup01
 io_submit01
+lchown01_16
+lchown02_16
+lchown03_16
 '''.strip().splitlines()
 
 
