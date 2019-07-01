@@ -11,7 +11,7 @@ apt_install qemu-guest-agent
 # Install the required packages for the elton.
 apt_install build-essential automake libattr1-dev
 # Install the required packages for the LTP test cases.
-apt_install libaio-dev libnuma-dev
+apt_install libaio-dev libnuma-dev libacl1-dev
 
 [ -d ltp-full-20190517 ] || curl -SsL https://github.com/linux-test-project/ltp/releases/download/20190517/ltp-full-20190517.tar.xz |xz -d |tar xv
 ln -s ltp-full-20190517 ltp
