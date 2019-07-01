@@ -7,6 +7,8 @@ apt_install() {
     done
 }
 
+apt_install qemu-guest-agent
+# Install the required packages for the elton.
 apt_install build-essential automake libattr1-dev
 # Install the required packages for the LTP test cases.
 apt_install libaio-dev libnuma-dev
