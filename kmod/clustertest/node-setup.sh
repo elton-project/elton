@@ -30,3 +30,4 @@ apt_install docker.io
 # Download images
 until docker version; do sleep 1; done
 docker pull nginx
+docker pull mysql:8.0
