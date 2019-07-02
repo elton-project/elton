@@ -7,6 +7,7 @@ clean:
 test-all: \
 	test-fast \
 	test-fails \
+	test-apps \
 	test-long-time
 
 test-fast:
@@ -14,6 +15,9 @@ test-fast:
 
 test-ltp-fails: build
 	clustertest task run ./ltp-fail.generated.*.yaml
+
+test-apps:
+	cd apps && $(MAKE) test
 
 test-long-time:
 	clustertest task run ./long-test.yaml
