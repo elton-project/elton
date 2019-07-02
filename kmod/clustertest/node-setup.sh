@@ -23,3 +23,10 @@ make autotools
 make -j`nproc` all
 make install
 popd
+
+
+# Install docker
+apt_install docker.io
+# Download images
+until docker version; do sleep 1; done
+docker pull nginx
