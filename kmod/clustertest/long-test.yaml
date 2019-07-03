@@ -30,8 +30,8 @@ specs:
         template: template-ubuntu-19.04-ltp-20190702
         pool: clustertest
         nodes: 1
-        processors: 2
-        memory_size: 2048
+        processors: 4
+        memory_size: 4096
         storage_size: 10
         scripts:
           before:
