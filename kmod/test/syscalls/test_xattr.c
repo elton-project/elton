@@ -7,7 +7,7 @@
 #include "safe.h"
 
 #define TEST_NAME "xattr"
-#define ATTR_NAME "user.attr"
+#define ATTR_NAME "security.eltonfs-test"
 #define VALUE_SIZE 256
 #define SHORT_STRING "This is the short string to test xattr APIs."
 #define SHORT_STRING_LEN strlen(SHORT_STRING)
