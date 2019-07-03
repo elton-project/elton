@@ -10,3 +10,11 @@
 		int fd = CHECK_ERROR(mkstemp(name)); \
 		fd; \
 	})
+
+// Create a regular file atomically.
+#define SAFE_MKFILE(path) \
+	({ \
+		const int fd = CHECK_ERROR(open(path, O_RDWR|O_EXCL|O_CREAT)); \
+		CHECK_ERROR(close(fd)); \
+		path; \
+	})
