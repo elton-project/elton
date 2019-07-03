@@ -1,4 +1,8 @@
 build:
+
+generate: generate-ltp-fails
+
+generate-ltp-fails:
 	./ltp-fail.generate.py
 
 clean:
@@ -13,7 +17,7 @@ test-all: \
 test-fast:
 	clustertest task run ./fast-test.yaml
 
-test-ltp-fails: build
+test-ltp-fails: generate-ltp-fails
 	clustertest task run ./ltp-fail.generated.*.yaml
 
 test-apps:
