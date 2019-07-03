@@ -37,7 +37,6 @@ chown02_16
 chown03_16
 chown04_16
 chown05_16
-eventfd01
 fallocate01
 fallocate03
 fchown01_16
@@ -47,7 +46,6 @@ fchown04_16
 fchown05_16
 fcntl06
 fcntl06_64
-get_mempolicy01
 getegid01_16
 getegid02_16
 geteuid01_16
@@ -65,12 +63,6 @@ getresuid03_16
 getrusage04
 getuid01_16
 getuid03_16
-getxattr05
-io_cancel01
-io_destroy01
-io_getevents01
-io_setup01
-io_submit01
 lchown01_16
 lchown02_16
 lchown03_16
