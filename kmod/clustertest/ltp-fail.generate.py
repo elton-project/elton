@@ -32,40 +32,11 @@ fcntl33_64
 names += '''
 bdflush01
 cacheflush01
-chown01_16
-chown02_16
-chown03_16
-chown04_16
-chown05_16
 fallocate01
 fallocate03
-fchown01_16
-fchown02_16
-fchown03_16
-fchown04_16
-fchown05_16
 fcntl06
 fcntl06_64
-getegid01_16
-getegid02_16
-geteuid01_16
-geteuid02_16
-getgid01_16
-getgid03_16
-getgroups01_16
-getgroups03_16
-getresgid01_16
-getresgid02_16
-getresgid03_16
-getresuid01_16
-getresuid02_16
-getresuid03_16
 getrusage04
-getuid01_16
-getuid03_16
-lchown01_16
-lchown02_16
-lchown03_16
 '''.strip().splitlines()
 
 
