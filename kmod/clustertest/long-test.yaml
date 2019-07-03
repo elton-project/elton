@@ -54,6 +54,8 @@ specs:
             type: remote-shell
             commands:
               - 'chmod 1777 /mnt'
+              # Skip test cases for 16-bit version syscalls.
+              - grep -Rh _16 /opt/ltp/runtest |awk '{print $1}' >/skip
               # Run the LTP.
               # Options:
               #   -t  -- running time
@@ -61,11 +63,12 @@ specs:
               #   -m  -- additional background load on main memotry
               #   -D  -- additional background load on secondary storage
               #   -p  -- human readable format logfiles.
+              #   -S  -- Skip tests specified in file.
               #   -d  -- temporary directory
               #   -l  -- log file
               #   -o  -- output file
               # Note: runltp command will return exit code 1.  We should ignore it.
-              - '/opt/ltp/runltp -t 10m -i 2 -m 4,50,10240,1 -D 4,100,80000,1 -p -d /mnt/tmp -l /logfile -o /outfile || :'
+              - '/opt/ltp/runltp -t 10m -i 2 -m 4,50,10240,1 -D 4,100,80000,1 -p -S /skip -d /mnt/tmp -l /logfile -o /outfile || :'
               # Show result
               - 'find /mnt -ls'
               - 'df -h'
