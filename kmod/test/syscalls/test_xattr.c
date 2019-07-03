@@ -47,6 +47,9 @@ void test_list() {
 	CHECK_ERROR(fsetxattr(fd, ATTR_NAME, SHORT_STRING, SHORT_STRING_LEN, 0));
 	CHECK_ERROR(fsetxattr(fd, ATTR_NAME "2", SHORT_STRING, SHORT_STRING_LEN, 0));
 
+	LOG_INFO("Try to get attribute names list with small buffer");
+	EQUAL_ERROR(ERANGE, flistxattr(fd, list, 1));
+
 	LOG_INFO("Get attribute names list");
 	size = CHECK_ERROR(flistxattr(fd, list, VALUE_SIZE));
 	LOG_INFOF("list size = %ld", size);
