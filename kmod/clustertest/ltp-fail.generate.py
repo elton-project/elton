@@ -24,8 +24,11 @@ fcntl25
 fcntl25_64
 fcntl26
 fcntl26_64
+llistxattr01
+llistxattr02
 fcntl33
 fcntl33_64
+msgstress03
 '''.strip().splitlines()
 
 # CONFで失敗したテストケース
@@ -37,6 +40,24 @@ fallocate03
 fcntl06
 fcntl06_64
 getrusage04
+lseek11
+migrate_pages02
+migrate_pages03
+modify_ldt01
+modify_ldt02
+modify_ldt03
+move_pages01
+move_pages02
+move_pages03
+move_pages04
+move_pages05
+move_pages06
+move_pages07
+move_pages08
+move_pages09
+move_pages10
+move_pages11
+move_pages12
 '''.strip().splitlines()
 
 
