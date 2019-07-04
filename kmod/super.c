@@ -17,6 +17,7 @@ static struct super_operations eltonfs_s_op;
 static struct address_space_operations eltonfs_aops;
 static struct inode_operations eltonfs_file_inode_operations;
 static struct inode_operations eltonfs_dir_inode_operations;
+static struct inode_operations eltonfs_symlink_inode_operations;
 static struct file_operations eltonfs_file_operations;
 
 
@@ -50,7 +51,7 @@ static struct inode *eltonfs_get_inode(struct super_block *sb,
 		inc_nlink(inode);
 		break;
 	case S_IFLNK:
-		inode->i_op = &page_symlink_inode_operations;
+		inode->i_op = &eltonfs_symlink_inode_operations;
 		inode_nohighmem(inode);
 		break;
 	}
@@ -357,6 +358,12 @@ static struct inode_operations eltonfs_dir_inode_operations = {
 	.listxattr = elton_list_xattr_vfs,
 #endif
 	.update_time = elton_update_time,
+};
+static struct inode_operations eltonfs_symlink_inode_operations = {
+	.get_link = page_get_link,
+#ifdef ELTONFS_XATTRS
+	.listxattr = elton_list_xattr_vfs,
+#endif
 };
 static struct file_operations eltonfs_file_operations = {
 	.read_iter = generic_file_read_iter,
