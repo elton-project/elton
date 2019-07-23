@@ -164,6 +164,7 @@ static long eltonfs_compat_ioctl(struct file *file, unsigned int cmd, unsigned l
 static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
 	struct inode *inode;
 	struct dentry *root;
+	struct iattr ia;
 
 	struct eltonfs_info *info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
 #ifdef ELTONFS_STATISTIC
@@ -185,6 +186,13 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
 
 	inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
 	ASSERT_NOT_NULL(inode);
+	// Set directory mode to 755;
+	inode_lock(inode);
+	ia.ia_valid = ATTR_MODE;
+	ia.ia_mode = (inode->i_mode & S_IFMT) | 0755;
+	setattr_copy(inode, &ia);
+	inode_unlock(inode);
+
 	root = d_make_root(inode);
 	ASSERT_NOT_NULL(root);
 	sb->s_root = root;
