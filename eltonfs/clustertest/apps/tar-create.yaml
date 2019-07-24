@@ -42,8 +42,8 @@ specs:
               # Install kernel module.
               - 'until apt install -y build-essential; do sleep 1; done'
               - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
-              - 'cd samplefs/kmod && make build'
-              - 'cd samplefs/kmod && make insmod'
+              - 'cd samplefs/eltonfs && make build'
+              - 'cd samplefs/eltonfs && make insmod'
               # Prepare directory tree.
               - mkdir -p /mnt/test-tar/dir
               - mkdir -p /mnt/test-tar/dir/nested-dir

@@ -42,14 +42,14 @@ specs:
               # Install kernel module.
               - 'until apt install -y build-essential; do sleep 1; done'
               - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
-              - 'cd samplefs/kmod && make build'
-              - 'cd samplefs/kmod && make insmod'
+              - 'cd samplefs/eltonfs && make build'
+              - 'cd samplefs/eltonfs && make insmod'
               # Install required packages to build test cases.
               - 'until apt install -y libattr1-dev; do sleep 1; done'
           main:
             type: remote-shell
             commands:
               # Run test cases.
-              - 'cd samplefs/kmod && make test_basic_op'
-              - 'cd samplefs/kmod && make test_syscalls'
-              - 'cd samplefs/kmod && make test_libc'
+              - 'cd samplefs/eltonfs && make test_basic_op'
+              - 'cd samplefs/eltonfs && make test_syscalls'
+              - 'cd samplefs/eltonfs && make test_libc'
