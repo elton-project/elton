@@ -46,9 +46,12 @@ specs:
               - 'cd samplefs/kmod && make insmod'
               # Start mysql
               - docker run -dv /mnt/mysql-data:/var/lib/mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=1 --name mysql mysql:8.0
+              # Wait for mysql to start.
+              # The mysqld does not listen TCP port during mysql initialization. But mysql listening to the socket.
+              # For prevent false detection of health check, specify connection protocol.
               - |
                 for i in $(seq 30); do
-                  if docker exec mysql mysql --user=root --batch -e 'SELECT 1'; then
+                  if docker exec mysql mysql --protocol tcp --user=root --batch -e 'SELECT 1'; then
                     echo connected
                     exit 0
                   fi
