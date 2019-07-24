@@ -47,9 +47,9 @@ specs:
           before:
             type: remote-shell
             commands:
-              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
-              - 'cd samplefs/eltonfs && make build'
-              - 'cd samplefs/eltonfs && make insmod'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
+              - 'cd elton/eltonfs && make build'
+              - 'cd elton/eltonfs && make insmod'
           main:
             type: remote-shell
             commands:

@@ -41,9 +41,9 @@ specs:
             commands:
               # Install kernel module.
               - 'until apt install -y build-essential; do sleep 1; done'
-              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/samplefs.git'
-              - 'cd samplefs/eltonfs && make build'
-              - 'cd samplefs/eltonfs && make insmod'
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
+              - 'cd elton/eltonfs && make build'
+              - 'cd elton/eltonfs && make insmod'
               # Install ltp
               - 'until apt install -y build-essential automake; do sleep 1; done'
               - '[ -d ltp-full-20190517 ] || curl -SsL https://github.com/linux-test-project/ltp/releases/download/20190517/ltp-full-20190517.tar.xz |xz -d |tar xv'
