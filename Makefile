@@ -6,7 +6,7 @@ build-deps:
 	which go
 	which docker
 	which docker-compose
-	go get github.com/golang/dep/cmd/dep
+	which dep || go get github.com/golang/dep/cmd/dep
 	$(MAKE) -C docker-volume-elton build-deps
 	$(MAKE) -C eltonfs/eltonfs     build-deps
 	$(MAKE) -C grpc/proto          build-deps
