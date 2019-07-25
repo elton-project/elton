@@ -1,0 +1,31 @@
+syntax = "proto3";
+package elton.v2;
+import "types.proto";
+
+
+service NodeService {
+    rpc Register (RegisterNodeRequest) returns (RegisterNodeResponse);
+    rpc Unregister (UnregisterNodeRequest) returns (UnregisterNodeResponse);
+    rpc Ping (PingNodeRequest) returns (PingNodeResponse);
+    rpc List (ListNodeRequest) returns (stream ListNodeResponse);
+}
+
+
+message RegisterNodeRequest {
+    NodeID id = 1;
+    Node node = 2;
+}
+message RegisterNodeResponse {}
+message UnregisterNodeRequest {
+    NodeID id = 1;
+}
+message UnregisterNodeResponse {}
+message PingNodeRequest {
+    NodeID id = 1;
+}
+message PingNodeResponse {}
+message ListNodeRequest {}
+message ListNodeResponse {
+    NodeID id = 1;
+    Node nodes = 2;
+}

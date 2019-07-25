@@ -1,0 +1,39 @@
+syntax = "proto3";
+package elton.v2;
+import "google/protobuf/timestamp.proto";
+
+
+message ObjectKey {
+    string id = 1;
+    uint64 version = 2;
+}
+message ObjectInfo {
+    bytes digest = 1;
+    google.protobuf.Timestamp createTime = 2;
+    uint64 size = 3;
+}
+message ObjectBody {
+    bytes contents = 1;
+    uint64 offset = 2;
+}
+
+
+message PropertyKey {
+    string id = 1;
+}
+message PropertyBody {
+    string body = 1;
+}
+
+
+message NodeID {
+    string id = 1;
+}
+message Node {
+    // IP addresses or DNS name.
+    repeated string address = 1;
+    // Human readable name.
+    string name = 2;
+    // Uptime
+    uint64 uptime = 3;
+}
