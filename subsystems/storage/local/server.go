@@ -24,7 +24,6 @@ type LocalStorage struct {
 	ListenAddr string
 	CacheDir   string
 
-	paht     string
 	listener net.Listener
 }
 
@@ -47,7 +46,11 @@ func (s *LocalStorage) Listen() error {
 	return nil
 }
 func (s *LocalStorage) Serve(ctx context.Context) error {
-	handler := &StorageService{}
+	handler := &StorageService{
+		Repo: &Repository{
+			Path: s.CacheDir,
+		},
+	}
 	srv := grpc.NewServer(nil)
 	elton_v2.RegisterStorageServiceServer(srv, handler)
 

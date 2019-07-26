@@ -7,10 +7,28 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type StorageService struct{}
+type StorageService struct {
+	Repo *Repository
+}
 
-func (*StorageService) CreateObject(ctx context.Context, req *elton_v2.CreateObjectRequest) (*elton_v2.CreateObjectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateObject not implemented")
+func (s *StorageService) CreateObject(ctx context.Context, req *elton_v2.CreateObjectRequest) (*elton_v2.CreateObjectResponse, error) {
+	if req.GetBody().GetOffset() != 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "offset must zero when creating the object")
+	}
+
+	key := Key{
+		ID:      req.GetKey().GetId(),
+		Version: req.GetKey().GetVersion(),
+	}
+	body := req.GetBody().GetContents()
+	err := s.Repo.Create(key, body)
+
+	if err != nil {
+		return nil, status.Errorf(codes.AlreadyExists, "%s (version %s) already exists")
+	}
+
+	res := &elton_v2.CreateObjectResponse{}
+	return res, nil
 }
 func (*StorageService) GetObject(ctx context.Context, req *elton_v2.GetObjectRequest) (*elton_v2.GetObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
