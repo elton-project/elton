@@ -2,6 +2,7 @@ package localStorage
 
 import (
 	"encoding/hex"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -35,6 +36,10 @@ func (s *Repository) Create(body []byte) (key Key, err error) {
 		return
 	}
 	err = f.Close()
+}
+func (s *Repository) Get(key Key) ([]byte, error) {
+	p := s.objectPath(key)
+	return ioutil.ReadFile(p)
 }
 func (s *Repository) Exists(key Key) (bool, error) {
 	p := s.objectPath(key)
