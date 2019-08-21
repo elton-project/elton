@@ -16,18 +16,18 @@ func (s *StorageService) CreateObject(ctx context.Context, req *elton_v2.CreateO
 		return nil, status.Errorf(codes.InvalidArgument, "offset must zero when creating the object")
 	}
 
-	key := Key{
-		ID:      req.GetKey().GetId(),
-		Version: req.GetKey().GetVersion(),
-	}
 	body := req.GetBody().GetContents()
-	err := s.Repo.Create(key, body)
+	key, err := s.Repo.Create(body)
 
 	if err != nil {
 		return nil, status.Errorf(codes.AlreadyExists, "%s (version %s) already exists")
 	}
 
-	res := &elton_v2.CreateObjectResponse{}
+	res := &elton_v2.CreateObjectResponse{
+		Key: &elton_v2.ObjectKey{
+			Id: key.ID,
+		},
+	}
 	return res, nil
 }
 func (*StorageService) GetObject(ctx context.Context, req *elton_v2.GetObjectRequest) (*elton_v2.GetObjectResponse, error) {

@@ -1,33 +1,40 @@
 package localStorage
 
 import (
-	"fmt"
+	"encoding/hex"
+	"math/rand"
 	"os"
 	"path"
+	"time"
 )
 
 const FileMode = 0400
 
 type Repository struct {
 	Path string
+
+	// ランダムなキーを生成するための、乱数ジェネレータ。
+	random *rand.Rand
 }
 type Key struct {
-	ID      string
-	Version uint64
+	ID string
 }
 
-func (s *Repository) Create(key Key, body []byte) error {
+func (s *Repository) Create(body []byte) (key Key, err error) {
+	key = s.generateKey()
 	p := s.objectPath(key)
-	f, err := os.OpenFile(p, os.O_CREATE|os.O_EXCL|os.O_WRONLY, FileMode)
+
+	var f *os.File
+	f, err = os.OpenFile(p, os.O_CREATE|os.O_EXCL|os.O_WRONLY, FileMode)
 	if err != nil {
-		return err
+		return
 	}
 	_, err = f.Write(body)
 	if err != nil {
 		f.Close()
-		return err
+		return
 	}
-	return f.Close()
+	err = f.Close()
 }
 func (s *Repository) Exists(key Key) (bool, error) {
 	p := s.objectPath(key)
@@ -41,6 +48,37 @@ func (s *Repository) Exists(key Key) (bool, error) {
 	return true, nil
 }
 func (s *Repository) objectPath(key Key) string {
-	fileName := fmt.Sprintf("%s---%d", key.ID, key.Version)
+	fileName := key.ID
 	return path.Join(s.Path, fileName)
+}
+func (s *Repository) generateKey() Key {
+	if s.random == nil {
+		now := time.Now().UnixNano()
+		src := rand.NewSource(now)
+		s.random = rand.New(src)
+	}
+
+	b := make([]byte, 24)
+	for i := 0; i < 24; i += 8 {
+		u := s.random.Uint64()
+		b[i+0] = byte(u & 7)
+		u >>= 8
+		b[i+1] = byte(u & 7)
+		u >>= 8
+		b[i+2] = byte(u & 7)
+		u >>= 8
+		b[i+3] = byte(u & 7)
+		u >>= 8
+		b[i+4] = byte(u & 7)
+		u >>= 8
+		b[i+5] = byte(u & 7)
+		u >>= 8
+		b[i+6] = byte(u & 7)
+		u >>= 8
+		b[i+7] = byte(u & 7)
+	}
+
+	return Key{
+		ID: hex.EncodeToString(b),
+	}
 }
