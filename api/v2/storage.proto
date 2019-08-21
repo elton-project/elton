@@ -12,10 +12,11 @@ service StorageService {
 
 
 message CreateObjectRequest {
-    ObjectKey key = 1;
     ObjectBody body = 2;
 }
-message CreateObjectResponse {}
+message CreateObjectResponse {
+    ObjectKey key = 1;
+}
 message GetObjectRequest {
     ObjectKey key = 1;
     uint64 offset = 2;
