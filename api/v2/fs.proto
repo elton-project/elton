@@ -1,0 +1,75 @@
+syntax = "proto3";
+package elton.v2;
+import "types.proto";
+
+service VolumeService {
+    rpc Create (VolumeCreateRequest) returns (VolumeCreateResponse);
+    rpc Delete (DeleteVolumeRequest) returns (DeleteVolumeResponse);
+    rpc List (ListVolumeRequest) returns (stream ListVolumeResponse);
+    rpc Inspect (InspectVolumeRequest) returns (InspectVolumeResponse);
+}
+
+service CommitService {
+    rpc GetLastCommit(GetLastCommitRequest) returns (GetLastCommitResponse);
+    rpc List(ListCommitRequest) returns (stream ListCommitResponse);
+    rpc Commit(CommitRequest) returns (CommitResponse);
+}
+
+
+message VolumeCreateRequest {
+    VolumeInfo info = 2;
+}
+message VolumeCreateResponse {
+    VolumeID id = 1;
+}
+message DeleteVolumeRequest {
+    VolumeID id = 1;
+}
+message DeleteVolumeResponse {}
+message ListVolumeRequest {
+    // 一回のRPCリクエストに対して返答できる最大の個数。
+    // 0個の場合は、デフォルトの制限を適用。
+    // 個数制限を無効化することはできない。
+    uint64 limit = 1;
+    // ページネーションされたときは、前回の最後の応答についていたnextの値を設定。
+    string next = 2;
+}
+message ListVolumeResponse {
+    // streamの一番最後、かつ個数制限により応答できていないアイテムが存在する場合、この値が設定される。
+    // 次のVolumeService.List()のnext引数に設定すると、次のアイテムから列挙することが出来る。
+    string next = 1;
+
+    VolumeID id = 2;
+    VolumeInfo info = 3;
+}
+message InspectVolumeRequest {
+    // keyを指定した場合、keyで検索する。
+    VolumeID id = 1;
+    // nameを指定した場合、名前で検索する。
+    string name = 2;
+}
+message InspectVolumeResponse {
+    VolumeID id = 1;
+    VolumeInfo info = 2;
+}
+
+message GetLastCommitRequest {}
+message GetLastCommitResponse {
+    CommitID id = 1;
+    CommitInfo info = 2;
+}
+message ListCommitRequest {
+    uint64 limit = 1;
+    string next = 2;
+}
+message ListCommitResponse {
+    string next = 1;
+    CommitID id = 2;
+}
+message CommitRequest {
+    CommitID base = 1;
+    // TODO: コミット要求を発行するときに必要なフィールドを追加
+}
+message CommitResponse {
+    CommitID id = 1;
+}
