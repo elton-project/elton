@@ -2,6 +2,7 @@ package localStorage
 
 import (
 	"context"
+	"github.com/yuuki0xff/pathlib"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems"
 	"google.golang.org/grpc"
@@ -48,7 +49,7 @@ func (s *LocalStorage) Listen() error {
 func (s *LocalStorage) Serve(ctx context.Context) error {
 	handler := &StorageService{
 		Repo: &Repository{
-			Path: s.CacheDir,
+			BasePath: pathlib.New(s.CacheDir),
 		},
 	}
 	srv := grpc.NewServer(nil)

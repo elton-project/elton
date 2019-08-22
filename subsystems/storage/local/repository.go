@@ -2,15 +2,13 @@ package localStorage
 
 import (
 	"fmt"
+	"github.com/yuuki0xff/pathlib"
 	"io/ioutil"
 	"os"
-	"path"
 )
 
-const FileMode = 0400
-
 type Repository struct {
-	Path string
+	BasePath pathlib.Path
 	// Maximum size of the object.
 	// If MaxSize is 0, the size limit is disabled.
 	MaxSize uint64
@@ -30,22 +28,12 @@ func (s *Repository) Create(body []byte) (key Key, err error) {
 		return
 	}
 
-	var f *os.File
-	f, err = os.OpenFile(p, os.O_CREATE|os.O_EXCL|os.O_WRONLY, FileMode)
-	if err != nil {
-		return
-	}
-	_, err = f.Write(body)
-	if err != nil {
-		f.Close()
-		return
-	}
-	err = f.Close()
+	err = p.WriteBytes(body)
 	return
 }
 func (s *Repository) Get(key Key, offset, size uint64) ([]byte, error) {
 	p := s.objectPath(key)
-	f, err := os.Open(p)
+	f, err := p.Open()
 	if err != nil {
 		return nil, err
 	}
@@ -57,18 +45,11 @@ func (s *Repository) Get(key Key, offset, size uint64) ([]byte, error) {
 }
 func (s *Repository) Exists(key Key) (bool, error) {
 	p := s.objectPath(key)
-	_, err := os.Stat(p)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
+	return p.Exists(), nil
 }
 func (s *Repository) Delete(key Key) (bool, error) {
 	p := s.objectPath(key)
-	err := os.Remove(p)
+	err := p.Unlink()
 	if err != nil {
 		if os.IsNotExist(err) {
 			// The object is already deleted.  Ignore this error.
@@ -80,7 +61,7 @@ func (s *Repository) Delete(key Key) (bool, error) {
 	// Deleted the object.
 	return true, nil
 }
-func (s *Repository) objectPath(key Key) string {
+func (s *Repository) objectPath(key Key) pathlib.Path {
 	fileName := key.ID
-	return path.Join(s.Path, fileName)
+	return s.BasePath.JoinPath(fileName)
 }
