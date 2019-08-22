@@ -2,6 +2,7 @@ package localStorage
 
 import (
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -13,6 +14,9 @@ const FileMode = 0400
 
 type Repository struct {
 	Path string
+	// Maximum size of the object.
+	// If MaxSize is 0, the size limit is disabled.
+	MaxSize uint64
 
 	// ランダムなキーを生成するための、乱数ジェネレータ。
 	random *rand.Rand
@@ -24,6 +28,12 @@ type Key struct {
 func (s *Repository) Create(body []byte) (key Key, err error) {
 	key = s.generateKey()
 	p := s.objectPath(key)
+
+	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
+		// TODO: 独自のエラー型を定義し、それを返す。
+		err = fmt.Errorf("body too large")
+		return
+	}
 
 	var f *os.File
 	f, err = os.OpenFile(p, os.O_CREATE|os.O_EXCL|os.O_WRONLY, FileMode)
