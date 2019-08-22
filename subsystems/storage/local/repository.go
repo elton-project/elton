@@ -36,6 +36,7 @@ func (s *Repository) Create(body []byte) (key Key, err error) {
 		return
 	}
 	err = f.Close()
+	return
 }
 func (s *Repository) Get(key Key, offset, size uint64) ([]byte, error) {
 	p := s.objectPath(key)
