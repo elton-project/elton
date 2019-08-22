@@ -19,6 +19,7 @@ message CreateObjectResponse {
 }
 message GetObjectRequest {
     ObjectKey key = 1;
+    uint64 offset = 2;
     uint64 size = 3;
 }
 message GetObjectResponse {
