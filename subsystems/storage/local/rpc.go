@@ -5,7 +5,6 @@ import (
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
 )
 
 type StorageService struct {
@@ -39,15 +38,18 @@ func (s *StorageService) GetObject(ctx context.Context, req *elton_v2.GetObjectR
 		return nil, status.Errorf(codes.InvalidArgument, "key must not empty string")
 	}
 
-	body, err := s.Repo.Get(key)
+	body, err := s.Repo.Get(key, req.Offset, req.Size)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "not found object")
+		return nil, status.Errorf(codes.Internal, "local storage: failed to read the object: %s", err.Error())
 	}
+
 	return &elton_v2.GetObjectResponse{
 		Key: &elton_v2.ObjectKey{
 			Id: key.ID,
 		},
-		Body: body,
+		Body: &elton_v2.ObjectBody{
+			Contents: body,
+		},
 		Info: &elton_v2.ObjectInfo{}, // TODO
 	}, nil
 }

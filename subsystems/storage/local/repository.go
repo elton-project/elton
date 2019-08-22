@@ -37,9 +37,17 @@ func (s *Repository) Create(body []byte) (key Key, err error) {
 	}
 	err = f.Close()
 }
-func (s *Repository) Get(key Key) ([]byte, error) {
+func (s *Repository) Get(key Key, offset, size uint64) ([]byte, error) {
 	p := s.objectPath(key)
-	return ioutil.ReadFile(p)
+	f, err := os.Open(p)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := f.Seek(int64(offset), 0); err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return ioutil.ReadAll(f)
 }
 func (s *Repository) Exists(key Key) (bool, error) {
 	p := s.objectPath(key)
