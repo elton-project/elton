@@ -20,7 +20,7 @@ func (s *StorageService) CreateObject(ctx context.Context, req *elton_v2.CreateO
 	key, err := s.Repo.Create(body)
 
 	if err != nil {
-		return nil, status.Errorf(codes.AlreadyExists, "%s (version %s) already exists")
+		return nil, status.Errorf(codes.AlreadyExists, "%s already exists", key.ID)
 	}
 
 	res := &elton_v2.CreateObjectResponse{
