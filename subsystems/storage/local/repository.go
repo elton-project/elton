@@ -1,13 +1,10 @@
 package localStorage
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path"
-	"time"
 )
 
 const FileMode = 0400
@@ -17,16 +14,14 @@ type Repository struct {
 	// Maximum size of the object.
 	// If MaxSize is 0, the size limit is disabled.
 	MaxSize uint64
-
-	// ランダムなキーを生成するための、乱数ジェネレータ。
-	random *rand.Rand
+	KeyGen  KeyGenerator
 }
 type Key struct {
 	ID string
 }
 
 func (s *Repository) Create(body []byte) (key Key, err error) {
-	key = s.generateKey()
+	key = s.KeyGen.Generate()
 	p := s.objectPath(key)
 
 	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
@@ -88,35 +83,4 @@ func (s *Repository) Delete(key Key) (bool, error) {
 func (s *Repository) objectPath(key Key) string {
 	fileName := key.ID
 	return path.Join(s.Path, fileName)
-}
-func (s *Repository) generateKey() Key {
-	if s.random == nil {
-		now := time.Now().UnixNano()
-		src := rand.NewSource(now)
-		s.random = rand.New(src)
-	}
-
-	b := make([]byte, 24)
-	for i := 0; i < 24; i += 8 {
-		u := s.random.Uint64()
-		b[i+0] = byte(u & 7)
-		u >>= 8
-		b[i+1] = byte(u & 7)
-		u >>= 8
-		b[i+2] = byte(u & 7)
-		u >>= 8
-		b[i+3] = byte(u & 7)
-		u >>= 8
-		b[i+4] = byte(u & 7)
-		u >>= 8
-		b[i+5] = byte(u & 7)
-		u >>= 8
-		b[i+6] = byte(u & 7)
-		u >>= 8
-		b[i+7] = byte(u & 7)
-	}
-
-	return Key{
-		ID: hex.EncodeToString(b),
-	}
 }
