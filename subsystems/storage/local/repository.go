@@ -71,6 +71,20 @@ func (s *Repository) Exists(key Key) (bool, error) {
 	}
 	return true, nil
 }
+func (s *Repository) Delete(key Key) (bool, error) {
+	p := s.objectPath(key)
+	err := os.Remove(p)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// The object is already deleted.  Ignore this error.
+			return false, nil
+		}
+		// Unexpected error.
+		return false, err
+	}
+	// Deleted the object.
+	return true, nil
+}
 func (s *Repository) objectPath(key Key) string {
 	fileName := key.ID
 	return path.Join(s.Path, fileName)

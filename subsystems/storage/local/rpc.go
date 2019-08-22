@@ -53,6 +53,18 @@ func (s *StorageService) GetObject(ctx context.Context, req *elton_v2.GetObjectR
 		Info: &elton_v2.ObjectInfo{}, // TODO
 	}, nil
 }
-func (*StorageService) DeleteObject(ctx context.Context, req *elton_v2.DeleteObjectRequest) (*elton_v2.DeleteObjectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteObject not implemented")
+func (s *StorageService) DeleteObject(ctx context.Context, req *elton_v2.DeleteObjectRequest) (*elton_v2.DeleteObjectResponse, error) {
+	key := Key{
+		ID: req.GetKey().GetId(),
+	}
+	if key.ID == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "key must not empty string")
+	}
+
+	_, err := s.Repo.Delete(key)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "local storage: failed to delete the object: %s", err.Error())
+	}
+
+	return &elton_v2.DeleteObjectResponse{}, nil
 }
