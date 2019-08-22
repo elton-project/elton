@@ -3,6 +3,7 @@ package localStorage
 import (
 	"fmt"
 	"github.com/yuuki0xff/pathlib"
+	"io"
 	"io/ioutil"
 	"os"
 )
@@ -33,15 +34,31 @@ func (s *Repository) Create(body []byte) (key Key, err error) {
 }
 func (s *Repository) Get(key Key, offset, size uint64) ([]byte, error) {
 	p := s.objectPath(key)
+
 	f, err := p.Open()
 	if err != nil {
 		return nil, err
 	}
-	if _, err := f.Seek(int64(offset), 0); err != nil {
-		return nil, err
-	}
 	defer f.Close()
-	return ioutil.ReadAll(f)
+
+	if size == 0 {
+		// Without size limit.  Use ReadAll() function.
+		if _, err := f.Seek(int64(offset), 0); err != nil {
+			return nil, err
+		}
+		return ioutil.ReadAll(f)
+	} else {
+		// With size limit.  Allocate buffer and use ReadAt().
+		if s.MaxSize > 0 && s.MaxSize < size {
+			size = s.MaxSize
+		}
+		buf := make([]byte, size)
+		n, err := f.ReadAt(buf, int64(offset))
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
+		return buf[:n], nil
+	}
 }
 func (s *Repository) Exists(key Key) (bool, error) {
 	p := s.objectPath(key)
