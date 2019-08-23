@@ -13,6 +13,7 @@ import (
 
 const DefaultListenAddr = "0.0.0.0:0"
 const DefaultCacheDir = "/var/tmp/elton-local-storage"
+const DefaultMaxObjectSize = 10 << 20 // 10MiB
 
 func NewLocalStorageServer() subsystems.Server {
 	return &LocalStorage{
@@ -50,6 +51,7 @@ func (s *LocalStorage) Serve(ctx context.Context) error {
 	handler := &StorageService{
 		Repo: &Repository{
 			BasePath: pathlib.New(s.CacheDir),
+			MaxSize:  DefaultMaxObjectSize,
 		},
 	}
 	srv := grpc.NewServer(nil)
