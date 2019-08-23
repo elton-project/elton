@@ -25,12 +25,12 @@ type Key struct {
 }
 
 func (s *Repository) Create(body []byte) (Key, error) {
-	key := s.keyGen().Generate()
-	p := s.objectPath(key)
-
 	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
 		return Key{}, NewObjectTooLargeError(uint64(len(body)), s.MaxSize)
 	}
+
+	key := s.keyGen().Generate()
+	p := s.objectPath(key)
 
 	err := p.WriteBytes(body)
 	return key, err
