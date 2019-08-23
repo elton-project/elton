@@ -23,7 +23,7 @@ func (s *Repository) Create(body []byte) (Key, error) {
 	p := s.objectPath(key)
 
 	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
-		err := NewObjectTooLarge("body", uint64(len(body)), s.MaxSize)
+		err := NewObjectTooLarge(uint64(len(body)), s.MaxSize)
 		return Key{}, err.Wrap(nil)
 	}
 

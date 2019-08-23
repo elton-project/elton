@@ -8,14 +8,12 @@ import (
 
 type ObjectTooLarge struct {
 	werror.WrapError
-	name     string
 	received uint64
 	limit    uint64
 }
 
-func NewObjectTooLarge(name string, received, limit uint64) *ObjectTooLarge {
+func NewObjectTooLarge(received, limit uint64) *ObjectTooLarge {
 	err := &ObjectTooLarge{
-		name:     name,
 		received: received,
 		limit:    limit,
 	}
@@ -27,9 +25,9 @@ func (e ObjectTooLarge) Wrap(next error) error {
 	return &e
 }
 func (e *ObjectTooLarge) Error() string {
-	return fmt.Sprintf("%s too large: received=%d, limit=%d", e.name, e.received, e.limit)
+	return fmt.Sprintf("object too large: received=%d, limit=%d", e.received, e.limit)
 }
 func (e *ObjectTooLarge) Is(err error) bool {
 	var other ObjectTooLarge
-	return xerrors.As(err, &other) && *e == other
+	return xerrors.As(err, &other)
 }
