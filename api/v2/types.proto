@@ -8,6 +8,8 @@ message ObjectKey {
 }
 message ObjectInfo {
     bytes digest = 1;
+    string digestAlgorithm = 4;
+
     google.protobuf.Timestamp createTime = 2;
     uint64 size = 3;
 }
