@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"sync"
 )
 
 type Repository struct {
@@ -13,13 +14,18 @@ type Repository struct {
 	// If MaxSize is 0, the size limit is disabled.
 	MaxSize uint64
 	KeyGen  KeyGenerator
+
+	// For initialize the KeyGen field.
+	// If you want access to Repository.KeyGen, You should use
+	// the keyGen() method instead of direct access to field.
+	initKeyGen sync.Once
 }
 type Key struct {
 	ID string
 }
 
 func (s *Repository) Create(body []byte) (Key, error) {
-	key := s.KeyGen.Generate()
+	key := s.keyGen().Generate()
 	p := s.objectPath(key)
 
 	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
@@ -78,4 +84,12 @@ func (s *Repository) Delete(key Key) (bool, error) {
 func (s *Repository) objectPath(key Key) pathlib.Path {
 	fileName := key.ID
 	return s.BasePath.JoinPath(fileName)
+}
+func (s *Repository) keyGen() KeyGenerator {
+	s.initKeyGen.Do(func() {
+		if s.KeyGen == nil {
+			s.KeyGen = &RandomKeyGen{}
+		}
+	})
+	return s.KeyGen
 }
