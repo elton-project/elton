@@ -8,6 +8,8 @@ message ObjectKey {
 }
 message ObjectInfo {
     bytes hash = 1;
+    // Supported algorithms:
+    //  - "SHA1"
     string hashAlgorithm = 4;
 
     google.protobuf.Timestamp createTime = 2;

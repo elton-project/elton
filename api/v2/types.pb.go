@@ -101,7 +101,9 @@ func (m *ObjectKey) GetId() string {
 }
 
 type ObjectInfo struct {
-	Hash                 []byte               `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
+	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
+	// Supported algorithms:
+	//  - "SHA1"
 	HashAlgorithm        string               `protobuf:"bytes,4,opt,name=hashAlgorithm,proto3" json:"hashAlgorithm,omitempty"`
 	CreateTime           *timestamp.Timestamp `protobuf:"bytes,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	Size                 uint64               `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
