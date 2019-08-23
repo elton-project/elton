@@ -28,7 +28,7 @@ func (e *ObjectTooLargeError) Error() string {
 	return fmt.Sprintf("object too large: received=%d, limit=%d", e.received, e.limit)
 }
 func (e *ObjectTooLargeError) Is(err error) bool {
-	var other ObjectTooLargeError
+	var other *ObjectTooLargeError
 	return xerrors.As(err, &other)
 }
 
@@ -52,7 +52,7 @@ func (e *ObjectNotFoundError) Error() string {
     return fmt.Sprintf("object not found: key=%s", e.key)
 }
 func (e *ObjectNotFoundError) Is(err error) bool {
-    var other ObjectNotFoundError
+    var other *ObjectNotFoundError
     return xerrors.As(err, &other) && e.key==other.key
 }
 
