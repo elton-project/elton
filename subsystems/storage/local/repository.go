@@ -23,7 +23,7 @@ func (s *Repository) Create(body []byte) (Key, error) {
 	p := s.objectPath(key)
 
 	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
-		return Key{}, NewObjectTooLarge(uint64(len(body)), s.MaxSize)
+		return Key{}, NewObjectTooLargeError(uint64(len(body)), s.MaxSize)
 	}
 
 	err := p.WriteBytes(body)
@@ -34,7 +34,7 @@ func (s *Repository) Get(key Key, offset, size uint64) ([]byte, error) {
 
 	f, err := p.Open()
 	if err != nil {
-		return nil, err
+		return nil, NewObjectNotFoundError(key).Wrap(err)
 	}
 	defer f.Close()
 
