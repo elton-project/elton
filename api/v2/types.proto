@@ -5,10 +5,6 @@ import "google/protobuf/timestamp.proto";
 
 message ObjectKey {
     string id = 1;
-    // NOTE:
-    // 分散環境だと、versionの値が重複する可能性がある。
-    // この同期が大変なので廃止したほうが良いかもしれない。
-    uint64 version = 2;
 }
 message ObjectInfo {
     bytes digest = 1;
