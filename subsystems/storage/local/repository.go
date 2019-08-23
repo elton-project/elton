@@ -1,7 +1,6 @@
 package localStorage
 
 import (
-	"fmt"
 	"github.com/yuuki0xff/pathlib"
 	"io"
 	"io/ioutil"
@@ -19,18 +18,17 @@ type Key struct {
 	ID string
 }
 
-func (s *Repository) Create(body []byte) (key Key, err error) {
-	key = s.KeyGen.Generate()
+func (s *Repository) Create(body []byte) (Key, error) {
+	key := s.KeyGen.Generate()
 	p := s.objectPath(key)
 
 	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
-		// TODO: 独自のエラー型を定義し、それを返す。
-		err = fmt.Errorf("body too large")
-		return
+		err := NewObjectTooLarge("body", uint64(len(body)), s.MaxSize)
+		return Key{}, err.Wrap(nil)
 	}
 
-	err = p.WriteBytes(body)
-	return
+	err := p.WriteBytes(body)
+	return key, err
 }
 func (s *Repository) Get(key Key, offset, size uint64) ([]byte, error) {
 	p := s.objectPath(key)
