@@ -53,5 +53,5 @@ func (e *ObjectNotFoundError) Error() string {
 }
 func (e *ObjectNotFoundError) Is(err error) bool {
 	var other *ObjectNotFoundError
-	return xerrors.As(err, &other) && e.key == other.key
+	return xerrors.As(err, &other)
 }
