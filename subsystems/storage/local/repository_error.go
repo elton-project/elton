@@ -33,27 +33,25 @@ func (e *ObjectTooLargeError) Is(err error) bool {
 }
 
 type ObjectNotFoundError struct {
-    werror.WrapError
-    key Key
+	werror.WrapError
+	key Key
 }
 
 func NewObjectNotFoundError(key Key) *ObjectNotFoundError {
-    err := &ObjectNotFoundError{
-        key:key,
-    }
-    err.WrapError = werror.Wrap(err, nil, 2)
-    return err
+	err := &ObjectNotFoundError{
+		key: key,
+	}
+	err.WrapError = werror.Wrap(err, nil, 2)
+	return err
 }
 func (e ObjectNotFoundError) Wrap(next error) error {
-    e.WrapError = werror.Wrap(&e, next, 2)
-    return &e
+	e.WrapError = werror.Wrap(&e, next, 2)
+	return &e
 }
 func (e *ObjectNotFoundError) Error() string {
-    return fmt.Sprintf("object not found: key=%s", e.key)
+	return fmt.Sprintf("object not found: key=%s", e.key)
 }
 func (e *ObjectNotFoundError) Is(err error) bool {
-    var other *ObjectNotFoundError
-    return xerrors.As(err, &other) && e.key==other.key
+	var other *ObjectNotFoundError
+	return xerrors.As(err, &other) && e.key == other.key
 }
-
-
