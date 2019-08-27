@@ -11,7 +11,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -19,14 +18,9 @@ const maxMetadataSize = 16 << 20 // 16 KiB
 
 type Repository struct {
 	BasePath pathlib.Path
-	// Maximum size of the object.
-	MaxSize uint64
-	KeyGen  KeyGenerator
+	KeyGen   KeyGenerator
 
-	// For initialize the KeyGen field.
-	// If you want access to Repository.KeyGen, You should use
-	// the keyGen() method instead of direct access to field.
-	initKeyGen sync.Once
+	limit ObjectLimitV1
 }
 type Key struct {
 	ID string
@@ -47,34 +41,44 @@ type Info struct {
 //     8 bytes: uint64: Length of the body  (BigEndian)
 //     n bytes: []byte: Body
 type ObjectV1 struct {
+	ObjectLimitV1
+
 	// Content of object.
 	Body []byte
 	// Offset from first byte of body.
 	Offset uint64
 	// Metadata for the object.
 	Info *Info
+}
 
+// ObjectLimitV1 is configuration of size limit for ObjectV1
+type ObjectLimitV1 struct {
 	MaxBodySize uint64
 	MaxInfoSize uint64
 }
 
-func (s *Repository) Create(body []byte, info Info) (Key, error) {
-	if s.MaxSize > 0 && uint64(len(body)) > s.MaxSize {
-		return Key{}, NewObjectTooLargeError(uint64(len(body)), s.MaxSize)
+func NewRepository(basePath pathlib.Path, keyGen KeyGenerator, maxSize uint64) *Repository {
+	if keyGen == nil {
+		keyGen = &RandomKeyGen{}
 	}
 
-	key := s.keyGen().Generate()
+	return &Repository{
+		BasePath: basePath,
+		KeyGen:   keyGen,
+		limit: ObjectLimitV1{
+			MaxBodySize: maxSize,
+			MaxInfoSize: maxMetadataSize,
+		},
+	}
+}
+func (s *Repository) Create(body []byte, info Info) (Key, error) {
+	key := s.KeyGen.Generate()
 	op := s.objectPath(key)
 	tmp := s.tmpObjectPath(key)
 
 	err := AtomicWrite(op, tmp, func(w io.Writer) error {
-		rec := ObjectV1{
-			Body:        body,
-			Info:        &info,
-			MaxBodySize: s.MaxSize,
-			MaxInfoSize: maxMetadataSize,
-		}
-		return rec.Save(w)
+		obj := NewObjectV1(body, &info, s.limit)
+		return obj.Save(w)
 	})
 	if err != nil {
 		return Key{}, err
@@ -90,8 +94,7 @@ func (s *Repository) Get(key Key, offset, size uint64) ([]byte, *Info, error) {
 	}
 	defer f.Close()
 
-	obj := ObjectV1{}
-	err = obj.Load(f, offset, size)
+	obj, err := LoadObjectV1(f, offset, size)
 	if err != nil {
 		return nil, nil, NewObjectNotFoundError(key).Wrap(err)
 	}
@@ -123,51 +126,17 @@ func (s *Repository) tmpObjectPath(key Key) pathlib.Path {
 	fileName := key.ID
 	return s.BasePath.JoinPath("object.tmp", fileName)
 }
-func (s *Repository) keyGen() KeyGenerator {
-	s.initKeyGen.Do(func() {
-		if s.KeyGen == nil {
-			s.KeyGen = &RandomKeyGen{}
-		}
-	})
-	return s.KeyGen
+
+func NewObjectV1(body []byte, info *Info, limit ObjectLimitV1) *ObjectV1 {
+	return &ObjectV1{
+		ObjectLimitV1: limit,
+		Body:          body,
+		Info:          info,
+	}
 }
-
-func (r *ObjectV1) Save(w io.Writer) error {
-	if r.Info == nil || r.Body == nil {
-		return xerrors.New("illegal argument on ObjectV1.Save()")
-	}
-	if uint64(len(r.Body)) > r.MaxBodySize {
-		return NewObjectTooLargeError(uint64(len(r.Body)), r.MaxBodySize).Wrap(nil)
-	}
-	if r.Info.Size != uint64(len(r.Body)) {
-		return NewInvalidObject("mismatch Body length and Info.Size").Wrap(nil)
-	}
-	if r.Offset != 0 {
-		return NewInvalidObject("Info.Offset must be zero when saving").Wrap(nil)
-	}
-	if err := r.checkHash(); err != nil {
-		return err
-	}
-
-	jsInfo, err := json.Marshal(r.Info)
-	if err != nil {
-		return err
-	}
-	if uint64(len(jsInfo)) > r.MaxInfoSize {
-		return NewMetadataTooLargeError().Wrap(nil)
-	}
-
-	return WithMustWriter(w, func(w io.Writer) error {
-		binary.Write(w, binary.BigEndian, uint8(r.Version()))
-		binary.Write(w, binary.BigEndian, uint64(len(jsInfo)))
-		w.Write(jsInfo)
-		binary.Write(w, binary.BigEndian, uint64(len(r.Body)))
-		w.Write(r.Body)
-		return nil
-	})
-}
-func (r *ObjectV1) Load(rs io.ReadSeeker, offset, size uint64) error {
-	return WithMustReadSeeker(rs, func(rs io.ReadSeeker) error {
+func LoadObjectV1(rs io.ReadSeeker, offset, size uint64) (*ObjectV1, error) {
+	r := &ObjectV1{}
+	err := WithMustReadSeeker(rs, func(rs io.ReadSeeker) error {
 		var version uint8
 		binary.Read(rs, binary.BigEndian, &version)
 		if version != r.Version() {
@@ -205,6 +174,45 @@ func (r *ObjectV1) Load(rs io.ReadSeeker, offset, size uint64) error {
 			r.Body = buf[:n]
 			return nil
 		}
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+func (r *ObjectV1) Save(w io.Writer) error {
+	if r.Info == nil || r.Body == nil {
+		return xerrors.New("illegal argument on ObjectV1.Save()")
+	}
+	if uint64(len(r.Body)) > r.MaxBodySize {
+		return NewObjectTooLargeError(uint64(len(r.Body)), r.MaxBodySize).Wrap(nil)
+	}
+	if r.Info.Size != uint64(len(r.Body)) {
+		return NewInvalidObject("mismatch Body length and Info.Size").Wrap(nil)
+	}
+	if r.Offset != 0 {
+		return NewInvalidObject("Info.Offset must be zero when saving").Wrap(nil)
+	}
+	if err := r.checkHash(); err != nil {
+		return err
+	}
+
+	jsInfo, err := json.Marshal(r.Info)
+	if err != nil {
+		return err
+	}
+	if uint64(len(jsInfo)) > r.MaxInfoSize {
+		return NewMetadataTooLargeError().Wrap(nil)
+	}
+
+	return WithMustWriter(w, func(w io.Writer) error {
+		binary.Write(w, binary.BigEndian, uint8(r.Version()))
+		binary.Write(w, binary.BigEndian, uint64(len(jsInfo)))
+		w.Write(jsInfo)
+		binary.Write(w, binary.BigEndian, uint64(len(r.Body)))
+		w.Write(r.Body)
+		return nil
 	})
 }
 func (r *ObjectV1) Version() uint8 {
