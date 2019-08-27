@@ -176,7 +176,7 @@ func LoadObjectV1(rs io.ReadSeeker, offset, size uint64, limit ObjectLimitV1) (*
 	r := &ObjectV1{
 		ObjectLimitV1: limit,
 	}
-	err := WithMustReadSeeker(rs, func(rs io.ReadSeeker) error {
+	err := WithMustReadSeeker(rs, func(rs MustReadSeeker) error {
 		var version uint8
 		binary.Read(rs, binary.BigEndian, &version)
 		if version != r.Version() {
@@ -201,7 +201,7 @@ func LoadObjectV1(rs io.ReadSeeker, offset, size uint64, limit ObjectLimitV1) (*
 		if size == 0 {
 			// Without size limit.  Use ReadAll() function.
 			rs.Seek(int64(offset), 1)
-			r.Body, _ = ioutil.ReadAll(rs)
+			r.Body, _ = ioutil.ReadAll(rs.IgnoreEOF())
 			return nil
 		} else {
 			// With size limit.  Allocate buffer and use ReadAt().
@@ -210,7 +210,7 @@ func LoadObjectV1(rs io.ReadSeeker, offset, size uint64, limit ObjectLimitV1) (*
 			}
 			buf := make([]byte, size)
 			rs.Seek(int64(offset), io.SeekCurrent)
-			n, _ := rs.Read(buf)
+			n, _ := rs.IgnoreEOF().Read(buf)
 			r.Body = buf[:n]
 			return nil
 		}

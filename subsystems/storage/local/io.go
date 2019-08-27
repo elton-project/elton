@@ -30,29 +30,47 @@ func WithMustWriter(w io.Writer, fn func(w io.Writer) error) error {
 	return fnErr
 }
 
+type MustReadSeeker interface {
+	io.ReadSeeker
+	IgnoreEOF() MustReadSeeker
+}
+
 type mustReadSeeker struct {
 	io.ReadSeeker
+	ignoreEOF bool
 }
 
-func (rs mustReadSeeker) Read(p []byte) (n int, err error) {
+func (rs *mustReadSeeker) Read(p []byte) (n int, err error) {
 	n, err = rs.ReadSeeker.Read(p)
-	if err != nil {
-		panic(err)
-	}
+	rs.checkError(err)
 	return
 }
-func (rs mustReadSeeker) Seek(offset int64, whence int) (pos int64, err error) {
+func (rs *mustReadSeeker) Seek(offset int64, whence int) (pos int64, err error) {
 	pos, err = rs.ReadSeeker.Seek(offset, whence)
+	rs.checkError(err)
+	return
+}
+func (rs *mustReadSeeker) IgnoreEOF() MustReadSeeker {
+	return &mustReadSeeker{
+		ReadSeeker: rs.ReadSeeker,
+		ignoreEOF:  true,
+	}
+}
+func (rs *mustReadSeeker) checkError(err error) {
 	if err != nil {
+		if rs.ignoreEOF && err == io.EOF {
+			// Ignore this error.
+			return
+		}
 		panic(err)
 	}
-	return
-
 }
-func WithMustReadSeeker(rs io.ReadSeeker, fn func(rs io.ReadSeeker) error) error {
+func WithMustReadSeeker(rs io.ReadSeeker, fn func(rs MustReadSeeker) error) error {
 	var panicErr, fnErr error
 	panicErr = util.PanicHandler(func() {
-		must := mustReadSeeker{rs}
+		must := mustReadSeeker{
+			ReadSeeker: rs,
+		}
 		fnErr = fn(&must)
 	})
 	if panicErr != nil {
