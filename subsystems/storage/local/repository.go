@@ -72,6 +72,10 @@ func NewRepository(basePath pathlib.Path, keyGen KeyGenerator, maxSize uint64) *
 	}
 }
 func (s *Repository) Create(body []byte, info Info) (Key, error) {
+	if err := s.fillInfo(body, &info); err != nil {
+		return Key{}, err
+	}
+
 	key := s.KeyGen.Generate()
 	op := s.objectPath(key)
 	tmp := s.tmpObjectPath(key)
@@ -125,6 +129,20 @@ func (s *Repository) objectPath(key Key) pathlib.Path {
 func (s *Repository) tmpObjectPath(key Key) pathlib.Path {
 	fileName := key.ID
 	return s.BasePath.JoinPath("object.tmp", fileName)
+}
+func (s *Repository) fillInfo(body []byte, info *Info) error {
+	if info.Hash == nil && info.HashAlgorithm == "" {
+		hash := sha1.Sum(body)
+		info.Hash = hash[:]
+		info.HashAlgorithm = "SHA1"
+	}
+	if info.CreateTime.IsZero() {
+		info.CreateTime = time.Now()
+	}
+	if info.Size == 0 {
+		info.Size = uint64(len(body))
+	}
+	return nil
 }
 
 func NewObjectV1(body []byte, info *Info, limit ObjectLimitV1) *ObjectV1 {
