@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const maxMetadataSize = 16 << 20 // 16 KiB
+const maxMetadataSize = 16 << 10 // 16 MiB
 const directoryMode = 0700
 
 type Repository struct {
