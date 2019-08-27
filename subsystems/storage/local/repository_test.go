@@ -97,7 +97,7 @@ func TestRepository_Get(t *testing.T) {
 			body, info, err := repo.Get(keys[0], 0, 0)
 			assert.Nil(t, err)
 			assert.Equal(t, body, []byte("test"))
-			if assert.NotNil(t, info){
+			if assert.NotNil(t, info) {
 				// TODO: more test cases
 			}
 		})
@@ -125,7 +125,7 @@ func TestExists(t *testing.T) {
 	t.Run("not-found", func(t *testing.T) {
 		withTempRepoAndObject(10, objs, func(repo *Repository, keys []Key) {
 			ok, err := repo.Exists(Key{"not found"})
-			assert.NoError(t,err)
+			assert.NoError(t, err)
 			assert.False(t, ok)
 		})
 	})
