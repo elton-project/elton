@@ -105,7 +105,7 @@ func (s *Repository) Get(key Key, offset, size uint64) ([]byte, *Info, error) {
 	}
 	defer f.Close()
 
-	obj, err := LoadObjectV1(f, offset, size)
+	obj, err := LoadObjectV1(f, offset, size, s.limit)
 	if err != nil {
 		return nil, nil, NewInvalidObject("").Wrap(err)
 	}
@@ -172,8 +172,10 @@ func NewObjectV1(body []byte, info *Info, limit ObjectLimitV1) *ObjectV1 {
 		Info:          info,
 	}
 }
-func LoadObjectV1(rs io.ReadSeeker, offset, size uint64) (*ObjectV1, error) {
-	r := &ObjectV1{}
+func LoadObjectV1(rs io.ReadSeeker, offset, size uint64, limit ObjectLimitV1) (*ObjectV1, error) {
+	r := &ObjectV1{
+		ObjectLimitV1: limit,
+	}
 	err := WithMustReadSeeker(rs, func(rs io.ReadSeeker) error {
 		var version uint8
 		binary.Read(rs, binary.BigEndian, &version)
