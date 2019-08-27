@@ -55,3 +55,48 @@ func (e *ObjectNotFoundError) Is(err error) bool {
 	var other *ObjectNotFoundError
 	return xerrors.As(err, &other)
 }
+
+type MetadataTooLargeError struct {
+	werror.WrapError
+}
+
+func NewMetadataTooLargeError() *MetadataTooLargeError {
+	err := &MetadataTooLargeError{}
+	err.WrapError = werror.Wrap(err, nil, 2)
+	return err
+}
+func (e MetadataTooLargeError) Wrap(next error) error {
+	e.WrapError = werror.Wrap(&e, next, 2)
+	return &e
+}
+func (e *MetadataTooLargeError) Error() string {
+	return fmt.Sprintf("metadata too large")
+}
+func (e *MetadataTooLargeError) Is(err error) bool {
+	var other *MetadataTooLargeError
+	return xerrors.As(err, &other)
+}
+
+type InvalidObject struct {
+	werror.WrapError
+	cause string
+}
+
+func NewInvalidObject(cause string) *InvalidObject {
+	err := &InvalidObject{
+		cause: cause,
+	}
+	err.WrapError = werror.Wrap(err, nil, 2)
+	return err
+}
+func (e InvalidObject) Wrap(next error) error {
+	e.WrapError = werror.Wrap(&e, next, 2)
+	return &e
+}
+func (e *InvalidObject) Error() string {
+	return fmt.Sprintf("invalid object: %s", e.cause)
+}
+func (e *InvalidObject) Is(err error) bool {
+	var other *InvalidObject
+	return xerrors.As(err, &other)
+}
