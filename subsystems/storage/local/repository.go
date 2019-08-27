@@ -11,16 +11,19 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"sync"
 	"time"
 )
 
 const maxMetadataSize = 16 << 20 // 16 KiB
+const directoryMode = 0700
 
 type Repository struct {
 	BasePath pathlib.Path
 	KeyGen   KeyGenerator
 
-	limit ObjectLimitV1
+	initDir sync.Once
+	limit   ObjectLimitV1
 }
 type Key struct {
 	ID string
@@ -76,6 +79,10 @@ func (s *Repository) Create(body []byte, info Info) (Key, error) {
 		return Key{}, err
 	}
 
+	if err := s.createDir(); err != nil {
+		return Key{}, err
+	}
+
 	key := s.KeyGen.Generate()
 	op := s.objectPath(key)
 	tmp := s.tmpObjectPath(key)
@@ -121,6 +128,19 @@ func (s *Repository) Delete(key Key) (bool, error) {
 	}
 	// Deleted the object.
 	return true, nil
+}
+func (s *Repository) createDir() (err error) {
+	s.initDir.Do(func() {
+		if err = s.BasePath.JoinPath("object").MkDir(directoryMode, true); err != nil {
+			err = xerrors.Errorf("repository: %w", err)
+			return
+		}
+		if err = s.BasePath.JoinPath("object.tmp").MkDir(directoryMode, true); err != nil {
+			err = xerrors.Errorf("repository: %w", err)
+			return
+		}
+	})
+	return
 }
 func (s *Repository) objectPath(key Key) pathlib.Path {
 	fileName := key.ID
