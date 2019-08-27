@@ -107,7 +107,7 @@ func (s *Repository) Get(key Key, offset, size uint64) ([]byte, *Info, error) {
 
 	obj, err := LoadObjectV1(f, offset, size)
 	if err != nil {
-		return nil, nil, NewObjectNotFoundError(key).Wrap(err)
+		return nil, nil, NewInvalidObject("").Wrap(err)
 	}
 	return obj.Body, obj.Info, nil
 }

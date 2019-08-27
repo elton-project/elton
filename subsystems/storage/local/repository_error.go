@@ -94,6 +94,9 @@ func (e InvalidObject) Wrap(next error) error {
 	return &e
 }
 func (e *InvalidObject) Error() string {
+	if e.cause == "" {
+		return "invalid object"
+	}
 	return fmt.Sprintf("invalid object: %s", e.cause)
 }
 func (e *InvalidObject) Is(err error) bool {
