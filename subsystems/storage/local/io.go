@@ -36,7 +36,6 @@ type mustReadSeeker struct {
 
 func (rs mustReadSeeker) Read(p []byte) (n int, err error) {
 	n, err = rs.ReadSeeker.Read(p)
-	rs.ReadSeeker.Seek()
 	if err != nil {
 		panic(err)
 	}
