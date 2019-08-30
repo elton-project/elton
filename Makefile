@@ -1,5 +1,5 @@
 .PHONY: all
-all: build-deps generate fmt build
+all: build-deps generate fmt test build
 
 .PHONY: build-deps
 build-deps:
@@ -20,3 +20,7 @@ build:
 .PHONY: fmt
 fmt:
 	go fmt ./...
+
+.PHONY: test
+test:
+	go test ./...
