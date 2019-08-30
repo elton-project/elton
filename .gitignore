@@ -1,2 +1,10 @@
-bin/
-_workspace/
+# kernel modules
+.*.ko.cmd
+.*.o.cmd
+*.ko
+*.mod.c
+*.mod.o
+*.o
+.tmp_versions/
+Module.symvers
+modules.order
