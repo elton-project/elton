@@ -367,9 +367,15 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type NodeServiceClient interface {
+	// クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
+	// ノードの情報を登録・更新をする。
 	Register(ctx context.Context, in *RegisterNodeRequest, opts ...grpc.CallOption) (*RegisterNodeResponse, error)
+	// クラスタから脱退するときに呼び出すAPI。
+	// ノードの退避処理を行い、ノードの情報を削除する。
 	Unregister(ctx context.Context, in *UnregisterNodeRequest, opts ...grpc.CallOption) (*UnregisterNodeResponse, error)
+	// ノードが生存していることをcontrollerに通知する。
 	Ping(ctx context.Context, in *PingNodeRequest, opts ...grpc.CallOption) (*PingNodeResponse, error)
+	// 全ノードの一覧を取得する。
 	List(ctx context.Context, in *ListNodeRequest, opts ...grpc.CallOption) (NodeService_ListClient, error)
 }
 
@@ -442,9 +448,15 @@ func (x *nodeServiceListClient) Recv() (*ListNodeResponse, error) {
 
 // NodeServiceServer is the server API for NodeService service.
 type NodeServiceServer interface {
+	// クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
+	// ノードの情報を登録・更新をする。
 	Register(context.Context, *RegisterNodeRequest) (*RegisterNodeResponse, error)
+	// クラスタから脱退するときに呼び出すAPI。
+	// ノードの退避処理を行い、ノードの情報を削除する。
 	Unregister(context.Context, *UnregisterNodeRequest) (*UnregisterNodeResponse, error)
+	// ノードが生存していることをcontrollerに通知する。
 	Ping(context.Context, *PingNodeRequest) (*PingNodeResponse, error)
+	// 全ノードの一覧を取得する。
 	List(*ListNodeRequest, NodeService_ListServer) error
 }
 

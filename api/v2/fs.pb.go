@@ -455,7 +455,11 @@ func (m *GetLastCommitResponse) GetInfo() *CommitInfo {
 }
 
 type ListCommitRequest struct {
-	Limit                uint64   `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 一回のRPCリクエストに対して返答できる最大の個数。
+	// 0個の場合は、デフォルトの制限を適用。
+	// 個数制限を無効化することはできない。
+	Limit uint64 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// ページネーションされたときは、前回の最後の応答についていたnextの値を設定。
 	Next                 string   `protobuf:"bytes,2,opt,name=next,proto3" json:"next,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -502,6 +506,8 @@ func (m *ListCommitRequest) GetNext() string {
 }
 
 type ListCommitResponse struct {
+	// streamの一番最後、かつ個数制限により応答できていないアイテムが存在する場合、この値が設定される。
+	// 次のCommitService.List()のnext引数に設定すると、次のアイテムから列挙することが出来る。
 	Next                 string    `protobuf:"bytes,1,opt,name=next,proto3" json:"next,omitempty"`
 	Id                   *CommitID `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
@@ -690,9 +696,17 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type VolumeServiceClient interface {
+	// 新しいvolumeを作成する。
+	// volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
+	// 作成するかもしれない。
 	Create(ctx context.Context, in *VolumeCreateRequest, opts ...grpc.CallOption) (*VolumeCreateResponse, error)
+	// 指定したvolumeを削除する。
 	Delete(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeResponse, error)
+	// 現在ある全てのvolumeを列挙する。
+	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
+	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
 	List(ctx context.Context, in *ListVolumeRequest, opts ...grpc.CallOption) (VolumeService_ListClient, error)
+	// 指定したvolumeのメタデータを取得する。
 	Inspect(ctx context.Context, in *InspectVolumeRequest, opts ...grpc.CallOption) (*InspectVolumeResponse, error)
 }
 
@@ -765,9 +779,17 @@ func (c *volumeServiceClient) Inspect(ctx context.Context, in *InspectVolumeRequ
 
 // VolumeServiceServer is the server API for VolumeService service.
 type VolumeServiceServer interface {
+	// 新しいvolumeを作成する。
+	// volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
+	// 作成するかもしれない。
 	Create(context.Context, *VolumeCreateRequest) (*VolumeCreateResponse, error)
+	// 指定したvolumeを削除する。
 	Delete(context.Context, *DeleteVolumeRequest) (*DeleteVolumeResponse, error)
+	// 現在ある全てのvolumeを列挙する。
+	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
+	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
 	List(*ListVolumeRequest, VolumeService_ListServer) error
+	// 指定したvolumeのメタデータを取得する。
 	Inspect(context.Context, *InspectVolumeRequest) (*InspectVolumeResponse, error)
 }
 
@@ -898,8 +920,14 @@ var _VolumeService_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CommitServiceClient interface {
+	// 指定したvolume内の最新のコミットを取得する。
 	GetLastCommit(ctx context.Context, in *GetLastCommitRequest, opts ...grpc.CallOption) (*GetLastCommitResponse, error)
+	// コミットの履歴を取得する。
+	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
+	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
 	List(ctx context.Context, in *ListCommitRequest, opts ...grpc.CallOption) (CommitService_ListClient, error)
+	// コミットを作成する。
+	// TODO: 使い方を詳しく書く
 	Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*CommitResponse, error)
 }
 
@@ -963,8 +991,14 @@ func (c *commitServiceClient) Commit(ctx context.Context, in *CommitRequest, opt
 
 // CommitServiceServer is the server API for CommitService service.
 type CommitServiceServer interface {
+	// 指定したvolume内の最新のコミットを取得する。
 	GetLastCommit(context.Context, *GetLastCommitRequest) (*GetLastCommitResponse, error)
+	// コミットの履歴を取得する。
+	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
+	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
 	List(*ListCommitRequest, CommitService_ListServer) error
+	// コミットを作成する。
+	// TODO: 使い方を詳しく書く
 	Commit(context.Context, *CommitRequest) (*CommitResponse, error)
 }
 
