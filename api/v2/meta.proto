@@ -1,0 +1,29 @@
+syntax = "proto3";
+package elton.v2;
+import "types.proto";
+
+service MetaService {
+    rpc Get (GetMetaRequest) returns (GetMetaResponse);
+    rpc Set (SetMetaRequest) returns (SetMetaResponse);
+}
+
+
+message GetMetaRequest {
+    PropertyKey key = 1;
+}
+message GetMetaResponse {
+    PropertyKey key = 1;
+    PropertyBody body = 2;
+}
+message SetMetaRequest {
+    PropertyKey key = 1;
+    PropertyBody body = 2;
+    bool allowReplace = 3;
+    bool mustCreate = 4;
+}
+message SetMetaResponse {
+    PropertyKey key = 1;
+    PropertyBody oldBody = 2;
+    bool replaced = 3;
+    bool created = 4;
+}

@@ -1,0 +1,33 @@
+syntax = "proto3";
+package elton.v2;
+import "types.proto";
+
+
+// Storageサブシステムが、他のサブシステムに公開しているサービス。
+service StorageService {
+    rpc CreateObject (CreateObjectRequest) returns (CreateObjectResponse);
+    rpc GetObject(GetObjectRequest) returns (GetObjectResponse);
+    rpc DeleteObject (DeleteObjectRequest) returns (DeleteObjectResponse);
+}
+
+
+message CreateObjectRequest {
+    ObjectBody body = 2;
+}
+message CreateObjectResponse {
+    ObjectKey key = 1;
+}
+message GetObjectRequest {
+    ObjectKey key = 1;
+    uint64 offset = 2;
+    uint64 size = 3;
+}
+message GetObjectResponse {
+    ObjectKey key = 1;
+    ObjectBody body = 2;
+    ObjectInfo info = 3;
+}
+message DeleteObjectRequest {
+    ObjectKey key = 1;
+}
+message DeleteObjectResponse {}
