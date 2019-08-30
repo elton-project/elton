@@ -15,7 +15,6 @@ generate:
 
 .PHONY: build
 build:
-	go build ./cmd/elton-test
 	go build ./cmd/eltond
 
 .PHONY: fmt
