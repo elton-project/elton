@@ -9,6 +9,11 @@ Elton is a distributed file system for accelerate data sharing through the WAN.
 現在はDockerをターゲットにしたファイルシステムインタフェースとCDN向けのHTTPインタフェースを提供しようと頑張ってる．
 
 
+## Requirements
+
+- Ubuntu 19.04 (Disco Dingo)
+
+
 ## Development
 
 - Golang 1.12
