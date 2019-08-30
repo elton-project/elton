@@ -1,7 +1,0 @@
-[slave]
-name = "{{.SLAVE}}"
-grpc_port = 34567
-http_port = 23456
-master_name = "{{.MASTER}}"
-master_port = 12345
-dir = "/tmp"
