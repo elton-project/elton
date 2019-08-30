@@ -8,17 +8,39 @@ elton-y += super.o
 elton-y += simple_xattr.o xattr.o
 obj-m := elton.o
 
+KERNEL ?= $(shell uname -r)
+
 # Need following packages:
 #   * linux-headers-amd64
-KDIR := /lib/modules/$(shell uname -r)/build
+KDIR ?= /lib/modules/$(KERNEL)/build
 
+DOCKER_IMAGE := eltonfs-builder
+DOCKER_RUN = docker run --rm -it \
+	-u $(shell id -u):$(shell id -g) \
+	-v $(abspath .):/work \
+	-w /work \
+	$(DOCKER_IMAGE)
 
 .PHONY: all
 all: build test
 
+.PHONY: build-inside-container
+build-inside-container:
+	docker build -t $(DOCKER_IMAGE) builder
+	$(DOCKER_RUN) make build
+
+.PHONY: clean-inside-container
+clean-inside-container:
+	docker build -t $(DOCKER_IMAGE) builder
+	$(DOCKER_RUN) make clean
+
 .PHONY: build
 build:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules
+	$(MAKE) -C $(KDIR) M=`pwd` modules
+
+.PHONY: clean
+clean:
+	$(MAKE) -C $(KDIR) M=`pwd` clean
 
 .PHONY: test
 test: force_rmmod insmod test_basic_op test_syscalls test_libc rmmod

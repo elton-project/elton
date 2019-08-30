@@ -16,6 +16,7 @@ generate:
 .PHONY: build
 build:
 	go build ./cmd/eltond
+	$(MAKE) -C eltonfs build-inside-container
 
 .PHONY: fmt
 fmt:
@@ -24,3 +25,7 @@ fmt:
 .PHONY: test
 test:
 	go test ./...
+
+.PHONY: clean
+clean:
+	$(MAKE) -C eltonfs clean
