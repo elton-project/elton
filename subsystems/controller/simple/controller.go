@@ -8,7 +8,7 @@ func NewController() *Controller {
 	return &Controller{
 		MetaServiceServer:   newLocalMetaServer(),
 		NodeServiceServer:   newLocalNodeServer(),
-		VolumeServiceServer: &UnimplementedVolumeServiceServer{},
+		VolumeServiceServer: newLocalVolumeServer(),
 		CommitServiceServer: &UnimplementedCommitServiceServer{},
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-func NewLocalVolumeServer() *localVolumeServer {
+func newLocalVolumeServer() *localVolumeServer {
 	return &localVolumeServer{
 		volumes: map[volumeKey]*volumeInfo{},
 	}
