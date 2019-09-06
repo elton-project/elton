@@ -8,7 +8,7 @@ service VolumeService {
     // 新しいvolumeを作成する。
     // volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
     // 作成するかもしれない。
-    rpc Create (VolumeCreateRequest) returns (VolumeCreateResponse);
+    rpc Create (CreateVolumeRequest) returns (CreateVolumeResponse);
     // 指定したvolumeを削除する。
     rpc Delete (DeleteVolumeRequest) returns (DeleteVolumeResponse);
     // 現在ある全てのvolumeを列挙する。
@@ -34,10 +34,10 @@ service CommitService {
 }
 
 
-message VolumeCreateRequest {
+message CreateVolumeRequest {
     VolumeInfo info = 2;
 }
-message VolumeCreateResponse {
+message CreateVolumeResponse {
     VolumeID id = 1;
 }
 message DeleteVolumeRequest {
