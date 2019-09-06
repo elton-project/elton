@@ -26,7 +26,7 @@ type metaValue struct {
 	AllowReplace bool
 }
 
-func (m *localMetaServer) Get(ctx context.Context, req *GetMetaRequest) (*GetMetaResponse, error) {
+func (m *localMetaServer) GetMeta(ctx context.Context, req *GetMetaRequest) (*GetMetaResponse, error) {
 	key := newMetaKey(req.GetKey())
 
 	m.lock.RLock()
@@ -38,7 +38,7 @@ func (m *localMetaServer) Get(ctx context.Context, req *GetMetaRequest) (*GetMet
 		Body: value.ToProperty(),
 	}, nil
 }
-func (m *localMetaServer) Set(ctx context.Context, req *SetMetaRequest) (*SetMetaResponse, error) {
+func (m *localMetaServer) SetMeta(ctx context.Context, req *SetMetaRequest) (*SetMetaResponse, error) {
 	key := newMetaKey(req.GetKey())
 	value := newMetaValue(req.GetBody())
 
