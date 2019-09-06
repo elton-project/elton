@@ -18,7 +18,6 @@ message GetMetaResponse {
 message SetMetaRequest {
     PropertyKey key = 1;
     PropertyBody body = 2;
-    bool allowReplace = 3;
     bool mustCreate = 4;
 }
 message SetMetaResponse {

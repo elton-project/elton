@@ -26,6 +26,7 @@ message PropertyKey {
 }
 message PropertyBody {
     string body = 1;
+    bool allowReplace = 2;
 }
 
 
