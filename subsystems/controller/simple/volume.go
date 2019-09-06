@@ -15,6 +15,7 @@ func newLocalVolumeServer() *localVolumeServer {
 }
 
 type localVolumeServer struct {
+	UnimplementedCommitServiceServer
 	lock    sync.RWMutex
 	volumes map[volumeKey]*volumeInfo
 }

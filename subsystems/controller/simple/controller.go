@@ -5,11 +5,12 @@ import (
 )
 
 func NewController() *Controller {
+	v := newLocalVolumeServer()
 	return &Controller{
 		MetaServiceServer:   newLocalMetaServer(),
 		NodeServiceServer:   newLocalNodeServer(),
-		VolumeServiceServer: newLocalVolumeServer(),
-		CommitServiceServer: &UnimplementedCommitServiceServer{},
+		VolumeServiceServer: v,
+		CommitServiceServer: v,
 	}
 }
 
