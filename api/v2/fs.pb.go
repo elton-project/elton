@@ -24,78 +24,78 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type VolumeCreateRequest struct {
+type CreateVolumeRequest struct {
 	Info                 *VolumeInfo `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
 }
 
-func (m *VolumeCreateRequest) Reset()         { *m = VolumeCreateRequest{} }
-func (m *VolumeCreateRequest) String() string { return proto.CompactTextString(m) }
-func (*VolumeCreateRequest) ProtoMessage()    {}
-func (*VolumeCreateRequest) Descriptor() ([]byte, []int) {
+func (m *CreateVolumeRequest) Reset()         { *m = CreateVolumeRequest{} }
+func (m *CreateVolumeRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateVolumeRequest) ProtoMessage()    {}
+func (*CreateVolumeRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e604833c2b457e38, []int{0}
 }
 
-func (m *VolumeCreateRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_VolumeCreateRequest.Unmarshal(m, b)
+func (m *CreateVolumeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateVolumeRequest.Unmarshal(m, b)
 }
-func (m *VolumeCreateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_VolumeCreateRequest.Marshal(b, m, deterministic)
+func (m *CreateVolumeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateVolumeRequest.Marshal(b, m, deterministic)
 }
-func (m *VolumeCreateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_VolumeCreateRequest.Merge(m, src)
+func (m *CreateVolumeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateVolumeRequest.Merge(m, src)
 }
-func (m *VolumeCreateRequest) XXX_Size() int {
-	return xxx_messageInfo_VolumeCreateRequest.Size(m)
+func (m *CreateVolumeRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateVolumeRequest.Size(m)
 }
-func (m *VolumeCreateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_VolumeCreateRequest.DiscardUnknown(m)
+func (m *CreateVolumeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateVolumeRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_VolumeCreateRequest proto.InternalMessageInfo
+var xxx_messageInfo_CreateVolumeRequest proto.InternalMessageInfo
 
-func (m *VolumeCreateRequest) GetInfo() *VolumeInfo {
+func (m *CreateVolumeRequest) GetInfo() *VolumeInfo {
 	if m != nil {
 		return m.Info
 	}
 	return nil
 }
 
-type VolumeCreateResponse struct {
+type CreateVolumeResponse struct {
 	Id                   *VolumeID `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
 	XXX_sizecache        int32     `json:"-"`
 }
 
-func (m *VolumeCreateResponse) Reset()         { *m = VolumeCreateResponse{} }
-func (m *VolumeCreateResponse) String() string { return proto.CompactTextString(m) }
-func (*VolumeCreateResponse) ProtoMessage()    {}
-func (*VolumeCreateResponse) Descriptor() ([]byte, []int) {
+func (m *CreateVolumeResponse) Reset()         { *m = CreateVolumeResponse{} }
+func (m *CreateVolumeResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateVolumeResponse) ProtoMessage()    {}
+func (*CreateVolumeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e604833c2b457e38, []int{1}
 }
 
-func (m *VolumeCreateResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_VolumeCreateResponse.Unmarshal(m, b)
+func (m *CreateVolumeResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateVolumeResponse.Unmarshal(m, b)
 }
-func (m *VolumeCreateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_VolumeCreateResponse.Marshal(b, m, deterministic)
+func (m *CreateVolumeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateVolumeResponse.Marshal(b, m, deterministic)
 }
-func (m *VolumeCreateResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_VolumeCreateResponse.Merge(m, src)
+func (m *CreateVolumeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateVolumeResponse.Merge(m, src)
 }
-func (m *VolumeCreateResponse) XXX_Size() int {
-	return xxx_messageInfo_VolumeCreateResponse.Size(m)
+func (m *CreateVolumeResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateVolumeResponse.Size(m)
 }
-func (m *VolumeCreateResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_VolumeCreateResponse.DiscardUnknown(m)
+func (m *CreateVolumeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateVolumeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_VolumeCreateResponse proto.InternalMessageInfo
+var xxx_messageInfo_CreateVolumeResponse proto.InternalMessageInfo
 
-func (m *VolumeCreateResponse) GetId() *VolumeID {
+func (m *CreateVolumeResponse) GetId() *VolumeID {
 	if m != nil {
 		return m.Id
 	}
@@ -172,7 +172,7 @@ func (m *DeleteVolumeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteVolumeResponse proto.InternalMessageInfo
 
-type ListVolumeRequest struct {
+type ListVolumesRequest struct {
 	// 一回のRPCリクエストに対して返答できる最大の個数。
 	// 0個の場合は、デフォルトの制限を適用。
 	// 個数制限を無効化することはできない。
@@ -184,46 +184,46 @@ type ListVolumeRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListVolumeRequest) Reset()         { *m = ListVolumeRequest{} }
-func (m *ListVolumeRequest) String() string { return proto.CompactTextString(m) }
-func (*ListVolumeRequest) ProtoMessage()    {}
-func (*ListVolumeRequest) Descriptor() ([]byte, []int) {
+func (m *ListVolumesRequest) Reset()         { *m = ListVolumesRequest{} }
+func (m *ListVolumesRequest) String() string { return proto.CompactTextString(m) }
+func (*ListVolumesRequest) ProtoMessage()    {}
+func (*ListVolumesRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e604833c2b457e38, []int{4}
 }
 
-func (m *ListVolumeRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListVolumeRequest.Unmarshal(m, b)
+func (m *ListVolumesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListVolumesRequest.Unmarshal(m, b)
 }
-func (m *ListVolumeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListVolumeRequest.Marshal(b, m, deterministic)
+func (m *ListVolumesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListVolumesRequest.Marshal(b, m, deterministic)
 }
-func (m *ListVolumeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListVolumeRequest.Merge(m, src)
+func (m *ListVolumesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListVolumesRequest.Merge(m, src)
 }
-func (m *ListVolumeRequest) XXX_Size() int {
-	return xxx_messageInfo_ListVolumeRequest.Size(m)
+func (m *ListVolumesRequest) XXX_Size() int {
+	return xxx_messageInfo_ListVolumesRequest.Size(m)
 }
-func (m *ListVolumeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListVolumeRequest.DiscardUnknown(m)
+func (m *ListVolumesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListVolumesRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListVolumeRequest proto.InternalMessageInfo
+var xxx_messageInfo_ListVolumesRequest proto.InternalMessageInfo
 
-func (m *ListVolumeRequest) GetLimit() uint64 {
+func (m *ListVolumesRequest) GetLimit() uint64 {
 	if m != nil {
 		return m.Limit
 	}
 	return 0
 }
 
-func (m *ListVolumeRequest) GetNext() string {
+func (m *ListVolumesRequest) GetNext() string {
 	if m != nil {
 		return m.Next
 	}
 	return ""
 }
 
-type ListVolumeResponse struct {
+type ListVolumesResponse struct {
 	// streamの一番最後、かつ個数制限により応答できていないアイテムが存在する場合、この値が設定される。
 	// 次のVolumeService.List()のnext引数に設定すると、次のアイテムから列挙することが出来る。
 	Next                 string      `protobuf:"bytes,1,opt,name=next,proto3" json:"next,omitempty"`
@@ -234,46 +234,46 @@ type ListVolumeResponse struct {
 	XXX_sizecache        int32       `json:"-"`
 }
 
-func (m *ListVolumeResponse) Reset()         { *m = ListVolumeResponse{} }
-func (m *ListVolumeResponse) String() string { return proto.CompactTextString(m) }
-func (*ListVolumeResponse) ProtoMessage()    {}
-func (*ListVolumeResponse) Descriptor() ([]byte, []int) {
+func (m *ListVolumesResponse) Reset()         { *m = ListVolumesResponse{} }
+func (m *ListVolumesResponse) String() string { return proto.CompactTextString(m) }
+func (*ListVolumesResponse) ProtoMessage()    {}
+func (*ListVolumesResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e604833c2b457e38, []int{5}
 }
 
-func (m *ListVolumeResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListVolumeResponse.Unmarshal(m, b)
+func (m *ListVolumesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListVolumesResponse.Unmarshal(m, b)
 }
-func (m *ListVolumeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListVolumeResponse.Marshal(b, m, deterministic)
+func (m *ListVolumesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListVolumesResponse.Marshal(b, m, deterministic)
 }
-func (m *ListVolumeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListVolumeResponse.Merge(m, src)
+func (m *ListVolumesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListVolumesResponse.Merge(m, src)
 }
-func (m *ListVolumeResponse) XXX_Size() int {
-	return xxx_messageInfo_ListVolumeResponse.Size(m)
+func (m *ListVolumesResponse) XXX_Size() int {
+	return xxx_messageInfo_ListVolumesResponse.Size(m)
 }
-func (m *ListVolumeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListVolumeResponse.DiscardUnknown(m)
+func (m *ListVolumesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListVolumesResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListVolumeResponse proto.InternalMessageInfo
+var xxx_messageInfo_ListVolumesResponse proto.InternalMessageInfo
 
-func (m *ListVolumeResponse) GetNext() string {
+func (m *ListVolumesResponse) GetNext() string {
 	if m != nil {
 		return m.Next
 	}
 	return ""
 }
 
-func (m *ListVolumeResponse) GetId() *VolumeID {
+func (m *ListVolumesResponse) GetId() *VolumeID {
 	if m != nil {
 		return m.Id
 	}
 	return nil
 }
 
-func (m *ListVolumeResponse) GetInfo() *VolumeInfo {
+func (m *ListVolumesResponse) GetInfo() *VolumeInfo {
 	if m != nil {
 		return m.Info
 	}
@@ -454,7 +454,7 @@ func (m *GetLastCommitResponse) GetInfo() *CommitInfo {
 	return nil
 }
 
-type ListCommitRequest struct {
+type ListCommitsRequest struct {
 	// 一回のRPCリクエストに対して返答できる最大の個数。
 	// 0個の場合は、デフォルトの制限を適用。
 	// 個数制限を無効化することはできない。
@@ -466,46 +466,46 @@ type ListCommitRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListCommitRequest) Reset()         { *m = ListCommitRequest{} }
-func (m *ListCommitRequest) String() string { return proto.CompactTextString(m) }
-func (*ListCommitRequest) ProtoMessage()    {}
-func (*ListCommitRequest) Descriptor() ([]byte, []int) {
+func (m *ListCommitsRequest) Reset()         { *m = ListCommitsRequest{} }
+func (m *ListCommitsRequest) String() string { return proto.CompactTextString(m) }
+func (*ListCommitsRequest) ProtoMessage()    {}
+func (*ListCommitsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e604833c2b457e38, []int{10}
 }
 
-func (m *ListCommitRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListCommitRequest.Unmarshal(m, b)
+func (m *ListCommitsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListCommitsRequest.Unmarshal(m, b)
 }
-func (m *ListCommitRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListCommitRequest.Marshal(b, m, deterministic)
+func (m *ListCommitsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListCommitsRequest.Marshal(b, m, deterministic)
 }
-func (m *ListCommitRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListCommitRequest.Merge(m, src)
+func (m *ListCommitsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListCommitsRequest.Merge(m, src)
 }
-func (m *ListCommitRequest) XXX_Size() int {
-	return xxx_messageInfo_ListCommitRequest.Size(m)
+func (m *ListCommitsRequest) XXX_Size() int {
+	return xxx_messageInfo_ListCommitsRequest.Size(m)
 }
-func (m *ListCommitRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListCommitRequest.DiscardUnknown(m)
+func (m *ListCommitsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListCommitsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListCommitRequest proto.InternalMessageInfo
+var xxx_messageInfo_ListCommitsRequest proto.InternalMessageInfo
 
-func (m *ListCommitRequest) GetLimit() uint64 {
+func (m *ListCommitsRequest) GetLimit() uint64 {
 	if m != nil {
 		return m.Limit
 	}
 	return 0
 }
 
-func (m *ListCommitRequest) GetNext() string {
+func (m *ListCommitsRequest) GetNext() string {
 	if m != nil {
 		return m.Next
 	}
 	return ""
 }
 
-type ListCommitResponse struct {
+type ListCommitsResponse struct {
 	// streamの一番最後、かつ個数制限により応答できていないアイテムが存在する場合、この値が設定される。
 	// 次のCommitService.List()のnext引数に設定すると、次のアイテムから列挙することが出来る。
 	Next                 string    `protobuf:"bytes,1,opt,name=next,proto3" json:"next,omitempty"`
@@ -515,39 +515,39 @@ type ListCommitResponse struct {
 	XXX_sizecache        int32     `json:"-"`
 }
 
-func (m *ListCommitResponse) Reset()         { *m = ListCommitResponse{} }
-func (m *ListCommitResponse) String() string { return proto.CompactTextString(m) }
-func (*ListCommitResponse) ProtoMessage()    {}
-func (*ListCommitResponse) Descriptor() ([]byte, []int) {
+func (m *ListCommitsResponse) Reset()         { *m = ListCommitsResponse{} }
+func (m *ListCommitsResponse) String() string { return proto.CompactTextString(m) }
+func (*ListCommitsResponse) ProtoMessage()    {}
+func (*ListCommitsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e604833c2b457e38, []int{11}
 }
 
-func (m *ListCommitResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListCommitResponse.Unmarshal(m, b)
+func (m *ListCommitsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListCommitsResponse.Unmarshal(m, b)
 }
-func (m *ListCommitResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListCommitResponse.Marshal(b, m, deterministic)
+func (m *ListCommitsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListCommitsResponse.Marshal(b, m, deterministic)
 }
-func (m *ListCommitResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListCommitResponse.Merge(m, src)
+func (m *ListCommitsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListCommitsResponse.Merge(m, src)
 }
-func (m *ListCommitResponse) XXX_Size() int {
-	return xxx_messageInfo_ListCommitResponse.Size(m)
+func (m *ListCommitsResponse) XXX_Size() int {
+	return xxx_messageInfo_ListCommitsResponse.Size(m)
 }
-func (m *ListCommitResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListCommitResponse.DiscardUnknown(m)
+func (m *ListCommitsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListCommitsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListCommitResponse proto.InternalMessageInfo
+var xxx_messageInfo_ListCommitsResponse proto.InternalMessageInfo
 
-func (m *ListCommitResponse) GetNext() string {
+func (m *ListCommitsResponse) GetNext() string {
 	if m != nil {
 		return m.Next
 	}
 	return ""
 }
 
-func (m *ListCommitResponse) GetId() *CommitID {
+func (m *ListCommitsResponse) GetId() *CommitID {
 	if m != nil {
 		return m.Id
 	}
@@ -633,18 +633,18 @@ func (m *CommitResponse) GetId() *CommitID {
 }
 
 func init() {
-	proto.RegisterType((*VolumeCreateRequest)(nil), "elton.v2.VolumeCreateRequest")
-	proto.RegisterType((*VolumeCreateResponse)(nil), "elton.v2.VolumeCreateResponse")
+	proto.RegisterType((*CreateVolumeRequest)(nil), "elton.v2.CreateVolumeRequest")
+	proto.RegisterType((*CreateVolumeResponse)(nil), "elton.v2.CreateVolumeResponse")
 	proto.RegisterType((*DeleteVolumeRequest)(nil), "elton.v2.DeleteVolumeRequest")
 	proto.RegisterType((*DeleteVolumeResponse)(nil), "elton.v2.DeleteVolumeResponse")
-	proto.RegisterType((*ListVolumeRequest)(nil), "elton.v2.ListVolumeRequest")
-	proto.RegisterType((*ListVolumeResponse)(nil), "elton.v2.ListVolumeResponse")
+	proto.RegisterType((*ListVolumesRequest)(nil), "elton.v2.ListVolumesRequest")
+	proto.RegisterType((*ListVolumesResponse)(nil), "elton.v2.ListVolumesResponse")
 	proto.RegisterType((*InspectVolumeRequest)(nil), "elton.v2.InspectVolumeRequest")
 	proto.RegisterType((*InspectVolumeResponse)(nil), "elton.v2.InspectVolumeResponse")
 	proto.RegisterType((*GetLastCommitRequest)(nil), "elton.v2.GetLastCommitRequest")
 	proto.RegisterType((*GetLastCommitResponse)(nil), "elton.v2.GetLastCommitResponse")
-	proto.RegisterType((*ListCommitRequest)(nil), "elton.v2.ListCommitRequest")
-	proto.RegisterType((*ListCommitResponse)(nil), "elton.v2.ListCommitResponse")
+	proto.RegisterType((*ListCommitsRequest)(nil), "elton.v2.ListCommitsRequest")
+	proto.RegisterType((*ListCommitsResponse)(nil), "elton.v2.ListCommitsResponse")
 	proto.RegisterType((*CommitRequest)(nil), "elton.v2.CommitRequest")
 	proto.RegisterType((*CommitResponse)(nil), "elton.v2.CommitResponse")
 }
@@ -652,36 +652,36 @@ func init() {
 func init() { proto.RegisterFile("fs.proto", fileDescriptor_e604833c2b457e38) }
 
 var fileDescriptor_e604833c2b457e38 = []byte{
-	// 453 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0x5d, 0xab, 0xd3, 0x40,
-	0x10, 0x25, 0x31, 0xc6, 0xeb, 0x5c, 0x2a, 0xb8, 0x37, 0x5e, 0x4b, 0xbc, 0x7e, 0xb0, 0x0f, 0xd2,
-	0xa7, 0x20, 0x51, 0x10, 0x15, 0xf1, 0xa1, 0x85, 0x52, 0x29, 0x22, 0x11, 0x7c, 0x4f, 0xdb, 0x29,
-	0x2c, 0x24, 0xd9, 0xd8, 0xdd, 0x16, 0xfd, 0x5b, 0xfe, 0x25, 0xff, 0x88, 0x74, 0x77, 0xd3, 0x66,
-	0xd3, 0xf4, 0x23, 0x6f, 0xed, 0xce, 0xcc, 0x39, 0x67, 0xe6, 0xcc, 0x04, 0xae, 0x96, 0x22, 0x2a,
-	0x57, 0x5c, 0x72, 0x72, 0x85, 0x99, 0xe4, 0x45, 0xb4, 0x89, 0xc3, 0x6b, 0xf9, 0xa7, 0x44, 0xf3,
-	0x4c, 0xbf, 0xc0, 0xcd, 0x4f, 0x9e, 0xad, 0x73, 0x1c, 0xae, 0x30, 0x95, 0x98, 0xe0, 0xaf, 0x35,
-	0x0a, 0x49, 0x06, 0xe0, 0xb1, 0x62, 0xc9, 0xfb, 0xee, 0x2b, 0x67, 0x70, 0x1d, 0x07, 0x51, 0x55,
-	0x1c, 0xe9, 0xe4, 0x49, 0xb1, 0xe4, 0x89, 0xca, 0xa0, 0x1f, 0x21, 0xb0, 0x01, 0x44, 0xc9, 0x0b,
-	0x81, 0x84, 0x82, 0xcb, 0x16, 0x7d, 0x47, 0xd5, 0x93, 0x83, 0xfa, 0x51, 0xe2, 0xb2, 0x05, 0xfd,
-	0x00, 0x37, 0x23, 0xcc, 0x50, 0xa2, 0x7e, 0xad, 0xc8, 0x2f, 0x29, 0xbd, 0x85, 0xc0, 0x2e, 0xd5,
-	0xb4, 0xf4, 0x33, 0x3c, 0x9e, 0x32, 0x21, 0x6d, 0xc0, 0x00, 0xee, 0x67, 0x2c, 0x67, 0x52, 0x61,
-	0x7a, 0x89, 0xfe, 0x43, 0x08, 0x78, 0x05, 0xfe, 0x96, 0xaa, 0xc7, 0x87, 0x89, 0xfa, 0x4d, 0x37,
-	0x40, 0xea, 0xe5, 0xa6, 0x97, 0x2a, 0xd3, 0xd9, 0x67, 0x1a, 0x91, 0xee, 0x29, 0x91, 0xbb, 0x29,
-	0xde, 0x3b, 0x3b, 0xc5, 0x6f, 0x10, 0x4c, 0x0a, 0x51, 0xe2, 0x5c, 0x76, 0x1e, 0x85, 0x52, 0x97,
-	0xe6, 0xb8, 0xeb, 0x23, 0xcd, 0x91, 0x22, 0x3c, 0x69, 0xe0, 0x5d, 0x6e, 0x4b, 0x07, 0xf3, 0x6f,
-	0x21, 0x18, 0xa3, 0x9c, 0xa6, 0x42, 0x0e, 0x79, 0x9e, 0x33, 0x69, 0x64, 0x6f, 0xe9, 0x1b, 0xef,
-	0xa7, 0xe9, 0x75, 0xd6, 0x39, 0x7a, 0x93, 0xb5, 0xa7, 0x37, 0x66, 0x5b, 0xdc, 0x1d, 0xcc, 0x9e,
-	0x6a, 0xb3, 0x1b, 0x12, 0x3b, 0x98, 0x5d, 0x97, 0x4d, 0xdf, 0x43, 0xcf, 0x16, 0xf2, 0x1a, 0xbc,
-	0x59, 0x2a, 0xf0, 0x44, 0xb7, 0x2a, 0x4e, 0xdf, 0xc1, 0xa3, 0xee, 0x53, 0x8a, 0xff, 0xba, 0xd0,
-	0xd3, 0x7e, 0xfc, 0xc0, 0xd5, 0x86, 0xcd, 0x91, 0x8c, 0xc1, 0xd7, 0x37, 0x48, 0x9e, 0x37, 0x2d,
-	0xb3, 0x8e, 0x3b, 0x7c, 0x71, 0x2c, 0x6c, 0xe8, 0xc7, 0xe0, 0xeb, 0xdb, 0xaa, 0x03, 0xb5, 0x1c,
-	0x6a, 0x1d, 0xa8, 0xed, 0x18, 0xc9, 0x10, 0xbc, 0xed, 0x80, 0xc9, 0xb3, 0x7d, 0xde, 0xc1, 0x71,
-	0x86, 0x77, 0xed, 0x41, 0x0d, 0xf1, 0xc6, 0x21, 0x5f, 0xe1, 0x81, 0x59, 0x65, 0x52, 0xe3, 0x6b,
-	0xbb, 0x96, 0xf0, 0xe5, 0xd1, 0xb8, 0x46, 0x8b, 0xff, 0x39, 0x95, 0x49, 0xd5, 0xd0, 0xbe, 0x43,
-	0xcf, 0xda, 0xd4, 0x3a, 0x47, 0xdb, 0x6a, 0xd7, 0x39, 0xda, 0x57, 0xfc, 0x48, 0xd3, 0x36, 0xca,
-	0x5d, 0x7b, 0x70, 0xd7, 0xf4, 0x27, 0xf0, 0x8d, 0x9e, 0xa7, 0x4d, 0xff, 0x2b, 0x88, 0xfe, 0x61,
-	0x40, 0x97, 0xcf, 0x7c, 0xf5, 0x69, 0x7f, 0xfb, 0x3f, 0x00, 0x00, 0xff, 0xff, 0x7b, 0x0a, 0x06,
-	0x63, 0xfd, 0x05, 0x00, 0x00,
+	// 463 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xdf, 0x8b, 0xd3, 0x40,
+	0x10, 0x26, 0x31, 0x1e, 0xe7, 0xf4, 0xe2, 0xc3, 0x36, 0x9e, 0x25, 0x78, 0x2a, 0xfb, 0x20, 0xf7,
+	0x14, 0x8e, 0x28, 0x88, 0x0a, 0xfa, 0x70, 0x07, 0x72, 0xd0, 0x4a, 0x89, 0xe0, 0x7b, 0xda, 0x4e,
+	0x61, 0x21, 0xc9, 0xc6, 0xee, 0xb6, 0xea, 0x1f, 0xe9, 0x7f, 0xe2, 0x1f, 0x21, 0xee, 0x6e, 0xda,
+	0xcd, 0x8f, 0xfe, 0x88, 0x6f, 0xed, 0xce, 0x7c, 0xdf, 0x37, 0xf3, 0xcd, 0x0c, 0x81, 0xf3, 0xa5,
+	0x88, 0xca, 0x15, 0x97, 0x9c, 0x9c, 0x63, 0x26, 0x79, 0x11, 0x6d, 0xe2, 0x70, 0x20, 0x7f, 0x95,
+	0x68, 0x9e, 0xe9, 0x27, 0x18, 0xde, 0xae, 0x30, 0x95, 0xf8, 0x8d, 0x67, 0xeb, 0x1c, 0x13, 0xfc,
+	0xbe, 0x46, 0x21, 0xc9, 0x35, 0x78, 0xac, 0x58, 0xf2, 0x91, 0xfb, 0xd2, 0xb9, 0x1e, 0xc4, 0x41,
+	0x54, 0x81, 0x23, 0x9d, 0x76, 0x5f, 0x2c, 0x79, 0xa2, 0x32, 0xe8, 0x7b, 0x08, 0xea, 0x04, 0xa2,
+	0xe4, 0x85, 0x40, 0x42, 0xc1, 0x65, 0x8b, 0x91, 0xa3, 0xf0, 0xa4, 0x85, 0xbf, 0x4b, 0x5c, 0xb6,
+	0xa0, 0xef, 0x60, 0x78, 0x87, 0x19, 0x36, 0xc5, 0x4f, 0x81, 0x5e, 0x42, 0x50, 0x87, 0x6a, 0x59,
+	0xfa, 0x11, 0xc8, 0x98, 0x09, 0xa9, 0x5f, 0x45, 0xc5, 0x18, 0xc0, 0xc3, 0x8c, 0xe5, 0x4c, 0x2a,
+	0x52, 0x2f, 0xd1, 0x7f, 0x08, 0x01, 0xaf, 0xc0, 0x9f, 0x52, 0x35, 0xf9, 0x28, 0x51, 0xbf, 0xe9,
+	0x0f, 0x18, 0xd6, 0xf0, 0xa6, 0x9b, 0x2a, 0xd5, 0xd9, 0xa5, 0x9a, 0x32, 0xdd, 0x43, 0x65, 0x6e,
+	0x7d, 0x7c, 0x70, 0xd4, 0xc7, 0x2f, 0x10, 0xdc, 0x17, 0xa2, 0xc4, 0xb9, 0xec, 0x6d, 0x86, 0xaa,
+	0x2e, 0xcd, 0x71, 0xdb, 0x48, 0x9a, 0x23, 0x45, 0x78, 0xd2, 0xe0, 0x3b, 0x7d, 0x30, 0x3d, 0xc6,
+	0x7f, 0x09, 0xc1, 0x67, 0x94, 0xe3, 0x54, 0xc8, 0x5b, 0x9e, 0xe7, 0x4c, 0x9a, 0xb2, 0xff, 0xc9,
+	0x37, 0xde, 0x0f, 0xcb, 0xeb, 0xac, 0x63, 0xf2, 0x26, 0x6b, 0x27, 0x6f, 0xc6, 0xad, 0xdf, 0xff,
+	0x63, 0xdc, 0x13, 0x3d, 0xee, 0x2d, 0xbe, 0xff, 0xb8, 0xed, 0xc2, 0xe9, 0x5b, 0xf0, 0x6b, 0x36,
+	0x90, 0x57, 0xe0, 0xcd, 0x52, 0x81, 0x07, 0xfa, 0x55, 0x71, 0xfa, 0x06, 0x1e, 0xf7, 0xf7, 0x29,
+	0xfe, 0xed, 0x82, 0xaf, 0x27, 0xf2, 0x15, 0x57, 0x1b, 0x36, 0x47, 0x32, 0x81, 0x0b, 0xfb, 0x1a,
+	0xc9, 0x95, 0x85, 0x6c, 0x9f, 0x79, 0xf8, 0x7c, 0x5f, 0xd8, 0x14, 0x31, 0x81, 0x0b, 0xfb, 0xca,
+	0x6c, 0xba, 0x8e, 0xc3, 0xb5, 0xe9, 0xba, 0x8e, 0x93, 0x8c, 0x61, 0x60, 0x1d, 0x17, 0x79, 0xb6,
+	0x4b, 0x6f, 0xdf, 0x6c, 0x78, 0xb5, 0x27, 0xaa, 0xb9, 0x6e, 0x1c, 0x32, 0x05, 0xbf, 0xb6, 0xe1,
+	0xc4, 0x92, 0xef, 0x3a, 0xa5, 0xf0, 0xc5, 0xde, 0xb8, 0xe6, 0x8c, 0xff, 0x38, 0xd5, 0xfc, 0x2a,
+	0x3f, 0xa7, 0xe0, 0xd7, 0xd6, 0xd8, 0xd6, 0xe8, 0xda, 0x7b, 0x5b, 0xa3, 0x7b, 0xff, 0x8d, 0x07,
+	0x66, 0xe3, 0x9a, 0x1e, 0xd4, 0x17, 0xb9, 0xe9, 0x41, 0x63, 0x4d, 0x6f, 0x1c, 0xf2, 0x01, 0xce,
+	0x4c, 0x61, 0x4f, 0x9b, 0x3b, 0x52, 0x71, 0x8c, 0xda, 0x01, 0x0d, 0x9f, 0x9d, 0xa9, 0x4f, 0xc0,
+	0xeb, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xcf, 0x59, 0x6a, 0x0d, 0x25, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -699,15 +699,15 @@ type VolumeServiceClient interface {
 	// 新しいvolumeを作成する。
 	// volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
 	// 作成するかもしれない。
-	Create(ctx context.Context, in *VolumeCreateRequest, opts ...grpc.CallOption) (*VolumeCreateResponse, error)
+	CreateVolume(ctx context.Context, in *CreateVolumeRequest, opts ...grpc.CallOption) (*CreateVolumeResponse, error)
 	// 指定したvolumeを削除する。
-	Delete(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeResponse, error)
+	DeleteVolume(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeResponse, error)
 	// 現在ある全てのvolumeを列挙する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
-	List(ctx context.Context, in *ListVolumeRequest, opts ...grpc.CallOption) (VolumeService_ListClient, error)
+	ListVolumes(ctx context.Context, in *ListVolumesRequest, opts ...grpc.CallOption) (VolumeService_ListVolumesClient, error)
 	// 指定したvolumeのメタデータを取得する。
-	Inspect(ctx context.Context, in *InspectVolumeRequest, opts ...grpc.CallOption) (*InspectVolumeResponse, error)
+	InspectVolume(ctx context.Context, in *InspectVolumeRequest, opts ...grpc.CallOption) (*InspectVolumeResponse, error)
 }
 
 type volumeServiceClient struct {
@@ -718,30 +718,30 @@ func NewVolumeServiceClient(cc *grpc.ClientConn) VolumeServiceClient {
 	return &volumeServiceClient{cc}
 }
 
-func (c *volumeServiceClient) Create(ctx context.Context, in *VolumeCreateRequest, opts ...grpc.CallOption) (*VolumeCreateResponse, error) {
-	out := new(VolumeCreateResponse)
-	err := c.cc.Invoke(ctx, "/elton.v2.VolumeService/Create", in, out, opts...)
+func (c *volumeServiceClient) CreateVolume(ctx context.Context, in *CreateVolumeRequest, opts ...grpc.CallOption) (*CreateVolumeResponse, error) {
+	out := new(CreateVolumeResponse)
+	err := c.cc.Invoke(ctx, "/elton.v2.VolumeService/CreateVolume", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *volumeServiceClient) Delete(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeResponse, error) {
+func (c *volumeServiceClient) DeleteVolume(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeResponse, error) {
 	out := new(DeleteVolumeResponse)
-	err := c.cc.Invoke(ctx, "/elton.v2.VolumeService/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/elton.v2.VolumeService/DeleteVolume", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *volumeServiceClient) List(ctx context.Context, in *ListVolumeRequest, opts ...grpc.CallOption) (VolumeService_ListClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_VolumeService_serviceDesc.Streams[0], "/elton.v2.VolumeService/List", opts...)
+func (c *volumeServiceClient) ListVolumes(ctx context.Context, in *ListVolumesRequest, opts ...grpc.CallOption) (VolumeService_ListVolumesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_VolumeService_serviceDesc.Streams[0], "/elton.v2.VolumeService/ListVolumes", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &volumeServiceListClient{stream}
+	x := &volumeServiceListVolumesClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -751,26 +751,26 @@ func (c *volumeServiceClient) List(ctx context.Context, in *ListVolumeRequest, o
 	return x, nil
 }
 
-type VolumeService_ListClient interface {
-	Recv() (*ListVolumeResponse, error)
+type VolumeService_ListVolumesClient interface {
+	Recv() (*ListVolumesResponse, error)
 	grpc.ClientStream
 }
 
-type volumeServiceListClient struct {
+type volumeServiceListVolumesClient struct {
 	grpc.ClientStream
 }
 
-func (x *volumeServiceListClient) Recv() (*ListVolumeResponse, error) {
-	m := new(ListVolumeResponse)
+func (x *volumeServiceListVolumesClient) Recv() (*ListVolumesResponse, error) {
+	m := new(ListVolumesResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *volumeServiceClient) Inspect(ctx context.Context, in *InspectVolumeRequest, opts ...grpc.CallOption) (*InspectVolumeResponse, error) {
+func (c *volumeServiceClient) InspectVolume(ctx context.Context, in *InspectVolumeRequest, opts ...grpc.CallOption) (*InspectVolumeResponse, error) {
 	out := new(InspectVolumeResponse)
-	err := c.cc.Invoke(ctx, "/elton.v2.VolumeService/Inspect", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/elton.v2.VolumeService/InspectVolume", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -782,109 +782,109 @@ type VolumeServiceServer interface {
 	// 新しいvolumeを作成する。
 	// volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
 	// 作成するかもしれない。
-	Create(context.Context, *VolumeCreateRequest) (*VolumeCreateResponse, error)
+	CreateVolume(context.Context, *CreateVolumeRequest) (*CreateVolumeResponse, error)
 	// 指定したvolumeを削除する。
-	Delete(context.Context, *DeleteVolumeRequest) (*DeleteVolumeResponse, error)
+	DeleteVolume(context.Context, *DeleteVolumeRequest) (*DeleteVolumeResponse, error)
 	// 現在ある全てのvolumeを列挙する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
-	List(*ListVolumeRequest, VolumeService_ListServer) error
+	ListVolumes(*ListVolumesRequest, VolumeService_ListVolumesServer) error
 	// 指定したvolumeのメタデータを取得する。
-	Inspect(context.Context, *InspectVolumeRequest) (*InspectVolumeResponse, error)
+	InspectVolume(context.Context, *InspectVolumeRequest) (*InspectVolumeResponse, error)
 }
 
 // UnimplementedVolumeServiceServer can be embedded to have forward compatible implementations.
 type UnimplementedVolumeServiceServer struct {
 }
 
-func (*UnimplementedVolumeServiceServer) Create(ctx context.Context, req *VolumeCreateRequest) (*VolumeCreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedVolumeServiceServer) CreateVolume(ctx context.Context, req *CreateVolumeRequest) (*CreateVolumeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateVolume not implemented")
 }
-func (*UnimplementedVolumeServiceServer) Delete(ctx context.Context, req *DeleteVolumeRequest) (*DeleteVolumeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+func (*UnimplementedVolumeServiceServer) DeleteVolume(ctx context.Context, req *DeleteVolumeRequest) (*DeleteVolumeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteVolume not implemented")
 }
-func (*UnimplementedVolumeServiceServer) List(req *ListVolumeRequest, srv VolumeService_ListServer) error {
-	return status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedVolumeServiceServer) ListVolumes(req *ListVolumesRequest, srv VolumeService_ListVolumesServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListVolumes not implemented")
 }
-func (*UnimplementedVolumeServiceServer) Inspect(ctx context.Context, req *InspectVolumeRequest) (*InspectVolumeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Inspect not implemented")
+func (*UnimplementedVolumeServiceServer) InspectVolume(ctx context.Context, req *InspectVolumeRequest) (*InspectVolumeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InspectVolume not implemented")
 }
 
 func RegisterVolumeServiceServer(s *grpc.Server, srv VolumeServiceServer) {
 	s.RegisterService(&_VolumeService_serviceDesc, srv)
 }
 
-func _VolumeService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VolumeCreateRequest)
+func _VolumeService_CreateVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateVolumeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VolumeServiceServer).Create(ctx, in)
+		return srv.(VolumeServiceServer).CreateVolume(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/elton.v2.VolumeService/Create",
+		FullMethod: "/elton.v2.VolumeService/CreateVolume",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VolumeServiceServer).Create(ctx, req.(*VolumeCreateRequest))
+		return srv.(VolumeServiceServer).CreateVolume(ctx, req.(*CreateVolumeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _VolumeService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _VolumeService_DeleteVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteVolumeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VolumeServiceServer).Delete(ctx, in)
+		return srv.(VolumeServiceServer).DeleteVolume(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/elton.v2.VolumeService/Delete",
+		FullMethod: "/elton.v2.VolumeService/DeleteVolume",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VolumeServiceServer).Delete(ctx, req.(*DeleteVolumeRequest))
+		return srv.(VolumeServiceServer).DeleteVolume(ctx, req.(*DeleteVolumeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _VolumeService_List_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ListVolumeRequest)
+func _VolumeService_ListVolumes_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ListVolumesRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(VolumeServiceServer).List(m, &volumeServiceListServer{stream})
+	return srv.(VolumeServiceServer).ListVolumes(m, &volumeServiceListVolumesServer{stream})
 }
 
-type VolumeService_ListServer interface {
-	Send(*ListVolumeResponse) error
+type VolumeService_ListVolumesServer interface {
+	Send(*ListVolumesResponse) error
 	grpc.ServerStream
 }
 
-type volumeServiceListServer struct {
+type volumeServiceListVolumesServer struct {
 	grpc.ServerStream
 }
 
-func (x *volumeServiceListServer) Send(m *ListVolumeResponse) error {
+func (x *volumeServiceListVolumesServer) Send(m *ListVolumesResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _VolumeService_Inspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _VolumeService_InspectVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InspectVolumeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VolumeServiceServer).Inspect(ctx, in)
+		return srv.(VolumeServiceServer).InspectVolume(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/elton.v2.VolumeService/Inspect",
+		FullMethod: "/elton.v2.VolumeService/InspectVolume",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VolumeServiceServer).Inspect(ctx, req.(*InspectVolumeRequest))
+		return srv.(VolumeServiceServer).InspectVolume(ctx, req.(*InspectVolumeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -894,22 +894,22 @@ var _VolumeService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*VolumeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _VolumeService_Create_Handler,
+			MethodName: "CreateVolume",
+			Handler:    _VolumeService_CreateVolume_Handler,
 		},
 		{
-			MethodName: "Delete",
-			Handler:    _VolumeService_Delete_Handler,
+			MethodName: "DeleteVolume",
+			Handler:    _VolumeService_DeleteVolume_Handler,
 		},
 		{
-			MethodName: "Inspect",
-			Handler:    _VolumeService_Inspect_Handler,
+			MethodName: "InspectVolume",
+			Handler:    _VolumeService_InspectVolume_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "List",
-			Handler:       _VolumeService_List_Handler,
+			StreamName:    "ListVolumes",
+			Handler:       _VolumeService_ListVolumes_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -925,7 +925,7 @@ type CommitServiceClient interface {
 	// コミットの履歴を取得する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
-	List(ctx context.Context, in *ListCommitRequest, opts ...grpc.CallOption) (CommitService_ListClient, error)
+	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (CommitService_ListCommitsClient, error)
 	// コミットを作成する。
 	// TODO: 使い方を詳しく書く
 	Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*CommitResponse, error)
@@ -948,12 +948,12 @@ func (c *commitServiceClient) GetLastCommit(ctx context.Context, in *GetLastComm
 	return out, nil
 }
 
-func (c *commitServiceClient) List(ctx context.Context, in *ListCommitRequest, opts ...grpc.CallOption) (CommitService_ListClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_CommitService_serviceDesc.Streams[0], "/elton.v2.CommitService/List", opts...)
+func (c *commitServiceClient) ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (CommitService_ListCommitsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_CommitService_serviceDesc.Streams[0], "/elton.v2.CommitService/ListCommits", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &commitServiceListClient{stream}
+	x := &commitServiceListCommitsClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -963,17 +963,17 @@ func (c *commitServiceClient) List(ctx context.Context, in *ListCommitRequest, o
 	return x, nil
 }
 
-type CommitService_ListClient interface {
-	Recv() (*ListCommitResponse, error)
+type CommitService_ListCommitsClient interface {
+	Recv() (*ListCommitsResponse, error)
 	grpc.ClientStream
 }
 
-type commitServiceListClient struct {
+type commitServiceListCommitsClient struct {
 	grpc.ClientStream
 }
 
-func (x *commitServiceListClient) Recv() (*ListCommitResponse, error) {
-	m := new(ListCommitResponse)
+func (x *commitServiceListCommitsClient) Recv() (*ListCommitsResponse, error) {
+	m := new(ListCommitsResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -996,7 +996,7 @@ type CommitServiceServer interface {
 	// コミットの履歴を取得する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
-	List(*ListCommitRequest, CommitService_ListServer) error
+	ListCommits(*ListCommitsRequest, CommitService_ListCommitsServer) error
 	// コミットを作成する。
 	// TODO: 使い方を詳しく書く
 	Commit(context.Context, *CommitRequest) (*CommitResponse, error)
@@ -1009,8 +1009,8 @@ type UnimplementedCommitServiceServer struct {
 func (*UnimplementedCommitServiceServer) GetLastCommit(ctx context.Context, req *GetLastCommitRequest) (*GetLastCommitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLastCommit not implemented")
 }
-func (*UnimplementedCommitServiceServer) List(req *ListCommitRequest, srv CommitService_ListServer) error {
-	return status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedCommitServiceServer) ListCommits(req *ListCommitsRequest, srv CommitService_ListCommitsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
 func (*UnimplementedCommitServiceServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Commit not implemented")
@@ -1038,24 +1038,24 @@ func _CommitService_GetLastCommit_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CommitService_List_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ListCommitRequest)
+func _CommitService_ListCommits_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ListCommitsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(CommitServiceServer).List(m, &commitServiceListServer{stream})
+	return srv.(CommitServiceServer).ListCommits(m, &commitServiceListCommitsServer{stream})
 }
 
-type CommitService_ListServer interface {
-	Send(*ListCommitResponse) error
+type CommitService_ListCommitsServer interface {
+	Send(*ListCommitsResponse) error
 	grpc.ServerStream
 }
 
-type commitServiceListServer struct {
+type commitServiceListCommitsServer struct {
 	grpc.ServerStream
 }
 
-func (x *commitServiceListServer) Send(m *ListCommitResponse) error {
+func (x *commitServiceListCommitsServer) Send(m *ListCommitsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1092,8 +1092,8 @@ var _CommitService_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "List",
-			Handler:       _CommitService_List_Handler,
+			StreamName:    "ListCommits",
+			Handler:       _CommitService_ListCommits_Handler,
 			ServerStreams: true,
 		},
 	},

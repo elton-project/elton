@@ -242,38 +242,38 @@ func (m *PingNodeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PingNodeResponse proto.InternalMessageInfo
 
-type ListNodeRequest struct {
+type ListNodesRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListNodeRequest) Reset()         { *m = ListNodeRequest{} }
-func (m *ListNodeRequest) String() string { return proto.CompactTextString(m) }
-func (*ListNodeRequest) ProtoMessage()    {}
-func (*ListNodeRequest) Descriptor() ([]byte, []int) {
+func (m *ListNodesRequest) Reset()         { *m = ListNodesRequest{} }
+func (m *ListNodesRequest) String() string { return proto.CompactTextString(m) }
+func (*ListNodesRequest) ProtoMessage()    {}
+func (*ListNodesRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0c843d59d2d938e7, []int{6}
 }
 
-func (m *ListNodeRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListNodeRequest.Unmarshal(m, b)
+func (m *ListNodesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListNodesRequest.Unmarshal(m, b)
 }
-func (m *ListNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListNodeRequest.Marshal(b, m, deterministic)
+func (m *ListNodesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListNodesRequest.Marshal(b, m, deterministic)
 }
-func (m *ListNodeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListNodeRequest.Merge(m, src)
+func (m *ListNodesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNodesRequest.Merge(m, src)
 }
-func (m *ListNodeRequest) XXX_Size() int {
-	return xxx_messageInfo_ListNodeRequest.Size(m)
+func (m *ListNodesRequest) XXX_Size() int {
+	return xxx_messageInfo_ListNodesRequest.Size(m)
 }
-func (m *ListNodeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListNodeRequest.DiscardUnknown(m)
+func (m *ListNodesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNodesRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListNodeRequest proto.InternalMessageInfo
+var xxx_messageInfo_ListNodesRequest proto.InternalMessageInfo
 
-type ListNodeResponse struct {
+type ListNodesResponse struct {
 	Id                   *NodeID  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Nodes                *Node    `protobuf:"bytes,2,opt,name=nodes,proto3" json:"nodes,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -281,39 +281,39 @@ type ListNodeResponse struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListNodeResponse) Reset()         { *m = ListNodeResponse{} }
-func (m *ListNodeResponse) String() string { return proto.CompactTextString(m) }
-func (*ListNodeResponse) ProtoMessage()    {}
-func (*ListNodeResponse) Descriptor() ([]byte, []int) {
+func (m *ListNodesResponse) Reset()         { *m = ListNodesResponse{} }
+func (m *ListNodesResponse) String() string { return proto.CompactTextString(m) }
+func (*ListNodesResponse) ProtoMessage()    {}
+func (*ListNodesResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0c843d59d2d938e7, []int{7}
 }
 
-func (m *ListNodeResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListNodeResponse.Unmarshal(m, b)
+func (m *ListNodesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListNodesResponse.Unmarshal(m, b)
 }
-func (m *ListNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListNodeResponse.Marshal(b, m, deterministic)
+func (m *ListNodesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListNodesResponse.Marshal(b, m, deterministic)
 }
-func (m *ListNodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListNodeResponse.Merge(m, src)
+func (m *ListNodesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNodesResponse.Merge(m, src)
 }
-func (m *ListNodeResponse) XXX_Size() int {
-	return xxx_messageInfo_ListNodeResponse.Size(m)
+func (m *ListNodesResponse) XXX_Size() int {
+	return xxx_messageInfo_ListNodesResponse.Size(m)
 }
-func (m *ListNodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListNodeResponse.DiscardUnknown(m)
+func (m *ListNodesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNodesResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListNodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_ListNodesResponse proto.InternalMessageInfo
 
-func (m *ListNodeResponse) GetId() *NodeID {
+func (m *ListNodesResponse) GetId() *NodeID {
 	if m != nil {
 		return m.Id
 	}
 	return nil
 }
 
-func (m *ListNodeResponse) GetNodes() *Node {
+func (m *ListNodesResponse) GetNodes() *Node {
 	if m != nil {
 		return m.Nodes
 	}
@@ -327,32 +327,33 @@ func init() {
 	proto.RegisterType((*UnregisterNodeResponse)(nil), "elton.v2.UnregisterNodeResponse")
 	proto.RegisterType((*PingNodeRequest)(nil), "elton.v2.PingNodeRequest")
 	proto.RegisterType((*PingNodeResponse)(nil), "elton.v2.PingNodeResponse")
-	proto.RegisterType((*ListNodeRequest)(nil), "elton.v2.ListNodeRequest")
-	proto.RegisterType((*ListNodeResponse)(nil), "elton.v2.ListNodeResponse")
+	proto.RegisterType((*ListNodesRequest)(nil), "elton.v2.ListNodesRequest")
+	proto.RegisterType((*ListNodesResponse)(nil), "elton.v2.ListNodesResponse")
 }
 
 func init() { proto.RegisterFile("node.proto", fileDescriptor_0c843d59d2d938e7) }
 
 var fileDescriptor_0c843d59d2d938e7 = []byte{
-	// 283 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0x41, 0x4b, 0x84, 0x40,
-	0x1c, 0xc5, 0x51, 0x2c, 0x96, 0x27, 0xb4, 0x36, 0xd5, 0x62, 0x42, 0x25, 0x43, 0x87, 0x4e, 0x12,
-	0xee, 0xa9, 0x43, 0x74, 0xe9, 0xb2, 0x10, 0x15, 0x46, 0x97, 0xba, 0x95, 0x7f, 0x96, 0x81, 0x70,
-	0xcc, 0x99, 0x16, 0xfa, 0x48, 0x7d, 0xcb, 0x18, 0x75, 0x19, 0x57, 0x14, 0x6a, 0x8f, 0xce, 0x7b,
-	0xef, 0xa7, 0xfc, 0x1c, 0xa0, 0x90, 0x39, 0x25, 0x65, 0x25, 0xb5, 0x64, 0x13, 0xfa, 0xd0, 0xb2,
-	0x48, 0x56, 0x69, 0xe4, 0xeb, 0xef, 0x92, 0x54, 0x73, 0xcc, 0x5f, 0x71, 0x90, 0xd1, 0x52, 0x28,
-	0x4d, 0xd5, 0xbd, 0xcc, 0x29, 0xa3, 0xcf, 0x2f, 0x52, 0x9a, 0xc5, 0x70, 0x45, 0x1e, 0x3a, 0xb1,
-	0x73, 0xe1, 0xa7, 0x41, 0xb2, 0x9e, 0x26, 0xa6, 0xb2, 0xb8, 0xcd, 0x5c, 0x91, 0x33, 0x0e, 0xcf,
-	0xd0, 0x43, 0xb7, 0xee, 0xec, 0x6d, 0x76, 0xb2, 0x3a, 0xe3, 0x33, 0x1c, 0x6e, 0xc2, 0x55, 0x29,
-	0x0b, 0x45, 0xfc, 0x0a, 0x47, 0xcf, 0x45, 0xb5, 0xcd, 0x6b, 0x79, 0x88, 0x59, 0x7f, 0xda, 0x42,
-	0xe7, 0x98, 0x3e, 0x8a, 0x62, 0xf9, 0x3f, 0x1c, 0x43, 0x60, 0x47, 0x2d, 0x68, 0x1f, 0xd3, 0x3b,
-	0xa1, 0x74, 0x07, 0xc4, 0x5f, 0x10, 0xd8, 0xa3, 0xa6, 0xf6, 0x07, 0x45, 0xe7, 0xd8, 0x31, 0x1a,
-	0xd4, 0x88, 0xa3, 0x26, 0x4c, 0x7f, 0x5c, 0xf8, 0xe6, 0xf9, 0x89, 0xaa, 0x95, 0x78, 0x27, 0xb6,
-	0xc0, 0x64, 0x2d, 0x8d, 0x9d, 0xd8, 0xc9, 0xc0, 0x5f, 0x8a, 0x4e, 0xc7, 0xe2, 0xf6, 0x13, 0x1f,
-	0x00, 0x2b, 0x8b, 0x9d, 0xd9, 0xf6, 0xa0, 0xfd, 0x28, 0x1e, 0x2f, 0xb4, 0xc0, 0x6b, 0x78, 0x46,
-	0x17, 0x3b, 0xb6, 0xcd, 0x9e, 0xf3, 0x28, 0x1a, 0x8a, 0xda, 0xf9, 0x0d, 0x3c, 0xa3, 0xb1, 0x3b,
-	0xef, 0x99, 0xee, 0xce, 0xfb, 0xc6, 0x2f, 0x9d, 0xb7, 0xdd, 0xfa, 0xd2, 0xce, 0x7f, 0x03, 0x00,
-	0x00, 0xff, 0xff, 0x91, 0x03, 0xfa, 0xbe, 0xd9, 0x02, 0x00, 0x00,
+	// 289 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0x4d, 0x4b, 0xf4, 0x30,
+	0x10, 0xc7, 0x69, 0xd9, 0xe7, 0x41, 0xa7, 0xb2, 0xd6, 0x51, 0x97, 0x1a, 0x51, 0x4b, 0xf0, 0xe0,
+	0xa9, 0x48, 0xf7, 0xe4, 0xc1, 0x9b, 0x08, 0x82, 0x8a, 0x74, 0xf1, 0xb4, 0x37, 0xed, 0xb0, 0x04,
+	0x24, 0xa9, 0x4d, 0x5c, 0xf0, 0x9b, 0xf9, 0xf1, 0x24, 0x6d, 0xb4, 0x2f, 0xb4, 0xa0, 0x1e, 0x33,
+	0xff, 0x97, 0x84, 0xdf, 0x04, 0x40, 0xaa, 0x9c, 0x92, 0xa2, 0x54, 0x46, 0xe1, 0x06, 0xbd, 0x18,
+	0x25, 0x93, 0x75, 0xca, 0x02, 0xf3, 0x5e, 0x90, 0xae, 0xc7, 0x7c, 0x09, 0xbb, 0x19, 0xad, 0x84,
+	0x36, 0x54, 0xde, 0xab, 0x9c, 0x32, 0x7a, 0x7d, 0x23, 0x6d, 0x30, 0x06, 0x5f, 0xe4, 0x91, 0x17,
+	0x7b, 0x67, 0x41, 0x1a, 0x26, 0x5f, 0xd1, 0xc4, 0x5a, 0x6e, 0xae, 0x32, 0x5f, 0xe4, 0xc8, 0x61,
+	0x62, 0xdb, 0x23, 0xbf, 0xf2, 0x4c, 0xbb, 0x9e, 0xac, 0xd2, 0xf8, 0x0c, 0xf6, 0xba, 0xe5, 0xba,
+	0x50, 0x52, 0x13, 0xbf, 0x80, 0xfd, 0x47, 0x59, 0xfe, 0xe5, 0x5a, 0x1e, 0xc1, 0xac, 0x1f, 0x75,
+	0xa5, 0x73, 0xd8, 0x7e, 0x10, 0x72, 0xf5, 0xbb, 0x3a, 0x84, 0xb0, 0x09, 0xb9, 0x22, 0x84, 0xf0,
+	0x56, 0x68, 0x63, 0x67, 0xda, 0x35, 0xf1, 0x25, 0xec, 0xb4, 0x66, 0xb5, 0xf1, 0x07, 0x90, 0x4e,
+	0xe1, 0x9f, 0x05, 0xa1, 0x47, 0x28, 0xd5, 0x62, 0xfa, 0xe1, 0x43, 0x60, 0xcf, 0x0b, 0x2a, 0xd7,
+	0xe2, 0x99, 0xf0, 0x0e, 0xb6, 0xda, 0xd8, 0xf0, 0xa8, 0x89, 0x0d, 0xec, 0x8a, 0x1d, 0x8f, 0xc9,
+	0xee, 0x99, 0x0b, 0x98, 0x76, 0x91, 0xe1, 0x49, 0x93, 0x18, 0xdc, 0x03, 0x8b, 0xc7, 0x0d, 0xae,
+	0xf4, 0x12, 0x26, 0x16, 0x1c, 0x1e, 0x34, 0xce, 0x1e, 0x7d, 0xc6, 0x86, 0x24, 0x17, 0xbf, 0x86,
+	0xcd, 0x6f, 0x9e, 0xd8, 0x32, 0xf6, 0xc1, 0xb3, 0xc3, 0x41, 0xad, 0x6e, 0x39, 0xf7, 0x9e, 0xfe,
+	0x57, 0xbf, 0x78, 0xfe, 0x19, 0x00, 0x00, 0xff, 0xff, 0x7b, 0xdd, 0x4a, 0xd0, 0xea, 0x02, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -369,14 +370,14 @@ const _ = grpc.SupportPackageIsVersion4
 type NodeServiceClient interface {
 	// クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
 	// ノードの情報を登録・更新をする。
-	Register(ctx context.Context, in *RegisterNodeRequest, opts ...grpc.CallOption) (*RegisterNodeResponse, error)
+	RegisterNode(ctx context.Context, in *RegisterNodeRequest, opts ...grpc.CallOption) (*RegisterNodeResponse, error)
 	// クラスタから脱退するときに呼び出すAPI。
 	// ノードの退避処理を行い、ノードの情報を削除する。
-	Unregister(ctx context.Context, in *UnregisterNodeRequest, opts ...grpc.CallOption) (*UnregisterNodeResponse, error)
+	UnregisterNode(ctx context.Context, in *UnregisterNodeRequest, opts ...grpc.CallOption) (*UnregisterNodeResponse, error)
 	// ノードが生存していることをcontrollerに通知する。
 	Ping(ctx context.Context, in *PingNodeRequest, opts ...grpc.CallOption) (*PingNodeResponse, error)
 	// 全ノードの一覧を取得する。
-	List(ctx context.Context, in *ListNodeRequest, opts ...grpc.CallOption) (NodeService_ListClient, error)
+	ListNodes(ctx context.Context, in *ListNodesRequest, opts ...grpc.CallOption) (NodeService_ListNodesClient, error)
 }
 
 type nodeServiceClient struct {
@@ -387,18 +388,18 @@ func NewNodeServiceClient(cc *grpc.ClientConn) NodeServiceClient {
 	return &nodeServiceClient{cc}
 }
 
-func (c *nodeServiceClient) Register(ctx context.Context, in *RegisterNodeRequest, opts ...grpc.CallOption) (*RegisterNodeResponse, error) {
+func (c *nodeServiceClient) RegisterNode(ctx context.Context, in *RegisterNodeRequest, opts ...grpc.CallOption) (*RegisterNodeResponse, error) {
 	out := new(RegisterNodeResponse)
-	err := c.cc.Invoke(ctx, "/elton.v2.NodeService/Register", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/elton.v2.NodeService/RegisterNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeServiceClient) Unregister(ctx context.Context, in *UnregisterNodeRequest, opts ...grpc.CallOption) (*UnregisterNodeResponse, error) {
+func (c *nodeServiceClient) UnregisterNode(ctx context.Context, in *UnregisterNodeRequest, opts ...grpc.CallOption) (*UnregisterNodeResponse, error) {
 	out := new(UnregisterNodeResponse)
-	err := c.cc.Invoke(ctx, "/elton.v2.NodeService/Unregister", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/elton.v2.NodeService/UnregisterNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -414,12 +415,12 @@ func (c *nodeServiceClient) Ping(ctx context.Context, in *PingNodeRequest, opts 
 	return out, nil
 }
 
-func (c *nodeServiceClient) List(ctx context.Context, in *ListNodeRequest, opts ...grpc.CallOption) (NodeService_ListClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_NodeService_serviceDesc.Streams[0], "/elton.v2.NodeService/List", opts...)
+func (c *nodeServiceClient) ListNodes(ctx context.Context, in *ListNodesRequest, opts ...grpc.CallOption) (NodeService_ListNodesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_NodeService_serviceDesc.Streams[0], "/elton.v2.NodeService/ListNodes", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &nodeServiceListClient{stream}
+	x := &nodeServiceListNodesClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -429,17 +430,17 @@ func (c *nodeServiceClient) List(ctx context.Context, in *ListNodeRequest, opts 
 	return x, nil
 }
 
-type NodeService_ListClient interface {
-	Recv() (*ListNodeResponse, error)
+type NodeService_ListNodesClient interface {
+	Recv() (*ListNodesResponse, error)
 	grpc.ClientStream
 }
 
-type nodeServiceListClient struct {
+type nodeServiceListNodesClient struct {
 	grpc.ClientStream
 }
 
-func (x *nodeServiceListClient) Recv() (*ListNodeResponse, error) {
-	m := new(ListNodeResponse)
+func (x *nodeServiceListNodesClient) Recv() (*ListNodesResponse, error) {
+	m := new(ListNodesResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -450,69 +451,69 @@ func (x *nodeServiceListClient) Recv() (*ListNodeResponse, error) {
 type NodeServiceServer interface {
 	// クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
 	// ノードの情報を登録・更新をする。
-	Register(context.Context, *RegisterNodeRequest) (*RegisterNodeResponse, error)
+	RegisterNode(context.Context, *RegisterNodeRequest) (*RegisterNodeResponse, error)
 	// クラスタから脱退するときに呼び出すAPI。
 	// ノードの退避処理を行い、ノードの情報を削除する。
-	Unregister(context.Context, *UnregisterNodeRequest) (*UnregisterNodeResponse, error)
+	UnregisterNode(context.Context, *UnregisterNodeRequest) (*UnregisterNodeResponse, error)
 	// ノードが生存していることをcontrollerに通知する。
 	Ping(context.Context, *PingNodeRequest) (*PingNodeResponse, error)
 	// 全ノードの一覧を取得する。
-	List(*ListNodeRequest, NodeService_ListServer) error
+	ListNodes(*ListNodesRequest, NodeService_ListNodesServer) error
 }
 
 // UnimplementedNodeServiceServer can be embedded to have forward compatible implementations.
 type UnimplementedNodeServiceServer struct {
 }
 
-func (*UnimplementedNodeServiceServer) Register(ctx context.Context, req *RegisterNodeRequest) (*RegisterNodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+func (*UnimplementedNodeServiceServer) RegisterNode(ctx context.Context, req *RegisterNodeRequest) (*RegisterNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterNode not implemented")
 }
-func (*UnimplementedNodeServiceServer) Unregister(ctx context.Context, req *UnregisterNodeRequest) (*UnregisterNodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Unregister not implemented")
+func (*UnimplementedNodeServiceServer) UnregisterNode(ctx context.Context, req *UnregisterNodeRequest) (*UnregisterNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnregisterNode not implemented")
 }
 func (*UnimplementedNodeServiceServer) Ping(ctx context.Context, req *PingNodeRequest) (*PingNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (*UnimplementedNodeServiceServer) List(req *ListNodeRequest, srv NodeService_ListServer) error {
-	return status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedNodeServiceServer) ListNodes(req *ListNodesRequest, srv NodeService_ListNodesServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListNodes not implemented")
 }
 
 func RegisterNodeServiceServer(s *grpc.Server, srv NodeServiceServer) {
 	s.RegisterService(&_NodeService_serviceDesc, srv)
 }
 
-func _NodeService_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NodeService_RegisterNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterNodeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServiceServer).Register(ctx, in)
+		return srv.(NodeServiceServer).RegisterNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/elton.v2.NodeService/Register",
+		FullMethod: "/elton.v2.NodeService/RegisterNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServiceServer).Register(ctx, req.(*RegisterNodeRequest))
+		return srv.(NodeServiceServer).RegisterNode(ctx, req.(*RegisterNodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NodeService_Unregister_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NodeService_UnregisterNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UnregisterNodeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServiceServer).Unregister(ctx, in)
+		return srv.(NodeServiceServer).UnregisterNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/elton.v2.NodeService/Unregister",
+		FullMethod: "/elton.v2.NodeService/UnregisterNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServiceServer).Unregister(ctx, req.(*UnregisterNodeRequest))
+		return srv.(NodeServiceServer).UnregisterNode(ctx, req.(*UnregisterNodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -535,24 +536,24 @@ func _NodeService_Ping_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NodeService_List_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ListNodeRequest)
+func _NodeService_ListNodes_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ListNodesRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(NodeServiceServer).List(m, &nodeServiceListServer{stream})
+	return srv.(NodeServiceServer).ListNodes(m, &nodeServiceListNodesServer{stream})
 }
 
-type NodeService_ListServer interface {
-	Send(*ListNodeResponse) error
+type NodeService_ListNodesServer interface {
+	Send(*ListNodesResponse) error
 	grpc.ServerStream
 }
 
-type nodeServiceListServer struct {
+type nodeServiceListNodesServer struct {
 	grpc.ServerStream
 }
 
-func (x *nodeServiceListServer) Send(m *ListNodeResponse) error {
+func (x *nodeServiceListNodesServer) Send(m *ListNodesResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -561,12 +562,12 @@ var _NodeService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*NodeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Register",
-			Handler:    _NodeService_Register_Handler,
+			MethodName: "RegisterNode",
+			Handler:    _NodeService_RegisterNode_Handler,
 		},
 		{
-			MethodName: "Unregister",
-			Handler:    _NodeService_Unregister_Handler,
+			MethodName: "UnregisterNode",
+			Handler:    _NodeService_UnregisterNode_Handler,
 		},
 		{
 			MethodName: "Ping",
@@ -575,8 +576,8 @@ var _NodeService_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "List",
-			Handler:       _NodeService_List_Handler,
+			StreamName:    "ListNodes",
+			Handler:       _NodeService_ListNodes_Handler,
 			ServerStreams: true,
 		},
 	},
