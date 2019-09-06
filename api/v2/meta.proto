@@ -3,8 +3,8 @@ package elton.v2;
 import "types.proto";
 
 service MetaService {
-    rpc Get (GetMetaRequest) returns (GetMetaResponse);
-    rpc Set (SetMetaRequest) returns (SetMetaResponse);
+    rpc GetMeta (GetMetaRequest) returns (GetMetaResponse);
+    rpc SetMeta (SetMetaRequest) returns (SetMetaResponse);
 }
 
 

@@ -8,29 +8,29 @@ service VolumeService {
     // 新しいvolumeを作成する。
     // volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
     // 作成するかもしれない。
-    rpc Create (CreateVolumeRequest) returns (CreateVolumeResponse);
+    rpc CreateVolume (CreateVolumeRequest) returns (CreateVolumeResponse);
     // 指定したvolumeを削除する。
-    rpc Delete (DeleteVolumeRequest) returns (DeleteVolumeResponse);
+    rpc DeleteVolume (DeleteVolumeRequest) returns (DeleteVolumeResponse);
     // 現在ある全てのvolumeを列挙する。
     // 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
     // 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
-    rpc List (ListVolumeRequest) returns (stream ListVolumeResponse);
+    rpc ListVolumes (ListVolumesRequest) returns (stream ListVolumesResponse);
     // 指定したvolumeのメタデータを取得する。
-    rpc Inspect (InspectVolumeRequest) returns (InspectVolumeResponse);
+    rpc InspectVolume (InspectVolumeRequest) returns (InspectVolumeResponse);
 }
 
 // Commitは、ファイルシステムのスナップショットのことである。
 // Commitはvolumeに紐付いており、volume毎に独立したコミット履歴を保持する。
 service CommitService {
     // 指定したvolume内の最新のコミットを取得する。
-    rpc GetLastCommit(GetLastCommitRequest) returns (GetLastCommitResponse);
+    rpc GetLastCommit (GetLastCommitRequest) returns (GetLastCommitResponse);
     // コミットの履歴を取得する。
     // 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
     // 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
-    rpc List(ListCommitRequest) returns (stream ListCommitResponse);
+    rpc ListCommits (ListCommitsRequest) returns (stream ListCommitsResponse);
     // コミットを作成する。
     // TODO: 使い方を詳しく書く
-    rpc Commit(CommitRequest) returns (CommitResponse);
+    rpc Commit (CommitRequest) returns (CommitResponse);
 }
 
 
@@ -44,7 +44,7 @@ message DeleteVolumeRequest {
     VolumeID id = 1;
 }
 message DeleteVolumeResponse {}
-message ListVolumeRequest {
+message ListVolumesRequest {
     // 一回のRPCリクエストに対して返答できる最大の個数。
     // 0個の場合は、デフォルトの制限を適用。
     // 個数制限を無効化することはできない。
@@ -52,7 +52,7 @@ message ListVolumeRequest {
     // ページネーションされたときは、前回の最後の応答についていたnextの値を設定。
     string next = 2;
 }
-message ListVolumeResponse {
+message ListVolumesResponse {
     // streamの一番最後、かつ個数制限により応答できていないアイテムが存在する場合、この値が設定される。
     // 次のVolumeService.List()のnext引数に設定すると、次のアイテムから列挙することが出来る。
     string next = 1;
@@ -76,7 +76,7 @@ message GetLastCommitResponse {
     CommitID id = 1;
     CommitInfo info = 2;
 }
-message ListCommitRequest {
+message ListCommitsRequest {
     // 一回のRPCリクエストに対して返答できる最大の個数。
     // 0個の場合は、デフォルトの制限を適用。
     // 個数制限を無効化することはできない。
@@ -84,7 +84,7 @@ message ListCommitRequest {
     // ページネーションされたときは、前回の最後の応答についていたnextの値を設定。
     string next = 2;
 }
-message ListCommitResponse {
+message ListCommitsResponse {
     // streamの一番最後、かつ個数制限により応答できていないアイテムが存在する場合、この値が設定される。
     // 次のCommitService.List()のnext引数に設定すると、次のアイテムから列挙することが出来る。
     string next = 1;

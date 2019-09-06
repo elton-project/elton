@@ -7,14 +7,14 @@ import "types.proto";
 service NodeService {
     // クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
     // ノードの情報を登録・更新をする。
-    rpc Register (RegisterNodeRequest) returns (RegisterNodeResponse);
+    rpc RegisterNode (RegisterNodeRequest) returns (RegisterNodeResponse);
     // クラスタから脱退するときに呼び出すAPI。
     // ノードの退避処理を行い、ノードの情報を削除する。
-    rpc Unregister (UnregisterNodeRequest) returns (UnregisterNodeResponse);
+    rpc UnregisterNode (UnregisterNodeRequest) returns (UnregisterNodeResponse);
     // ノードが生存していることをcontrollerに通知する。
     rpc Ping (PingNodeRequest) returns (PingNodeResponse);
     // 全ノードの一覧を取得する。
-    rpc List (ListNodeRequest) returns (stream ListNodeResponse);
+    rpc ListNodes (ListNodesRequest) returns (stream ListNodesResponse);
 }
 
 
@@ -31,8 +31,8 @@ message PingNodeRequest {
     NodeID id = 1;
 }
 message PingNodeResponse {}
-message ListNodeRequest {}
-message ListNodeResponse {
+message ListNodesRequest {}
+message ListNodesResponse {
     NodeID id = 1;
     Node nodes = 2;
 }
