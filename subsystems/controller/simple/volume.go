@@ -96,7 +96,6 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 
 	if req.GetId() != nil {
 		// Search by id
-
 		v.lock.RLock()
 		defer v.lock.RUnlock()
 
