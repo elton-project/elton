@@ -71,7 +71,9 @@ message InspectVolumeResponse {
     VolumeInfo info = 2;
 }
 
-message GetLastCommitRequest {}
+message GetLastCommitRequest {
+    VolumeID volumeId = 1;
+}
 message GetLastCommitResponse {
     CommitID id = 1;
     CommitInfo info = 2;
