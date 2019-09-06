@@ -23,6 +23,5 @@ message SetMetaRequest {
 message SetMetaResponse {
     PropertyKey key = 1;
     PropertyBody oldBody = 2;
-    bool replaced = 3;
     bool created = 4;
 }
