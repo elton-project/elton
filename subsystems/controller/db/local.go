@@ -204,6 +204,7 @@ func (cs *localCS) Parents(id *CommitID) (left *CommitID, right *CommitID, err e
 func (cs *localCS) Latest() (latest *CommitID, err error) {
 	// todo
 	err = xerrors.New("todo")
+	return
 }
 func (cs *localCS) Create(vid *VolumeID, info *CommitInfo) (id *CommitID, err error) {
 	var uniqId uint64
