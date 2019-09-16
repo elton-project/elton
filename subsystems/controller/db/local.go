@@ -183,8 +183,11 @@ type localVS struct {
 func (vs *localVS) Get(id *VolumeID) (vi *VolumeInfo, err error) {
 	err = vs.DB.VolumeView(func(b *bbolt.Bucket) error {
 		data := b.Get(vs.Enc.VolumeID(id))
-		vi = vs.Dec.VolumeInfo(data)
-		return nil
+		if len(data) > 0 {
+			vi = vs.Dec.VolumeInfo(data)
+			return nil
+		}
+		return xerrors.New("not found volume")
 	})
 	return
 }
@@ -229,8 +232,11 @@ type localCS struct {
 func (cs *localCS) Get(id *CommitID) (ci *CommitInfo, err error) {
 	err = cs.DB.CommitView(func(b *bbolt.Bucket) error {
 		data := b.Get(cs.Enc.CommitID(id))
-		ci = cs.Dec.CommitInfo(data)
-		return nil
+		if len(data) > 0 {
+			ci = cs.Dec.CommitInfo(data)
+			return nil
+		}
+		return xerrors.New("not found commit")
 	})
 	return
 }
