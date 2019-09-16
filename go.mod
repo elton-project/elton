@@ -11,6 +11,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/yuuki0xff/goapptrace v0.3.0-beta
 	github.com/yuuki0xff/pathlib v0.0.0-20190822095704-97a55a3e168a
+	go.etcd.io/bbolt v1.3.3
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0
