@@ -20,8 +20,6 @@ func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() er
 		return
 	}
 
-	// todo create vs and cs
-
 	db := &localDB{
 		Path: path.Join(dir, "db.bbolt"),
 	}
