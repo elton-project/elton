@@ -72,8 +72,9 @@ func (localEncoder) CommitInfo(info *CommitInfo) []byte {
 type localDecoder struct{}
 
 func (localDecoder) VolumeID(data []byte) *VolumeID {
-	id := &VolumeID{}
-	mustUnmarshal(data, id)
+	id := &VolumeID{
+		Id: string(data),
+	}
 	return id
 }
 func (localDecoder) VolumeInfo(data []byte) *VolumeInfo {
