@@ -81,7 +81,7 @@ func (localDecoder) VolumeInfo(data []byte) *VolumeInfo {
 }
 func (localDecoder) CommitInfo(data []byte) *CommitInfo {
 	info := &CommitInfo{}
-	mustUnmarshal(info, data)
+	mustUnmarshal(data, info)
 	return info
 }
 
