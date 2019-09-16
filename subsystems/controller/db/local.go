@@ -138,7 +138,7 @@ func (s *localDB) CommitUpdate(callback localTxFn) error {
 }
 
 type localVS struct {
-	DB  localDB
+	DB  *localDB
 	Enc localEncoder
 	Dec localDecoder
 }
@@ -173,7 +173,7 @@ func (vs *localVS) Walk(callback func(id *VolumeID, info *VolumeInfo) error) err
 }
 
 type localCS struct {
-	DB  localDB
+	DB  *localDB
 	Enc localEncoder
 	Dec localDecoder
 }
