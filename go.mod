@@ -7,6 +7,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/sonatard/werror v0.0.0-20190306034820-b331e8d3de8f
+	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/yuuki0xff/goapptrace v0.3.0-beta

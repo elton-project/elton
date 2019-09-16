@@ -15,5 +15,5 @@ type CommitStore interface {
 	Exists(id *CommitID) (bool, error)
 	Parents(id *CommitID) (*CommitID, *CommitID, error)
 	Latest() (*CommitID, error)
-	Create(info *CommitInfo) (*CommitID, error)
+	Create(vid *VolumeID, info *CommitInfo) (*CommitID, error)
 }

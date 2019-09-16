@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
 	"go.etcd.io/bbolt"
 	"golang.org/x/xerrors"
 	"os"
@@ -65,6 +66,9 @@ func (localEncoder) VolumeInfo(info *VolumeInfo) []byte {
 func (localEncoder) CommitID(id *CommitID) []byte {
 	s := fmt.Sprintf("%s/%d", id.GetId().GetId(), id.GetNumber())
 	return []byte(s)
+}
+func (localEncoder) CommitInfo(info *CommitInfo) []byte {
+	return mustMarshall(info)
 }
 
 type localDecoder struct{}
@@ -195,17 +199,30 @@ func (cs *localCS) Exists(id *CommitID) (ok bool, err error) {
 	return
 }
 func (cs *localCS) Parents(id *CommitID) (left *CommitID, right *CommitID, err error) {
+	// todo
 	err = xerrors.New("todo")
 	return
 }
 func (cs *localCS) Latest() (latest *CommitID, err error) {
-	err = xerrors.New()
+	// todo
+	err = xerrors.New("todo")
 }
-func (cs *localCS) Create(info *CommitInfo) (*CommitID, error) {
-	// todo: generate id
+func (cs *localCS) Create(vid *VolumeID, info *CommitInfo) (id *CommitID, err error) {
+	var uniqId uint64
+	uniqId, err = idgen.Gen.NextID()
+	if err != nil {
+		return
+	}
 
-	cs.DB.CommitUpdate(func(b *bbolt.Bucket) error {
-		// todo: put data
-		b.Put()
+	err = cs.DB.CommitUpdate(func(b *bbolt.Bucket) error {
+		id = &CommitID{
+			Id:     vid,
+			Number: uniqId,
+		}
+		return b.Put(
+			cs.Enc.CommitID(id),
+			cs.Enc.CommitInfo(info),
+		)
 	})
+	return
 }
