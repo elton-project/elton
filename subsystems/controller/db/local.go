@@ -122,7 +122,8 @@ func (s *localDB) Open() error {
 		return err
 	}
 	s.db = db
-	return nil
+
+	return s.createAllBuckets()
 }
 func (s *localDB) Close() error {
 	if s.db != nil {
@@ -132,11 +133,23 @@ func (s *localDB) Close() error {
 	}
 	return nil
 }
+func (s *localDB) createAllBuckets() error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
+		if _, err := tx.CreateBucketIfNotExists(localVolumeBucket); err != nil {
+			return xerrors.Errorf("volume bucket cannot create: %w", err)
+		}
+
+		if _, err := tx.CreateBucketIfNotExists(localCommitBucket); err != nil {
+			return xerrors.Errorf("commit bucket cannot create: %w", err)
+		}
+		return nil
+	})
+}
 func (s *localDB) runTx(writable bool, bucket []byte, callback localTxFn) error {
 	innerFn := func(tx *bbolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists(bucket)
-		if err != nil {
-			return err
+		b := tx.Bucket(bucket)
+		if b == nil {
+			return xerrors.Errorf("not found an bucket: %s", string(bucket))
 		}
 		return callback(b)
 	}
