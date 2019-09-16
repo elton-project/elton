@@ -87,6 +87,27 @@ func (localDecoder) CommitInfo(data []byte) *CommitInfo {
 	return info
 }
 
+type localGenerator struct{}
+
+func (localGenerator) next() uint64 {
+	uniqId, err := idgen.Gen.NextID()
+	if err != nil {
+		panic(err)
+	}
+	return uniqId
+}
+func (g localGenerator) VolumeID() *VolumeID {
+	return &VolumeID{
+		Id: fmt.Sprintf("%x", g.next()),
+	}
+}
+func (g localGenerator) CommitID(id *VolumeID) *CommitID {
+	return &CommitID{
+		Id:     id,
+		Number: g.next(),
+	}
+}
+
 type localTxFn func(b *bbolt.Bucket) error
 type localDB struct {
 	// Path to database file.
@@ -143,6 +164,7 @@ type localVS struct {
 	DB  *localDB
 	Enc localEncoder
 	Dec localDecoder
+	Gen localGenerator
 }
 
 func (vs *localVS) Get(id *VolumeID) (vi *VolumeInfo, err error) {
@@ -173,11 +195,22 @@ func (vs *localVS) Walk(callback func(id *VolumeID, info *VolumeInfo) error) err
 		})
 	})
 }
+func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
+	id = vs.Gen.VolumeID()
+	err = vs.DB.VolumeUpdate(func(b *bbolt.Bucket) error {
+		return b.Put(
+			vs.Enc.VolumeID(id),
+			vs.Enc.VolumeInfo(info),
+		)
+	})
+	return
+}
 
 type localCS struct {
 	DB  *localDB
 	Enc localEncoder
 	Dec localDecoder
+	Gen localGenerator
 }
 
 func (cs *localCS) Get(id *CommitID) (ci *CommitInfo, err error) {
@@ -207,17 +240,8 @@ func (cs *localCS) Latest() (latest *CommitID, err error) {
 	return
 }
 func (cs *localCS) Create(vid *VolumeID, info *CommitInfo) (id *CommitID, err error) {
-	var uniqId uint64
-	uniqId, err = idgen.Gen.NextID()
-	if err != nil {
-		return
-	}
-
+	id = cs.Gen.CommitID(vid)
 	err = cs.DB.CommitUpdate(func(b *bbolt.Bucket) error {
-		id = &CommitID{
-			Id:     vid,
-			Number: uniqId,
-		}
 		return b.Put(
 			cs.Enc.CommitID(id),
 			cs.Enc.CommitInfo(info),

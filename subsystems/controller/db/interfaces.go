@@ -9,6 +9,7 @@ type VolumeStore interface {
 	Exists(id *VolumeID) (bool, error)
 	Delete(id *VolumeID) error
 	Walk(func(id *VolumeID, info *VolumeInfo) error) error
+	Create(info *VolumeInfo) (*VolumeID, error)
 }
 type CommitStore interface {
 	Get(id *CommitID) (*CommitInfo, error)
