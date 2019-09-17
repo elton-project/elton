@@ -203,7 +203,7 @@ func (s *localDB) runTx(writable bool, bucket []byte, callback localTxFn) error 
 	}
 }
 func (s *localDB) Update(callback func(tx *bbolt.Tx) error) error {
-	return s.db.View(callback)
+	return s.db.Update(callback)
 }
 func (s *localDB) VolumeView(callback localTxFn) error {
 	return s.runTx(false, localVolumeBucket, callback)
