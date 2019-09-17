@@ -3,25 +3,22 @@ package elton.v2;
 import "types.proto";
 
 service MetaService {
-    rpc GetMeta (GetMetaRequest) returns (GetMetaResponse);
-    rpc SetMeta (SetMetaRequest) returns (SetMetaResponse);
+  rpc GetMeta(GetMetaRequest) returns (GetMetaResponse);
+  rpc SetMeta(SetMetaRequest) returns (SetMetaResponse);
 }
 
-
-message GetMetaRequest {
-    PropertyKey key = 1;
-}
+message GetMetaRequest { PropertyKey key = 1; }
 message GetMetaResponse {
-    PropertyKey key = 1;
-    PropertyBody body = 2;
+  PropertyKey key = 1;
+  PropertyBody body = 2;
 }
 message SetMetaRequest {
-    PropertyKey key = 1;
-    PropertyBody body = 2;
-    bool mustCreate = 4;
+  PropertyKey key = 1;
+  PropertyBody body = 2;
+  bool mustCreate = 4;
 }
 message SetMetaResponse {
-    PropertyKey key = 1;
-    PropertyBody oldBody = 2;
-    bool created = 4;
+  PropertyKey key = 1;
+  PropertyBody oldBody = 2;
+  bool created = 4;
 }

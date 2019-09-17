@@ -2,37 +2,31 @@ syntax = "proto3";
 package elton.v2;
 import "types.proto";
 
-
 // ノード管理を行うサービス。
 service NodeService {
-    // クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
-    // ノードの情報を登録・更新をする。
-    rpc RegisterNode (RegisterNodeRequest) returns (RegisterNodeResponse);
-    // クラスタから脱退するときに呼び出すAPI。
-    // ノードの退避処理を行い、ノードの情報を削除する。
-    rpc UnregisterNode (UnregisterNodeRequest) returns (UnregisterNodeResponse);
-    // ノードが生存していることをcontrollerに通知する。
-    rpc Ping (PingNodeRequest) returns (PingNodeResponse);
-    // 全ノードの一覧を取得する。
-    rpc ListNodes (ListNodesRequest) returns (stream ListNodesResponse);
+  // クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
+  // ノードの情報を登録・更新をする。
+  rpc RegisterNode(RegisterNodeRequest) returns (RegisterNodeResponse);
+  // クラスタから脱退するときに呼び出すAPI。
+  // ノードの退避処理を行い、ノードの情報を削除する。
+  rpc UnregisterNode(UnregisterNodeRequest) returns (UnregisterNodeResponse);
+  // ノードが生存していることをcontrollerに通知する。
+  rpc Ping(PingNodeRequest) returns (PingNodeResponse);
+  // 全ノードの一覧を取得する。
+  rpc ListNodes(ListNodesRequest) returns (stream ListNodesResponse);
 }
-
 
 message RegisterNodeRequest {
-    NodeID id = 1;
-    Node node = 2;
+  NodeID id = 1;
+  Node node = 2;
 }
 message RegisterNodeResponse {}
-message UnregisterNodeRequest {
-    NodeID id = 1;
-}
+message UnregisterNodeRequest { NodeID id = 1; }
 message UnregisterNodeResponse {}
-message PingNodeRequest {
-    NodeID id = 1;
-}
+message PingNodeRequest { NodeID id = 1; }
 message PingNodeResponse {}
 message ListNodesRequest {}
 message ListNodesResponse {
-    NodeID id = 1;
-    Node nodes = 2;
+  NodeID id = 1;
+  Node nodes = 2;
 }

@@ -2,106 +2,84 @@ syntax = "proto3";
 package elton.v2;
 import "google/protobuf/timestamp.proto";
 
-
-message ObjectKey {
-    string id = 1;
-}
+message ObjectKey { string id = 1; }
 message ObjectInfo {
-    bytes hash = 1;
-    // Supported algorithms:
-    //  - "SHA1"
-    string hashAlgorithm = 4;
+  bytes hash = 1;
+  // Supported algorithms:
+  //  - "SHA1"
+  string hashAlgorithm = 4;
 
-    google.protobuf.Timestamp createTime = 2;
-    uint64 size = 3;
+  google.protobuf.Timestamp createTime = 2;
+  uint64 size = 3;
 }
 message ObjectBody {
-    bytes contents = 1;
-    uint64 offset = 2;
+  bytes contents = 1;
+  uint64 offset = 2;
 }
 
-
-message PropertyKey {
-    string id = 1;
-}
+message PropertyKey { string id = 1; }
 message PropertyBody {
-    string body = 1;
-    bool allowReplace = 2;
+  string body = 1;
+  bool allowReplace = 2;
 }
 
-
-message NodeID {
-    string id = 1;
-}
+message NodeID { string id = 1; }
 message Node {
-    // IP addresses or DNS name.
-    repeated string address = 1;
-    // Human readable name.
-    string name = 2;
-    // Uptime
-    uint64 uptime = 3;
+  // IP addresses or DNS name.
+  repeated string address = 1;
+  // Human readable name.
+  string name = 2;
+  // Uptime
+  uint64 uptime = 3;
 }
 
-
-message VolumeID {
-    string id = 1;
-}
-message VolumeInfo {
-    string name = 1;
-}
-
+message VolumeID { string id = 1; }
+message VolumeInfo { string name = 1; }
 
 message CommitID {
-    VolumeID id = 1;
-    uint64 number= 2;
+  VolumeID id = 1;
+  uint64 number = 2;
 }
 message CommitInfo {
-    google.protobuf.Timestamp created_at = 1;
-    CommitID parentID = 2;
-    TreeID treeID = 3;
+  google.protobuf.Timestamp created_at = 1;
+  CommitID parentID = 2;
+  TreeID treeID = 3;
 }
 
-
-message TreeID {
-    ObjectKey key = 1;
-}
+message TreeID { ObjectKey key = 1; }
 message TreeEntry {
-    string path = 1;
-    FileID fileID = 2;
+  string path = 1;
+  FileID fileID = 2;
 }
 
-
-message FileID {
-    string id = 1;
-}
+message FileID { string id = 1; }
 // Linuxのinodeに相当する。
 message File {
-    // If file is regular or symlink, a valid reference is set to the contentRef.
-    // Otherwise, it is set to the null reference.
-    FileContentRef contentRef = 1;
+  // If file is regular or symlink, a valid reference is set to the contentRef.
+  // Otherwise, it is set to the null reference.
+  FileContentRef contentRef = 1;
 
-    FileType fileType = 2;
-    // 実際には16bitで十分だが、protocol bufferは16bit integerをサポートしていないため、32bitで表現している。
-    uint32 mode = 3;
-    uint32 owner = 4;
-    uint32 group = 5;
-    google.protobuf.Timestamp atime = 6;
-    google.protobuf.Timestamp mtime = 7;
-    google.protobuf.Timestamp ctime = 8;
-    // For device file.
-    uint32 major = 9;
-    uint32 minor = 10;
+  FileType fileType = 2;
+  // 実際には16bitで十分だが、protocol bufferは16bit
+  // integerをサポートしていないため、32bitで表現している。
+  uint32 mode = 3;
+  uint32 owner = 4;
+  uint32 group = 5;
+  google.protobuf.Timestamp atime = 6;
+  google.protobuf.Timestamp mtime = 7;
+  google.protobuf.Timestamp ctime = 8;
+  // For device file.
+  uint32 major = 9;
+  uint32 minor = 10;
 }
 enum FileType {
-    Regular = 0;
-    Directory = 1;
-    SymbolicLink = 2;
-    FIFO = 3;
-    CharacterDevice = 4;
-    BlockDevice = 5;
-    Socket = 6;
+  Regular = 0;
+  Directory = 1;
+  SymbolicLink = 2;
+  FIFO = 3;
+  CharacterDevice = 4;
+  BlockDevice = 5;
+  Socket = 6;
 }
 // Fileの中身への参照
-message FileContentRef {
-    ObjectKey key = 1;
-}
+message FileContentRef { ObjectKey key = 1; }
