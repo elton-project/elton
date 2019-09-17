@@ -37,7 +37,7 @@ func (s *Server) SetListener(l net.Listener) {
 }
 func (s *Server) Serve(ctx context.Context) error {
 	handler := NewController()
-	srv := grpc.NewServer(nil)
+	srv := grpc.NewServer()
 	elton_v2.RegisterMetaServiceServer(srv, handler)
 	elton_v2.RegisterNodeServiceServer(srv, handler)
 	elton_v2.RegisterVolumeServiceServer(srv, handler)
