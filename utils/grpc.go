@@ -53,16 +53,19 @@ func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, di
 	}()
 
 	// Prepare
-	opt := grpc.WithContextDialer(func(ctx context.Context, target string) (conn net.Conn, err error) {
-		conn, err = l.Dial()
-		if err != nil {
-			panic(xerrors.Errorf("failed to dial: %w", err))
-		}
-		return
-	})
+	opts := []grpc.DialOption{
+		grpc.WithInsecure(),
+		grpc.WithContextDialer(func(ctx context.Context, target string) (conn net.Conn, err error) {
+			conn, err = l.Dial()
+			if err != nil {
+				panic(xerrors.Errorf("failed to dial: %w", err))
+			}
+			return
+		}),
+	}
 
 	dial := func() *grpc.ClientConn {
-		conn, err := grpc.DialContext(ctx, "", opt)
+		conn, err := grpc.DialContext(ctx, "", opts...)
 		if err != nil {
 			panic(xerrors.Errorf("failed to grpc.Dial: %w", err))
 		}
