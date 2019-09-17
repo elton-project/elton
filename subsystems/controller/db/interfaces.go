@@ -18,5 +18,5 @@ type CommitStore interface {
 	Latest() (*CommitID, error)
 	Create(vid *VolumeID, info *CommitInfo, tree *Tree) (*CommitID, error)
 	Tree(id *CommitID) (*Tree, error)
-	TreeByTreeID(id TreeID) (*Tree, error)
+	TreeByTreeID(id *TreeID) (*Tree, error)
 }
