@@ -175,3 +175,59 @@ func TestLocalCS_Get(t *testing.T) {
 		})
 	})
 }
+
+func TestLocalCS_Tree(t *testing.T) {
+	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
+		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+			tree, err := cs.Tree(&CommitID{
+				Id:     &VolumeID{Id: "not_found"},
+				Number: 0,
+			})
+			assert.Error(t, err)
+			assert.Nil(t, tree)
+		})
+	})
+	t.Run("should_success_when_access_exists_tree", func(t *testing.T) {
+		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+			vid, err := vs.Create(&VolumeInfo{
+				Name: "vol",
+			})
+			if !assert.NotNil(t, vid) || !assert.Nil(t, err) {
+				return
+			}
+
+			cid, err := cs.Create(vid, &CommitInfo{
+				CreatedAt: ptypes.TimestampNow(),
+				ParentID:  nil,
+			}, &Tree{
+				P2I: map[string]uint64{
+					"/":    1,
+					"/bin": 2,
+				},
+				I2F: map[uint64]*FileID{
+					1: {Id: "root"},
+					2: {Id: "bin"},
+				},
+			})
+			if !assert.NotNil(t, cid) || !assert.Nil(t, err) {
+				return
+			}
+
+			tree, err := cs.Tree(cid)
+			assert.Nil(t, err)
+			assert.NotNil(t, tree)
+		})
+	})
+}
+
+func TestLocalCS_TreeByTreeID(t *testing.T) {
+	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
+		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+			tree, err := cs.TreeByTreeID(&TreeID{
+				Id: "not_found",
+			})
+			assert.Error(t, err)
+			assert.Nil(t, tree)
+		})
+	})
+}
