@@ -201,6 +201,7 @@ func (vs *localVS) Exists(id *VolumeID) (ok bool, err error) {
 	return
 }
 func (vs *localVS) Delete(id *VolumeID) error {
+	// TODO
 	return xerrors.New("not implemented")
 }
 func (vs *localVS) Walk(callback func(id *VolumeID, info *VolumeInfo) error) error {
