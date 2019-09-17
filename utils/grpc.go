@@ -29,7 +29,7 @@ func GrpcServeWithCtx(srv *grpc.Server, ctx context.Context, listener net.Listen
 	err := srv.Serve(listener)
 
 	cancel()
-	wg.Done()
+	wg.Wait()
 	return err
 }
 
