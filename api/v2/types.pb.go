@@ -61,6 +61,7 @@ func (FileType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_d938547f84707355, []int{0}
 }
 
+// Identify the object.
 type ObjectKey struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -100,16 +101,19 @@ func (m *ObjectKey) GetId() string {
 	return ""
 }
 
+// Metadata for the object.
 type ObjectInfo struct {
+	// Hash value of the object.  Hash algorithm specified by other field.
 	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 	// Supported algorithms:
 	//  - "SHA1"
-	HashAlgorithm        string               `protobuf:"bytes,4,opt,name=hashAlgorithm,proto3" json:"hashAlgorithm,omitempty"`
-	CreateTime           *timestamp.Timestamp `protobuf:"bytes,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
-	Size                 uint64               `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	HashAlgorithm string               `protobuf:"bytes,4,opt,name=hashAlgorithm,proto3" json:"hashAlgorithm,omitempty"`
+	CreateTime    *timestamp.Timestamp `protobuf:"bytes,2,opt,name=createTime,proto3" json:"createTime,omitempty"`
+	// Size of the object.
+	Size                 uint64   `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *ObjectInfo) Reset()         { *m = ObjectInfo{} }
@@ -165,6 +169,9 @@ func (m *ObjectInfo) GetSize() uint64 {
 	return 0
 }
 
+// Contents of the object.
+// If (offset=0 && len(contents)=ObjectInfo.size) is satisfied, it means
+// complete data. Otherwise, it means part of data.
 type ObjectBody struct {
 	Contents             []byte   `protobuf:"bytes,1,opt,name=contents,proto3" json:"contents,omitempty"`
 	Offset               uint64   `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
@@ -212,6 +219,7 @@ func (m *ObjectBody) GetOffset() uint64 {
 	return 0
 }
 
+// Identify the property.
 type PropertyKey struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -298,6 +306,7 @@ func (m *PropertyBody) GetAllowReplace() bool {
 	return false
 }
 
+// Identify the node.
 type NodeID struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -395,6 +404,7 @@ func (m *Node) GetUptime() uint64 {
 	return 0
 }
 
+// Identify the volume.
 type VolumeID struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -434,6 +444,7 @@ func (m *VolumeID) GetId() string {
 	return ""
 }
 
+// Metadata for the volume.
 type VolumeInfo struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -473,6 +484,7 @@ func (m *VolumeInfo) GetName() string {
 	return ""
 }
 
+// Identify the commit.
 type CommitID struct {
 	Id                   *VolumeID `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Number               uint64    `protobuf:"varint,2,opt,name=number,proto3" json:"number,omitempty"`
@@ -520,6 +532,7 @@ func (m *CommitID) GetNumber() uint64 {
 	return 0
 }
 
+// TODO: rename
 type CommitInfo struct {
 	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	ParentID             *CommitID            `protobuf:"bytes,2,opt,name=parentID,proto3" json:"parentID,omitempty"`
@@ -575,6 +588,10 @@ func (m *CommitInfo) GetTreeID() *TreeID {
 	return nil
 }
 
+// Identify the tree.
+// ディレクトリツリーの識別子
+//
+// TODO: fix fields.
 type TreeID struct {
 	Key                  *ObjectKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
@@ -614,6 +631,10 @@ func (m *TreeID) GetKey() *ObjectKey {
 	return nil
 }
 
+// Tree keeps encoded data of directory tree structure in the commit.
+//
+// TODO: rename (TreeEntry -> Tree).
+// TODO: fix fields.
 type TreeEntry struct {
 	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	FileID               *FileID  `protobuf:"bytes,2,opt,name=fileID,proto3" json:"fileID,omitempty"`
@@ -661,6 +682,7 @@ func (m *TreeEntry) GetFileID() *FileID {
 	return nil
 }
 
+// Identify the file.
 type FileID struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -700,13 +722,14 @@ func (m *FileID) GetId() string {
 	return ""
 }
 
-// Linuxのinodeに相当する。
+// File presents the Linux inode.
 type File struct {
 	// If file is regular or symlink, a valid reference is set to the contentRef.
 	// Otherwise, it is set to the null reference.
 	ContentRef *FileContentRef `protobuf:"bytes,1,opt,name=contentRef,proto3" json:"contentRef,omitempty"`
 	FileType   FileType        `protobuf:"varint,2,opt,name=fileType,proto3,enum=elton.v2.FileType" json:"fileType,omitempty"`
-	// 実際には16bitで十分だが、protocol bufferは16bit integerをサポートしていないため、32bitで表現している。
+	// 実際には16bitで十分だが、protocol bufferは16bit
+	// integerをサポートしていないため、32bitで表現している。
 	Mode  uint32               `protobuf:"varint,3,opt,name=mode,proto3" json:"mode,omitempty"`
 	Owner uint32               `protobuf:"varint,4,opt,name=owner,proto3" json:"owner,omitempty"`
 	Group uint32               `protobuf:"varint,5,opt,name=group,proto3" json:"group,omitempty"`
@@ -816,7 +839,7 @@ func (m *File) GetMinor() uint32 {
 	return 0
 }
 
-// Fileの中身への参照
+// Reference to file content.
 type FileContentRef struct {
 	Key                  *ObjectKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`

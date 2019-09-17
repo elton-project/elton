@@ -2,27 +2,35 @@ syntax = "proto3";
 package elton.v2;
 import "google/protobuf/timestamp.proto";
 
+// Identify the object.
 message ObjectKey { string id = 1; }
+// Metadata for the object.
 message ObjectInfo {
+  // Hash value of the object.  Hash algorithm specified by other field.
   bytes hash = 1;
   // Supported algorithms:
   //  - "SHA1"
   string hashAlgorithm = 4;
-
   google.protobuf.Timestamp createTime = 2;
+  // Size of the object.
   uint64 size = 3;
 }
+// Contents of the object.
+// If (offset=0 && len(contents)=ObjectInfo.size) is satisfied, it means
+// complete data. Otherwise, it means part of data.
 message ObjectBody {
   bytes contents = 1;
   uint64 offset = 2;
 }
 
+// Identify the property.
 message PropertyKey { string id = 1; }
 message PropertyBody {
   string body = 1;
   bool allowReplace = 2;
 }
 
+// Identify the node.
 message NodeID { string id = 1; }
 message Node {
   // IP addresses or DNS name.
@@ -33,41 +41,56 @@ message Node {
   uint64 uptime = 3;
 }
 
+// Identify the volume.
 message VolumeID { string id = 1; }
+// Metadata for the volume.
 message VolumeInfo { string name = 1; }
 
+// Identify the commit.
 message CommitID {
   VolumeID id = 1;
   uint64 number = 2;
 }
+// TODO: rename
 message CommitInfo {
   google.protobuf.Timestamp created_at = 1;
   CommitID parentID = 2;
   TreeID treeID = 3;
 }
 
+// Identify the tree.
+// ディレクトリツリーの識別子
+//
+// TODO: fix fields.
 message TreeID { ObjectKey key = 1; }
+// Tree keeps encoded data of directory tree structure in the commit.
+//
+// TODO: rename (TreeEntry -> Tree).
+// TODO: fix fields.
 message TreeEntry {
   string path = 1;
   FileID fileID = 2;
 }
 
+// Identify the file.
 message FileID { string id = 1; }
-// Linuxのinodeに相当する。
+// File presents the Linux inode.
 message File {
   // If file is regular or symlink, a valid reference is set to the contentRef.
   // Otherwise, it is set to the null reference.
   FileContentRef contentRef = 1;
-
   FileType fileType = 2;
+
   // 実際には16bitで十分だが、protocol bufferは16bit
   // integerをサポートしていないため、32bitで表現している。
   uint32 mode = 3;
   uint32 owner = 4;
   uint32 group = 5;
+
   google.protobuf.Timestamp atime = 6;
   google.protobuf.Timestamp mtime = 7;
   google.protobuf.Timestamp ctime = 8;
+
   // For device file.
   uint32 major = 9;
   uint32 minor = 10;
@@ -81,5 +104,5 @@ enum FileType {
   BlockDevice = 5;
   Socket = 6;
 }
-// Fileの中身への参照
+// Reference to file content.
 message FileContentRef { ObjectKey key = 1; }
