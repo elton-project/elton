@@ -343,8 +343,11 @@ func (cs *localCS) Tree(id *CommitID) (tree *Tree, err error) {
 func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
 	err = cs.DB.TreeView(func(b *bbolt.Bucket) error {
 		data := b.Get(cs.Enc.TreeID(id))
-		tree = cs.Dec.Tree(data)
-		return nil
+		if len(data) > 0 {
+			tree = cs.Dec.Tree(data)
+			return nil
+		}
+		return xerrors.New("not found tree")
 	})
 	return
 }
