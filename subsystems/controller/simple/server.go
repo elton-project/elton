@@ -32,6 +32,9 @@ func (s *Server) Listen() error {
 	}
 	return nil
 }
+func (s *Server) SetListener(l net.Listener) {
+	s.Listener = l
+}
 func (s *Server) Server(ctx context.Context) error {
 	handler := NewController()
 	srv := grpc.NewServer(nil)
