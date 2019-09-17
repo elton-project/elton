@@ -9,10 +9,13 @@ import (
 	"golang.org/x/xerrors"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 )
 
 var localVolumeBucket = []byte("volume")
 var localCommitBucket = []byte("commit")
+var localTreeBucket = []byte("tree")
 
 func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() error, err error) {
 	err = os.MkdirAll(dir, 0700)
@@ -68,6 +71,12 @@ func (localEncoder) CommitID(id *CommitID) []byte {
 func (localEncoder) CommitInfo(info *CommitInfo) []byte {
 	return mustMarshall(info)
 }
+func (localEncoder) TreeID(id *TreeID) []byte {
+	return []byte(id.GetId())
+}
+func (localEncoder) Tree(tree *Tree) []byte {
+	return mustMarshall(tree)
+}
 
 type localDecoder struct{}
 
@@ -82,10 +91,30 @@ func (localDecoder) VolumeInfo(data []byte) *VolumeInfo {
 	mustUnmarshal(data, info)
 	return info
 }
+func (localDecoder) CommitID(data []byte) *CommitID {
+	s := string(data)
+	components := strings.SplitN(s, "/", 2)
+	n, err := strconv.ParseUint(components[1], 10, 64)
+	if err != nil {
+		panic(xerrors.Errorf("Invalid Id (%s): %w", s, err))
+	}
+	return &CommitID{
+		Id:     &VolumeID{Id: components[0]},
+		Number: n,
+	}
+}
 func (localDecoder) CommitInfo(data []byte) *CommitInfo {
 	info := &CommitInfo{}
 	mustUnmarshal(data, info)
 	return info
+}
+func (localDecoder) TreeID(data []byte) *TreeID {
+	return &TreeID{Id: string(data)}
+}
+func (localDecoder) Tree(data []byte) *Tree {
+	tree := &Tree{}
+	mustUnmarshal(data, tree)
+	return tree
 }
 
 type localGenerator struct{}
@@ -97,15 +126,23 @@ func (localGenerator) next() uint64 {
 	}
 	return uniqId
 }
+func (g localGenerator) nextString() string {
+	return fmt.Sprintf("%x", g.next())
+}
 func (g localGenerator) VolumeID() *VolumeID {
 	return &VolumeID{
-		Id: fmt.Sprintf("%x", g.next()),
+		Id: g.nextString(),
 	}
 }
 func (g localGenerator) CommitID(id *VolumeID) *CommitID {
 	return &CommitID{
 		Id:     id,
 		Number: g.next(),
+	}
+}
+func (g localGenerator) TreeID() *TreeID {
+	return &TreeID{
+		Id: g.nextString(),
 	}
 }
 
@@ -143,6 +180,10 @@ func (s *localDB) createAllBuckets() error {
 		if _, err := tx.CreateBucketIfNotExists(localCommitBucket); err != nil {
 			return xerrors.Errorf("commit bucket cannot create: %w", err)
 		}
+
+		if _, err := tx.CreateBucketIfNotExists(localTreeBucket); err != nil {
+			return xerrors.Errorf("tree bucket cannot create: %w", err)
+		}
 		return nil
 	})
 }
@@ -161,6 +202,9 @@ func (s *localDB) runTx(writable bool, bucket []byte, callback localTxFn) error 
 		return s.db.View(innerFn)
 	}
 }
+func (s *localDB) Update(callback func(tx *bbolt.Tx) error) error {
+	return s.db.View(callback)
+}
 func (s *localDB) VolumeView(callback localTxFn) error {
 	return s.runTx(false, localVolumeBucket, callback)
 }
@@ -172,6 +216,9 @@ func (s *localDB) CommitView(callback localTxFn) error {
 }
 func (s *localDB) CommitUpdate(callback localTxFn) error {
 	return s.runTx(true, localCommitBucket, callback)
+}
+func (s *localDB) TreeView(callback localTxFn) error {
+	return s.runTx(false, localTreeBucket, callback)
 }
 
 type localVS struct {
@@ -260,13 +307,44 @@ func (cs *localCS) Latest() (latest *CommitID, err error) {
 	err = xerrors.New("todo")
 	return
 }
-func (cs *localCS) Create(vid *VolumeID, info *CommitInfo) (id *CommitID, err error) {
-	id = cs.Gen.CommitID(vid)
-	err = cs.DB.CommitUpdate(func(b *bbolt.Bucket) error {
-		return b.Put(
-			cs.Enc.CommitID(id),
+func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *CommitID, err error) {
+	cid = cs.Gen.CommitID(vid)
+	tid := cs.Gen.TreeID()
+	info.TreeID = tid
+
+	err = cs.DB.Update(func(tx *bbolt.Tx) error {
+		if err := tx.Bucket(localCommitBucket).Put(
+			cs.Enc.CommitID(cid),
 			cs.Enc.CommitInfo(info),
+		); err != nil {
+			return err
+		}
+
+		return tx.Bucket(localTreeBucket).Put(
+			cs.Enc.TreeID(tid),
+			cs.Enc.Tree(tree),
 		)
+	})
+	return
+}
+func (cs *localCS) Tree(id *CommitID) (tree *Tree, err error) {
+	var tid *TreeID
+	err = cs.DB.CommitView(func(b *bbolt.Bucket) error {
+		data := b.Get(cs.Enc.CommitID(id))
+		tid = cs.Dec.TreeID(data)
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	return cs.TreeByTreeID(tid)
+}
+func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
+	err = cs.DB.TreeView(func(b *bbolt.Bucket) error {
+		data := b.Get(cs.Enc.TreeID(id))
+		tree = cs.Dec.Tree(data)
+		return nil
 	})
 	return
 }
