@@ -589,7 +589,6 @@ func (m *CommitInfo) GetTreeID() *TreeID {
 }
 
 // Identify the tree.
-// ディレクトリツリーの識別子
 //
 // TODO: fix fields.
 type TreeID struct {

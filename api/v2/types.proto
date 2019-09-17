@@ -59,7 +59,6 @@ message CommitInfo {
 }
 
 // Identify the tree.
-// ディレクトリツリーの識別子
 //
 // TODO: fix fields.
 message TreeID { ObjectKey key = 1; }
