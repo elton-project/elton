@@ -12,8 +12,7 @@ const DefaultListenAddr = "0.0.0.0:0"
 
 type Server struct {
 	ListenAddr string
-
-	listener net.Listener
+	Listener   net.Listener
 }
 
 func (s *Server) Name() string {
@@ -28,7 +27,7 @@ func (s *Server) Listen() error {
 	if err != nil {
 		return err
 	}
-	s.listener = l
+	s.Listener = l
 	return nil
 }
 func (s *Server) Server(ctx context.Context) error {
@@ -39,7 +38,7 @@ func (s *Server) Server(ctx context.Context) error {
 	elton_v2.RegisterVolumeServiceServer(srv, handler)
 	elton_v2.RegisterCommitServiceServer(srv, handler)
 
-	return utils.GrpcServeWithCtx(srv, ctx, s.listener)
+	return utils.GrpcServeWithCtx(srv, ctx, s.Listener)
 }
 
 func NewServer() *Server {
