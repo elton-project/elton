@@ -155,6 +155,17 @@ func TestLocalCS_Get(t *testing.T) {
 				CreatedAt: ptypes.TimestampNow(),
 				ParentID:  nil,
 				TreeID:    nil,
+			}, &Tree{
+				P2I: map[string]uint64{
+					"/":            1,
+					"/bin":         2,
+					"/bin/busybox": 3,
+				},
+				I2F: map[uint64]*FileID{
+					1: {Id: "root"},
+					2: {Id: "bin"},
+					3: {Id: "busybox"},
+				},
 			})
 			if !assert.Nil(t, err) || !assert.NotNil(t, cid) {
 				return
