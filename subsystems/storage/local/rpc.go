@@ -58,7 +58,7 @@ func (s *StorageService) GetObject(ctx context.Context, req *elton_v2.GetObjectR
 		Info: &elton_v2.ObjectInfo{
 			Hash:          info.Hash,
 			HashAlgorithm: info.HashAlgorithm,
-			CreateTime:    createTime,
+			CreatedAt:     createTime,
 			Size:          info.Size,
 		},
 	}, nil

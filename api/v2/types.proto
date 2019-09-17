@@ -11,7 +11,7 @@ message ObjectInfo {
   // Supported algorithms:
   //  - "SHA1"
   string hashAlgorithm = 4;
-  google.protobuf.Timestamp createTime = 2;
+  google.protobuf.Timestamp createdAt = 2;
   // Size of the object.
   uint64 size = 3;
 }
