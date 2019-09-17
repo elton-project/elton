@@ -21,6 +21,7 @@ build:
 .PHONY: fmt
 fmt:
 	go fmt ./...
+	clang-format -i ./api/v*/*.proto
 
 .PHONY: test
 test:
