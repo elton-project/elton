@@ -59,15 +59,13 @@ message CommitInfo {
 }
 
 // Identify the tree.
-//
-// TODO: fix fields.
-message TreeID { ObjectKey key = 1; }
+message TreeID { string id = 1; }
 // Tree keeps encoded data of directory tree structure in the commit.
-//
-// TODO: fix fields.
 message Tree {
-  string path = 1;
-  FileID fileID = 2;
+  // Mapping from path to inode.
+  map<string, uint64> p2i = 1;
+  // Mapping from inode to file object.
+  map<uint64, FileID> i2f = 2;
 }
 
 // Identify the file.
