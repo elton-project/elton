@@ -1,6 +1,7 @@
 package controller_db
 
 import (
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
@@ -121,6 +122,47 @@ func TestLocalVS_Walk(t *testing.T) {
 				return nil
 			})
 			assert.Nil(t, err)
+		})
+	})
+}
+
+func TestLocalCS_Get(t *testing.T) {
+	t.Run("should_error_when_access_not_exists_commit", func(t *testing.T) {
+		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
+			if !assert.Nil(t, err) || !assert.NotNil(t, vid) {
+				return
+			}
+
+			ci, err := cs.Get(&CommitID{
+				Id:     vid,
+				Number: 0,
+			})
+			assert.Error(t, err)
+			assert.Nil(t, ci)
+		})
+	})
+	t.Run("should_success|when_access_exists_commit", func(t *testing.T) {
+		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
+			if !assert.Nil(t, err) || !assert.NotNil(t, vid) {
+				return
+			}
+
+			// TODO: フィールドを埋める
+			// TODO: treeの作成周りをどうするのか。
+			cid, err := cs.Create(vid, &CommitInfo{
+				CreatedAt: ptypes.TimestampNow(),
+				ParentID:  nil,
+				TreeID:    nil,
+			})
+			if !assert.Nil(t, err) || !assert.NotNil(t, cid) {
+				return
+			}
+
+			ci, err := cs.Get(cid)
+			assert.Nil(t, err)
+			assert.NotNil(t, ci)
 		})
 	})
 }
