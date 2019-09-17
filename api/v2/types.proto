@@ -53,7 +53,7 @@ message CommitID {
 }
 // TODO: rename
 message CommitInfo {
-  google.protobuf.Timestamp created_at = 1;
+  google.protobuf.Timestamp createdAt = 1;
   CommitID parentID = 2;
   TreeID treeID = 3;
 }
