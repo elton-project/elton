@@ -23,11 +23,13 @@ func (s *Server) Configure() error {
 	return nil
 }
 func (s *Server) Listen() error {
-	l, err := net.Listen("tcp", s.ListenAddr)
-	if err != nil {
-		return err
+	if s.Listener == nil {
+		l, err := net.Listen("tcp", s.ListenAddr)
+		if err != nil {
+			return err
+		}
+		s.Listener = l
 	}
-	s.Listener = l
 	return nil
 }
 func (s *Server) Server(ctx context.Context) error {
