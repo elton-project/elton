@@ -60,7 +60,7 @@ func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, di
 	})
 
 	dial := func() *grpc.ClientConn {
-		conn, err := grpc.Dial("", opt)
+		conn, err := grpc.DialContext(ctx, "", opt)
 		if err != nil {
 			panic(xerrors.Errorf("failed to grpc.Dial: %w", err))
 		}
