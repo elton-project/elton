@@ -149,8 +149,6 @@ func TestLocalCS_Get(t *testing.T) {
 				return
 			}
 
-			// TODO: フィールドを埋める
-			// TODO: treeの作成周りをどうするのか。
 			cid, err := cs.Create(vid, &CommitInfo{
 				CreatedAt: ptypes.TimestampNow(),
 				ParentID:  nil,
