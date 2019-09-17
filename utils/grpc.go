@@ -11,6 +11,8 @@ import (
 	"sync"
 )
 
+const defaultListenBufferSize = 10
+
 // GrpcServeWithCtx serve gRPC server.
 // When context is cancelled, gRPC server shutdown gracefully.
 func GrpcServeWithCtx(srv *grpc.Server, ctx context.Context, listener net.Listener) error {
@@ -33,7 +35,7 @@ func GrpcServeWithCtx(srv *grpc.Server, ctx context.Context, listener net.Listen
 
 func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, dial func() *grpc.ClientConn)) {
 	eg := errgroup.Group{}
-	l := &bufconn.Listener{}
+	l := bufconn.Listen(defaultListenBufferSize)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	srv.SetListener(l)
