@@ -40,12 +40,17 @@ func (s *LocalStorage) Configure() error {
 	return nil
 }
 func (s *LocalStorage) Listen() error {
-	l, err := net.Listen("tcp", s.ListenAddr)
-	if err != nil {
-		return err
+	if s.listener == nil {
+		l, err := net.Listen("tcp", s.ListenAddr)
+		if err != nil {
+			return err
+		}
+		s.listener = l
 	}
-	s.listener = l
 	return nil
+}
+func (s *LocalStorage) SetListener(l net.Listener) {
+	s.listener = l
 }
 func (s *LocalStorage) Serve(ctx context.Context) error {
 	handler := &StorageService{
