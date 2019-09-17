@@ -328,17 +328,12 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	return
 }
 func (cs *localCS) Tree(id *CommitID) (tree *Tree, err error) {
-	var tid *TreeID
-	err = cs.DB.CommitView(func(b *bbolt.Bucket) error {
-		data := b.Get(cs.Enc.CommitID(id))
-		tid = cs.Dec.TreeID(data)
-		return nil
-	})
+	var ci *CommitInfo
+	ci, err = cs.Get(id)
 	if err != nil {
 		return
 	}
-
-	return cs.TreeByTreeID(tid)
+	return cs.TreeByTreeID(ci.TreeID)
 }
 func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
 	err = cs.DB.TreeView(func(b *bbolt.Bucket) error {
