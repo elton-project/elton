@@ -142,7 +142,7 @@ func TestLocalCS_Get(t *testing.T) {
 			assert.Nil(t, ci)
 		})
 	})
-	t.Run("should_success|when_access_exists_commit", func(t *testing.T) {
+	t.Run("should_success_when_access_exists_commit", func(t *testing.T) {
 		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
 			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
 			if !assert.Nil(t, err) || !assert.NotNil(t, vid) {
