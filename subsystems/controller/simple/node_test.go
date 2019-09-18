@@ -95,7 +95,13 @@ func TestLocalNodeServer_ListNodes(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewNodeServiceClient(dial())
 
-			// Register two nodes.
+			allNodes := map[string]bool{
+				"node-1": false,
+				"node-2": false,
+				"node-3": false,
+			}
+
+			// Register 3 nodes.
 			_, err := client.RegisterNode(ctx, &elton_v2.RegisterNodeRequest{
 				Id:   &elton_v2.NodeID{Id: "node-1"},
 				Node: &elton_v2.Node{Name: "node-1", Address: []string{"node1.local"}},
@@ -110,7 +116,15 @@ func TestLocalNodeServer_ListNodes(t *testing.T) {
 			if !assert.NoError(t, err) {
 				return
 			}
+			_, err = client.RegisterNode(ctx, &elton_v2.RegisterNodeRequest{
+				Id:   &elton_v2.NodeID{Id: "node-3"},
+				Node: &elton_v2.Node{Name: "node-3", Address: []string{"node3.local"}},
+			})
+			if !assert.NoError(t, err) {
+				return
+			}
 
+			// Receive nodes list.
 			stream, err := client.ListNodes(ctx, &elton_v2.ListNodesRequest{})
 			if !assert.NoError(t, err) {
 				return
@@ -123,10 +137,26 @@ func TestLocalNodeServer_ListNodes(t *testing.T) {
 				if !assert.NoError(t, err) {
 					return
 				}
-				// TODO: check res.Node field
-				_ = res.Node
-				_ = res
+
+				// Check res.Node field
+				name := res.GetNode().GetName()
+				t.Logf("Node.Name: %s", name)
+				_, ok := allNodes[name]
+				if !assert.True(t, ok, "unexpected node name") {
+					return
+				}
+				if !assert.False(t, allNodes[name], "same node appeared") {
+					return
+				}
+				allNodes[name] = true
 			}
+
+			// Check if all nodes are appeared.
+			assert.Equal(t, map[string]bool{
+				"node-1": true,
+				"node-2": true,
+				"node-3": true,
+			}, allNodes)
 		})
 	})
 }
