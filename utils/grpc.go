@@ -58,9 +58,9 @@ func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, di
 		grpc.WithInsecure(),
 		grpc.WithContextDialer(func(ctx context.Context, target string) (conn net.Conn, err error) {
 			conn, err = l.Dial()
-			if err != nil {
-				panic(xerrors.Errorf("failed to dial: %w", err))
-			}
+			// NOTE: ここでエラーハンドリングをしてはいけない。
+			// http2の再接続を行う機構があるらしく、サーバ終了後もDial()を呼び出す可能性がある。
+			// この機能のため、ここでエラーハンドリングをしてしまうと、テストケースがランダムに失敗する現象が発生する。
 			return
 		}),
 	}
