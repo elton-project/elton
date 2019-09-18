@@ -3,6 +3,8 @@ package simple
 import (
 	"context"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
+	"golang.org/x/xerrors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"sync"
@@ -134,8 +136,12 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 }
 
 func generateVolumeKey() volumeKey {
+	s, err := idgen.Gen.NextStringID()
+	if err != nil {
+		panic(xerrors.Errorf("failed to generate id: %w", err))
+	}
 	return volumeKey{
-		Id: "random value", // todo
+		Id: s,
 	}
 }
 func newVolumeKey(id *VolumeID) volumeKey {
