@@ -14,6 +14,7 @@ import (
 )
 
 var localVolumeBucket = []byte("volume")
+var localVolumeNameBucket = []byte("volume-name")
 var localCommitBucket = []byte("commit")
 var localTreeBucket = []byte("tree")
 
@@ -60,6 +61,9 @@ type localEncoder struct{}
 
 func (localEncoder) VolumeID(id *VolumeID) []byte {
 	return []byte(id.GetId())
+}
+func (localEncoder) VolumeName(info *VolumeInfo) []byte {
+	return []byte(info.GetName())
 }
 func (localEncoder) VolumeInfo(info *VolumeInfo) []byte {
 	return mustMarshall(info)
@@ -177,6 +181,10 @@ func (s *localDB) createAllBuckets() error {
 			return xerrors.Errorf("volume bucket cannot create: %w", err)
 		}
 
+		if _, err := tx.CreateBucketIfNotExists(localVolumeNameBucket); err != nil {
+			return xerrors.Errorf("volume-name bucket cannot create: %w", err)
+		}
+
 		if _, err := tx.CreateBucketIfNotExists(localCommitBucket); err != nil {
 			return xerrors.Errorf("commit bucket cannot create: %w", err)
 		}
@@ -262,10 +270,28 @@ func (vs *localVS) Walk(callback func(id *VolumeID, info *VolumeInfo) error) err
 }
 func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
 	id = vs.Gen.VolumeID()
-	err = vs.DB.VolumeUpdate(func(b *bbolt.Bucket) error {
-		return b.Put(
+	err = vs.DB.Update(func(tx *bbolt.Tx) error {
+		vb := tx.Bucket(localVolumeBucket)
+		vnb := tx.Bucket(localVolumeNameBucket)
+
+		// Duplication check
+		if vb.Get(vs.Enc.VolumeID(id)) != nil {
+			return xerrors.New("duplicate volume id")
+		}
+		if vnb.Get(vs.Enc.VolumeName(info)) != nil {
+			return xerrors.New("duplicate volume name")
+		}
+
+		if err := vb.Put(
 			vs.Enc.VolumeID(id),
 			vs.Enc.VolumeInfo(info),
+		); err != nil {
+			return err
+		}
+
+		return vnb.Put(
+			vs.Enc.VolumeName(info),
+			[]byte(""),
 		)
 	})
 	return

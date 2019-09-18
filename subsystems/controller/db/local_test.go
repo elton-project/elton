@@ -83,8 +83,34 @@ func TestLocalVS_Exists(t *testing.T) {
 		})
 	})
 }
+
 func TestLocalVS_Delete(t *testing.T) {
 	// TODO
+}
+
+func TestLocalVS_Create(t *testing.T) {
+	t.Run("should_success_when_passed_valid_args", func(t *testing.T) {
+		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+			vid, err := vs.Create(&VolumeInfo{
+				Name: "foo",
+			})
+			assert.NoError(t, err)
+			assert.NotEmpty(t, vid.GetId())
+		})
+	})
+	t.Run("should_fail_when_creating_volume_with_duplicate_name", func(t *testing.T) {
+		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+			_, err := vs.Create(&VolumeInfo{
+				Name: "foo",
+			})
+			assert.NoError(t, err)
+
+			_, err = vs.Create(&VolumeInfo{
+				Name: "foo",
+			})
+			assert.Error(t, err, "duplicate volume name")
+		})
+	})
 }
 
 func TestLocalVS_Walk(t *testing.T) {
