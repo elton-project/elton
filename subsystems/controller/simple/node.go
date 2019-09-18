@@ -74,7 +74,7 @@ func (n *localNodeServer) ListNodes(req *ListNodesRequest, stream NodeService_Li
 				Id: &NodeID{
 					Id: key.NodeId,
 				},
-				Nodes: &Node{
+				Node: &Node{
 					Address: info.Address,
 					Name:    info.Name,
 					Uptime:  0, // todo

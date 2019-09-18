@@ -123,7 +123,8 @@ func TestLocalNodeServer_ListNodes(t *testing.T) {
 				if !assert.NoError(t, err) {
 					return
 				}
-				// TODO: check res.Nodes field
+				// TODO: check res.Node field
+				_ = res.Node
 				_ = res
 			}
 		})

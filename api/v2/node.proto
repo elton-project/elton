@@ -28,5 +28,5 @@ message PingNodeResponse {}
 message ListNodesRequest {}
 message ListNodesResponse {
   NodeID id = 1;
-  Node nodes = 2;
+  Node node = 2;
 }
