@@ -4,8 +4,11 @@ import (
 	"context"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
+	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
+	"io/ioutil"
 	"net"
+	"os"
 )
 
 const DefaultListenAddr = "0.0.0.0:0"
@@ -13,6 +16,8 @@ const DefaultListenAddr = "0.0.0.0:0"
 type Server struct {
 	ListenAddr string
 	Listener   net.Listener
+	// Path to database directory.
+	DatabaseAddr string
 }
 
 func (s *Server) Name() string {
@@ -36,7 +41,17 @@ func (s *Server) SetListener(l net.Listener) {
 	s.Listener = l
 }
 func (s *Server) Serve(ctx context.Context) error {
-	handler := NewController()
+	if s.DatabaseAddr == "" {
+		dir, err := ioutil.TempDir("", "")
+		if err != nil {
+			return xerrors.Errorf("failed to create tempdir: %w", err)
+		}
+		defer os.RemoveAll(dir)
+		s.DatabaseAddr = dir
+	}
+	handler, close := NewController(s.DatabaseAddr)
+	defer close()
+
 	srv := grpc.NewServer()
 	elton_v2.RegisterMetaServiceServer(srv, handler)
 	elton_v2.RegisterNodeServiceServer(srv, handler)

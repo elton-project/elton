@@ -2,7 +2,9 @@ package simple
 
 import (
 	"context"
+	"errors"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	controller_db "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/controller/db"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc/codes"
@@ -10,16 +12,18 @@ import (
 	"sync"
 )
 
-func newLocalVolumeServer() *localVolumeServer {
+func newLocalVolumeServer(vs controller_db.VolumeStore, cs controller_db.CommitStore) *localVolumeServer {
 	return &localVolumeServer{
-		volumes: map[volumeKey]*volumeInfo{},
+		vs: vs,
+		cs: cs,
 	}
 }
 
 type localVolumeServer struct {
 	UnimplementedCommitServiceServer
-	lock    sync.RWMutex
-	volumes map[volumeKey]*volumeInfo
+	lock sync.RWMutex
+	vs   controller_db.VolumeStore
+	cs   controller_db.CommitStore
 }
 type volumeKey struct {
 	Id string
@@ -30,29 +34,27 @@ type volumeInfo struct {
 }
 
 func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeRequest) (*CreateVolumeResponse, error) {
-	key := generateVolumeKey()
-	info := newVolumeInfo(req.GetInfo())
-
-	v.lock.Lock()
-	defer v.lock.Unlock()
-
-	if v.volumes[key] != nil {
-		return nil, status.Error(codes.AlreadyExists, "volume already exists")
+	if req.GetInfo() == nil {
+		return nil, status.Error(codes.InvalidArgument, "info is null")
 	}
-	v.volumes[key] = info
+
+	vid, err := v.vs.Create(req.GetInfo())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "database error")
+	}
 	return &CreateVolumeResponse{
-		Id: &VolumeID{
-			Id: key.Id,
-		},
+		Id: vid,
 	}, nil
 }
 func (v *localVolumeServer) DeleteVolume(ctx context.Context, req *DeleteVolumeRequest) (*DeleteVolumeResponse, error) {
-	key := newVolumeKey(req.GetId())
+	if req.GetId() == nil {
+		return nil, status.Error(codes.InvalidArgument, "id is null")
+	}
 
-	v.lock.Lock()
-	defer v.lock.Unlock()
-
-	delete(v.volumes, key)
+	err := v.vs.Delete(req.GetId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "database error")
+	}
 	return &DeleteVolumeResponse{}, nil
 }
 func (v *localVolumeServer) ListVolumes(req *ListVolumesRequest, stream VolumeService_ListVolumesServer) error {
@@ -61,23 +63,17 @@ func (v *localVolumeServer) ListVolumes(req *ListVolumesRequest, stream VolumeSe
 	}
 	limit := req.GetLimit()
 
-	v.lock.RLock()
-	defer v.lock.RUnlock()
-
 	count := uint64(0)
-	for _, info := range v.volumes {
+	breakLoop := errors.New("break loop")
+	err := v.vs.Walk(func(id *VolumeID, info *VolumeInfo) error {
 		select {
 		case <-stream.Context().Done():
 			// Context canceled.
-			return nil
+			return breakLoop
 		default:
 			res := &ListVolumesResponse{
-				Id: &VolumeID{
-					Id: info.Id,
-				},
-				Info: &VolumeInfo{
-					Name: info.Name,
-				},
+				Id:   id,
+				Info: info,
 			}
 			if err := stream.Send(res); err != nil {
 				return err
@@ -86,9 +82,16 @@ func (v *localVolumeServer) ListVolumes(req *ListVolumesRequest, stream VolumeSe
 			count++
 			if limit > 0 && count > limit {
 				// Limit reached.
-				return nil
+				return breakLoop
 			}
+			return nil
 		}
+	})
+	if err == breakLoop {
+		err = nil
+	}
+	if err != nil {
+		return status.Error(codes.Internal, "database error")
 	}
 	return nil
 }
@@ -99,37 +102,18 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 
 	if req.GetId() != nil {
 		// Search by id
-		v.lock.RLock()
-		defer v.lock.RUnlock()
-
-		key := newVolumeKey(req.GetId())
-		info := v.volumes[key]
+		vi, err := v.vs.Get(req.GetId())
+		if err != nil {
+			return nil, status.Error(codes.Internal, "database error")
+		}
 		return &InspectVolumeResponse{
-			Id:   key.ToID(),
-			Info: info.ToInfo(),
+			Id:   req.GetId(),
+			Info: vi,
 		}, nil
 	} else if req.GetName() != "" {
 		// Search by name
-		name := req.GetName()
-
-		v.lock.RLock()
-		defer v.lock.RUnlock()
-
-		for _, info := range v.volumes {
-			if info.Name == name {
-				// Found the volume.
-				return &InspectVolumeResponse{
-					Id: &VolumeID{
-						Id: info.Id,
-					},
-					Info: &VolumeInfo{
-						Name: info.Name,
-					},
-				}, nil
-			}
-		}
-		// Not found.
-		return nil, status.Error(codes.NotFound, "volume not found")
+		// todo
+		panic("not implemented")
 	} else {
 		panic("unreachable")
 	}
