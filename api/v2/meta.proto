@@ -3,13 +3,21 @@ package elton.v2;
 import "types.proto";
 
 service MetaService {
+  // Get a property value.
   rpc GetMeta(GetMetaRequest) returns (GetMetaResponse);
+  // Set a property key and value.
+  //
+  // Error:
+  // - AlreadyExists: Failed to create the new property.
+  // - Unauthenticated: Failed to replacement the exists property.
   rpc SetMeta(SetMetaRequest) returns (SetMetaResponse);
 }
 
 message GetMetaRequest { PropertyKey key = 1; }
 message GetMetaResponse {
+  // Requested key.
   PropertyKey key = 1;
+  // Property value.  If property is not exists, it is null.
   PropertyBody body = 2;
 }
 message SetMetaRequest {
@@ -18,7 +26,9 @@ message SetMetaRequest {
   bool mustCreate = 4;
 }
 message SetMetaResponse {
+  // Requested key.
   PropertyKey key = 1;
+  // Old property value.  If property created, it is null.
   PropertyBody oldBody = 2;
   bool created = 4;
 }

@@ -64,7 +64,9 @@ func (m *GetMetaRequest) GetKey() *PropertyKey {
 }
 
 type GetMetaResponse struct {
-	Key                  *PropertyKey  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Requested key.
+	Key *PropertyKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Property value.  If property is not exists, it is null.
 	Body                 *PropertyBody `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
@@ -166,7 +168,9 @@ func (m *SetMetaRequest) GetMustCreate() bool {
 }
 
 type SetMetaResponse struct {
-	Key                  *PropertyKey  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Requested key.
+	Key *PropertyKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Old property value.  If property created, it is null.
 	OldBody              *PropertyBody `protobuf:"bytes,2,opt,name=oldBody,proto3" json:"oldBody,omitempty"`
 	Created              bool          `protobuf:"varint,4,opt,name=created,proto3" json:"created,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
@@ -262,7 +266,13 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MetaServiceClient interface {
+	// Get a property value.
 	GetMeta(ctx context.Context, in *GetMetaRequest, opts ...grpc.CallOption) (*GetMetaResponse, error)
+	// Set a property key and value.
+	//
+	// Error:
+	// - AlreadyExists: Failed to create the new property.
+	// - Unauthenticated: Failed to replacement the exists property.
 	SetMeta(ctx context.Context, in *SetMetaRequest, opts ...grpc.CallOption) (*SetMetaResponse, error)
 }
 
@@ -294,7 +304,13 @@ func (c *metaServiceClient) SetMeta(ctx context.Context, in *SetMetaRequest, opt
 
 // MetaServiceServer is the server API for MetaService service.
 type MetaServiceServer interface {
+	// Get a property value.
 	GetMeta(context.Context, *GetMetaRequest) (*GetMetaResponse, error)
+	// Set a property key and value.
+	//
+	// Error:
+	// - AlreadyExists: Failed to create the new property.
+	// - Unauthenticated: Failed to replacement the exists property.
 	SetMeta(context.Context, *SetMetaRequest) (*SetMetaResponse, error)
 }
 
