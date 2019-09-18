@@ -17,8 +17,11 @@ func TestLocalMetaServer_GetMeta(t *testing.T) {
 				Id: "foo",
 			},
 		})
-		assert.Error(t, err)
-		assert.Nil(t, res)
+		assert.NoError(t, err)
+		assert.Equal(t, &elton_v2.GetMetaResponse{
+			Key:  &elton_v2.PropertyKey{Id: "foo"},
+			Body: nil,
+		}, res)
 	})
 
 }
