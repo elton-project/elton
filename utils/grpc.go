@@ -37,6 +37,7 @@ func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, di
 	eg := errgroup.Group{}
 	l := bufconn.Listen(defaultListenBufferSize)
 
+	// Start server.
 	ctx, cancel := context.WithCancel(context.Background())
 	srv.SetListener(l)
 	if err := srv.Configure(); err != nil {
@@ -52,7 +53,7 @@ func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, di
 		}
 	}()
 
-	// Prepare
+	// Prepare dialler.
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 		grpc.WithContextDialer(func(ctx context.Context, target string) (conn net.Conn, err error) {
@@ -63,7 +64,6 @@ func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, di
 			return
 		}),
 	}
-
 	dial := func() *grpc.ClientConn {
 		conn, err := grpc.DialContext(ctx, "", opts...)
 		if err != nil {
@@ -71,5 +71,7 @@ func WithTestServer(srv subsystems.Server, callback func(ctx context.Context, di
 		}
 		return conn
 	}
+
+	// Run test cases.
 	callback(ctx, dial)
 }
