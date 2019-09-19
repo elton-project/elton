@@ -261,8 +261,25 @@ func (vs *localVS) Exists(id *VolumeID) (ok bool, err error) {
 	return
 }
 func (vs *localVS) Delete(id *VolumeID) error {
-	// TODO
-	return xerrors.New("not implemented")
+	return vs.DB.Update(func(tx *bbolt.Tx) error {
+		vb := tx.Bucket(localVolumeBucket)
+		vnb := tx.Bucket(localVolumeNameBucket)
+
+		data := vb.Get(vs.Enc.VolumeID(id))
+		if len(data) == 0 {
+			return errors.WithStack(ErrNotFoundVolume)
+		}
+		info := vs.Dec.VolumeInfo(data)
+
+		// Delete volume info.
+		if err := vb.Delete(vs.Enc.VolumeID(id)); err != nil {
+			return wrapInternalError("failed to delete", err)
+		}
+		if err := vnb.Delete(vs.Enc.VolumeName(info)); err != nil {
+			return wrapInternalError("failed to delete", err)
+		}
+		return nil
+	})
 }
 func (vs *localVS) Walk(callback func(id *VolumeID, info *VolumeInfo) error) error {
 	return vs.DB.VolumeView(func(b *bbolt.Bucket) error {
