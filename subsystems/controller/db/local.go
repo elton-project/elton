@@ -271,7 +271,7 @@ func (vs *localVS) Get(id *VolumeID) (vi *VolumeInfo, err error) {
 			vi = vs.Dec.VolumeInfo(data)
 			return nil
 		}
-		return ErrNotFoundVolume
+		return ErrNotFoundVolume.Wrap(fmt.Errorf("id=%s", id))
 	})
 	return
 }
@@ -285,7 +285,7 @@ func (vs *localVS) GetByName(name string) (id *VolumeID, vi *VolumeInfo, err err
 		// Get VolumeID.
 		data := vnb.Get(vs.Enc.VolumeName(tmpVI))
 		if data == nil {
-			return ErrNotFoundVolume
+			return ErrNotFoundVolume.Wrap(fmt.Errorf("name=%s", name))
 		}
 		id = vs.Dec.VolumeID(data)
 		return nil
@@ -312,7 +312,7 @@ func (vs *localVS) Delete(id *VolumeID) error {
 
 		data := vb.Get(vs.Enc.VolumeID(id))
 		if len(data) == 0 {
-			return ErrNotFoundVolume
+			return ErrNotFoundVolume.Wrap(fmt.Errorf("id=%s", id))
 		}
 		info := vs.Dec.VolumeInfo(data)
 
@@ -343,10 +343,10 @@ func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
 
 		// Duplication check
 		if vb.Get(vs.Enc.VolumeID(id)) != nil {
-			return ErrDupVolumeID
+			return ErrDupVolumeID.Wrap(fmt.Errorf("id=%s", id))
 		}
 		if vnb.Get(vs.Enc.VolumeName(info)) != nil {
-			return ErrDupVolumeName
+			return ErrDupVolumeName.Wrap(fmt.Errorf("name=%s", info.GetName()))
 		}
 
 		if err := vb.Put(

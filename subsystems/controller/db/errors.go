@@ -4,17 +4,22 @@ import werror "github.com/sonatard/werror/xerrors"
 
 type InputError struct {
 	Msg string
+	werror.WrapError
 }
 
 func (e *InputError) Error() string {
 	return e.Msg
 }
+func (e InputError) Wrap(next error) error {
+	e.WrapError = werror.Wrap(&e, next, 2)
+	return &e
+}
 
-var ErrDupVolumeID = &InputError{"duplicate volume id"}
-var ErrDupVolumeName = &InputError{"duplicate volume name"}
-var ErrNotFoundVolume = &InputError{"not found volume"}
-var ErrNotFoundCommit = &InputError{"not found commit"}
-var ErrNotFoundTree = &InputError{"not found tree"}
+var ErrDupVolumeID = &InputError{Msg: "duplicate volume id"}
+var ErrDupVolumeName = &InputError{Msg: "duplicate volume name"}
+var ErrNotFoundVolume = &InputError{Msg: "not found volume"}
+var ErrNotFoundCommit = &InputError{Msg: "not found commit"}
+var ErrNotFoundTree = &InputError{Msg: "not found tree"}
 
 type InternalError struct {
 	Msg string
