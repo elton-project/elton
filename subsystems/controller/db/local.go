@@ -3,7 +3,6 @@ package controller_db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
 	"go.etcd.io/bbolt"
@@ -268,7 +267,7 @@ func (vs *localVS) Get(id *VolumeID) (vi *VolumeInfo, err error) {
 			vi = vs.Dec.VolumeInfo(data)
 			return nil
 		}
-		return errors.WithStack(ErrNotFoundVolume)
+		return ErrNotFoundVolume
 	})
 	return
 }
@@ -282,7 +281,7 @@ func (vs *localVS) GetByName(name string) (id *VolumeID, vi *VolumeInfo, err err
 		// Get VolumeID.
 		data := vnb.Get(vs.Enc.VolumeName(tmpVI))
 		if data == nil {
-			return errors.WithStack(ErrNotFoundVolume)
+			return ErrNotFoundVolume
 		}
 		id = vs.Dec.VolumeID(data)
 		return nil
@@ -309,7 +308,7 @@ func (vs *localVS) Delete(id *VolumeID) error {
 
 		data := vb.Get(vs.Enc.VolumeID(id))
 		if len(data) == 0 {
-			return errors.WithStack(ErrNotFoundVolume)
+			return ErrNotFoundVolume
 		}
 		info := vs.Dec.VolumeInfo(data)
 
@@ -340,10 +339,10 @@ func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
 
 		// Duplication check
 		if vb.Get(vs.Enc.VolumeID(id)) != nil {
-			return errors.WithStack(ErrDupVolumeID)
+			return ErrDupVolumeID
 		}
 		if vnb.Get(vs.Enc.VolumeName(info)) != nil {
-			return errors.WithStack(ErrDupVolumeName)
+			return ErrDupVolumeName
 		}
 
 		if err := vb.Put(
@@ -375,7 +374,7 @@ func (cs *localCS) Get(id *CommitID) (ci *CommitInfo, err error) {
 			ci = cs.Dec.CommitInfo(data)
 			return nil
 		}
-		return errors.WithStack(ErrNotFoundCommit)
+		return ErrNotFoundCommit
 	})
 	return
 }
@@ -432,7 +431,7 @@ func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
 			tree = cs.Dec.Tree(data)
 			return nil
 		}
-		return errors.WithStack(ErrNotFoundTree)
+		return ErrNotFoundTree
 	})
 	return
 }
