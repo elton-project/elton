@@ -89,7 +89,7 @@ func (v *localVolumeServer) ListVolumes(req *ListVolumesRequest, stream VolumeSe
 			}
 
 			count++
-			if limit > 0 && count > limit {
+			if limit > 0 && count >= limit {
 				// Limit reached.
 				return breakLoop
 			}
