@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+const localDbFileName = "db.bbolt"
+
 var localVolumeBucket = []byte("volume")
 var localVolumeNameBucket = []byte("volume-name")
 var localCommitBucket = []byte("commit")
@@ -25,7 +27,7 @@ func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() er
 	}
 
 	db := &localDB{
-		Path: path.Join(dir, "db.bbolt"),
+		Path: path.Join(dir, localDbFileName),
 	}
 	err = db.Open()
 	if err != nil {
