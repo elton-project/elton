@@ -40,7 +40,7 @@ var localTreeBucket = []byte("tree")
 func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() error, err error) {
 	err = os.MkdirAll(dir, 0700)
 	if err != nil {
-		err = wrapInternalError("initialize db", err)
+		err = IErrInitialize.Wrap(err)
 		return
 	}
 
@@ -49,7 +49,6 @@ func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() er
 	}
 	err = db.Open()
 	if err != nil {
-		err = wrapInternalError("initialize db", err)
 		return
 	}
 
@@ -181,7 +180,7 @@ type localDB struct {
 func (s *localDB) Open() error {
 	db, err := bbolt.Open(s.Path, 0600, bbolt.DefaultOptions)
 	if err != nil {
-		return wrapInternalError("database error", err)
+		return IErrOpen.Wrap(err)
 	}
 	s.db = db
 
@@ -191,7 +190,9 @@ func (s *localDB) Close() error {
 	if s.db != nil {
 		err := s.db.Close()
 		s.db = nil
-		return err
+		if err != nil {
+			return IErrClose.Wrap(err)
+		}
 	}
 	return nil
 }
@@ -214,13 +215,16 @@ func (s *localDB) createAllBuckets() error {
 		}
 		return nil
 	})
-	return wrapInternalError("database error", err)
+	if err != nil {
+		return IErrInitialize.Wrap(err)
+	}
+	return nil
 }
 func (s *localDB) runTx(writable bool, bucket []byte, callback localTxFn) error {
 	innerFn := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(bucket)
 		if b == nil {
-			return wrapInternalError("", xerrors.Errorf("not found an bucket: %s", string(bucket)))
+			return IErrDatabase.Wrap(xerrors.Errorf("not found %s bucket", string(bucket)))
 		}
 		return callback(b)
 	}
@@ -314,10 +318,10 @@ func (vs *localVS) Delete(id *VolumeID) error {
 
 		// Delete volume info.
 		if err := vb.Delete(vs.Enc.VolumeID(id)); err != nil {
-			return wrapInternalError("failed to delete", err)
+			return IErrDelete.Wrap(err)
 		}
 		if err := vnb.Delete(vs.Enc.VolumeName(info)); err != nil {
-			return wrapInternalError("failed to delete", err)
+			return IErrDelete.Wrap(err)
 		}
 		return nil
 	})
