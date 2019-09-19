@@ -16,7 +16,7 @@ Elton is a distributed file system for accelerate data sharing through the WAN.
 
 ## Development
 
-- Golang 1.12
+- Golang 1.13
 - make
 - git
 
