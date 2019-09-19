@@ -7,6 +7,7 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 	"io"
 	"sort"
 	"testing"
@@ -237,7 +238,8 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 			res, err := client.InspectVolume(ctx, &elton_v2.InspectVolumeRequest{
 				Name: "not-found",
 			})
-			assert.EqualError(t, err, "not found volume")
+
+			assert.Equal(t, status.Convert(err).Message(), "not found volume")
 			assert.Nil(t, res)
 		})
 	})
@@ -248,7 +250,7 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 			res, err := client.InspectVolume(ctx, &elton_v2.InspectVolumeRequest{
 				Id: &elton_v2.VolumeID{Id: "not-found"},
 			})
-			assert.EqualError(t, err, "not found volume")
+			assert.Equal(t, status.Convert(err).Message(), "not found volume")
 			assert.Nil(t, res)
 		})
 	})
