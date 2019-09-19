@@ -226,7 +226,7 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 				Id: ids[0],
 			})
 			assert.NoError(t, err)
-			assert.Equal(t, ids[0], res.GetId())
+			assert.Equal(t, ids[0].String(), res.GetId().String())
 			assert.Equal(t, "foo", res.GetInfo().GetName())
 		})
 	})
