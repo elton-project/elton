@@ -1,6 +1,9 @@
 package controller_db
 
-import werror "github.com/sonatard/werror/xerrors"
+import (
+	"errors"
+	werror "github.com/sonatard/werror/xerrors"
+)
 
 type InputError struct {
 	Msg string
@@ -13,6 +16,10 @@ func (e *InputError) Error() string {
 func (e InputError) Wrap(next error) error {
 	e.WrapError = werror.Wrap(&e, next, 2)
 	return &e
+}
+func (e *InputError) Is(err error) bool {
+	var ie *InputError
+	return errors.As(err, &ie)
 }
 
 var ErrDupVolumeID = &InputError{Msg: "duplicate volume id"}
@@ -32,6 +39,10 @@ func (e *InternalError) Error() string {
 func (e InternalError) Wrap(next error) error {
 	e.WrapError = werror.Wrap(&e, next, 2)
 	return &e
+}
+func (e *InternalError) Is(err error) bool {
+	var ie *InternalError
+	return errors.As(err, &ie)
 }
 
 var IErrInitialize = &InternalError{Msg: "initialize db"}
