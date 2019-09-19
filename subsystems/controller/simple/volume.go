@@ -5,8 +5,6 @@ import (
 	"errors"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	controller_db "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/controller/db"
-	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
-	"golang.org/x/xerrors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
@@ -25,13 +23,6 @@ type localVolumeServer struct {
 	lock sync.RWMutex
 	vs   controller_db.VolumeStore
 	cs   controller_db.CommitStore
-}
-type volumeKey struct {
-	Id string
-}
-type volumeInfo struct {
-	Id   string
-	Name string
 }
 
 func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeRequest) (*CreateVolumeResponse, error) {
@@ -143,43 +134,5 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 		}, err
 	} else {
 		panic("unreachable")
-	}
-}
-
-func generateVolumeKey() volumeKey {
-	s, err := idgen.Gen.NextStringID()
-	if err != nil {
-		err = xerrors.Errorf("failed to generate id: %w", err)
-		log.Println(err)
-		panic(err)
-	}
-	return volumeKey{
-		Id: s,
-	}
-}
-func newVolumeKey(id *VolumeID) volumeKey {
-	return volumeKey{
-		Id: id.GetId(),
-	}
-}
-func (k *volumeKey) ToID() *VolumeID {
-	if k == nil {
-		return nil
-	}
-	return &VolumeID{
-		Id: k.Id,
-	}
-}
-func newVolumeInfo(info *VolumeInfo) *volumeInfo {
-	return &volumeInfo{
-		Name: info.GetName(),
-	}
-}
-func (v *volumeInfo) ToInfo() *VolumeInfo {
-	if v == nil {
-		return nil
-	}
-	return &VolumeInfo{
-		Name: v.Name,
 	}
 }
