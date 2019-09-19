@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func withLocalDB(t *testing.T, fn func(vs VolumeStore, cs CommitStore)) {
+func withLocalDB(t *testing.T, fn func(stores Stores)) {
 	dir, err := ioutil.TempDir("", "eltond")
 	if err != nil {
 		t.Error(err)
@@ -18,19 +18,20 @@ func withLocalDB(t *testing.T, fn func(vs VolumeStore, cs CommitStore)) {
 	}
 	defer os.RemoveAll(dir)
 
-	_, vs, cs, closer, err := CreateLocalDB(dir)
+	stores, closer, err := CreateLocalDB(dir)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	defer closer()
 
-	fn(vs, cs)
+	fn(stores)
 }
 
 func TestLocalVS_Get(t *testing.T) {
 	t.Run("should_error_when_access_not_found_volume", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			notExistsID := &VolumeID{
 				Id: "33221100",
 			}
@@ -40,7 +41,8 @@ func TestLocalVS_Get(t *testing.T) {
 		})
 	})
 	t.Run("should_success_when_access_exits_volume", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			info := &VolumeInfo{
 				Name: "dummy",
 			}
@@ -59,7 +61,8 @@ func TestLocalVS_Get(t *testing.T) {
 
 func TestLocalVS_Exists(t *testing.T) {
 	t.Run("should_return_true_when_access_exist_volume", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			id, err := vs.Create(&VolumeInfo{
 				Name: "dummy",
 			})
@@ -73,7 +76,8 @@ func TestLocalVS_Exists(t *testing.T) {
 		})
 	})
 	t.Run("should_return_false_when_access_not_exists_volume", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			notExistsID := &VolumeID{
 				Id: "33221100",
 			}
@@ -90,7 +94,8 @@ func TestLocalVS_Delete(t *testing.T) {
 
 func TestLocalVS_Create(t *testing.T) {
 	t.Run("should_success_when_passed_valid_args", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			vid, err := vs.Create(&VolumeInfo{
 				Name: "foo",
 			})
@@ -99,7 +104,8 @@ func TestLocalVS_Create(t *testing.T) {
 		})
 	})
 	t.Run("should_fail_when_creating_volume_with_duplicate_name", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			_, err := vs.Create(&VolumeInfo{
 				Name: "foo",
 			})
@@ -115,7 +121,8 @@ func TestLocalVS_Create(t *testing.T) {
 
 func TestLocalVS_Walk(t *testing.T) {
 	t.Run("should_not_callback_when_emtpy", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			err := vs.Walk(func(id *VolumeID, info *VolumeInfo) error {
 				t.Error("callback function is called when walking the empty bucket")
 				return nil
@@ -124,7 +131,8 @@ func TestLocalVS_Walk(t *testing.T) {
 		})
 	})
 	t.Run("should_all_volumes_appeared_when_walking", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
 			_, err := vs.Create(&VolumeInfo{Name: "vol-1"})
 			assert.Nil(t, err)
 			_, err = vs.Create(&VolumeInfo{Name: "vol-2"})
@@ -154,7 +162,9 @@ func TestLocalVS_Walk(t *testing.T) {
 
 func TestLocalCS_Get(t *testing.T) {
 	t.Run("should_error_when_access_not_exists_commit", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
 			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
 			if !assert.Nil(t, err) || !assert.NotNil(t, vid) {
 				return
@@ -169,7 +179,9 @@ func TestLocalCS_Get(t *testing.T) {
 		})
 	})
 	t.Run("should_success_when_access_exists_commit", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
 			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
 			if !assert.Nil(t, err) || !assert.NotNil(t, vid) {
 				return
@@ -204,7 +216,8 @@ func TestLocalCS_Get(t *testing.T) {
 
 func TestLocalCS_Tree(t *testing.T) {
 	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			cs := stores.CommitStore()
 			tree, err := cs.Tree(&CommitID{
 				Id:     &VolumeID{Id: "not_found"},
 				Number: 0,
@@ -214,7 +227,9 @@ func TestLocalCS_Tree(t *testing.T) {
 		})
 	})
 	t.Run("should_success_when_access_exists_tree", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
 			vid, err := vs.Create(&VolumeInfo{
 				Name: "vol",
 			})
@@ -248,7 +263,8 @@ func TestLocalCS_Tree(t *testing.T) {
 
 func TestLocalCS_TreeByTreeID(t *testing.T) {
 	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
-		withLocalDB(t, func(vs VolumeStore, cs CommitStore) {
+		withLocalDB(t, func(stores Stores) {
+			cs := stores.CommitStore()
 			tree, err := cs.TreeByTreeID(&TreeID{
 				Id: "not_found",
 			})

@@ -6,14 +6,13 @@ import (
 )
 
 func NewController(databasePath string) (*Controller, func() error) {
-	// todo
-	_, vs, cs, closer, err := controller_db.CreateLocalDB(databasePath)
+	stores, closer, err := controller_db.CreateLocalDB(databasePath)
 	if err != nil {
 		// TODO: change return type.
 		panic(err)
 	}
 
-	v := newLocalVolumeServer(vs, cs)
+	v := newLocalVolumeServer(stores.VolumeStore(), stores.CommitStore())
 	return &Controller{
 		MetaServiceServer:   newLocalMetaServer(),
 		NodeServiceServer:   newLocalNodeServer(),

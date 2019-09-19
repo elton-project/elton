@@ -42,9 +42,7 @@ var localCommitBucket = []byte("commit")
 var localTreeBucket = []byte("tree")
 
 // CreateLocalDB creates database accessors.  It saves data on local file system.
-//
-// TODO: DBの種類が増えても、戻り値の個数を増やさずに済む方法に変更
-func CreateLocalDB(dir string) (ms MetaStore, vs VolumeStore, cs CommitStore, closer func() error, err error) {
+func CreateLocalDB(dir string) (stores Stores, closer func() error, err error) {
 	err = os.MkdirAll(dir, 0700)
 	if err != nil {
 		err = IErrInitialize.Wrap(err)
@@ -60,15 +58,23 @@ func CreateLocalDB(dir string) (ms MetaStore, vs VolumeStore, cs CommitStore, cl
 	}
 
 	closer = db.Close
-	ms = &localMS{}
-	vs = &localVS{
-		DB: db,
-	}
-	cs = &localCS{
-		DB: db,
+	stores = &localStores{
+		localMS: localMS{DB: db},
+		localVS: localVS{DB: db},
+		localCS: localCS{DB: db},
 	}
 	return
 }
+
+type localStores struct {
+	localMS
+	localVS
+	localCS
+}
+
+func (s *localStores) MetaStore() MetaStore     { return &s.localMS }
+func (s *localStores) VolumeStore() VolumeStore { return &s.localVS }
+func (s *localStores) CommitStore() CommitStore { return &s.localCS }
 
 func mustMarshall(v interface{}) []byte {
 	b, err := json.Marshal(v)
