@@ -464,5 +464,5 @@ type localMS struct {
 	//Gen localGenerator
 }
 
-func (ms *localMS) Get(id *PropertyID) (prop *Property, err error) { panic("todo") } // TODO
-func (ms *localMS) Set(id *PropertyID) (old *Property, err error)  { panic("todo") } // TODO
+func (ms *localMS) Get(id *PropertyID) (prop *Property, err error)                { panic("todo") } // TODO
+func (ms *localMS) Set(id *PropertyID, prop *Property) (old *Property, err error) { panic("todo") } // TODO
