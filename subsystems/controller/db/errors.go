@@ -27,6 +27,9 @@ var ErrDupVolumeName = &InputError{Msg: "duplicate volume name"}
 var ErrNotFoundVolume = &InputError{Msg: "not found volume"}
 var ErrNotFoundCommit = &InputError{Msg: "not found commit"}
 var ErrNotFoundTree = &InputError{Msg: "not found tree"}
+var ErrNotFoundProp = &InputError{Msg: "not found property"}
+var ErrAlreadyExists = &InputError{Msg: "already exists"}
+var ErrNotAllowedReplace = &InputError{Msg: "replacement not allowed"}
 
 type InternalError struct {
 	Msg string

@@ -114,6 +114,12 @@ func (localEncoder) TreeID(id *TreeID) []byte {
 func (localEncoder) Tree(tree *Tree) []byte {
 	return mustMarshall(tree)
 }
+func (localEncoder) PropertyID(id *PropertyID) []byte {
+	return []byte(id.Id)
+}
+func (localEncoder) Property(prop *Property) []byte {
+	return mustMarshall(prop)
+}
 
 type localDecoder struct{}
 
@@ -152,6 +158,11 @@ func (localDecoder) Tree(data []byte) *Tree {
 	tree := &Tree{}
 	mustUnmarshal(data, tree)
 	return tree
+}
+func (localDecoder) Property(data []byte) *Property {
+	prop := &Property{}
+	mustUnmarshal(data, prop)
+	return prop
 }
 
 type localGenerator struct{}
@@ -272,6 +283,12 @@ func (s *localDB) CommitUpdate(callback localTxFn) error {
 }
 func (s *localDB) TreeView(callback localTxFn) error {
 	return s.runTx(false, localTreeBucket, callback)
+}
+func (s *localDB) MetaView(callback localTxFn) error {
+	return s.runTx(false, localMetaBucket, callback)
+}
+func (s *localDB) MetaUpdate(callback localTxFn) error {
+	return s.runTx(true, localMetaBucket, callback)
 }
 
 type localVS struct {
@@ -464,5 +481,36 @@ type localMS struct {
 	//Gen localGenerator
 }
 
-func (ms *localMS) Get(id *PropertyID) (prop *Property, err error)                { panic("todo") } // TODO
-func (ms *localMS) Set(id *PropertyID, prop *Property) (old *Property, err error) { panic("todo") } // TODO
+func (ms *localMS) Get(id *PropertyID) (prop *Property, err error) {
+	err = ms.DB.MetaView(func(b *bbolt.Bucket) error {
+		data := b.Get(ms.Enc.PropertyID(id))
+		if len(data) > 0 {
+			prop = ms.Dec.Property(data)
+			return nil
+		}
+		return ErrNotFoundProp.Wrap(fmt.Errorf("id=%s", id))
+	})
+	return
+}
+func (ms *localMS) Set(id *PropertyID, prop *Property, mustCreate bool) (old *Property, err error) {
+	err = ms.DB.MetaUpdate(func(b *bbolt.Bucket) error {
+		data := b.Get(ms.Enc.PropertyID(id))
+		if len(data) > 0 {
+			if mustCreate {
+				return ErrAlreadyExists.Wrap(fmt.Errorf("id=%s", id))
+			}
+
+			old = ms.Dec.Property(data)
+			if !old.GetAllowReplace() {
+				old = nil
+				return ErrNotAllowedReplace.Wrap(fmt.Errorf("id=%s", id))
+			}
+		}
+
+		return b.Put(
+			ms.Enc.PropertyID(id),
+			ms.Enc.Property(prop),
+		)
+	})
+	return
+}

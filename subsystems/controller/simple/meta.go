@@ -38,7 +38,7 @@ func (m *localMetaServer) GetMeta(ctx context.Context, req *GetMetaRequest) (*Ge
 	}, nil
 }
 func (m *localMetaServer) SetMeta(ctx context.Context, req *SetMetaRequest) (*SetMetaResponse, error) {
-	old, err := m.ms.Set(req.GetKey(), req.GetBody())
+	old, err := m.ms.Set(req.GetKey(), req.GetBody(), req.GetMustCreate())
 	if err != nil {
 		if errors.Is(err, &controller_db.InputError{}) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
