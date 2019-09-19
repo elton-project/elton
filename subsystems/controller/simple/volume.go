@@ -9,6 +9,7 @@ import (
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 	"sync"
 )
 
@@ -40,6 +41,10 @@ func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeR
 
 	vid, err := v.vs.Create(req.GetInfo())
 	if err != nil {
+		if errors.Is(err, &controller_db.InputError{}) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+		log.Println("ERROR:", err)
 		return nil, status.Error(codes.Internal, "database error")
 	}
 	return &CreateVolumeResponse{
@@ -53,6 +58,10 @@ func (v *localVolumeServer) DeleteVolume(ctx context.Context, req *DeleteVolumeR
 
 	err := v.vs.Delete(req.GetId())
 	if err != nil {
+		if errors.Is(err, &controller_db.InputError{}) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+		log.Println("ERROR:", err)
 		return nil, status.Error(codes.Internal, "database error")
 	}
 	return &DeleteVolumeResponse{}, nil
@@ -91,6 +100,10 @@ func (v *localVolumeServer) ListVolumes(req *ListVolumesRequest, stream VolumeSe
 		err = nil
 	}
 	if err != nil {
+		if errors.Is(err, &controller_db.InputError{}) {
+			return status.Error(codes.InvalidArgument, err.Error())
+		}
+		log.Println("ERROR:", err)
 		return status.Error(codes.Internal, "database error")
 	}
 	return nil
@@ -104,6 +117,10 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 		// Search by id
 		vi, err := v.vs.Get(req.GetId())
 		if err != nil {
+			if errors.Is(err, &controller_db.InputError{}) {
+				return nil, status.Error(codes.InvalidArgument, err.Error())
+			}
+			log.Println("ERROR:", err)
 			return nil, status.Error(codes.Internal, "database error")
 		}
 		return &InspectVolumeResponse{
@@ -122,7 +139,9 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 func generateVolumeKey() volumeKey {
 	s, err := idgen.Gen.NextStringID()
 	if err != nil {
-		panic(xerrors.Errorf("failed to generate id: %w", err))
+		err = xerrors.Errorf("failed to generate id: %w", err)
+		log.Println(err)
+		panic(err)
 	}
 	return volumeKey{
 		Id: s,
