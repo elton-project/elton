@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/pty v1.1.8 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/rogpeppe/go-internal v1.3.2 // indirect
 	github.com/sonatard/werror v0.0.0-20190306034820-b331e8d3de8f
 	github.com/sony/sonyflake v1.0.0

@@ -3,6 +3,7 @@ package controller_db
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
 	"go.etcd.io/bbolt"
@@ -23,6 +24,7 @@ var localTreeBucket = []byte("tree")
 func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() error, err error) {
 	err = os.MkdirAll(dir, 0700)
 	if err != nil {
+		err = wrapInternalError("initialize db", err)
 		return
 	}
 
@@ -31,7 +33,7 @@ func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() er
 	}
 	err = db.Open()
 	if err != nil {
-		err = xerrors.Errorf("db error: %w")
+		err = wrapInternalError("initialize db", err)
 		return
 	}
 
@@ -163,7 +165,7 @@ type localDB struct {
 func (s *localDB) Open() error {
 	db, err := bbolt.Open(s.Path, 0600, bbolt.DefaultOptions)
 	if err != nil {
-		return err
+		return wrapInternalError("database error", err)
 	}
 	s.db = db
 
@@ -178,7 +180,7 @@ func (s *localDB) Close() error {
 	return nil
 }
 func (s *localDB) createAllBuckets() error {
-	return s.db.Update(func(tx *bbolt.Tx) error {
+	err := s.db.Update(func(tx *bbolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists(localVolumeBucket); err != nil {
 			return xerrors.Errorf("volume bucket cannot create: %w", err)
 		}
@@ -196,12 +198,13 @@ func (s *localDB) createAllBuckets() error {
 		}
 		return nil
 	})
+	return wrapInternalError("database error", err)
 }
 func (s *localDB) runTx(writable bool, bucket []byte, callback localTxFn) error {
 	innerFn := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(bucket)
 		if b == nil {
-			return xerrors.Errorf("not found an bucket: %s", string(bucket))
+			return wrapInternalError("", xerrors.Errorf("not found an bucket: %s", string(bucket)))
 		}
 		return callback(b)
 	}
@@ -245,7 +248,7 @@ func (vs *localVS) Get(id *VolumeID) (vi *VolumeInfo, err error) {
 			vi = vs.Dec.VolumeInfo(data)
 			return nil
 		}
-		return xerrors.New("not found volume")
+		return errors.WithStack(ErrNotFoundVolume)
 	})
 	return
 }
@@ -278,10 +281,10 @@ func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
 
 		// Duplication check
 		if vb.Get(vs.Enc.VolumeID(id)) != nil {
-			return xerrors.New("duplicate volume id")
+			return errors.WithStack(ErrDupVolumeID)
 		}
 		if vnb.Get(vs.Enc.VolumeName(info)) != nil {
-			return xerrors.New("duplicate volume name")
+			return errors.WithStack(ErrDupVolumeName)
 		}
 
 		if err := vb.Put(
@@ -313,7 +316,7 @@ func (cs *localCS) Get(id *CommitID) (ci *CommitInfo, err error) {
 			ci = cs.Dec.CommitInfo(data)
 			return nil
 		}
-		return xerrors.New("not found commit")
+		return errors.WithStack(ErrNotFoundCommit)
 	})
 	return
 }
@@ -370,7 +373,7 @@ func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
 			tree = cs.Dec.Tree(data)
 			return nil
 		}
-		return xerrors.New("not found tree")
+		return errors.WithStack(ErrNotFoundTree)
 	})
 	return
 }
