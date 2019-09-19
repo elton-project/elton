@@ -4,6 +4,10 @@ import (
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 )
 
+type MetaStore interface {
+	Get(id *PropertyID) (prop *Property, err error)
+	Set(id *PropertyID) (old *Property, err error)
+}
 type VolumeStore interface {
 	Get(id *VolumeID) (*VolumeInfo, error)
 	GetByName(name string) (*VolumeID, *VolumeInfo, error)
