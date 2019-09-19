@@ -24,8 +24,8 @@ message ObjectBody {
 }
 
 // Identify the property.
-message PropertyKey { string id = 1; }
-message PropertyBody {
+message PropertyID { string id = 1; }
+message Property {
   string body = 1;
   bool allowReplace = 2;
 }

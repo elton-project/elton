@@ -13,22 +13,22 @@ service MetaService {
   rpc SetMeta(SetMetaRequest) returns (SetMetaResponse);
 }
 
-message GetMetaRequest { PropertyKey key = 1; }
+message GetMetaRequest { PropertyID key = 1; }
 message GetMetaResponse {
   // Requested key.
-  PropertyKey key = 1;
+  PropertyID key = 1;
   // Property value.  If property is not exists, it is null.
-  PropertyBody body = 2;
+  Property body = 2;
 }
 message SetMetaRequest {
-  PropertyKey key = 1;
-  PropertyBody body = 2;
+  PropertyID key = 1;
+  Property body = 2;
   bool mustCreate = 4;
 }
 message SetMetaResponse {
   // Requested key.
-  PropertyKey key = 1;
+  PropertyID key = 1;
   // Old property value.  If property created, it is null.
-  PropertyBody oldBody = 2;
+  Property oldBody = 2;
   bool created = 4;
 }

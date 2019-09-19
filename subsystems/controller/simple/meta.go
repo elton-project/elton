@@ -65,22 +65,22 @@ func (m *localMetaServer) SetMeta(ctx context.Context, req *SetMetaRequest) (*Se
 	}, nil
 }
 
-func newMetaKey(key *PropertyKey) metaKey {
+func newMetaKey(key *PropertyID) metaKey {
 	return metaKey{
 		Id: key.GetId(),
 	}
 }
-func newMetaValue(body *PropertyBody) *metaValue {
+func newMetaValue(body *Property) *metaValue {
 	return &metaValue{
 		Body:         body.GetBody(),
 		AllowReplace: body.GetAllowReplace(),
 	}
 }
-func (v *metaValue) ToProperty() *PropertyBody {
+func (v *metaValue) ToProperty() *Property {
 	if v == nil {
 		return nil
 	}
-	return &PropertyBody{
+	return &Property{
 		Body:         v.Body,
 		AllowReplace: v.AllowReplace,
 	}

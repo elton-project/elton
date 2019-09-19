@@ -14,13 +14,13 @@ func TestLocalMetaServer_GetMeta(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewMetaServiceClient(dial())
 			res, err := client.GetMeta(ctx, &elton_v2.GetMetaRequest{
-				Key: &elton_v2.PropertyKey{
+				Key: &elton_v2.PropertyID{
 					Id: "foo",
 				},
 			})
 			assert.NoError(t, err)
 			assert.Equal(t, &elton_v2.GetMetaResponse{
-				Key:  &elton_v2.PropertyKey{Id: "foo"},
+				Key:  &elton_v2.PropertyID{Id: "foo"},
 				Body: nil,
 			}, res)
 		})
@@ -29,22 +29,22 @@ func TestLocalMetaServer_GetMeta(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewMetaServiceClient(dial())
 			sres, err := client.SetMeta(ctx, &elton_v2.SetMetaRequest{
-				Key:  &elton_v2.PropertyKey{Id: "foo"},
-				Body: &elton_v2.PropertyBody{Body: "body"},
+				Key:  &elton_v2.PropertyID{Id: "foo"},
+				Body: &elton_v2.Property{Body: "body"},
 			})
 			if !assert.NoError(t, err) || !assert.NotNil(t, sres) {
 				return
 			}
 
 			gres, err := client.GetMeta(ctx, &elton_v2.GetMetaRequest{
-				Key: &elton_v2.PropertyKey{
+				Key: &elton_v2.PropertyID{
 					Id: "foo",
 				},
 			})
 			assert.NoError(t, err)
 			assert.Equal(t, &elton_v2.GetMetaResponse{
-				Key:  &elton_v2.PropertyKey{Id: "foo"},
-				Body: &elton_v2.PropertyBody{Body: "body"},
+				Key:  &elton_v2.PropertyID{Id: "foo"},
+				Body: &elton_v2.Property{Body: "body"},
 			}, gres)
 		})
 	})
@@ -55,8 +55,8 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewMetaServiceClient(dial())
 			res, err := client.SetMeta(ctx, &elton_v2.SetMetaRequest{
-				Key:        &elton_v2.PropertyKey{Id: "foo"},
-				Body:       &elton_v2.PropertyBody{Body: "version 1", AllowReplace: true},
+				Key:        &elton_v2.PropertyID{Id: "foo"},
+				Body:       &elton_v2.Property{Body: "version 1", AllowReplace: true},
 				MustCreate: true,
 			})
 			if !assert.NoError(t, err) || !assert.NotNil(t, res) {
@@ -64,8 +64,8 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 			}
 
 			res, err = client.SetMeta(ctx, &elton_v2.SetMetaRequest{
-				Key:        &elton_v2.PropertyKey{Id: "foo"},
-				Body:       &elton_v2.PropertyBody{Body: "version 2", AllowReplace: true},
+				Key:        &elton_v2.PropertyID{Id: "foo"},
+				Body:       &elton_v2.Property{Body: "version 2", AllowReplace: true},
 				MustCreate: true,
 			})
 			assert.Error(t, err, "key is already exists")
@@ -76,16 +76,16 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewMetaServiceClient(dial())
 			res, err := client.SetMeta(ctx, &elton_v2.SetMetaRequest{
-				Key:  &elton_v2.PropertyKey{Id: "foo"},
-				Body: &elton_v2.PropertyBody{Body: "version 1"},
+				Key:  &elton_v2.PropertyID{Id: "foo"},
+				Body: &elton_v2.Property{Body: "version 1"},
 			})
 			if !assert.NoError(t, err) || !assert.NotNil(t, res) {
 				return
 			}
 
 			res, err = client.SetMeta(ctx, &elton_v2.SetMetaRequest{
-				Key:  &elton_v2.PropertyKey{Id: "foo"},
-				Body: &elton_v2.PropertyBody{Body: "version 2", AllowReplace: true},
+				Key:  &elton_v2.PropertyID{Id: "foo"},
+				Body: &elton_v2.Property{Body: "version 2", AllowReplace: true},
 			})
 			assert.Error(t, err, "replacement not allowed")
 			assert.Nil(t, res)
@@ -95,16 +95,16 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewMetaServiceClient(dial())
 			res, err := client.SetMeta(ctx, &elton_v2.SetMetaRequest{
-				Key:  &elton_v2.PropertyKey{Id: "foo"},
-				Body: &elton_v2.PropertyBody{Body: "version 1", AllowReplace: true},
+				Key:  &elton_v2.PropertyID{Id: "foo"},
+				Body: &elton_v2.Property{Body: "version 1", AllowReplace: true},
 			})
 			if !assert.NoError(t, err) || !assert.NotNil(t, res) {
 				return
 			}
 
 			res, err = client.SetMeta(ctx, &elton_v2.SetMetaRequest{
-				Key:  &elton_v2.PropertyKey{Id: "foo"},
-				Body: &elton_v2.PropertyBody{Body: "version 2", AllowReplace: true},
+				Key:  &elton_v2.PropertyID{Id: "foo"},
+				Body: &elton_v2.Property{Body: "version 2", AllowReplace: true},
 			})
 			assert.NoError(t, err)
 			assert.Equal(t, "version 1", res.GetOldBody().GetBody())
