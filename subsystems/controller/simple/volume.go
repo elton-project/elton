@@ -129,8 +129,17 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 		}, nil
 	} else if req.GetName() != "" {
 		// Search by name
-		// todo
-		panic("not implemented")
+		vid, vi, err := v.vs.GetByName(req.GetName())
+		if err != nil {
+			if errors.Is(err, &controller_db.InputError{}) {
+				return nil, status.Error(codes.InvalidArgument, err.Error())
+			}
+			return nil, status.Error(codes.Internal, "database error")
+		}
+		return &InspectVolumeResponse{
+			Id:   vid,
+			Info: vi,
+		}, err
 	} else {
 		panic("unreachable")
 	}

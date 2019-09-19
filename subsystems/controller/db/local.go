@@ -232,6 +232,9 @@ func (s *localDB) runTx(writable bool, bucket []byte, callback localTxFn) error 
 		return s.db.View(innerFn)
 	}
 }
+func (s *localDB) View(callback func(tx *bbolt.Tx) error) error {
+	return s.db.View(callback)
+}
 func (s *localDB) Update(callback func(tx *bbolt.Tx) error) error {
 	return s.db.Update(callback)
 }
@@ -267,6 +270,28 @@ func (vs *localVS) Get(id *VolumeID) (vi *VolumeInfo, err error) {
 		}
 		return errors.WithStack(ErrNotFoundVolume)
 	})
+	return
+}
+func (vs *localVS) GetByName(name string) (id *VolumeID, vi *VolumeInfo, err error) {
+	err = vs.DB.View(func(tx *bbolt.Tx) error {
+		tmpVI := &VolumeInfo{
+			Name: name,
+		}
+		vnb := tx.Bucket(localVolumeNameBucket)
+
+		// Get VolumeID.
+		data := vnb.Get(vs.Enc.VolumeName(tmpVI))
+		if data == nil {
+			return errors.WithStack(ErrNotFoundVolume)
+		}
+		id = vs.Dec.VolumeID(data)
+		return nil
+	})
+
+	if err == nil && id != nil {
+		// Get VolumeID.
+		vi, err = vs.Get(id)
+	}
 	return
 }
 func (vs *localVS) Exists(id *VolumeID) (ok bool, err error) {
@@ -330,7 +355,7 @@ func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
 
 		return vnb.Put(
 			vs.Enc.VolumeName(info),
-			[]byte(""),
+			vs.Enc.VolumeID(id),
 		)
 	})
 	return
