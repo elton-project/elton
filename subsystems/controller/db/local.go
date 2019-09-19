@@ -14,13 +14,30 @@ import (
 	"strings"
 )
 
+// File name of database file.
 const localDbFileName = "db.bbolt"
 
+// Volume bucket: It keeps VolumeInfo.
+// - Key: VolumeID
+// - Value: VolumeInfo (JSON encoded)
 var localVolumeBucket = []byte("volume")
+
+// Volume Name bucket: It is lookup table from the volume name to VolumeID.
+// - Key: VolumeName
+// - Value: VolumeID
 var localVolumeNameBucket = []byte("volume-name")
+
+// Commit bucket: It keeps Commit information.
+// - Key: CommitID
+// - Value: CommitInfo
 var localCommitBucket = []byte("commit")
+
+// Tree bucket: It keeps Tree information.
+// - Key: TreeID
+// - Value: Tree (JSON encoded)
 var localTreeBucket = []byte("tree")
 
+// CreateLocalDB creates database accessors.  It saves data on local file system.
 func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() error, err error) {
 	err = os.MkdirAll(dir, 0700)
 	if err != nil {
