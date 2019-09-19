@@ -6,7 +6,8 @@ import (
 )
 
 func NewController(databasePath string) (*Controller, func() error) {
-	vs, cs, closer, err := controller_db.CreateLocalDB(databasePath)
+	// todo
+	_, vs, cs, closer, err := controller_db.CreateLocalDB(databasePath)
 	if err != nil {
 		// TODO: change return type.
 		panic(err)

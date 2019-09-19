@@ -18,7 +18,7 @@ func withLocalDB(t *testing.T, fn func(vs VolumeStore, cs CommitStore)) {
 	}
 	defer os.RemoveAll(dir)
 
-	vs, cs, closer, err := CreateLocalDB(dir)
+	_, vs, cs, closer, err := CreateLocalDB(dir)
 	if err != nil {
 		t.Error(err)
 		return

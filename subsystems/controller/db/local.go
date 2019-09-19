@@ -16,6 +16,11 @@ import (
 // File name of database file.
 const localDbFileName = "db.bbolt"
 
+// Meta bucket: It keeps properties.
+// Key: PropertyID
+// Value: Property
+var localMetaBucket = []byte("meta")
+
 // Volume bucket: It keeps VolumeInfo.
 // - Key: VolumeID
 // - Value: VolumeInfo (JSON encoded)
@@ -37,7 +42,9 @@ var localCommitBucket = []byte("commit")
 var localTreeBucket = []byte("tree")
 
 // CreateLocalDB creates database accessors.  It saves data on local file system.
-func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() error, err error) {
+//
+// TODO: DBの種類が増えても、戻り値の個数を増やさずに済む方法に変更
+func CreateLocalDB(dir string) (ms MetaStore, vs VolumeStore, cs CommitStore, closer func() error, err error) {
 	err = os.MkdirAll(dir, 0700)
 	if err != nil {
 		err = IErrInitialize.Wrap(err)
@@ -53,6 +60,7 @@ func CreateLocalDB(dir string) (vs VolumeStore, cs CommitStore, closer func() er
 	}
 
 	closer = db.Close
+	ms = &localMS{}
 	vs = &localVS{
 		DB: db,
 	}
@@ -198,6 +206,9 @@ func (s *localDB) Close() error {
 }
 func (s *localDB) createAllBuckets() error {
 	err := s.db.Update(func(tx *bbolt.Tx) error {
+		if _, err := tx.CreateBucketIfNotExists(localMetaBucket); err != nil {
+			return xerrors.Errorf("meta bucket cannot create: %w", err)
+		}
 		if _, err := tx.CreateBucketIfNotExists(localVolumeBucket); err != nil {
 			return xerrors.Errorf("volume bucket cannot create: %w", err)
 		}
@@ -439,3 +450,13 @@ func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
 	})
 	return
 }
+
+type localMS struct {
+	DB  *localDB
+	Enc localEncoder
+	Dec localDecoder
+	//Gen localGenerator
+}
+
+func (ms *localMS) Get(id *PropertyID) (prop *Property, err error) { panic("todo") } // TODO
+func (ms *localMS) Set(id *PropertyID) (old *Property, err error)  { panic("todo") } // TODO
