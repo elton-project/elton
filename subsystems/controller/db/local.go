@@ -412,7 +412,7 @@ func (cs *localCS) Get(id *CommitID) (ci *CommitInfo, err error) {
 			ci = cs.Dec.CommitInfo(data)
 			return nil
 		}
-		return ErrNotFoundCommit
+		return ErrNotFoundCommit.Wrap(fmt.Errorf("id=%s", id))
 	})
 	return
 }
@@ -469,7 +469,7 @@ func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
 			tree = cs.Dec.Tree(data)
 			return nil
 		}
-		return ErrNotFoundTree
+		return ErrNotFoundTree.Wrap(fmt.Errorf("id=%s", id))
 	})
 	return
 }
