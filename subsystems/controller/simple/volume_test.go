@@ -62,7 +62,12 @@ func TestLocalVolumeServer_CreateVolume(t *testing.T) {
 	t.Run("should_success_when_new_volume_creation", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewVolumeServiceClient(dial())
-			createVolumesByName(t, client, ctx, []string{"dummy-volume"})
+			res, err := createVolumesByName(t, client, ctx, []string{"dummy-volume"})
+			assert.NoError(t, err)
+			if !assert.Len(t, res, 1) {
+				return
+			}
+			assert.NotNil(t, res[0])
 		})
 	})
 	t.Run("should_fail_when_creating_with_duplicated_name", func(t *testing.T) {
