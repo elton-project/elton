@@ -134,6 +134,7 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 			if errors.Is(err, &controller_db.InputError{}) {
 				return nil, status.Error(codes.InvalidArgument, err.Error())
 			}
+			log.Println("ERROR:", err)
 			return nil, status.Error(codes.Internal, "database error")
 		}
 		return &InspectVolumeResponse{
