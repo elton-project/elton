@@ -11,7 +11,7 @@ type Stores interface {
 }
 type MetaStore interface {
 	Get(id *PropertyID) (prop *Property, err error)
-	Set(id *PropertyID, prop *Property) (old *Property, err error)
+	Set(id *PropertyID, prop *Property, mustCreate bool) (old *Property, err error)
 }
 type VolumeStore interface {
 	Get(id *VolumeID) (*VolumeInfo, error)
