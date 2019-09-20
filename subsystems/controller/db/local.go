@@ -458,7 +458,6 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	info.TreeID = tid
 
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
-		// TODO: update latest-commit bucket
 		if err := tx.Bucket(localCommitBucket).Put(
 			cs.Enc.CommitID(cid),
 			cs.Enc.CommitInfo(info),
@@ -466,9 +465,16 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 			return err
 		}
 
-		return tx.Bucket(localTreeBucket).Put(
+		if err := tx.Bucket(localTreeBucket).Put(
 			cs.Enc.TreeID(tid),
 			cs.Enc.Tree(tree),
+		); err != nil {
+			return err
+		}
+
+		return tx.Bucket(localLatestCommitBucket).Put(
+			cs.Enc.VolumeID(vid),
+			cs.Enc.CommitID(cid),
 		)
 	})
 	return
