@@ -502,7 +502,6 @@ type localMS struct {
 	DB  *localDB
 	Enc localEncoder
 	Dec localDecoder
-	//Gen localGenerator
 }
 
 func (ms *localMS) Get(id *PropertyID) (prop *Property, err error) {
