@@ -18,7 +18,7 @@ type MetaStore interface {
 	// Error:
 	// - ErrNotFoundProp: If property is not found.
 	// - InternalError
-	Get(id *PropertyID) (prop *Property, err error)
+	Get(id *PropertyID) (*Property, error)
 	// Set sets a property.  If property already exists, check mustCreate and prop.allowReplace field value. See "Error"
 	// section for detail.  If property replaced, return the old property.
 	//
