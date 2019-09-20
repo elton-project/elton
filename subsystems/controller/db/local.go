@@ -366,6 +366,9 @@ func (vs *localVS) Delete(id *VolumeID) error {
 		if err := vnb.Delete(vs.Enc.VolumeName(info)); err != nil {
 			return IErrDelete.Wrap(err)
 		}
+
+		// TODO: Delete commit data.
+		// TODO: Delete latest commit data.
 		return nil
 	})
 }
