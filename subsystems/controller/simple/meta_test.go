@@ -20,10 +20,7 @@ func TestLocalMetaServer_GetMeta(t *testing.T) {
 				},
 			})
 			assert.Equal(t, status.Convert(err).Message(), "not found property")
-			assert.Equal(t, &elton_v2.GetMetaResponse{
-				Key:  &elton_v2.PropertyID{Id: "foo"},
-				Body: nil,
-			}, res)
+			assert.Nil(t, res)
 		})
 	})
 	t.Run("should_return_valid_body", func(t *testing.T) {
