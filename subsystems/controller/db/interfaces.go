@@ -104,7 +104,7 @@ type CommitStore interface {
 	// - ErrNotFoundTree: If tree is not found.
 	//                    TODO: コミットはあるのにtreeがない状況 !?
 	// - InternalError
-	Tree(id *CommitID) (*Tree, error)
+	Tree(id *CommitID) (*TreeID, *Tree, error)
 	// TreeByTreeID gets tree information by TreeID.
 	//
 	// Error:

@@ -454,13 +454,18 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	})
 	return
 }
-func (cs *localCS) Tree(id *CommitID) (tree *Tree, err error) {
+func (cs *localCS) Tree(id *CommitID) (tid *TreeID, tree *Tree, err error) {
 	var ci *CommitInfo
 	ci, err = cs.Get(id)
 	if err != nil {
 		return
 	}
-	return cs.TreeByTreeID(ci.TreeID)
+	tree, err = cs.TreeByTreeID(ci.GetTreeID())
+	if err != nil {
+		return
+	}
+	tid = ci.GetTreeID()
+	return
 }
 func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
 	err = cs.DB.TreeView(func(b *bbolt.Bucket) error {
