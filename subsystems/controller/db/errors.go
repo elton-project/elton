@@ -5,6 +5,7 @@ import (
 	werror "github.com/sonatard/werror/xerrors"
 )
 
+// InputError represents an error that the database received incorrect data or incorrect operations.
 type InputError struct {
 	Msg string
 	werror.WrapError
@@ -22,15 +23,19 @@ func (e *InputError) Is(err error) bool {
 	return errors.As(err, &ie)
 }
 
-var ErrDupVolumeID = &InputError{Msg: "duplicate volume id"}
-var ErrDupVolumeName = &InputError{Msg: "duplicate volume name"}
-var ErrNotFoundVolume = &InputError{Msg: "not found volume"}
-var ErrNotFoundCommit = &InputError{Msg: "not found commit"}
-var ErrNotFoundTree = &InputError{Msg: "not found tree"}
-var ErrNotFoundProp = &InputError{Msg: "not found property"}
-var ErrAlreadyExists = &InputError{Msg: "already exists"}
-var ErrNotAllowedReplace = &InputError{Msg: "replacement not allowed"}
+// Errors caused by incorrect data or incorrect operations.
+var (
+	ErrDupVolumeID       = &InputError{Msg: "duplicate volume id"}
+	ErrDupVolumeName     = &InputError{Msg: "duplicate volume name"}
+	ErrNotFoundVolume    = &InputError{Msg: "not found volume"}
+	ErrNotFoundCommit    = &InputError{Msg: "not found commit"}
+	ErrNotFoundTree      = &InputError{Msg: "not found tree"}
+	ErrNotFoundProp      = &InputError{Msg: "not found property"}
+	ErrAlreadyExists     = &InputError{Msg: "already exists"}
+	ErrNotAllowedReplace = &InputError{Msg: "replacement not allowed"}
+)
 
+// InternalError represents an error of database internal error.
 type InternalError struct {
 	Msg string
 	werror.WrapError
@@ -48,8 +53,11 @@ func (e *InternalError) Is(err error) bool {
 	return errors.As(err, &ie)
 }
 
-var IErrInitialize = &InternalError{Msg: "initialize db"}
-var IErrDatabase = &InternalError{Msg: "database error"}
-var IErrOpen = &InternalError{Msg: "open database"}
-var IErrClose = &InternalError{Msg: "close database"}
-var IErrDelete = &InternalError{Msg: "delete record"}
+// Internal errors in database.
+var (
+	IErrInitialize = &InternalError{Msg: "initialize db"}
+	IErrDatabase   = &InternalError{Msg: "database error"}
+	IErrOpen       = &InternalError{Msg: "open database"}
+	IErrClose      = &InternalError{Msg: "close database"}
+	IErrDelete     = &InternalError{Msg: "delete record"}
+)
