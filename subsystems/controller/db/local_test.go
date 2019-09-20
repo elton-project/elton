@@ -214,6 +214,22 @@ func TestLocalCS_Get(t *testing.T) {
 	})
 }
 
+func TestLocalCS_Exists(t *testing.T) {
+	panic("todo")
+}
+
+func TestLocalCS_Parents(t *testing.T) {
+	panic("todo")
+}
+
+func TestLocalCS_Latest(t *testing.T) {
+	panic("todo")
+}
+
+func TestLocalCS_Create(t *testing.T) {
+
+}
+
 func TestLocalCS_Tree(t *testing.T) {
 	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
 		withLocalDB(t, func(stores Stores) {
