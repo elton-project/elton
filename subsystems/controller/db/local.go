@@ -36,6 +36,11 @@ var localVolumeNameBucket = []byte("volume-name")
 // - Value: CommitInfo
 var localCommitBucket = []byte("commit")
 
+// Latest Commit bucket: It keeps the latest CommitID in each volume.
+// - Key: VolumeID
+// - Value: CommitID
+var localLatestCommitBucket = []byte("latest-commit")
+
 // Tree bucket: It keeps Tree information.
 // - Key: TreeID
 // - Value: Tree (JSON encoded)
@@ -238,6 +243,10 @@ func (s *localDB) createAllBuckets() error {
 			return xerrors.Errorf("commit bucket cannot create: %w", err)
 		}
 
+		if _, err := tx.CreateBucketIfNotExists(localLatestCommitBucket); err != nil {
+			return xerrors.Errorf("latest commit bucket cannot create: %w", err)
+		}
+
 		if _, err := tx.CreateBucketIfNotExists(localTreeBucket); err != nil {
 			return xerrors.Errorf("tree bucket cannot create: %w", err)
 		}
@@ -429,9 +438,15 @@ func (cs *localCS) Parents(id *CommitID) (left *CommitID, right *CommitID, err e
 	err = xerrors.New("todo")
 	return
 }
-func (cs *localCS) Latest() (latest *CommitID, err error) {
-	// todo
-	err = xerrors.New("todo")
+func (cs *localCS) Latest(vid *VolumeID) (latest *CommitID, err error) {
+	err = cs.DB.View(func(tx *bbolt.Tx) error {
+		key := cs.Enc.VolumeID(vid)
+		data := tx.Bucket(localLatestCommitBucket).Get(key)
+		if len(data) > 0 {
+			cs.Dec.CommitID(data)
+		}
+		return ErrNotFoundCommit.Wrap(fmt.Errorf("no commit in volume"))
+	})
 	return
 }
 func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *CommitID, err error) {
@@ -440,6 +455,7 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	info.TreeID = tid
 
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
+		// TODO: update latest-commit bucket
 		if err := tx.Bucket(localCommitBucket).Put(
 			cs.Enc.CommitID(cid),
 			cs.Enc.CommitInfo(info),

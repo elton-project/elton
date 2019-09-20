@@ -86,11 +86,11 @@ type CommitStore interface {
 	// - InternalError
 	Parents(id *CommitID) (left *CommitID, right *CommitID, err error)
 	// Latest gets the latest CommitID.
-	// TODO: detail specification is under consideration.
 	//
 	// Error:
+	// - ErrNotFoundCommit: If volume has no commits.
 	// - InternalError
-	Latest() (*CommitID, error)
+	Latest(vid *VolumeID) (*CommitID, error)
 	// Create creates new commit.
 	// TODO: detail specification is under consideration.
 	//
