@@ -19,6 +19,8 @@ message GetMetaResponse {
   PropertyID key = 1;
   // Property value.  If property is not exists, it is null.
   Property body = 2;
+  // Whether the property was found or not.
+  bool exists = 3;
 }
 message SetMetaRequest {
   PropertyID key = 1;
