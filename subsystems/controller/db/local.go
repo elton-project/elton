@@ -1,6 +1,7 @@
 package controller_db
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
@@ -456,6 +457,14 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	cid = cs.Gen.CommitID(vid)
 	tid := cs.Gen.TreeID()
 	info.TreeID = tid
+
+	if bytes.Compare(
+		cs.Enc.VolumeID(vid),
+		cs.Enc.VolumeID(info.GetParentID().GetId()),
+	) != 0 {
+		err = ErrCrossVolumeCommit.Wrap(fmt.Errorf("mismatch VolumeID and CommitInfo.ParentID"))
+		return
+	}
 
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
 		// TODO: Check whether the commit is based the latest commit.

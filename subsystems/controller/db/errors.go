@@ -33,6 +33,7 @@ var (
 	ErrNotFoundProp      = &InputError{Msg: "not found property"}
 	ErrAlreadyExists     = &InputError{Msg: "already exists"}
 	ErrNotAllowedReplace = &InputError{Msg: "replacement not allowed"}
+	ErrCrossVolumeCommit = &InputError{Msg: "cross-volume commit"}
 )
 
 // InternalError represents an error of database internal error.
