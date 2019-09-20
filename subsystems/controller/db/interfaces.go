@@ -56,7 +56,7 @@ type VolumeStore interface {
 	//
 	// Error:
 	// - InternalError
-	Walk(func(id *VolumeID, info *VolumeInfo) error) error
+	Walk(fn func(id *VolumeID, info *VolumeInfo) error) error
 	// Create creates a volume.
 	//
 	// Error:
@@ -84,7 +84,7 @@ type CommitStore interface {
 	// Error:
 	// - ErrNotFoundCommit: If commit is not found.
 	// - InternalError
-	Parents(id *CommitID) (*CommitID, *CommitID, error)
+	Parents(id *CommitID) (left *CommitID, right *CommitID, err error)
 	// Latest gets the latest CommitID.
 	// TODO: detail specification is under consideration.
 	//
