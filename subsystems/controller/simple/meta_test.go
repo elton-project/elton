@@ -6,6 +6,7 @@ import (
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 	"testing"
 )
 
@@ -18,7 +19,7 @@ func TestLocalMetaServer_GetMeta(t *testing.T) {
 					Id: "foo",
 				},
 			})
-			assert.NoError(t, err)
+			assert.Equal(t, status.Convert(err).Message(), "not found property")
 			assert.Equal(t, &elton_v2.GetMetaResponse{
 				Key:  &elton_v2.PropertyID{Id: "foo"},
 				Body: nil,
