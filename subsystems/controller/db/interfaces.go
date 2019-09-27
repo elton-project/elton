@@ -79,7 +79,6 @@ type CommitStore interface {
 	Exists(id *CommitID) (bool, error)
 	// Parents gets a parent commit IDs of specified commit.  In normal case, left is set the CommitID and right is nil.
 	// If merge commit is specified, left and right is set the CommitID.
-	// TODO: detail specification is under consideration.
 	//
 	// Error:
 	// - ErrNotFoundCommit: If commit is not found.
@@ -92,7 +91,6 @@ type CommitStore interface {
 	// - InternalError
 	Latest(vid *VolumeID) (*CommitID, error)
 	// Create creates new commit.
-	// TODO: detail specification is under consideration.
 	//
 	// Error:
 	// - ErrCrossVolumeCommit: If mismatch vid and info.LeftParentID and info.RightParentID.
