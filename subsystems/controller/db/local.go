@@ -464,6 +464,7 @@ func (cs *localCS) Parents(id *CommitID) (left *CommitID, right *CommitID, err e
 		if len(data) > 0 {
 			info := cs.Dec.CommitInfo(data)
 			left = info.GetLeftParentID()
+			right = info.GetRightParentID()
 			return nil
 		}
 		return ErrNotFoundCommit.Wrap(fmt.Errorf("id=%s", id))
