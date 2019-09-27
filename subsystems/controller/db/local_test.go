@@ -272,15 +272,179 @@ func TestLocalCS_Exists(t *testing.T) {
 }
 
 func TestLocalCS_Parents(t *testing.T) {
-	panic("todo")
+	t.Run("should_error_when_commit_is_not_found", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			cs := stores.CommitStore()
+			left, right, err := cs.Parents(&CommitID{
+				Id: &VolumeID{Id: "not-found"},
+			})
+			assert.Error(t, err)
+			assert.Nil(t, left)
+			assert.Nil(t, right)
+		})
+	})
+	t.Run("should_return_nil_when_commit_is_first_commit", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+
+			vid, err := vs.Create(&VolumeInfo{
+				Name: "foo",
+			})
+			if !assert.NoError(t, err) {
+				return
+			}
+			cid, err := cs.Create(vid, &CommitInfo{
+				CreatedAt: ptypes.TimestampNow(),
+			}, &Tree{})
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.NotNil(t, cid)
+
+			left, right, err := cs.Parents(cid)
+			assert.NoError(t, err)
+			assert.Nil(t, left)
+			assert.Nil(t, right)
+		})
+	})
+	t.Run("should_return_valid_commit_id", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+
+			vid, err := vs.Create(&VolumeInfo{
+				Name: "foo",
+			})
+			if !assert.NoError(t, err) {
+				return
+			}
+			cid, err := cs.Create(vid, &CommitInfo{
+				CreatedAt: ptypes.TimestampNow(),
+			}, &Tree{})
+			if !assert.NoError(t, err) {
+				return
+			}
+			cid2, err := cs.Create(vid, &CommitInfo{
+				CreatedAt: ptypes.TimestampNow(),
+				ParentID:  cid,
+			}, &Tree{})
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.NotNil(t, cid2)
+
+			left, right, err := cs.Parents(cid2)
+			assert.NoError(t, err)
+			assert.Equal(t, left, cid)
+			assert.Nil(t, right)
+		})
+	})
 }
 
 func TestLocalCS_Latest(t *testing.T) {
-	panic("todo")
+	t.Run("should_error_when_volume_is_not_found", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			cs := stores.CommitStore()
+			cid, err := cs.Latest(&VolumeID{
+				Id: "not-found",
+			})
+			assert.Error(t, err)
+			assert.Nil(t, cid)
+		})
+	})
+	t.Run("should_return_nil_when_volume_is_empty", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+			vid, err := vs.Create(&VolumeInfo{
+				Name: "foo",
+			})
+			if !assert.NoError(t, err) {
+				return
+			}
+			cid, err := cs.Latest(vid)
+			assert.NoError(t, err)
+			assert.NotNil(t, cid)
+		})
+	})
+	t.Run("should_return_valid_commit_id_when_volume_is_not_empty", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+			vid, err := vs.Create(&VolumeInfo{
+				Name: "foo",
+			})
+			if !assert.NoError(t, err) {
+				return
+			}
+			_, err = cs.Create(vid, &CommitInfo{}, &Tree{})
+			if assert.NoError(t, err) {
+				return
+			}
+
+			cid, err := cs.Latest(vid)
+			assert.NoError(t, err)
+			assert.NotNil(t, cid)
+		})
+	})
 }
 
 func TestLocalCS_Create(t *testing.T) {
-	panic("todo")
+	t.Run("should_error_when_volume_id_is_not_match", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+
+			vid1, err := vs.Create(&VolumeInfo{Name: "foo"})
+			assert.NoError(t, err)
+			vid2, err := vs.Create(&VolumeInfo{Name: "bar"})
+			assert.NoError(t, err)
+
+			cid, err := cs.Create(
+				vid1,
+				&CommitInfo{
+					ParentID: &CommitID{
+						Id: vid2,
+					},
+				},
+				&Tree{},
+			)
+			assert.NoError(t, err)
+			assert.Nil(t, cid)
+		})
+	})
+	t.Run("should_error_when_volume_is_not_found", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			cs := stores.CommitStore()
+
+			vid := &VolumeID{Id: "not-found"}
+			cid, err := cs.Create(vid, &CommitInfo{}, &Tree{})
+			assert.Error(t, err)
+			assert.Nil(t, cid)
+		})
+
+	})
+	t.Run("should_error_when_specified_parent_commit_id_is_not_found", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+
+			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
+			if !assert.NoError(t, err) {
+				return
+			}
+			invalidCID := &CommitID{
+				Id:     vid,
+				Number: 100,
+			}
+			cid, err := cs.Create(vid, &CommitInfo{
+				ParentID: invalidCID,
+			}, &Tree{})
+			assert.Error(t, err)
+			assert.Nil(t, cid)
+		})
+	})
 }
 
 func TestLocalCS_Tree(t *testing.T) {
