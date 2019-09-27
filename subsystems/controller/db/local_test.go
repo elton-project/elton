@@ -412,7 +412,7 @@ func TestLocalCS_Create(t *testing.T) {
 				},
 				&Tree{},
 			)
-			assert.NoError(t, err)
+			assert.Error(t, err)
 			assert.Nil(t, cid)
 		})
 	})
