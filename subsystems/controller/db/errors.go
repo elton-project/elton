@@ -25,16 +25,16 @@ func (e *InputError) Is(err error) bool {
 
 // Errors caused by incorrect data or incorrect operations.
 var (
-	ErrDupVolumeID          = &InputError{Msg: "duplicate volume id"}
-	ErrDupVolumeName        = &InputError{Msg: "duplicate volume name"}
-	ErrNotFoundVolume       = &InputError{Msg: "not found volume"}
-	ErrNotFoundCommit       = &InputError{Msg: "not found commit"}
-	ErrNotFoundTree         = &InputError{Msg: "not found tree"}
-	ErrNotFoundProp         = &InputError{Msg: "not found property"}
-	ErrAlreadyExists        = &InputError{Msg: "already exists"}
-	ErrNotAllowedReplace    = &InputError{Msg: "replacement not allowed"}
-	ErrCrossVolumeCommit    = &InputError{Msg: "cross-volume commit"}
-	ErrMismatchParentCommit = &InputError{Msg: "mismatch parent commit id"}
+	ErrDupVolumeID         = &InputError{Msg: "duplicate volume id"}
+	ErrDupVolumeName       = &InputError{Msg: "duplicate volume name"}
+	ErrNotFoundVolume      = &InputError{Msg: "not found volume"}
+	ErrNotFoundCommit      = &InputError{Msg: "not found commit"}
+	ErrNotFoundTree        = &InputError{Msg: "not found tree"}
+	ErrNotFoundProp        = &InputError{Msg: "not found property"}
+	ErrAlreadyExists       = &InputError{Msg: "already exists"}
+	ErrNotAllowedReplace   = &InputError{Msg: "replacement not allowed"}
+	ErrCrossVolumeCommit   = &InputError{Msg: "cross-volume commit"}
+	ErrInvalidParentCommit = &InputError{Msg: "invalid parent commit"}
 )
 
 // InternalError represents an error of database internal error.

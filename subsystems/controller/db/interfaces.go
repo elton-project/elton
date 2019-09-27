@@ -95,7 +95,8 @@ type CommitStore interface {
 	// TODO: detail specification is under consideration.
 	//
 	// Error:
-	// - ErrCrossVolumeCommit: If mismatch vid and info.ParentID.
+	// - ErrCrossVolumeCommit: If mismatch vid and info.LeftParentID and info.RightParentID.
+	// - ErrInvalidParentCommit: If parent commit ID combination is invalid.
 	// - InternalError
 	Create(vid *VolumeID, info *CommitInfo, tree *Tree) (*CommitID, error)
 	// Tree gets a tree information from the CommitID.

@@ -54,7 +54,8 @@ message CommitID {
 // TODO: rename
 message CommitInfo {
   google.protobuf.Timestamp createdAt = 1;
-  CommitID parentID = 2;
+  CommitID leftParentID = 2;
+  CommitID rightParentID = 4;
   TreeID treeID = 3;
 }
 

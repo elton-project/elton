@@ -189,9 +189,9 @@ func TestLocalCS_Get(t *testing.T) {
 			}
 
 			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
-				ParentID:  nil,
-				TreeID:    nil,
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: nil,
+				TreeID:       nil,
 			}, &Tree{
 				P2I: map[string]uint64{
 					"/":            1,
@@ -257,9 +257,9 @@ func TestLocalCS_Exists(t *testing.T) {
 				return
 			}
 			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
-				ParentID:  nil,
-				TreeID:    nil,
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: nil,
+				TreeID:       nil,
 			}, &Tree{})
 			if !assert.NoError(t, err) {
 				return
@@ -327,8 +327,8 @@ func TestLocalCS_Parents(t *testing.T) {
 				return
 			}
 			cid2, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
-				ParentID:  cid,
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: cid,
 			}, &Tree{})
 			if !assert.NoError(t, err) {
 				return
@@ -406,7 +406,7 @@ func TestLocalCS_Create(t *testing.T) {
 			cid, err := cs.Create(
 				vid1,
 				&CommitInfo{
-					ParentID: &CommitID{
+					LeftParentID: &CommitID{
 						Id: vid2,
 					},
 				},
@@ -441,7 +441,7 @@ func TestLocalCS_Create(t *testing.T) {
 				Number: 100,
 			}
 			cid, err := cs.Create(vid, &CommitInfo{
-				ParentID: invalidCID,
+				LeftParentID: invalidCID,
 			}, &Tree{})
 			assert.Error(t, err)
 			assert.Nil(t, cid)
@@ -474,8 +474,8 @@ func TestLocalCS_Tree(t *testing.T) {
 			}
 
 			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
-				ParentID:  nil,
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: nil,
 			}, &Tree{
 				P2I: map[string]uint64{
 					"/":    1,

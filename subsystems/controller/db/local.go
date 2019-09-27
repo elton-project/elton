@@ -463,7 +463,7 @@ func (cs *localCS) Parents(id *CommitID) (left *CommitID, right *CommitID, err e
 		data := b.Get(cs.Enc.CommitID(id))
 		if len(data) > 0 {
 			info := cs.Dec.CommitInfo(data)
-			left = info.ParentID
+			left = info.GetLeftParentID()
 			return nil
 		}
 		return ErrNotFoundCommit.Wrap(fmt.Errorf("id=%s", id))
@@ -486,13 +486,33 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	tid := cs.Gen.TreeID()
 	info.TreeID = tid
 
-	if info.GetParentID().GetId().GetId() != "" {
+	left := info.GetLeftParentID()
+	right := info.GetRightParentID()
+
+	if left.GetId().GetId() != "" {
 		// Request to create normal commit.
 		if bytes.Compare(
 			cs.Enc.VolumeID(vid),
-			cs.Enc.VolumeID(info.GetParentID().GetId()),
+			cs.Enc.VolumeID(left.GetId()),
 		) != 0 {
-			err = ErrCrossVolumeCommit.Wrap(fmt.Errorf("mismatch VolumeID and CommitInfo.ParentID"))
+			err = ErrCrossVolumeCommit.Wrap(fmt.Errorf("mismatch VolumeID and CommitInfo.LeftParentID"))
+			return
+		}
+	}
+	if right.GetId().GetId() != "" {
+		// Request to create merge commit.
+		if bytes.Compare(
+			cs.Enc.VolumeID(vid),
+			cs.Enc.VolumeID(right.GetId()),
+		) != 0 {
+			err = ErrCrossVolumeCommit.Wrap(fmt.Errorf("mismatch VolumeID and CommitInfo.RightParentID"))
+			return
+		}
+		if bytes.Compare(
+			cs.Enc.VolumeID(left.GetId()),
+			cs.Enc.VolumeID(right.GetId()),
+		) != 0 {
+			err = ErrCrossVolumeCommit.Wrap(fmt.Errorf("mismatch VolumeID of CommitInfo.LeftParentID and CommitInfo.RightParentID"))
 			return
 		}
 	}
@@ -505,13 +525,20 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 
 		// Check whether the commit is based the latest commit.
 		lastCID := tx.Bucket(localLatestCommitBucket).Get(cs.Enc.VolumeID(vid))
-		if (lastCID == nil) != (info.GetParentID() == nil) {
-			last := cs.Dec.CommitID(lastCID)
-			return ErrMismatchParentCommit.Wrap(fmt.Errorf(
-				"last CommitID (%s) != parent CommitID (%s)",
-				last, info.GetParentID(),
-			))
+		if lastCID != nil && left != nil && right == nil {
+			goto validationOK
 		}
+		if lastCID != nil && left != nil && right != nil {
+			goto validationOK
+		}
+		if lastCID == nil && left == nil && right == nil {
+			goto validationOK
+		}
+		return ErrInvalidParentCommit.Wrap(fmt.Errorf(
+			"last commit=%s, left=%s, right=%s",
+			cs.Dec.CommitID(lastCID), left, right,
+		))
+	validationOK:
 
 		if err := tx.Bucket(localCommitBucket).Put(
 			cs.Enc.CommitID(newCID),
