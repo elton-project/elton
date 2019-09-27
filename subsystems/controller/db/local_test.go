@@ -1,6 +1,7 @@
 package controller_db
 
 import (
+	"errors"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
@@ -353,7 +354,7 @@ func TestLocalCS_Latest(t *testing.T) {
 			assert.Nil(t, cid)
 		})
 	})
-	t.Run("should_return_nil_when_volume_is_empty", func(t *testing.T) {
+	t.Run("should_error_when_volume_is_empty", func(t *testing.T) {
 		withLocalDB(t, func(stores Stores) {
 			vs := stores.VolumeStore()
 			cs := stores.CommitStore()
@@ -364,8 +365,9 @@ func TestLocalCS_Latest(t *testing.T) {
 				return
 			}
 			cid, err := cs.Latest(vid)
-			assert.NoError(t, err)
-			assert.NotNil(t, cid)
+			assert.Error(t, err)
+			assert.True(t, errors.Is(err, ErrNotFoundCommit))
+			assert.Nil(t, cid)
 		})
 	})
 	t.Run("should_return_valid_commit_id_when_volume_is_not_empty", func(t *testing.T) {
