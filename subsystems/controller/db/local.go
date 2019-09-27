@@ -438,8 +438,15 @@ func (cs *localCS) Exists(id *CommitID) (ok bool, err error) {
 	return
 }
 func (cs *localCS) Parents(id *CommitID) (left *CommitID, right *CommitID, err error) {
-	// todo
-	err = xerrors.New("todo")
+	err = cs.DB.CommitView(func(b *bbolt.Bucket) error {
+		data := b.Get(cs.Enc.CommitID(id))
+		if len(data) > 0 {
+			info := cs.Dec.CommitInfo(data)
+			left = info.ParentID
+			return nil
+		}
+		return ErrNotFoundCommit.Wrap(fmt.Errorf("id=%s", id))
+	})
 	return
 }
 func (cs *localCS) Latest(vid *VolumeID) (latest *CommitID, err error) {
