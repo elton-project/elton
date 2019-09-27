@@ -231,7 +231,8 @@ func TestLocalCS_Exists(t *testing.T) {
 			cs := stores.CommitStore()
 			// Create a volume.
 			vid, err := vs.Create(&VolumeInfo{
-				Name: "foo"})
+				Name: "foo",
+			})
 			if !assert.NoError(t, err) {
 				return
 			}
