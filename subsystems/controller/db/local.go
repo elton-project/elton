@@ -457,17 +457,45 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	cid = cs.Gen.CommitID(vid)
 	tid := cs.Gen.TreeID()
 	info.TreeID = tid
+	first := false
 
-	if bytes.Compare(
-		cs.Enc.VolumeID(vid),
-		cs.Enc.VolumeID(info.GetParentID().GetId()),
-	) != 0 {
-		err = ErrCrossVolumeCommit.Wrap(fmt.Errorf("mismatch VolumeID and CommitInfo.ParentID"))
-		return
+	if info.GetParentID().GetId().GetId() == "" {
+		// Request to create the first commit.
+		first = true
+	} else {
+		// Request to create normal commit.
+		if bytes.Compare(
+			cs.Enc.VolumeID(vid),
+			cs.Enc.VolumeID(info.GetParentID().GetId()),
+		) != 0 {
+			err = ErrCrossVolumeCommit.Wrap(fmt.Errorf("mismatch VolumeID and CommitInfo.ParentID"))
+			return
+		}
 	}
 
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
-		// TODO: Check whether the commit is based the latest commit.
+		// Check whether the commit is based the latest commit.
+		lastCID := tx.Bucket(localLatestCommitBucket).Get(cs.Enc.VolumeID(vid))
+		if first {
+			if lastCID != nil {
+				// Request to create the first commit.  But commits are already exists in the volume.
+				// Reject this request.
+				return ErrMismatchParentCommit.Wrap(fmt.Errorf("commits are already exists"))
+			}
+		} else {
+			if bytes.Compare(
+				lastCID,
+				cs.Enc.CommitID(info.GetParentID()),
+			) != 0 {
+				lastCIDDecoded := cs.Dec.CommitID(lastCID)
+				// The parent CommitID is mismatch.  Reject the request.
+				return ErrMismatchParentCommit.Wrap(fmt.Errorf(
+					"current parent (%s) != requested parent (%s)",
+					lastCIDDecoded,
+					info.GetParentID(),
+				))
+			}
+		}
 
 		if err := tx.Bucket(localCommitBucket).Put(
 			cs.Enc.CommitID(cid),
