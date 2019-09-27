@@ -482,7 +482,7 @@ func (cs *localCS) Latest(vid *VolumeID) (latest *CommitID, err error) {
 	return
 }
 func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *CommitID, err error) {
-	cid = cs.Gen.CommitID(vid)
+	newCID := cs.Gen.CommitID(vid)
 	tid := cs.Gen.TreeID()
 	info.TreeID = tid
 
@@ -509,7 +509,7 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 		}
 
 		if err := tx.Bucket(localCommitBucket).Put(
-			cs.Enc.CommitID(cid),
+			cs.Enc.CommitID(newCID),
 			cs.Enc.CommitInfo(info),
 		); err != nil {
 			return err
@@ -524,9 +524,12 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 
 		return tx.Bucket(localLatestCommitBucket).Put(
 			cs.Enc.VolumeID(vid),
-			cs.Enc.CommitID(cid),
+			cs.Enc.CommitID(newCID),
 		)
 	})
+	if err == nil {
+		cid = newCID
+	}
 	return
 }
 func (cs *localCS) Tree(id *CommitID) (tid *TreeID, tree *Tree, err error) {
