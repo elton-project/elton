@@ -130,17 +130,26 @@ func (localEncoder) Property(prop *Property) []byte {
 type localDecoder struct{}
 
 func (localDecoder) VolumeID(data []byte) *VolumeID {
+	if data == nil {
+		return nil
+	}
 	id := &VolumeID{
 		Id: string(data),
 	}
 	return id
 }
 func (localDecoder) VolumeInfo(data []byte) *VolumeInfo {
+	if data == nil {
+		return nil
+	}
 	info := &VolumeInfo{}
 	mustUnmarshal(data, info)
 	return info
 }
 func (localDecoder) CommitID(data []byte) *CommitID {
+	if data == nil {
+		return nil
+	}
 	s := string(data)
 	components := strings.SplitN(s, "/", 2)
 	n, err := strconv.ParseUint(components[1], 10, 64)
@@ -153,19 +162,31 @@ func (localDecoder) CommitID(data []byte) *CommitID {
 	}
 }
 func (localDecoder) CommitInfo(data []byte) *CommitInfo {
+	if data == nil {
+		return nil
+	}
 	info := &CommitInfo{}
 	mustUnmarshal(data, info)
 	return info
 }
 func (localDecoder) TreeID(data []byte) *TreeID {
+	if data == nil {
+		return nil
+	}
 	return &TreeID{Id: string(data)}
 }
 func (localDecoder) Tree(data []byte) *Tree {
+	if data == nil {
+		return nil
+	}
 	tree := &Tree{}
 	mustUnmarshal(data, tree)
 	return tree
 }
 func (localDecoder) Property(data []byte) *Property {
+	if data == nil {
+		return nil
+	}
 	prop := &Property{}
 	mustUnmarshal(data, prop)
 	return prop
@@ -464,12 +485,8 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	cid = cs.Gen.CommitID(vid)
 	tid := cs.Gen.TreeID()
 	info.TreeID = tid
-	first := false
 
-	if info.GetParentID().GetId().GetId() == "" {
-		// Request to create the first commit.
-		first = true
-	} else {
+	if info.GetParentID().GetId().GetId() != "" {
 		// Request to create normal commit.
 		if bytes.Compare(
 			cs.Enc.VolumeID(vid),
@@ -483,25 +500,12 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
 		// Check whether the commit is based the latest commit.
 		lastCID := tx.Bucket(localLatestCommitBucket).Get(cs.Enc.VolumeID(vid))
-		if first {
-			if lastCID != nil {
-				// Request to create the first commit.  But commits are already exists in the volume.
-				// Reject this request.
-				return ErrMismatchParentCommit.Wrap(fmt.Errorf("commits are already exists"))
-			}
-		} else {
-			if bytes.Compare(
-				lastCID,
-				cs.Enc.CommitID(info.GetParentID()),
-			) != 0 {
-				lastCIDDecoded := cs.Dec.CommitID(lastCID)
-				// The parent CommitID is mismatch.  Reject the request.
-				return ErrMismatchParentCommit.Wrap(fmt.Errorf(
-					"current parent (%s) != requested parent (%s)",
-					lastCIDDecoded,
-					info.GetParentID(),
-				))
-			}
+		if (lastCID == nil) != (info.GetParentID() == nil) {
+			last := cs.Dec.CommitID(lastCID)
+			return ErrMismatchParentCommit.Wrap(fmt.Errorf(
+				"last CommitID (%s) != parent CommitID (%s)",
+				last, info.GetParentID(),
+			))
 		}
 
 		if err := tx.Bucket(localCommitBucket).Put(
