@@ -498,6 +498,11 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	}
 
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
+		// CHeck whether the volume is exist.
+		if tx.Bucket(localVolumeBucket).Get(cs.Enc.VolumeID(vid)) == nil {
+			return ErrNotFoundVolume.Wrap(fmt.Errorf("id=%s", vid))
+		}
+
 		// Check whether the commit is based the latest commit.
 		lastCID := tx.Bucket(localLatestCommitBucket).Get(cs.Enc.VolumeID(vid))
 		if (lastCID == nil) != (info.GetParentID() == nil) {
