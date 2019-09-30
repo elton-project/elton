@@ -53,9 +53,6 @@ func (m *localMetaServer) SetMeta(ctx context.Context, req *SetMetaRequest) (*Se
 			log.Printf("[CRITICAL] Missing error handling: %+v", err)
 			return nil, status.Error(codes.Internal, err.Error())
 		}
-		// TODO: improve error handling
-		// return nil, status.Error(codes.AlreadyExists, "key is already exists")
-		// return nil, status.Errorf(codes.Unauthenticated, "replacement not allowed")
 		log.Println("ERROR:", err)
 		return nil, status.Error(codes.Internal, "database error")
 	}
