@@ -29,7 +29,11 @@ service CommitService {
   // 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
   rpc ListCommits(ListCommitsRequest) returns (stream ListCommitsResponse);
   // コミットを作成する。
-  // TODO: 使い方を詳しく書く
+  //
+  // Error:
+  // - invalid argument: If trying cross-volume commit or parent id combination
+  //                     is invalid.
+  // - internal:
   rpc Commit(CommitRequest) returns (CommitResponse);
 }
 

@@ -963,7 +963,11 @@ type CommitServiceClient interface {
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
 	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (CommitService_ListCommitsClient, error)
 	// コミットを作成する。
-	// TODO: 使い方を詳しく書く
+	//
+	// Error:
+	// - invalid argument: If trying cross-volume commit or parent id combination
+	//                     is invalid.
+	// - internal:
 	Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*CommitResponse, error)
 }
 
@@ -1034,7 +1038,11 @@ type CommitServiceServer interface {
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
 	ListCommits(*ListCommitsRequest, CommitService_ListCommitsServer) error
 	// コミットを作成する。
-	// TODO: 使い方を詳しく書く
+	//
+	// Error:
+	// - invalid argument: If trying cross-volume commit or parent id combination
+	//                     is invalid.
+	// - internal:
 	Commit(context.Context, *CommitRequest) (*CommitResponse, error)
 }
 
