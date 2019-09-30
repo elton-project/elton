@@ -49,8 +49,8 @@ func (s *Server) Serve(ctx context.Context) error {
 		defer os.RemoveAll(dir)
 		s.DatabaseAddr = dir
 	}
-	handler, close := NewController(s.DatabaseAddr)
-	defer close()
+	handler, dbClose := NewController(s.DatabaseAddr)
+	defer dbClose()
 
 	srv := grpc.NewServer()
 	elton_v2.RegisterMetaServiceServer(srv, handler)
