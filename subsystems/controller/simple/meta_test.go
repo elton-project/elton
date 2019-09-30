@@ -19,7 +19,7 @@ func TestLocalMetaServer_GetMeta(t *testing.T) {
 					Id: "foo",
 				},
 			})
-			assert.Equal(t, status.Convert(err).Message(), "not found property")
+			assert.Equal(t, status.Convert(err).Message(), "property not found")
 			assert.Nil(t, res)
 		})
 	})
