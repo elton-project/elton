@@ -29,7 +29,8 @@ func (m *localMetaServer) GetMeta(ctx context.Context, req *GetMetaRequest) (*Ge
 			return nil, status.Errorf(codes.NotFound, "property not found")
 		}
 		if errors.Is(err, &controller_db.InputError{}) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
+			log.Printf("[CRITICAL] Missing error handling: %+v", err)
+			return nil, status.Error(codes.Internal, err.Error())
 		}
 		log.Println("ERROR:", err)
 		return nil, status.Error(codes.Internal, "database error")
@@ -42,8 +43,15 @@ func (m *localMetaServer) GetMeta(ctx context.Context, req *GetMetaRequest) (*Ge
 func (m *localMetaServer) SetMeta(ctx context.Context, req *SetMetaRequest) (*SetMetaResponse, error) {
 	old, err := m.ms.Set(req.GetKey(), req.GetBody(), req.GetMustCreate())
 	if err != nil {
+		if errors.Is(err, controller_db.ErrAlreadyExists) {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		}
+		if errors.Is(err, controller_db.ErrNotAllowedReplace) {
+			return nil, status.Error(codes.Unauthenticated, err.Error())
+		}
 		if errors.Is(err, &controller_db.InputError{}) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
+			log.Printf("[CRITICAL] Missing error handling: %+v", err)
+			return nil, status.Error(codes.Internal, err.Error())
 		}
 		// TODO: improve error handling
 		// return nil, status.Error(codes.AlreadyExists, "key is already exists")
