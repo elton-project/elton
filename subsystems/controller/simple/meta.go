@@ -53,7 +53,7 @@ func (m *localMetaServer) SetMeta(ctx context.Context, req *SetMetaRequest) (*Se
 			log.Printf("[CRITICAL] Missing error handling: %+v", err)
 			return nil, status.Error(codes.Internal, err.Error())
 		}
-		log.Println("ERROR:", err)
+		log.Printf("[ERROR] %+v", err)
 		return nil, status.Error(codes.Internal, "database error")
 	}
 
