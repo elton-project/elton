@@ -50,7 +50,10 @@ type VolumeStore interface {
 	// - InternalError
 	Exists(id *VolumeID) (bool, error)
 	// Delete deletes a volume.
-	// TODO: detail specification is under consideration.
+	//
+	// Error:
+	// - ErrNotFoundVolume: If volume is not found.
+	// - InternalError
 	Delete(id *VolumeID) error
 	// Walk walks all volumes and calling fn for each volume.
 	//
