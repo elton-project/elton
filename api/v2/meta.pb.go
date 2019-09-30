@@ -66,7 +66,7 @@ func (m *GetMetaRequest) GetKey() *PropertyID {
 type GetMetaResponse struct {
 	// Requested key.
 	Key *PropertyID `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// Property value.  If property is not exists, it is null.
+	// Property value.
 	Body                 *Property `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
@@ -266,6 +266,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MetaServiceClient interface {
 	// Get a property value.
+	//
+	// Error:
+	// - NotFound: If property not found.
 	GetMeta(ctx context.Context, in *GetMetaRequest, opts ...grpc.CallOption) (*GetMetaResponse, error)
 	// Set a property key and value.
 	//
@@ -304,6 +307,9 @@ func (c *metaServiceClient) SetMeta(ctx context.Context, in *SetMetaRequest, opt
 // MetaServiceServer is the server API for MetaService service.
 type MetaServiceServer interface {
 	// Get a property value.
+	//
+	// Error:
+	// - NotFound: If property not found.
 	GetMeta(context.Context, *GetMetaRequest) (*GetMetaResponse, error)
 	// Set a property key and value.
 	//

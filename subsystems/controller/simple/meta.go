@@ -25,6 +25,9 @@ type localMetaServer struct {
 func (m *localMetaServer) GetMeta(ctx context.Context, req *GetMetaRequest) (*GetMetaResponse, error) {
 	prop, err := m.ms.Get(req.GetKey())
 	if err != nil {
+		if errors.Is(err, controller_db.ErrNotFoundProp) {
+			return nil, status.Errorf(codes.NotFound, "property not found")
+		}
 		if errors.Is(err, &controller_db.InputError{}) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
@@ -34,7 +37,6 @@ func (m *localMetaServer) GetMeta(ctx context.Context, req *GetMetaRequest) (*Ge
 	return &GetMetaResponse{
 		Key:  req.GetKey(),
 		Body: prop,
-		// TODO: add "found" field
 	}, nil
 }
 func (m *localMetaServer) SetMeta(ctx context.Context, req *SetMetaRequest) (*SetMetaResponse, error) {

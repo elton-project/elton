@@ -4,6 +4,9 @@ import "types.proto";
 
 service MetaService {
   // Get a property value.
+  //
+  // Error:
+  // - NotFound: If property not found.
   rpc GetMeta(GetMetaRequest) returns (GetMetaResponse);
   // Set a property key and value.
   //
@@ -17,7 +20,7 @@ message GetMetaRequest { PropertyID key = 1; }
 message GetMetaResponse {
   // Requested key.
   PropertyID key = 1;
-  // Property value.  If property is not exists, it is null.
+  // Property value.
   Property body = 2;
 }
 message SetMetaRequest {
