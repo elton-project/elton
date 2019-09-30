@@ -20,7 +20,14 @@ func (e InputError) Wrap(next error) error {
 }
 func (e *InputError) Is(err error) bool {
 	var ie *InputError
-	return errors.As(err, &ie)
+	if !errors.As(err, &ie) {
+		return false
+	}
+	if ie.Msg == "" {
+		// Only check the error type.
+		return true
+	}
+	return e.Msg == ie.Msg
 }
 
 // Errors caused by incorrect data or incorrect operations.
@@ -52,7 +59,14 @@ func (e InternalError) Wrap(next error) error {
 }
 func (e *InternalError) Is(err error) bool {
 	var ie *InternalError
-	return errors.As(err, &ie)
+	if !errors.As(err, &ie) {
+		return false
+	}
+	if ie.Msg == "" {
+		// Only check the error type.
+		return true
+	}
+	return e.Msg == ie.Msg
 }
 
 // Internal errors in database.
