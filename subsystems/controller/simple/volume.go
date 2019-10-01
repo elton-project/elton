@@ -33,6 +33,9 @@ func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeR
 
 	vid, err := v.vs.Create(req.GetInfo())
 	if err != nil {
+		if errors.Is(err, controller_db.ErrDupVolumeID) || errors.Is(err, controller_db.ErrDupVolumeName) {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		}
 		if errors.Is(err, &controller_db.InputError{}) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
