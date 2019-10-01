@@ -107,7 +107,9 @@ func (v *localVolumeServer) ListVolumes(req *ListVolumesRequest, stream VolumeSe
 	return nil
 }
 func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolumeRequest) (*InspectVolumeResponse, error) {
-	if req.GetId() != nil && req.GetName() != "" {
+	bothEmpty := req.GetId() == nil && req.GetName() == ""
+	bothNonEmpty := req.GetId() != nil && req.GetName() != ""
+	if bothEmpty || bothNonEmpty {
 		return nil, status.Error(codes.FailedPrecondition, "id and info is exclusive")
 	}
 
