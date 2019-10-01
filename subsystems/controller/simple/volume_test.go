@@ -209,7 +209,7 @@ func TestLocalVolumeServer_ListVolumes(t *testing.T) {
 			assert.NotNil(t, stream)
 
 			res, err := stream.Recv()
-			assert.EqualError(t, err, "next parameter is not supported")
+			assert.Equal(t, status.Convert(err).Message(), "next parameter is not supported")
 			assert.Equal(t, codes.FailedPrecondition, status.Code(err))
 			assert.Nil(t, res)
 		})
