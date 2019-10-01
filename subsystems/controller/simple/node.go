@@ -58,12 +58,17 @@ func (n *localNodeServer) UnregisterNode(ctx context.Context, req *UnregisterNod
 	return &UnregisterNodeResponse{}, nil
 }
 func (n *localNodeServer) Ping(ctx context.Context, req *PingNodeRequest) (*PingNodeResponse, error) {
-	n.ns.Update(req.GetId(), func(node *Node) error {
+	err := n.ns.Update(req.GetId(), func(node *Node) error {
 		// TODO: update uptime.
 		return nil
 	})
-	//return nil, status.Errorf(codes.NotFound, "node is not registered")
-	// TODO: add error handling
+	if errors.Is(err, controller_db.ErrNotFoundNode) {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	if err != nil {
+		log.Printf("[CRITICAL] Missing error handling: %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	return &PingNodeResponse{}, nil
 }
 func (n *localNodeServer) ListNodes(req *ListNodesRequest, stream NodeService_ListNodesServer) error {
