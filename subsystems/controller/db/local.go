@@ -336,10 +336,10 @@ func (s *localDB) MetaUpdate(callback localTxFn) error {
 	return s.runTx(true, localMetaBucket, callback)
 }
 func (s *localDB) NodeView(callback localTxFn) error {
-	return s.runTx(false, localMetaBucket, callback)
+	return s.runTx(false, localNodeBucket, callback)
 }
 func (s *localDB) NodeUpdate(callback localTxFn) error {
-	return s.runTx(true, localMetaBucket, callback)
+	return s.runTx(true, localNodeBucket, callback)
 }
 
 type localVS struct {
