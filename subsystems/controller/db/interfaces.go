@@ -63,7 +63,6 @@ type VolumeStore interface {
 	// Create creates a volume.
 	//
 	// Error:
-	// - ErrDupVolumeID: If volume ID is duplicated.
 	// - ErrDupVolumeName: If volume name is duplicated.
 	// - InternalError
 	Create(info *VolumeInfo) (*VolumeID, error)
