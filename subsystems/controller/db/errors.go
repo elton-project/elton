@@ -38,6 +38,7 @@ var (
 	ErrNotFoundCommit      = &InputError{Msg: "not found commit"}
 	ErrNotFoundTree        = &InputError{Msg: "not found tree"}
 	ErrNotFoundProp        = &InputError{Msg: "not found property"}
+	ErrNotFoundNode        = &InputError{Msg: "not found node"}
 	ErrAlreadyExists       = &InputError{Msg: "already exists"}
 	ErrNodeAlreadyExists   = &InputError{Msg: "node already exists"}
 	ErrNotAllowedReplace   = &InputError{Msg: "replacement not allowed"}

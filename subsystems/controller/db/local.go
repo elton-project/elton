@@ -670,6 +670,11 @@ func (ns *localNS) Register(id *NodeID, node *Node) error {
 		)
 	})
 }
-func (ns *localNS) Unregister(id *NodeID) error                              { return nil }
+func (ns *localNS) Unregister(id *NodeID) error {
+	return ns.DB.NodeUpdate(func(b *bbolt.Bucket) error {
+		key := ns.Enc.NodeID(id)
+		return b.Delete(key)
+	})
+}
 func (ns *localNS) Update(id *NodeID, callback func(node *Node) error) error { return nil }
 func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error     { return nil }

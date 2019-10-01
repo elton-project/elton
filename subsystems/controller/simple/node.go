@@ -47,7 +47,14 @@ func (n *localNodeServer) RegisterNode(ctx context.Context, req *RegisterNodeReq
 }
 func (n *localNodeServer) UnregisterNode(ctx context.Context, req *UnregisterNodeRequest) (*UnregisterNodeResponse, error) {
 	key := newNodeKey(req.GetId())
-	n.ns.Unregister(req.GetId())
+	err := n.ns.Unregister(req.GetId())
+	if errors.Is(err, controller_db.ErrNotFoundNode) {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	if err != nil {
+		log.Printf("[CRITICAL] Missing error handling: %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	// TODO: add error handling
 	return &UnregisterNodeResponse{}, nil
 }
