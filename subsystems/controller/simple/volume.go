@@ -53,6 +53,9 @@ func (v *localVolumeServer) DeleteVolume(ctx context.Context, req *DeleteVolumeR
 
 	err := v.vs.Delete(req.GetId())
 	if err != nil {
+		if errors.Is(err, controller_db.ErrNotFoundVolume) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
 		if errors.Is(err, &controller_db.InputError{}) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
