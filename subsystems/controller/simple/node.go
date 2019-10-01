@@ -3,13 +3,15 @@ package simple
 import (
 	"context"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	controller_db "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/controller/db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"sync"
 	"time"
 )
 
-func newLocalNodeServer() *localNodeServer {
+func newLocalNodeServer(ns controller_db.NodeStore) *localNodeServer {
+	// TODO: nsを渡す
 	return &localNodeServer{
 		nodes: map[nodeKey]*nodeInfo{},
 	}

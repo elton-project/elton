@@ -9,6 +9,7 @@ type Stores interface {
 	MetaStore() MetaStore
 	VolumeStore() VolumeStore
 	CommitStore() CommitStore
+	NodeStore() NodeStore
 }
 
 // MetaStore is an interface for properties database.
@@ -117,4 +118,8 @@ type CommitStore interface {
 	// - ErrNotFoundTree: If tree is not found.
 	// - InternalError
 	TreeByTreeID(id *TreeID) (*Tree, error)
+}
+
+type NodeStore interface {
+	// TODO
 }

@@ -68,6 +68,7 @@ func CreateLocalDB(dir string) (stores Stores, closer func() error, err error) {
 		localMS: localMS{DB: db},
 		localVS: localVS{DB: db},
 		localCS: localCS{DB: db},
+		localNS: localNS{DB: db},
 	}
 	return
 }
@@ -76,11 +77,13 @@ type localStores struct {
 	localMS
 	localVS
 	localCS
+	localNS
 }
 
 func (s *localStores) MetaStore() MetaStore     { return &s.localMS }
 func (s *localStores) VolumeStore() VolumeStore { return &s.localVS }
 func (s *localStores) CommitStore() CommitStore { return &s.localCS }
+func (s *localStores) NodeStore() NodeStore     { return &s.localNS }
 
 func mustMarshall(v interface{}) []byte {
 	b, err := json.Marshal(v)
@@ -629,3 +632,12 @@ func (ms *localMS) Set(id *PropertyID, prop *Property, mustCreate bool) (old *Pr
 	})
 	return
 }
+
+type localNS struct {
+	DB  *localDB
+	Enc localEncoder
+	Dec localDecoder
+	Gen localGenerator
+}
+
+// TODO: add methods

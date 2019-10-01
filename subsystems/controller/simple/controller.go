@@ -15,7 +15,7 @@ func NewController(databasePath string) (*Controller, func() error) {
 	v := newLocalVolumeServer(stores.VolumeStore(), stores.CommitStore())
 	return &Controller{
 		MetaServiceServer:   newLocalMetaServer(stores.MetaStore()),
-		NodeServiceServer:   newLocalNodeServer(),
+		NodeServiceServer:   newLocalNodeServer(stores.NodeStore()),
 		VolumeServiceServer: v,
 		CommitServiceServer: v,
 	}, closer
