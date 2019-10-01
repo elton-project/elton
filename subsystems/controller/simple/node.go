@@ -46,7 +46,6 @@ func (n *localNodeServer) RegisterNode(ctx context.Context, req *RegisterNodeReq
 	return &RegisterNodeResponse{}, nil
 }
 func (n *localNodeServer) UnregisterNode(ctx context.Context, req *UnregisterNodeRequest) (*UnregisterNodeResponse, error) {
-	key := newNodeKey(req.GetId())
 	err := n.ns.Unregister(req.GetId())
 	if errors.Is(err, controller_db.ErrNotFoundNode) {
 		return nil, status.Error(codes.NotFound, err.Error())
