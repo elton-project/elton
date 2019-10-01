@@ -74,8 +74,11 @@ func (n *localNodeServer) ListNodes(req *ListNodesRequest, stream NodeService_Li
 		case <-stream.Context().Done():
 			return breakLoop
 		default:
+			return stream.Send(&ListNodesResponse{
+				Id:   id,
+				Node: node,
+			})
 		}
-		return nil
 	})
 	if err == breakLoop {
 		return status.Errorf(codes.Aborted, "interrupted")

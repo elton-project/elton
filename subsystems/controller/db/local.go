@@ -708,4 +708,12 @@ func (ns *localNS) Update(id *NodeID, callback func(node *Node) error) error {
 		)
 	})
 }
-func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error { return nil }
+func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error {
+	return ns.DB.NodeView(func(b *bbolt.Bucket) error {
+		return b.ForEach(func(k, v []byte) error {
+			id := ns.Dec.NodeID(k)
+			node := ns.Dec.Node(v)
+			return walker(id, node)
+		})
+	})
+}
