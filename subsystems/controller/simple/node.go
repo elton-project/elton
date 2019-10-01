@@ -7,6 +7,7 @@ import (
 	controller_db "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/controller/db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 	"time"
 )
 
@@ -33,7 +34,14 @@ type nodeInfo struct {
 }
 
 func (n *localNodeServer) RegisterNode(ctx context.Context, req *RegisterNodeRequest) (*RegisterNodeResponse, error) {
-	n.ns.Register(req.GetId(), req.GetNode())
+	err := n.ns.Register(req.GetId(), req.GetNode())
+	if errors.Is(err, controller_db.ErrNodeAlreadyExists) {
+		return nil, status.Error(codes.AlreadyExists, err.Error())
+	}
+	if err != nil {
+		log.Printf("[CRITICAL] Missing error handling: %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	// TODO: add error handling
 	return &RegisterNodeResponse{}, nil
 }

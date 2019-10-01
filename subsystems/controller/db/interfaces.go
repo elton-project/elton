@@ -125,6 +125,7 @@ type NodeStore interface {
 	// Register a node.
 	//
 	// Error:
+	// - NodeAlreadyExists
 	// - InternalError
 	Register(id *NodeID, node *Node) error
 	// Unregister a node.

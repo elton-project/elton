@@ -47,6 +47,11 @@ var localLatestCommitBucket = []byte("latest-commit")
 // - Value: Tree (JSON encoded)
 var localTreeBucket = []byte("tree")
 
+// Node bucket: It keeps node information.
+// - Key: NodeID
+// - Value: Node (JSON encoded)
+var localNodeBucket = []byte("node")
+
 // CreateLocalDB creates database accessors.  It saves data on local file system.
 func CreateLocalDB(dir string) (stores Stores, closer func() error, err error) {
 	err = os.MkdirAll(dir, 0700)
@@ -128,6 +133,12 @@ func (localEncoder) PropertyID(id *PropertyID) []byte {
 }
 func (localEncoder) Property(prop *Property) []byte {
 	return mustMarshall(prop)
+}
+func (localEncoder) NodeID(id *NodeID) []byte {
+	return []byte(id.GetId())
+}
+func (localEncoder) Node(node *Node) []byte {
+	return mustMarshall(node)
 }
 
 type localDecoder struct{}
@@ -322,6 +333,12 @@ func (s *localDB) MetaView(callback localTxFn) error {
 	return s.runTx(false, localMetaBucket, callback)
 }
 func (s *localDB) MetaUpdate(callback localTxFn) error {
+	return s.runTx(true, localMetaBucket, callback)
+}
+func (s *localDB) NodeView(callback localTxFn) error {
+	return s.runTx(false, localMetaBucket, callback)
+}
+func (s *localDB) NodeUpdate(callback localTxFn) error {
 	return s.runTx(true, localMetaBucket, callback)
 }
 
@@ -641,7 +658,18 @@ type localNS struct {
 }
 
 // TODO: add methods
-func (ns *localNS) Register(id *NodeID, node *Node) error                    { return nil }
+func (ns *localNS) Register(id *NodeID, node *Node) error {
+	return ns.DB.NodeUpdate(func(b *bbolt.Bucket) error {
+		key := ns.Enc.NodeID(id)
+		if b.Get(key) != nil {
+			return ErrNodeAlreadyExists.Wrap(fmt.Errorf("id=%s", id))
+		}
+		return b.Put(
+			key,
+			ns.Enc.Node(node),
+		)
+	})
+}
 func (ns *localNS) Unregister(id *NodeID) error                              { return nil }
 func (ns *localNS) Update(id *NodeID, callback func(node *Node) error) error { return nil }
 func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error     { return nil }
