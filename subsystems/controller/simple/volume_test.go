@@ -7,6 +7,7 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
 	"sort"
@@ -85,6 +86,7 @@ func TestLocalVolumeServer_CreateVolume(t *testing.T) {
 				Info: &elton_v2.VolumeInfo{Name: "foo"},
 			})
 			assert.Error(t, err, "volume name is duplicated")
+			assert.Equal(t, codes.AlreadyExists, status.Code(err))
 			assert.Nil(t, res)
 		})
 	})
@@ -116,6 +118,7 @@ func TestLocalVolumeServer_DeleteVolume(t *testing.T) {
 				Id: &elton_v2.VolumeID{Id: "invalid-id"},
 			})
 			assert.Error(t, err, "volume not found")
+			assert.Equal(t, codes.NotFound, status.Code(err))
 		})
 	})
 }
@@ -194,6 +197,19 @@ func TestLocalVolumeServer_ListVolumes(t *testing.T) {
 			assert.Equal(t, 3, count)
 		})
 	})
+	t.Run("should_fail_when_next_parameter_is_specified", func(t *testing.T) {
+		// NOTE: local volume server is not supported of pagination feature.
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewVolumeServiceClient(dial())
+
+			stream, err := client.ListVolumes(ctx, &elton_v2.ListVolumesRequest{
+				Next: "aaa",
+			})
+			assert.EqualError(t, err, "next parameter is not supported")
+			assert.Equal(t, codes.FailedPrecondition, status.Code(err))
+			assert.Nil(t, stream)
+		})
+	})
 }
 
 func TestLocalVolumeServer_InspectVolume(t *testing.T) {
@@ -240,6 +256,7 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 			})
 
 			assert.Equal(t, status.Convert(err).Message(), "not found volume")
+			assert.Equal(t, codes.NotFound, status.Code(err))
 			assert.Nil(t, res)
 		})
 	})
@@ -251,6 +268,30 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 				Id: &elton_v2.VolumeID{Id: "not-found"},
 			})
 			assert.Equal(t, status.Convert(err).Message(), "not found volume")
+			assert.Equal(t, codes.NotFound, status.Code(err))
+			assert.Nil(t, res)
+		})
+	})
+	t.Run("should_fail_when_id_and_name_is_not_specified", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewVolumeServiceClient(dial())
+
+			res, err := client.InspectVolume(ctx, &elton_v2.InspectVolumeRequest{
+				Id:   &elton_v2.VolumeID{Id: "foo"},
+				Name: "bar",
+			})
+			assert.Equal(t, status.Convert(err).Message(), "id and info is exclusive")
+			assert.Equal(t, codes.FailedPrecondition, status.Code(err))
+			assert.Nil(t, res)
+		})
+	})
+	t.Run("should_fail_when_id_and_name_is_specified", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewVolumeServiceClient(dial())
+
+			res, err := client.InspectVolume(ctx, &elton_v2.InspectVolumeRequest{})
+			assert.Equal(t, status.Convert(err).Message(), "id and info is exclusive")
+			assert.Equal(t, codes.FailedPrecondition, status.Code(err))
 			assert.Nil(t, res)
 		})
 	})
