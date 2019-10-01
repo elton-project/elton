@@ -735,14 +735,35 @@ type VolumeServiceClient interface {
 	// 新しいvolumeを作成する。
 	// volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
 	// 作成するかもしれない。
+	//
+	// Error:
+	// - AlreadyExists: If volume name or volume ID is already exists.
+	// - InvalidArgs
+	// - Internal
 	CreateVolume(ctx context.Context, in *CreateVolumeRequest, opts ...grpc.CallOption) (*CreateVolumeResponse, error)
 	// 指定したvolumeを削除する。
+	//
+	// Error:
+	// - NotFound: If specified volume is not found.
+	// - InvalidArgs
+	// - Internal
 	DeleteVolume(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeResponse, error)
 	// 現在ある全てのvolumeを列挙する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
+	//
+	// Error:
+	// - FailedPrecondition: If "next" parameter is not valid.
+	// - InvalidArgs
+	// - Internal
 	ListVolumes(ctx context.Context, in *ListVolumesRequest, opts ...grpc.CallOption) (VolumeService_ListVolumesClient, error)
 	// 指定したvolumeのメタデータを取得する。
+	//
+	// Error:
+	// - FailedPrecondition: If id and name are not satisfied that them are
+	//                       exclusive.
+	// - InvalidArgs
+	// - Internal
 	InspectVolume(ctx context.Context, in *InspectVolumeRequest, opts ...grpc.CallOption) (*InspectVolumeResponse, error)
 }
 
@@ -818,14 +839,35 @@ type VolumeServiceServer interface {
 	// 新しいvolumeを作成する。
 	// volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
 	// 作成するかもしれない。
+	//
+	// Error:
+	// - AlreadyExists: If volume name or volume ID is already exists.
+	// - InvalidArgs
+	// - Internal
 	CreateVolume(context.Context, *CreateVolumeRequest) (*CreateVolumeResponse, error)
 	// 指定したvolumeを削除する。
+	//
+	// Error:
+	// - NotFound: If specified volume is not found.
+	// - InvalidArgs
+	// - Internal
 	DeleteVolume(context.Context, *DeleteVolumeRequest) (*DeleteVolumeResponse, error)
 	// 現在ある全てのvolumeを列挙する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
 	// 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
+	//
+	// Error:
+	// - FailedPrecondition: If "next" parameter is not valid.
+	// - InvalidArgs
+	// - Internal
 	ListVolumes(*ListVolumesRequest, VolumeService_ListVolumesServer) error
 	// 指定したvolumeのメタデータを取得する。
+	//
+	// Error:
+	// - FailedPrecondition: If id and name are not satisfied that them are
+	//                       exclusive.
+	// - InvalidArgs
+	// - Internal
 	InspectVolume(context.Context, *InspectVolumeRequest) (*InspectVolumeResponse, error)
 }
 
@@ -965,9 +1007,9 @@ type CommitServiceClient interface {
 	// コミットを作成する。
 	//
 	// Error:
-	// - invalid argument: If trying cross-volume commit or parent id combination
-	//                     is invalid.
-	// - internal:
+	// - InvalidArgument: If trying cross-volume commit or parent id combination
+	//                    is invalid.
+	// - Internal
 	Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*CommitResponse, error)
 }
 
@@ -1040,9 +1082,9 @@ type CommitServiceServer interface {
 	// コミットを作成する。
 	//
 	// Error:
-	// - invalid argument: If trying cross-volume commit or parent id combination
-	//                     is invalid.
-	// - internal:
+	// - InvalidArgument: If trying cross-volume commit or parent id combination
+	//                    is invalid.
+	// - Internal
 	Commit(context.Context, *CommitRequest) (*CommitResponse, error)
 }
 

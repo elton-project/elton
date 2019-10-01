@@ -63,6 +63,8 @@ type VolumeStore interface {
 	// Create creates a volume.
 	//
 	// Error:
+	// - ErrDupVolumeID: If volume ID is duplicated.
+	// - ErrDupVolumeName: If volume name is duplicated.
 	// - InternalError
 	Create(info *VolumeInfo) (*VolumeID, error)
 }
@@ -97,6 +99,7 @@ type CommitStore interface {
 	//
 	// Error:
 	// - ErrCrossVolumeCommit: If mismatch vid and info.LeftParentID and info.RightParentID.
+	// - ErrNotFoundVolume: If specified volume is not found.
 	// - ErrInvalidParentCommit: If parent commit ID combination is invalid.
 	// - InternalError
 	Create(vid *VolumeID, info *CommitInfo, tree *Tree) (*CommitID, error)

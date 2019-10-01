@@ -70,6 +70,7 @@ func (e *InternalError) Is(err error) bool {
 }
 
 // Internal errors in database.
+// All internal errors have names that start with "IErr".
 var (
 	IErrInitialize = &InternalError{Msg: "initialize db"}
 	IErrDatabase   = &InternalError{Msg: "database error"}

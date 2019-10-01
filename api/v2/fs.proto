@@ -8,14 +8,35 @@ service VolumeService {
   // 新しいvolumeを作成する。
   // volumeのメタデータは作成時に設定する。現時点では、作成時に設定したメタ―データの更新はできないが、今後のアップデートでメタデータ更新APIを
   // 作成するかもしれない。
+  //
+  // Error:
+  // - AlreadyExists: If volume name or volume ID is already exists.
+  // - InvalidArgs
+  // - Internal
   rpc CreateVolume(CreateVolumeRequest) returns (CreateVolumeResponse);
   // 指定したvolumeを削除する。
+  //
+  // Error:
+  // - NotFound: If specified volume is not found.
+  // - InvalidArgs
+  // - Internal
   rpc DeleteVolume(DeleteVolumeRequest) returns (DeleteVolumeResponse);
   // 現在ある全てのvolumeを列挙する。
   // 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
   // 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
+  //
+  // Error:
+  // - FailedPrecondition: If "next" parameter is not valid.
+  // - InvalidArgs
+  // - Internal
   rpc ListVolumes(ListVolumesRequest) returns (stream ListVolumesResponse);
   // 指定したvolumeのメタデータを取得する。
+  //
+  // Error:
+  // - FailedPrecondition: If id and name are not satisfied that them are
+  //                       exclusive.
+  // - InvalidArgs
+  // - Internal
   rpc InspectVolume(InspectVolumeRequest) returns (InspectVolumeResponse);
 }
 
@@ -31,9 +52,9 @@ service CommitService {
   // コミットを作成する。
   //
   // Error:
-  // - invalid argument: If trying cross-volume commit or parent id combination
-  //                     is invalid.
-  // - internal:
+  // - InvalidArgument: If trying cross-volume commit or parent id combination
+  //                    is invalid.
+  // - Internal
   rpc Commit(CommitRequest) returns (CommitResponse);
 }
 
