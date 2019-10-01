@@ -19,6 +19,7 @@ func newLocalVolumeServer(vs controller_db.VolumeStore, cs controller_db.CommitS
 }
 
 type localVolumeServer struct {
+	// TODO: impl
 	UnimplementedCommitServiceServer
 	lock sync.RWMutex
 	vs   controller_db.VolumeStore
