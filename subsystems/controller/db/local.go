@@ -205,6 +205,22 @@ func (localDecoder) Property(data []byte) *Property {
 	mustUnmarshal(data, prop)
 	return prop
 }
+func (localDecoder) NodeID(data []byte) *NodeID {
+	if data == nil {
+		return nil
+	}
+	return &NodeID{
+		Id: string(data),
+	}
+}
+func (localDecoder) Node(data []byte) *Node {
+	if data == nil {
+		return nil
+	}
+	node := &Node{}
+	mustUnmarshal(data, node)
+	return node
+}
 
 type localGenerator struct{}
 
@@ -676,5 +692,20 @@ func (ns *localNS) Unregister(id *NodeID) error {
 		return b.Delete(key)
 	})
 }
-func (ns *localNS) Update(id *NodeID, callback func(node *Node) error) error { return nil }
-func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error     { return nil }
+func (ns *localNS) Update(id *NodeID, callback func(node *Node) error) error {
+	return ns.DB.NodeUpdate(func(b *bbolt.Bucket) error {
+		key := ns.Enc.NodeID(id)
+		data := b.Get(key)
+		node := ns.Dec.Node(data)
+
+		err := callback(node)
+		if err != nil {
+			return err
+		}
+		return b.Put(
+			key,
+			ns.Enc.Node(node),
+		)
+	})
+}
+func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error { return nil }
