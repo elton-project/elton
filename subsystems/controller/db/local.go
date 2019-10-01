@@ -641,3 +641,7 @@ type localNS struct {
 }
 
 // TODO: add methods
+func (ns *localNS) Register(id *NodeID, node *Node) error                    { return nil }
+func (ns *localNS) Unregister(id *NodeID) error                              { return nil }
+func (ns *localNS) Update(id *NodeID, callback func(node *Node) error) error { return nil }
+func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error     { return nil }

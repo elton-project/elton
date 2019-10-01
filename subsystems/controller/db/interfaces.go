@@ -120,6 +120,30 @@ type CommitStore interface {
 	TreeByTreeID(id *TreeID) (*Tree, error)
 }
 
+// TODO: エラー
 type NodeStore interface {
-	// TODO
+	// Register a node.
+	//
+	// Error:
+	// - InternalError
+	Register(id *NodeID, node *Node) error
+	// Unregister a node.
+	//
+	// Error:
+	// - ErrNotFoundNode
+	// - InternalError
+	Unregister(id *NodeID) error
+	// Update a node information inside callback().
+	// The callback() should update Node fields during executing callback().  If callback() returns an error, changes
+	// are discarded.
+	//
+	// Error:
+	// - ErrNotFoundNode
+	// - InternalError
+	Update(id *NodeID, callback func(node *Node) error) error
+	// List calls walker() for each node.  If walker() returns an error, return immediately it.
+	//
+	// Error:
+	// - InternalError
+	List(walker func(id *NodeID, node *Node) error) error
 }
