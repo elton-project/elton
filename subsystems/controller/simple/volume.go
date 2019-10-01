@@ -117,6 +117,9 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 		// Search by id
 		vi, err := v.vs.Get(req.GetId())
 		if err != nil {
+			if errors.Is(err, controller_db.ErrNotFoundVolume) {
+				return nil, status.Error(codes.NotFound, err.Error())
+			}
 			if errors.Is(err, &controller_db.InputError{}) {
 				return nil, status.Error(codes.InvalidArgument, err.Error())
 			}
@@ -131,6 +134,9 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 		// Search by name
 		vid, vi, err := v.vs.GetByName(req.GetName())
 		if err != nil {
+			if errors.Is(err, controller_db.ErrNotFoundVolume) {
+				return nil, status.Error(codes.NotFound, err.Error())
+			}
 			if errors.Is(err, &controller_db.InputError{}) {
 				return nil, status.Error(codes.InvalidArgument, err.Error())
 			}
