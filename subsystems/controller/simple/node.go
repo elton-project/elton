@@ -19,8 +19,6 @@ func newLocalNodeServer(ns controller_db.NodeStore) *localNodeServer {
 
 type localNodeServer struct {
 	ns controller_db.NodeStore
-	//lock  sync.RWMutex
-	//nodes map[nodeKey]*nodeInfo
 }
 type nodeKey struct {
 	NodeId string
