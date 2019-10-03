@@ -12,7 +12,6 @@ import (
 )
 
 func newLocalNodeServer(ns controller_db.NodeStore) *localNodeServer {
-	// TODO: nsを渡す
 	return &localNodeServer{
 		ns: ns,
 	}
