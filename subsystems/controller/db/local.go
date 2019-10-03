@@ -700,6 +700,9 @@ func (ns *localNS) Update(id *NodeID, callback func(node *Node) error) error {
 	return ns.DB.NodeUpdate(func(b *bbolt.Bucket) error {
 		key := ns.Enc.NodeID(id)
 		data := b.Get(key)
+		if data == nil {
+			return ErrNotFoundNode.Wrap(fmt.Errorf("id=%s", id))
+		}
 		node := ns.Dec.Node(data)
 
 		err := callback(node)
