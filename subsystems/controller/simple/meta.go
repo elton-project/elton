@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
-	"sync"
 )
 
 func newLocalMetaServer(ms controller_db.MetaStore) *localMetaServer {
@@ -18,8 +17,7 @@ func newLocalMetaServer(ms controller_db.MetaStore) *localMetaServer {
 }
 
 type localMetaServer struct {
-	lock sync.RWMutex
-	ms   controller_db.MetaStore
+	ms controller_db.MetaStore
 }
 
 func (m *localMetaServer) GetMeta(ctx context.Context, req *GetMetaRequest) (*GetMetaResponse, error) {

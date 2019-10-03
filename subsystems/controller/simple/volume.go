@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
-	"sync"
 )
 
 func newLocalVolumeServer(vs controller_db.VolumeStore, cs controller_db.CommitStore) *localVolumeServer {
@@ -21,9 +20,8 @@ func newLocalVolumeServer(vs controller_db.VolumeStore, cs controller_db.CommitS
 type localVolumeServer struct {
 	// TODO: impl
 	UnimplementedCommitServiceServer
-	lock sync.RWMutex
-	vs   controller_db.VolumeStore
-	cs   controller_db.CommitStore
+	vs controller_db.VolumeStore
+	cs controller_db.CommitStore
 }
 
 func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeRequest) (*CreateVolumeResponse, error) {
