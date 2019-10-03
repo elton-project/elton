@@ -16,7 +16,7 @@ func TestLocalNodeServer_RegisterNode(t *testing.T) {
 			client := elton_v2.NewNodeServiceClient(dial())
 			res, err := client.RegisterNode(ctx, &elton_v2.RegisterNodeRequest{
 				Id:   &elton_v2.NodeID{Id: "node-1"},
-				Node: &elton_v2.Node{},
+				Node: &elton_v2.Node{Name: "foo"},
 			})
 			assert.NoError(t, err)
 			assert.IsType(t, &elton_v2.RegisterNodeResponse{}, res)
