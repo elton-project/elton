@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
-	"time"
 )
 
 func newLocalNodeServer(ns controller_db.NodeStore) *localNodeServer {
@@ -19,15 +18,6 @@ func newLocalNodeServer(ns controller_db.NodeStore) *localNodeServer {
 
 type localNodeServer struct {
 	ns controller_db.NodeStore
-}
-type nodeKey struct {
-	NodeId string
-}
-type nodeInfo struct {
-	Address []string
-	Name    string
-
-	lastPing time.Time
 }
 
 func (n *localNodeServer) RegisterNode(ctx context.Context, req *RegisterNodeRequest) (*RegisterNodeResponse, error) {
@@ -86,16 +76,4 @@ func (n *localNodeServer) ListNodes(req *ListNodesRequest, stream NodeService_Li
 	}
 	// TODO: add error handling
 	return nil
-}
-
-func newNodeKey(id *NodeID) nodeKey {
-	return nodeKey{
-		NodeId: id.GetId(),
-	}
-}
-func newNodeInfo(node *Node) *nodeInfo {
-	return &nodeInfo{
-		Address: node.GetAddress(),
-		Name:    node.GetName(),
-	}
 }
