@@ -302,6 +302,10 @@ func (s *localDB) createAllBuckets() error {
 		if _, err := tx.CreateBucketIfNotExists(localTreeBucket); err != nil {
 			return xerrors.Errorf("tree bucket cannot create: %w", err)
 		}
+
+		if _, err := tx.CreateBucketIfNotExists(localNodeBucket); err != nil {
+			return xerrors.Errorf("node bucket cannot create: %w", err)
+		}
 		return nil
 	})
 	if err != nil {
