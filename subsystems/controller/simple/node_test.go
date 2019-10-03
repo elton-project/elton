@@ -6,6 +6,8 @@ import (
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"io"
 	"testing"
 )
@@ -25,9 +27,20 @@ func TestLocalNodeServer_RegisterNode(t *testing.T) {
 	t.Run("second_time_registration", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewNodeServiceClient(dial())
-			res, err := client.RegisterNode(ctx, &elton_v2.RegisterNodeRequest{})
+			res, err := client.RegisterNode(ctx, &elton_v2.RegisterNodeRequest{
+				Id:   &elton_v2.NodeID{Id: "node-1"},
+				Node: &elton_v2.Node{Name: "foo"},
+			})
 			assert.NoError(t, err)
 			assert.IsType(t, &elton_v2.RegisterNodeResponse{}, res)
+
+			res, err = client.RegisterNode(ctx, &elton_v2.RegisterNodeRequest{
+				Id:   &elton_v2.NodeID{Id: "node-1"},
+				Node: &elton_v2.Node{Name: "bar"},
+			})
+			assert.Equal(t, codes.AlreadyExists, status.Code(err))
+			assert.Equal(t, "node already exists", status.Convert(err).Message())
+			assert.Nil(t, res)
 		})
 	})
 }
