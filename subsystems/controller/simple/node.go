@@ -29,7 +29,6 @@ func (n *localNodeServer) RegisterNode(ctx context.Context, req *RegisterNodeReq
 		log.Printf("[CRITICAL] Missing error handling: %+v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	// TODO: add error handling
 	return &RegisterNodeResponse{}, nil
 }
 func (n *localNodeServer) UnregisterNode(ctx context.Context, req *UnregisterNodeRequest) (*UnregisterNodeResponse, error) {
@@ -41,7 +40,6 @@ func (n *localNodeServer) UnregisterNode(ctx context.Context, req *UnregisterNod
 		log.Printf("[CRITICAL] Missing error handling: %+v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	// TODO: add error handling
 	return &UnregisterNodeResponse{}, nil
 }
 func (n *localNodeServer) Ping(ctx context.Context, req *PingNodeRequest) (*PingNodeResponse, error) {
@@ -71,9 +69,12 @@ func (n *localNodeServer) ListNodes(req *ListNodesRequest, stream NodeService_Li
 			})
 		}
 	})
-	if err == breakLoop {
-		return status.Errorf(codes.Aborted, "interrupted")
+	if err != nil {
+		if err == breakLoop {
+			return status.Errorf(codes.Aborted, "interrupted")
+		}
+		log.Printf("[CRITICAL] Missing error handling: %+v", err)
+		return status.Error(codes.Internal, err.Error())
 	}
-	// TODO: add error handling
 	return nil
 }
