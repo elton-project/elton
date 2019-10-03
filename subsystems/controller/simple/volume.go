@@ -18,8 +18,6 @@ func newLocalVolumeServer(vs controller_db.VolumeStore, cs controller_db.CommitS
 }
 
 type localVolumeServer struct {
-	// TODO: impl
-	UnimplementedCommitServiceServer
 	vs controller_db.VolumeStore
 	cs controller_db.CommitStore
 }
@@ -148,4 +146,14 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 	} else {
 		panic("unreachable")
 	}
+}
+
+func (*localVolumeServer) GetLastCommit(ctx context.Context, req *GetLastCommitRequest) (*GetLastCommitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLastCommit not implemented")
+}
+func (*localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitService_ListCommitsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
+}
+func (*localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Commit not implemented")
 }

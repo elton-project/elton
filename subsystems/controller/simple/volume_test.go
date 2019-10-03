@@ -300,3 +300,48 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 		})
 	})
 }
+
+func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
+	t.Run("should_success_when_valid_volume_id", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+	t.Run("should_fail_when_invalid_volume_id", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+}
+
+func TestLocalVolumeServer_ListCommits(t *testing.T) {
+	t.Run("should_fail_when_requesting_with_pagination", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+	t.Run("should_success_when_volume_id_is_valid", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+	t.Run("should_fail_when_volume_id_is_invalid", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+}
+
+func TestLocalVolumeServer_Commit(t *testing.T) {
+	t.Run("should_success_when_argument_is_valid", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+	t.Run("should_fail_when_parent_id_combination_is_invalid", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+	t.Run("should_fail_when_commit_info_is_invalid", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+	t.Run("should_fail_when_tree_is_invalid", func(t *testing.T) {
+		// todo
+		t.Error("todo")
+	})
+}
