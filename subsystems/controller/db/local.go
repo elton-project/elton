@@ -313,7 +313,7 @@ func (s *localDB) runTx(writable bool, bucket []byte, callback localTxFn) error 
 	innerFn := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(bucket)
 		if b == nil {
-			return IErrDatabase.Wrap(xerrors.Errorf("not found %s bucket", string(bucket)))
+			return IErrDatabase.Wrap(fmt.Errorf("not found %s bucket", string(bucket)))
 		}
 		return callback(b)
 	}
