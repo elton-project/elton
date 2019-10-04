@@ -999,6 +999,10 @@ var _VolumeService_serviceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CommitServiceClient interface {
 	// 指定したvolume内の最新のコミットを取得する。
+	//
+	// Error:
+	// - NotFound: If volume has no commit.
+	// - Internal
 	GetLastCommit(ctx context.Context, in *GetLastCommitRequest, opts ...grpc.CallOption) (*GetLastCommitResponse, error)
 	// コミットの履歴を取得する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
@@ -1074,6 +1078,10 @@ func (c *commitServiceClient) Commit(ctx context.Context, in *CommitRequest, opt
 // CommitServiceServer is the server API for CommitService service.
 type CommitServiceServer interface {
 	// 指定したvolume内の最新のコミットを取得する。
+	//
+	// Error:
+	// - NotFound: If volume has no commit.
+	// - Internal
 	GetLastCommit(context.Context, *GetLastCommitRequest) (*GetLastCommitResponse, error)
 	// コミットの履歴を取得する。
 	// 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。

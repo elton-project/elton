@@ -44,6 +44,10 @@ service VolumeService {
 // Commitはvolumeに紐付いており、volume毎に独立したコミット履歴を保持する。
 service CommitService {
   // 指定したvolume内の最新のコミットを取得する。
+  //
+  // Error:
+  // - NotFound: If volume has no commit.
+  // - Internal
   rpc GetLastCommit(GetLastCommitRequest) returns (GetLastCommitResponse);
   // コミットの履歴を取得する。
   // 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
