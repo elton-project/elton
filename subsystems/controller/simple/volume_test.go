@@ -2,6 +2,7 @@ package simple
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
@@ -58,6 +59,42 @@ func listVolumes(t *testing.T, client elton_v2.VolumeServiceClient, ctx context.
 	}
 	sort.Strings(names)
 	return names, nil
+}
+func createCommits(
+	t *testing.T,
+	dial func() *grpc.ClientConn,
+	ctx context.Context,
+	volumeName string,
+	commits []*elton_v2.CommitRequest,
+) (*elton_v2.VolumeID, []*elton_v2.CommitID) {
+	vc := elton_v2.NewVolumeServiceClient(dial())
+	vres, err := vc.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
+		Info: &elton_v2.VolumeInfo{
+			Name: volumeName,
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+	volumeID := vres.GetId()
+	assert.NotNil(t, volumeID)
+
+	var ids []*elton_v2.CommitID
+	cc := elton_v2.NewCommitServiceClient(dial())
+	for _, commit := range commits {
+		// Set parent CommitID
+		if len(ids) > 0 {
+			commit.LeftParentID = ids[len(ids)-1]
+		}
+
+		res, err := cc.Commit(ctx, commit)
+		if !assert.NoError(t, err) {
+			t.FailNow()
+		}
+
+		ids = append(ids, res.Id)
+	}
+	return volumeID, ids
 }
 
 func TestLocalVolumeServer_CreateVolume(t *testing.T) {
@@ -303,45 +340,210 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 
 func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
 	t.Run("should_success_when_valid_volume_id", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			volume, commits := createCommits(t, dial, ctx, "test-volume", []*elton_v2.CommitRequest{
+				{
+					Info: &elton_v2.CommitInfo{
+						CreatedAt: ptypes.TimestampNow(),
+					},
+					Tree: &elton_v2.Tree{
+						P2I: nil,
+						I2F: nil,
+					},
+				},
+			})
+			assert.NotNil(t, volume)
+			assert.Len(t, commits, 1)
+
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.GetLastCommit(ctx, &elton_v2.GetLastCommitRequest{
+				VolumeId: volume,
+			})
+			assert.NoError(t, err)
+			assert.NotNil(t, res)
+			assert.Equal(t, commits[0], res.GetId())
+			assert.NotNil(t, res.GetInfo())
+		})
+	})
+	t.Run("should_fail_when_volume_has_no_commit", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			vc := elton_v2.NewVolumeServiceClient(dial())
+			vres, err := vc.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
+				Info: &elton_v2.VolumeInfo{Name: "test-volume"},
+			})
+			assert.NoError(t, err)
+			volume := vres.GetId()
+			assert.NotNil(t, volume)
+
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.GetLastCommit(ctx, &elton_v2.GetLastCommitRequest{
+				VolumeId: volume,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err))
+			assert.Equal(t, "not found commit", status.Convert(err).Message())
+			assert.Nil(t, res)
+		})
 	})
 	t.Run("should_fail_when_invalid_volume_id", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.GetLastCommit(ctx, &elton_v2.GetLastCommitRequest{
+				VolumeId: nil,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Nil(t, res)
+		})
 	})
 }
 
 func TestLocalVolumeServer_ListCommits(t *testing.T) {
 	t.Run("should_fail_when_requesting_with_pagination", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
+				Next: "invalid",
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Nil(t, res)
+		})
 	})
 	t.Run("should_success_when_volume_id_is_valid", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			vc := elton_v2.NewVolumeServiceClient(dial())
+			vres, err := vc.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
+				Info: &elton_v2.VolumeInfo{Name: "test-volume"},
+			})
+			assert.NoError(t, err)
+			volume := vres.GetId()
+			assert.NotNil(t, volume)
+
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
+				// TODO: missing volume id field.
+			})
+			assert.NoError(t, err)
+			assert.NotNil(t, res)
+		})
+
 	})
 	t.Run("should_fail_when_volume_id_is_invalid", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
+				// TODO: missing volume id field.
+			})
+			assert.Error(t, err)
+			assert.Nil(t, res)
+		})
 	})
 }
 
 func TestLocalVolumeServer_Commit(t *testing.T) {
-	t.Run("should_success_when_argument_is_valid", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+	t.Run("should_success_when_creating_first_commit", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			vc := elton_v2.NewVolumeServiceClient(dial())
+			vres, err := vc.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
+				Info: &elton_v2.VolumeInfo{Name: "test-volume"},
+			})
+			assert.NoError(t, err)
+			volume := vres.GetId()
+			assert.NotNil(t, volume)
+
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				// todo: missing volume id field.
+				LeftParentID:  nil,
+				RightParentID: nil,
+				Info:          nil,
+				Tree:          nil,
+			})
+			assert.Error(t, err)
+			assert.NotNil(t, res)
+		})
+	})
+	t.Run("should_success_when_creating_next_commit", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			volume, commits := createCommits(t, dial, ctx, "test-volume", []*elton_v2.CommitRequest{
+				{
+					Info: nil,
+					Tree: nil,
+				}, {
+					Info: nil,
+					Tree: nil,
+				},
+			})
+			assert.NotEmpty(t, volume)
+			assert.Len(t, commits, 2)
+		})
 	})
 	t.Run("should_fail_when_parent_id_combination_is_invalid", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				// todo: missing volume id field.
+				LeftParentID:  nil,
+				RightParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Nil(t, res)
+		})
+	})
+	t.Run("should_fail_when_non_existent_parent_id_is_specified", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				LeftParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Nil(t, res)
+		})
 	})
 	t.Run("should_fail_when_commit_info_is_invalid", func(t *testing.T) {
-		// todo
+		// TODO: 何をチェックする？
 		t.Error("todo")
 	})
-	t.Run("should_fail_when_tree_is_invalid", func(t *testing.T) {
-		// todo
-		t.Error("todo")
+	t.Run("should_fail_when_it_contains_unreferenced_inodes", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				Info: &elton_v2.CommitInfo{
+					CreatedAt: ptypes.TimestampNow(),
+				},
+				Tree: &elton_v2.Tree{
+					P2I: map[string]uint64{
+						"/":     1,
+						"/file": 2,
+					},
+					I2F: map[uint64]*elton_v2.FileID{
+						1: {Id: "root"},
+						2: {Id: "file"},
+						3: {Id: "unreferenced-file"},
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Nil(t, res)
+		})
+	})
+	t.Run("should_fail_when_it_contians_invalid_inode", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			client := elton_v2.NewCommitServiceClient(dial())
+			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				Info: &elton_v2.CommitInfo{
+					CreatedAt: ptypes.TimestampNow(),
+				},
+				Tree: &elton_v2.Tree{
+					P2I: map[string]uint64{
+						"/":              1,
+						"/invalid-inode": 2,
+					},
+					I2F: map[uint64]*elton_v2.FileID{
+						1: {Id: "root"},
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Nil(t, res)
+		})
 	})
 }
