@@ -3,6 +3,7 @@ package simple
 import (
 	"context"
 	"errors"
+	"fmt"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	controller_db "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/controller/db"
 	"google.golang.org/grpc/codes"
@@ -182,7 +183,55 @@ func (v *localVolumeServer) GetLastCommit(ctx context.Context, req *GetLastCommi
 		Info: info,
 	}, nil
 }
-func (*localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitService_ListCommitsServer) error {
+func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitService_ListCommitsServer) error {
+	if req.GetNext() != "" {
+		return status.Error(codes.InvalidArgument, "next parameter is not supported")
+	}
+
+	vid := req.GetId()
+	cid, err := v.cs.Latest(vid)
+	if err != nil {
+		if errors.Is(err, controller_db.ErrNotFoundCommit) {
+			// The volume has no commit.
+			return nil
+		}
+		if errors.Is(err, &controller_db.InputError{}) {
+			log.Printf("[CRITICAL] Missing error handling: %+v", err)
+			return status.Error(codes.Internal, err.Error())
+		}
+		log.Printf("[ERROR] %+v", err)
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	for cid.GetId().GetId() != "" {
+		select {
+		case <-srv.Context().Done():
+			return status.Error(codes.Canceled, "canceled")
+		default:
+			err = srv.Send(&ListCommitsResponse{
+				Next: "",
+				Id:   nil,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to send response: %w", err)
+			}
+		}
+
+		info, err := v.cs.Get(cid)
+		if err != nil {
+			if errors.Is(err, controller_db.ErrNotFoundCommit) {
+				// The commit deleted during processing.
+				return nil
+			}
+			if errors.Is(err, &controller_db.InputError{}) {
+				log.Printf("[CRITICAL] Missing error handling: %+v", err)
+				return status.Error(codes.Internal, err.Error())
+			}
+			log.Printf("[ERROR] %+v", err)
+			return status.Error(codes.Internal, err.Error())
+		}
+		cid = info.GetLeftParentID()
+	}
 	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
 func (*localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
