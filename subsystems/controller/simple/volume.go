@@ -234,6 +234,26 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 	}
 	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
-func (*localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Commit not implemented")
+func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
+	cid, err := v.cs.Create(
+		req.GetId(),
+		req.GetInfo(),
+		req.GetTree(),
+	)
+	if err != nil {
+		if errors.Is(err, controller_db.ErrCrossVolumeCommit) ||
+			errors.Is(err, controller_db.ErrNotFoundVolume) ||
+			errors.Is(err, controller_db.ErrInvalidParentCommit) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+		if errors.Is(err, &controller_db.InputError{}) {
+			log.Printf("[CRITICAL] Missing error handling: %+v", err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		log.Printf("[ERROR] %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &CommitResponse{
+		Id: cid,
+	}, nil
 }
