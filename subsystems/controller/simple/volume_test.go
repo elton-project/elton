@@ -84,7 +84,7 @@ func createCommits(
 	for _, commit := range commits {
 		// Set parent CommitID
 		if len(ids) > 0 {
-			commit.LeftParentID = ids[len(ids)-1]
+			commit.Info.LeftParentID = ids[len(ids)-1]
 		}
 
 		res, err := cc.Commit(ctx, commit)
@@ -450,13 +450,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 			assert.NotNil(t, volume)
 
 			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				// todo: missing volume id field.
-				LeftParentID:  nil,
-				RightParentID: nil,
-				Info:          nil,
-				Tree:          nil,
-			})
+			res, err := client.Commit(ctx, &elton_v2.CommitRequest{})
 			assert.Error(t, err)
 			assert.NotNil(t, res)
 		})
@@ -480,9 +474,10 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				// todo: missing volume id field.
-				LeftParentID:  nil,
-				RightParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+				Info: &elton_v2.CommitInfo{
+					LeftParentID:  nil,
+					RightParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Nil(t, res)
@@ -492,7 +487,9 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				LeftParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+				Info: &elton_v2.CommitInfo{
+					LeftParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Nil(t, res)
