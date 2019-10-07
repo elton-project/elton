@@ -151,6 +151,10 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 
 func (v *localVolumeServer) GetLastCommit(ctx context.Context, req *GetLastCommitRequest) (*GetLastCommitResponse, error) {
 	vid := req.GetVolumeId()
+	if vid.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "vid should not empty")
+	}
+
 	cid, err := v.cs.Latest(vid)
 	if err != nil {
 		if errors.Is(err, controller_db.ErrNotFoundCommit) {
