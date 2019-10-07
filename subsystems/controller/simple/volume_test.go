@@ -518,7 +518,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				Id: &elton_v2.VolumeID{Id: "test-volume"},
+				Id: &elton_v2.VolumeID{Id: "foo"},
 				Info: &elton_v2.CommitInfo{
 					LeftParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
 				},
