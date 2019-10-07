@@ -6,6 +6,7 @@ import (
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"testing"
 )
@@ -66,7 +67,8 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 				Body:       &elton_v2.Property{Body: "version 2", AllowReplace: true},
 				MustCreate: true,
 			})
-			assert.Error(t, err, "key is already exists")
+			assert.Equal(t, codes.AlreadyExists, status.Code(err))
+			assert.Equal(t, "already exists", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -85,7 +87,8 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 				Key:  &elton_v2.PropertyID{Id: "foo"},
 				Body: &elton_v2.Property{Body: "version 2", AllowReplace: true},
 			})
-			assert.Error(t, err, "replacement not allowed")
+			assert.Equal(t, codes.Unauthenticated, status.Code(err))
+			assert.Equal(t, "replacement not allowed", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
