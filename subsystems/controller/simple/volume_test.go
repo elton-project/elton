@@ -422,7 +422,7 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
-				// TODO: missing volume id field.
+				Id: volume,
 			})
 			assert.NoError(t, err)
 			assert.NotNil(t, res)
@@ -433,7 +433,9 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
-				// TODO: missing volume id field.
+				Id: &elton_v2.VolumeID{
+					Id: "not-found",
+				},
 			})
 			assert.Error(t, err)
 			assert.Nil(t, res)
