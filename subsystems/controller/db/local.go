@@ -678,7 +678,6 @@ type localNS struct {
 	Gen localGenerator
 }
 
-// TODO: add methods
 func (ns *localNS) Register(id *NodeID, node *Node) error {
 	return ns.DB.NodeUpdate(func(b *bbolt.Bucket) error {
 		key := ns.Enc.NodeID(id)
