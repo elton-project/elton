@@ -135,7 +135,7 @@ func TestLocalVolumeServer_CreateVolume(t *testing.T) {
 				Info: &elton_v2.VolumeInfo{Name: "foo"},
 			})
 			assert.Equal(t, codes.AlreadyExists, status.Code(err))
-			assert.Equal(t, "duplicate volume name", status.Convert(err).Message())
+			assert.Equal(t, "duplicate volume name: name=foo", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -308,7 +308,7 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 				Name: "not-found",
 			})
 
-			assert.Equal(t, status.Convert(err).Message(), "not found volume")
+			assert.Equal(t, "not found volume: name=not-found", status.Convert(err).Message())
 			assert.Equal(t, codes.NotFound, status.Code(err))
 			assert.Nil(t, res)
 		})
@@ -389,7 +389,7 @@ func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
 				VolumeId: volume,
 			})
 			assert.Equal(t, codes.NotFound, status.Code(err))
-			assert.Equal(t, "not found commit", status.Convert(err).Message())
+			assert.Equal(t, "not found commit: no commit in volume", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -510,7 +510,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Tree: createEmptyTree(),
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
-			assert.Equal(t, "cross-volume commit", status.Convert(err).Message())
+			assert.Equal(t, "cross-volume commit: mismatch VolumeID and CommitInfo.RightParentID", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
