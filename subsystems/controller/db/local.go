@@ -516,7 +516,8 @@ func (cs *localCS) Latest(vid *VolumeID) (latest *CommitID, err error) {
 		key := cs.Enc.VolumeID(vid)
 		data := tx.Bucket(localLatestCommitBucket).Get(key)
 		if len(data) > 0 {
-			cs.Dec.CommitID(data)
+			latest = cs.Dec.CommitID(data)
+			return nil
 		}
 		return ErrNotFoundCommit.Wrap(fmt.Errorf("no commit in volume"))
 	})
