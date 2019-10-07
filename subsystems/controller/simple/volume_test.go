@@ -124,8 +124,8 @@ func TestLocalVolumeServer_CreateVolume(t *testing.T) {
 			res, err := client.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
 				Info: &elton_v2.VolumeInfo{Name: "foo"},
 			})
-			assert.Error(t, err, "volume name is duplicated")
 			assert.Equal(t, codes.AlreadyExists, status.Code(err))
+			assert.Equal(t, "duplicate volume name", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -156,8 +156,8 @@ func TestLocalVolumeServer_DeleteVolume(t *testing.T) {
 			_, err := client.DeleteVolume(ctx, &elton_v2.DeleteVolumeRequest{
 				Id: &elton_v2.VolumeID{Id: "invalid-id"},
 			})
-			assert.Error(t, err, "volume not found")
 			assert.Equal(t, codes.NotFound, status.Code(err))
+			assert.Equal(t, "not found volume", status.Convert(err).Message())
 		})
 	})
 }
@@ -443,7 +443,7 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, stream)
 			res, err := stream.Recv()
-			assert.Error(t, err)
+			assert.EqualError(t, err, io.EOF.Error())
 			assert.Nil(t, res)
 		})
 	})

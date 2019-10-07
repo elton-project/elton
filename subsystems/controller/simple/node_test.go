@@ -84,7 +84,8 @@ func TestLocalNodeServer_Ping(t *testing.T) {
 			pres, err := client.Ping(ctx, &elton_v2.PingNodeRequest{
 				Id: &elton_v2.NodeID{Id: "deleted-node"},
 			})
-			assert.Error(t, err, "not is not registered")
+			assert.Equal(t, codes.NotFound, status.Code(err))
+			assert.Equal(t, "not found node", status.Convert(err).Message())
 			assert.Nil(t, pres)
 		})
 	})

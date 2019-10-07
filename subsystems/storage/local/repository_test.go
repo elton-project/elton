@@ -68,7 +68,10 @@ func TestRepository_Create(t *testing.T) {
 	t.Run("size-over", func(t *testing.T) {
 		withTempRepo(1, func(repo *Repository) {
 			_, err := repo.Create(body, info)
-			assert.Error(t, err, "body too big")
+			if !assert.Error(t, err) {
+				return
+			}
+			assert.Contains(t, err.Error(), "object too large")
 		})
 	})
 	t.Run("mismatch-size", func(t *testing.T) {
@@ -76,7 +79,10 @@ func TestRepository_Create(t *testing.T) {
 			info2 := info
 			info2.Size = 1
 			_, err := repo.Create(body, info2)
-			assert.Error(t, err, "hoge")
+			if !assert.Error(t, err) {
+				return
+			}
+			assert.Contains(t, err.Error(), "mismatch Body length and Info.Size")
 		})
 	})
 	t.Run("mismatch-hash", func(t *testing.T) {
@@ -84,7 +90,10 @@ func TestRepository_Create(t *testing.T) {
 			info2 := info
 			info2.Hash = []byte("bla bla")
 			_, err := repo.Create(body, info2)
-			assert.Error(t, err, "hoge")
+			if !assert.Error(t, err) {
+				return
+			}
+			assert.Contains(t, err.Error(), "hash value does not match")
 		})
 	})
 }
