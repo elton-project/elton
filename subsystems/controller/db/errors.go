@@ -44,6 +44,7 @@ var (
 	ErrNotAllowedReplace   = &InputError{Msg: "replacement not allowed"}
 	ErrCrossVolumeCommit   = &InputError{Msg: "cross-volume commit"}
 	ErrInvalidParentCommit = &InputError{Msg: "invalid parent commit"}
+	ErrInvalidTree         = &InputError{Msg: "invalid tree"}
 )
 
 // InternalError represents an error of database internal error.

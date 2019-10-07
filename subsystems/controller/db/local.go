@@ -558,6 +558,10 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 			return
 		}
 	}
+	if err2 := tree.FastValidate(); err2 != nil {
+		err = ErrInvalidTree.Wrap(err2)
+		return
+	}
 
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
 		// Check whether the volume is exist.
