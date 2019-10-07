@@ -121,5 +121,6 @@ message CommitRequest {
   CommitID rightParentID = 2;
   CommitInfo info = 3;
   Tree tree = 4;
+  VolumeID id = 5;
 }
 message CommitResponse { CommitID id = 1; }
