@@ -82,7 +82,9 @@ func createCommits(
 	var ids []*elton_v2.CommitID
 	cc := elton_v2.NewCommitServiceClient(dial())
 	for _, commit := range commits {
-		// Set parent CommitID
+		// Set VolumeID.
+		commit.Id = volumeID
+		// Set parent CommitID.
 		if len(ids) > 0 {
 			commit.Info.LeftParentID = ids[len(ids)-1]
 		}
