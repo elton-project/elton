@@ -148,8 +148,39 @@ func (v *localVolumeServer) InspectVolume(ctx context.Context, req *InspectVolum
 	}
 }
 
-func (*localVolumeServer) GetLastCommit(ctx context.Context, req *GetLastCommitRequest) (*GetLastCommitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLastCommit not implemented")
+func (v *localVolumeServer) GetLastCommit(ctx context.Context, req *GetLastCommitRequest) (*GetLastCommitResponse, error) {
+	vid := req.GetVolumeId()
+	cid, err := v.cs.Latest(vid)
+	if err != nil {
+		if errors.Is(err, controller_db.ErrNotFoundCommit) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		if errors.Is(err, &controller_db.InputError{}) {
+			log.Printf("[CRITICAL] Missing error handling: %+v", err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		log.Printf("[ERROR] %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	info, err := v.cs.Get(cid)
+	if err != nil {
+		if errors.Is(err, controller_db.ErrNotFoundCommit) {
+			// The commit deleted before get detail info.
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		if errors.Is(err, &controller_db.InputError{}) {
+			log.Printf("[CRITICAL] Missing error handling: %+v", err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		log.Printf("[ERROR] %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &GetLastCommitResponse{
+		Id:   cid,
+		Info: info,
+	}, nil
 }
 func (*localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitService_ListCommitsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
