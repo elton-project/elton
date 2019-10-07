@@ -523,10 +523,6 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 			assert.Nil(t, res)
 		})
 	})
-	t.Run("should_fail_when_commit_info_is_invalid", func(t *testing.T) {
-		// TODO: 何をチェックする？
-		t.Error("todo")
-	})
 	t.Run("should_fail_when_it_contains_unreferenced_inodes", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
