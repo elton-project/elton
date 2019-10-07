@@ -117,8 +117,6 @@ message ListCommitsResponse {
   CommitID id = 2;
 }
 message CommitRequest {
-  CommitID leftParentID = 1;
-  CommitID rightParentID = 2;
   CommitInfo info = 3;
   Tree tree = 4;
   VolumeID id = 5;
