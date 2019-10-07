@@ -502,12 +502,15 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				Id: &elton_v2.VolumeID{Id: "test-volume"},
 				Info: &elton_v2.CommitInfo{
 					LeftParentID:  nil,
 					RightParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
 				},
+				Tree: &elton_v2.Tree{},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Equal(t, "cross-volume commit", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -515,11 +518,14 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				Id: &elton_v2.VolumeID{Id: "test-volume"},
 				Info: &elton_v2.CommitInfo{
 					LeftParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
 				},
+				Tree: &elton_v2.Tree{},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Equal(t, "cross-volume commit", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -527,6 +533,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				Id: &elton_v2.VolumeID{Id: "test-volume"},
 				Info: &elton_v2.CommitInfo{
 					CreatedAt: ptypes.TimestampNow(),
 				},
@@ -543,6 +550,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Equal(t, "invalid tree: unused I2F entry found: inode=3", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -550,6 +558,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				Id: &elton_v2.VolumeID{Id: "test-volume"},
 				Info: &elton_v2.CommitInfo{
 					CreatedAt: ptypes.TimestampNow(),
 				},
@@ -564,6 +573,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
+			assert.Equal(t, "invalid tree: no I2F entry: inode=1", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
