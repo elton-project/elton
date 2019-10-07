@@ -421,22 +421,28 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 			assert.NotNil(t, volume)
 
 			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
+			stream, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
 				Id: volume,
 			})
 			assert.NoError(t, err)
-			assert.NotNil(t, res)
+			assert.NotNil(t, stream)
+			res, err := stream.Recv()
+			assert.Equal(t, io.EOF, err)
+			assert.Nil(t, res)
 		})
 
 	})
 	t.Run("should_fail_when_volume_id_is_invalid", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
+			stream, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
 				Id: &elton_v2.VolumeID{
 					Id: "not-found",
 				},
 			})
+			assert.NoError(t, err)
+			assert.NotNil(t, stream)
+			res, err := stream.Recv()
 			assert.Error(t, err)
 			assert.Nil(t, res)
 		})
