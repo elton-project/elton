@@ -257,7 +257,8 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 	if err != nil {
 		if errors.Is(err, controller_db.ErrCrossVolumeCommit) ||
 			errors.Is(err, controller_db.ErrNotFoundVolume) ||
-			errors.Is(err, controller_db.ErrInvalidParentCommit) {
+			errors.Is(err, controller_db.ErrInvalidParentCommit) ||
+			errors.Is(err, controller_db.ErrInvalidTree) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 		if errors.Is(err, &controller_db.InputError{}) {
