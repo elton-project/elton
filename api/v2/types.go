@@ -59,7 +59,7 @@ func (t *Tree) FastValidate() error {
 		}
 		for i := range i2f {
 			if !inodes1.Contains(i) {
-				return xerrors.Errorf("unused I2F entry found: inode=%d")
+				return xerrors.Errorf("unused I2F entry found: inode=%d", i)
 			}
 		}
 	}
