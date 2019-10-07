@@ -483,11 +483,15 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			volume, commits := createCommits(t, dial, ctx, "test-volume", []*elton_v2.CommitRequest{
 				{
-					Info: nil,
-					Tree: nil,
+					Info: &elton_v2.CommitInfo{
+						CreatedAt: ptypes.TimestampNow(),
+					},
+					Tree: &elton_v2.Tree{},
 				}, {
-					Info: nil,
-					Tree: nil,
+					Info: &elton_v2.CommitInfo{
+						CreatedAt: ptypes.TimestampNow(),
+					},
+					Tree: &elton_v2.Tree{},
 				},
 			})
 			assert.NotEmpty(t, volume)
