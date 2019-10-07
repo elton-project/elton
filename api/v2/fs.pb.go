@@ -468,6 +468,7 @@ type ListCommitsRequest struct {
 	// 個数制限を無効化することはできない。
 	Limit uint64 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
 	// ページネーションされたときは、前回の最後の応答についていたnextの値を設定。
+	// 初回のリクエストの場合、空の文字列を指定。
 	Next                 string   `protobuf:"bytes,2,opt,name=next,proto3" json:"next,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

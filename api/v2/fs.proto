@@ -104,6 +104,7 @@ message ListCommitsRequest {
   // 個数制限を無効化することはできない。
   uint64 limit = 1;
   // ページネーションされたときは、前回の最後の応答についていたnextの値を設定。
+  // 初回のリクエストの場合、空の文字列を指定。
   string next = 2;
 }
 message ListCommitsResponse {
