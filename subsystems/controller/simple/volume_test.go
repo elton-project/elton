@@ -400,9 +400,12 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 	t.Run("should_fail_when_requesting_with_pagination", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
+			stream, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
 				Next: "invalid",
 			})
+			assert.NoError(t, err)
+			assert.NotNil(t, stream)
+			res, err := stream.Recv()
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Nil(t, res)
 		})
