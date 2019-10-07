@@ -461,8 +461,21 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 			assert.NotNil(t, volume)
 
 			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.Commit(ctx, &elton_v2.CommitRequest{})
-			assert.Error(t, err)
+			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
+				Id: volume,
+				Info: &elton_v2.CommitInfo{
+					CreatedAt: ptypes.TimestampNow(),
+				},
+				Tree: &elton_v2.Tree{
+					P2I: map[string]uint64{
+						"/": 1,
+					},
+					I2F: map[uint64]*elton_v2.FileID{
+						1: nil,
+					},
+				},
+			})
+			assert.NoError(t, err)
 			assert.NotNil(t, res)
 		})
 	})
