@@ -12,7 +12,7 @@ type InputError struct {
 }
 
 func (e *InputError) Error() string {
-	return e.Msg
+	return e.Msg + ": " + errors.Unwrap(e).Error()
 }
 func (e InputError) Wrap(next error) error {
 	e.WrapError = werror.Wrap(&e, next, 2)
