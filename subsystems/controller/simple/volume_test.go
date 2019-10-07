@@ -98,6 +98,16 @@ func createCommits(
 	}
 	return volumeID, ids
 }
+func createEmptyTree() *elton_v2.Tree {
+	return &elton_v2.Tree{
+		P2I: map[string]uint64{
+			"/": 1,
+		},
+		I2F: map[uint64]*elton_v2.FileID{
+			1: {Id: "root"},
+		},
+	}
+}
 
 func TestLocalVolumeServer_CreateVolume(t *testing.T) {
 	t.Run("should_success_when_new_volume_creation", func(t *testing.T) {
@@ -348,10 +358,7 @@ func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
 					Info: &elton_v2.CommitInfo{
 						CreatedAt: ptypes.TimestampNow(),
 					},
-					Tree: &elton_v2.Tree{
-						P2I: nil,
-						I2F: nil,
-					},
+					Tree: createEmptyTree(),
 				},
 			})
 			assert.NotNil(t, volume)
@@ -466,14 +473,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Info: &elton_v2.CommitInfo{
 					CreatedAt: ptypes.TimestampNow(),
 				},
-				Tree: &elton_v2.Tree{
-					P2I: map[string]uint64{
-						"/": 1,
-					},
-					I2F: map[uint64]*elton_v2.FileID{
-						1: nil,
-					},
-				},
+				Tree: createEmptyTree(),
 			})
 			assert.NoError(t, err)
 			assert.NotNil(t, res)
@@ -486,12 +486,12 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 					Info: &elton_v2.CommitInfo{
 						CreatedAt: ptypes.TimestampNow(),
 					},
-					Tree: &elton_v2.Tree{},
+					Tree: createEmptyTree(),
 				}, {
 					Info: &elton_v2.CommitInfo{
 						CreatedAt: ptypes.TimestampNow(),
 					},
-					Tree: &elton_v2.Tree{},
+					Tree: createEmptyTree(),
 				},
 			})
 			assert.NotEmpty(t, volume)
@@ -507,7 +507,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 					LeftParentID:  nil,
 					RightParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
 				},
-				Tree: &elton_v2.Tree{},
+				Tree: createEmptyTree(),
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Equal(t, "cross-volume commit", status.Convert(err).Message())
@@ -522,7 +522,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Info: &elton_v2.CommitInfo{
 					LeftParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
 				},
-				Tree: &elton_v2.Tree{},
+				Tree: createEmptyTree(),
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Equal(t, "cross-volume commit", status.Convert(err).Message())
