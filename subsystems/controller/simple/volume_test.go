@@ -389,9 +389,7 @@ func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
 	t.Run("should_fail_when_invalid_volume_id", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.GetLastCommit(ctx, &elton_v2.GetLastCommitRequest{
-				VolumeId: nil,
-			})
+			res, err := client.GetLastCommit(ctx, &elton_v2.GetLastCommitRequest{})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Nil(t, res)
 		})
