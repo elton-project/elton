@@ -106,6 +106,8 @@ message ListCommitsRequest {
   // ページネーションされたときは、前回の最後の応答についていたnextの値を設定。
   // 初回のリクエストの場合、空の文字列を指定。
   string next = 2;
+  // コミットの一覧を取得するvolume。
+  VolumeID id = 3;
 }
 message ListCommitsResponse {
   // streamの一番最後、かつ個数制限により応答できていないアイテムが存在する場合、この値が設定される。
