@@ -573,7 +573,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
-			assert.Equal(t, "invalid tree: no I2F entry: inode=1", status.Convert(err).Message())
+			assert.Equal(t, "invalid tree: no I2F entry: inode=2", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
