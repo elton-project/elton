@@ -542,7 +542,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Tree: createEmptyTree(),
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
-			assert.Equal(t, "cross-volume commit", status.Convert(err).Message())
+			assert.Contains(t, status.Convert(err).Message(), "invalid parent commit: ")
 			assert.Nil(t, res)
 		})
 	})
