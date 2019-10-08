@@ -121,7 +121,6 @@ type CommitStore interface {
 	TreeByTreeID(id *TreeID) (*Tree, error)
 }
 
-// TODO: エラー
 type NodeStore interface {
 	// Register a node.
 	//
