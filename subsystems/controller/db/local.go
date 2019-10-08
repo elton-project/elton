@@ -8,6 +8,7 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
 	"go.etcd.io/bbolt"
 	"golang.org/x/xerrors"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -424,6 +425,7 @@ func (vs *localVS) Delete(id *VolumeID) error {
 			return ErrNotFoundVolume.Wrap(fmt.Errorf("id=%s", id))
 		}
 		info := vs.Dec.VolumeInfo(data)
+		log.Printf("[INFO] Deleting %s volume", info.GetName())
 
 		// Delete volume info.
 		if err := vb.Delete(vs.Enc.VolumeID(id)); err != nil {
@@ -436,8 +438,7 @@ func (vs *localVS) Delete(id *VolumeID) error {
 		// Get latest commit.
 		data = lcb.Get(vs.Enc.VolumeID(id))
 		if len(data) == 0 {
-			// Not found commit.
-			// TODO; write logging message for no commit.
+			// Volume is empty.  We don't need to delete commits and trees.
 			return nil
 		}
 		commitStack := make([]*CommitID, 0, 1024)
@@ -448,14 +449,15 @@ func (vs *localVS) Delete(id *VolumeID) error {
 			commit := commitStack[len(commitStack)-1]
 			commitStack = commitStack[0 : len(commitStack)-1]
 			if commit.Empty() {
-				// TODO: write warning message.
+				log.Printf("[WARN] Found an empty CommitID")
 				continue
 			}
+			log.Printf("[INFO] Deleting commit %s", commit)
 
 			// Get current commit info.
 			data := cb.Get(vs.Enc.CommitID(commit))
 			if len(data) == 0 {
-				// TODO: write warning message.
+				log.Printf("[WARN] Not found CommitInfo in commit bucket: %s", commit)
 				continue
 			}
 			commitInfo := vs.Dec.CommitInfo(data)
@@ -474,7 +476,7 @@ func (vs *localVS) Delete(id *VolumeID) error {
 				return IErrDelete.Wrap(err)
 			}
 			if tree.Empty() {
-				// TODO: write warning message.
+				log.Printf("[WARN] CommitInfo.Tree is empty: %s", commit)
 				continue
 			}
 			if err := tb.Delete(vs.Enc.TreeID(tree)); err != nil {
