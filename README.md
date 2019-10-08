@@ -27,9 +27,13 @@ Elton is a distributed file system for accelerate data sharing through the WAN.
 ### Build
 
 ```bash
-$ make binary
+$ make
 ```
 
 ### Test
+
+```bash
+$ make test
+```
 
 ### Run
