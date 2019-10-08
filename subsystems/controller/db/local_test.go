@@ -437,7 +437,7 @@ func TestLocalCS_Create(t *testing.T) {
 
 			vid := &VolumeID{Id: "not-found"}
 			cid, err := cs.Create(vid, &CommitInfo{}, createTree())
-			assert.EqualError(t, err, "not found volume")
+			assert.Contains(t, err.Error(), "not found volume: ")
 			assert.Nil(t, cid)
 		})
 
