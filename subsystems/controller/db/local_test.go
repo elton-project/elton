@@ -28,6 +28,16 @@ func withLocalDB(t *testing.T, fn func(stores Stores)) {
 
 	fn(stores)
 }
+func createTree() *Tree {
+	return &Tree{
+		P2I: map[string]uint64{
+			"/": 1,
+		},
+		I2F: map[uint64]*FileID{
+			1: {},
+		},
+	}
+}
 
 func TestLocalVS_Get(t *testing.T) {
 	t.Run("should_error_when_access_not_found_volume", func(t *testing.T) {
@@ -414,7 +424,7 @@ func TestLocalCS_Create(t *testing.T) {
 						Id: vid2,
 					},
 				},
-				&Tree{},
+				createTree(),
 			)
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), "cross-volume commit: ")
@@ -426,7 +436,7 @@ func TestLocalCS_Create(t *testing.T) {
 			cs := stores.CommitStore()
 
 			vid := &VolumeID{Id: "not-found"}
-			cid, err := cs.Create(vid, &CommitInfo{}, &Tree{})
+			cid, err := cs.Create(vid, &CommitInfo{}, createTree())
 			assert.EqualError(t, err, "not found volume")
 			assert.Nil(t, cid)
 		})
@@ -447,8 +457,8 @@ func TestLocalCS_Create(t *testing.T) {
 			}
 			cid, err := cs.Create(vid, &CommitInfo{
 				LeftParentID: invalidCID,
-			}, &Tree{})
-			assert.EqualError(t, err, "invalid parent commit")
+			}, createTree())
+			assert.Contains(t, err.Error(), "invalid parent commit: ")
 			assert.Nil(t, cid)
 		})
 	})
