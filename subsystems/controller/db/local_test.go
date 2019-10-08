@@ -101,7 +101,77 @@ func TestLocalVS_Exists(t *testing.T) {
 }
 
 func TestLocalVS_Delete(t *testing.T) {
-	// TODO
+	t.Run("should_success_when_volume_is_empty", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			volume, err := vs.Create(&VolumeInfo{Name: "foo"})
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.NotNil(t, volume)
+
+			err = vs.Delete(volume)
+			assert.NoError(t, err)
+		})
+	})
+	t.Run("should_success", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+			// Create a volume.
+			volume, err := vs.Create(&VolumeInfo{Name: "foo"})
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.NotNil(t, volume)
+
+			// Create commits.
+			commit, err := cs.Create(volume, &CommitInfo{
+				CreatedAt: ptypes.TimestampNow(),
+			}, createTree())
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.NotNil(t, commit)
+
+			commit2, err := cs.Create(volume, &CommitInfo{
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: commit,
+			}, createTree())
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.NotNil(t, commit2)
+
+			// Delete commit.
+			err = vs.Delete(volume)
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.NoError(t, err)
+
+			// Checks that all commits are deleted.
+			info, err := cs.Get(commit)
+			if !assert.Error(t, err) {
+				return
+			}
+			assert.Contains(t, err.Error(), "not found commit: ")
+			assert.Nil(t, info)
+			info, err = cs.Get(commit2)
+			if !assert.Error(t, err) {
+			}
+			assert.Contains(t, err.Error(), "not found commit: ")
+			assert.Nil(t, info)
+		})
+	})
+	t.Run("should_fail_when_volume_id_is_invalid", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			err := vs.Delete(&VolumeID{Id: "foo"})
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "not found volume: ")
+		})
+	})
 }
 
 func TestLocalVS_Create(t *testing.T) {
