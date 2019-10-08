@@ -273,7 +273,7 @@ func TestLocalCS_Exists(t *testing.T) {
 				CreatedAt:    ptypes.TimestampNow(),
 				LeftParentID: nil,
 				TreeID:       nil,
-			}, &Tree{})
+			}, createTree())
 			if !assert.NoError(t, err) {
 				return
 			}
@@ -311,7 +311,7 @@ func TestLocalCS_Parents(t *testing.T) {
 			}
 			cid, err := cs.Create(vid, &CommitInfo{
 				CreatedAt: ptypes.TimestampNow(),
-			}, &Tree{})
+			}, createTree())
 			if !assert.NoError(t, err) {
 				return
 			}
@@ -336,14 +336,14 @@ func TestLocalCS_Parents(t *testing.T) {
 			}
 			cid, err := cs.Create(vid, &CommitInfo{
 				CreatedAt: ptypes.TimestampNow(),
-			}, &Tree{})
+			}, createTree())
 			if !assert.NoError(t, err) {
 				return
 			}
 			cid2, err := cs.Create(vid, &CommitInfo{
 				CreatedAt:    ptypes.TimestampNow(),
 				LeftParentID: cid,
-			}, &Tree{})
+			}, createTree())
 			if !assert.NoError(t, err) {
 				return
 			}
@@ -394,7 +394,7 @@ func TestLocalCS_Latest(t *testing.T) {
 			if !assert.NoError(t, err) {
 				return
 			}
-			_, err = cs.Create(vid, &CommitInfo{}, &Tree{})
+			_, err = cs.Create(vid, &CommitInfo{}, createTree())
 			if assert.NoError(t, err) {
 				return
 			}
