@@ -414,7 +414,11 @@ func (vs *localVS) Delete(id *VolumeID) error {
 	return vs.DB.Update(func(tx *bbolt.Tx) error {
 		vb := tx.Bucket(localVolumeBucket)
 		vnb := tx.Bucket(localVolumeNameBucket)
+		lcb := tx.Bucket(localLatestCommitBucket)
+		cb := tx.Bucket(localCommitBucket)
+		tb := tx.Bucket(localTreeBucket)
 
+		// Get volume info.
 		data := vb.Get(vs.Enc.VolumeID(id))
 		if len(data) == 0 {
 			return ErrNotFoundVolume.Wrap(fmt.Errorf("id=%s", id))
@@ -429,8 +433,54 @@ func (vs *localVS) Delete(id *VolumeID) error {
 			return IErrDelete.Wrap(err)
 		}
 
-		// TODO: Delete commit data.
-		// TODO: Delete latest commit data.
+		// Get latest commit.
+		data = lcb.Get(vs.Enc.VolumeID(id))
+		if len(data) == 0 {
+			// Not found commit.
+			// TODO; write logging message for no commit.
+			return nil
+		}
+		commitStack := make([]*CommitID, 0, 1024)
+		commitStack = append(commitStack, vs.Dec.CommitID(data))
+
+		// Delete commits and trees.
+		for len(commitStack) > 0 {
+			commit := commitStack[len(commitStack)-1]
+			commitStack = commitStack[0 : len(commitStack)-1]
+			if commit.Empty() {
+				// TODO: write warning message.
+				continue
+			}
+
+			// Get current commit info.
+			data := cb.Get(vs.Enc.CommitID(commit))
+			if len(data) == 0 {
+				// TODO: write warning message.
+				continue
+			}
+			commitInfo := vs.Dec.CommitInfo(data)
+			tree := commitInfo.GetTreeID()
+
+			// Enqueue next commits.
+			if !commitInfo.GetLeftParentID().Empty() {
+				commitStack = append(commitStack, commitInfo.GetLeftParentID())
+			}
+			if !commitInfo.GetRightParentID().Empty() {
+				commitStack = append(commitStack, commitInfo.GetRightParentID())
+			}
+
+			// Delete a commit and tree.
+			if err := cb.Delete(vs.Enc.CommitID(commit)); err != nil {
+				return IErrDelete.Wrap(err)
+			}
+			if tree.Empty() {
+				// TODO: write warning message.
+				continue
+			}
+			if err := tb.Delete(vs.Enc.TreeID(tree)); err != nil {
+				return IErrDelete.Wrap(err)
+			}
+		}
 		return nil
 	})
 }
