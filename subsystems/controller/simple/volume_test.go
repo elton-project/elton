@@ -2,6 +2,7 @@ package simple
 
 import (
 	"context"
+	"fmt"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
@@ -11,10 +12,25 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
+	"math/rand"
 	"sort"
 	"testing"
 )
 
+func createVolume(t *testing.T, dial func() *grpc.ClientConn, ctx context.Context) *elton_v2.VolumeID {
+	client := elton_v2.NewVolumeServiceClient(dial())
+	res, err := client.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
+		Info: &elton_v2.VolumeInfo{
+			Name: "volume-" + fmt.Sprint(rand.Int63()),
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	t.Logf("new VolumeID: %s", res.GetId().GetId())
+	return res.Id
+}
 func createVolumesByName(t *testing.T, client elton_v2.VolumeServiceClient, ctx context.Context, names []string) ([]*elton_v2.VolumeID, error) {
 	var ids []*elton_v2.VolumeID
 	for _, name := range names {
@@ -516,11 +532,12 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 	})
 	t.Run("should_fail_when_non_existent_parent_id_is_specified", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			volume := createVolume(t, dial, ctx)
 			client := elton_v2.NewCommitServiceClient(dial())
 			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				Id: &elton_v2.VolumeID{Id: "foo"},
+				Id: volume,
 				Info: &elton_v2.CommitInfo{
-					LeftParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+					LeftParentID: &elton_v2.CommitID{Id: volume, Number: 1},
 				},
 				Tree: createEmptyTree(),
 			})
