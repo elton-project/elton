@@ -183,7 +183,7 @@ func TestLocalVolumeServer_DeleteVolume(t *testing.T) {
 				Id: &elton_v2.VolumeID{Id: "invalid-id"},
 			})
 			assert.Equal(t, codes.NotFound, status.Code(err))
-			assert.Equal(t, "not found volume", status.Convert(err).Message())
+			assert.Contains(t, status.Convert(err).Message(), "not found volume: ")
 		})
 	})
 }
@@ -336,7 +336,7 @@ func TestLocalVolumeServer_InspectVolume(t *testing.T) {
 			res, err := client.InspectVolume(ctx, &elton_v2.InspectVolumeRequest{
 				Id: &elton_v2.VolumeID{Id: "not-found"},
 			})
-			assert.Equal(t, status.Convert(err).Message(), "not found volume")
+			assert.Contains(t, status.Convert(err).Message(), "not found volume: ")
 			assert.Equal(t, codes.NotFound, status.Code(err))
 			assert.Nil(t, res)
 		})

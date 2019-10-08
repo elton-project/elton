@@ -37,7 +37,8 @@ func TestLocalVS_Get(t *testing.T) {
 				Id: "33221100",
 			}
 			info, err := vs.Get(notExistsID)
-			assert.EqualError(t, err, "not found volume")
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "not found volume: ")
 			assert.Nil(t, info)
 		})
 	})
@@ -115,7 +116,8 @@ func TestLocalVS_Create(t *testing.T) {
 			_, err = vs.Create(&VolumeInfo{
 				Name: "foo",
 			})
-			assert.EqualError(t, err, "duplicate volume name")
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "duplicate volume name: ")
 		})
 	})
 }
@@ -175,7 +177,8 @@ func TestLocalCS_Get(t *testing.T) {
 				Id:     vid,
 				Number: 0,
 			})
-			assert.EqualError(t, err, "not found commit")
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "not found commit: ")
 			assert.Nil(t, ci)
 		})
 	})
@@ -279,7 +282,8 @@ func TestLocalCS_Parents(t *testing.T) {
 			left, right, err := cs.Parents(&CommitID{
 				Id: &VolumeID{Id: "not-found"},
 			})
-			assert.EqualError(t, err, "not found commit")
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "not found commit: ")
 			assert.Nil(t, left)
 			assert.Nil(t, right)
 		})
@@ -350,7 +354,7 @@ func TestLocalCS_Latest(t *testing.T) {
 			cid, err := cs.Latest(&VolumeID{
 				Id: "not-found",
 			})
-			assert.EqualError(t, err, "not found commit")
+			assert.EqualError(t, err, "not found commit: no commit in volume")
 			assert.Nil(t, cid)
 		})
 	})
@@ -365,7 +369,7 @@ func TestLocalCS_Latest(t *testing.T) {
 				return
 			}
 			cid, err := cs.Latest(vid)
-			assert.EqualError(t, err, "not found commit")
+			assert.EqualError(t, err, "not found commit: no commit in volume")
 			assert.True(t, errors.Is(err, ErrNotFoundCommit))
 			assert.Nil(t, cid)
 		})
@@ -412,7 +416,8 @@ func TestLocalCS_Create(t *testing.T) {
 				},
 				&Tree{},
 			)
-			assert.EqualError(t, err, "cross-volume commit")
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "cross-volume commit: ")
 			assert.Nil(t, cid)
 		})
 	})
@@ -457,7 +462,8 @@ func TestLocalCS_Tree(t *testing.T) {
 				Id:     &VolumeID{Id: "not_found"},
 				Number: 0,
 			})
-			assert.EqualError(t, err, "not found commit")
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "not found commit: ")
 			assert.Nil(t, tid)
 			assert.Nil(t, tree)
 		})
@@ -505,7 +511,8 @@ func TestLocalCS_TreeByTreeID(t *testing.T) {
 			tree, err := cs.TreeByTreeID(&TreeID{
 				Id: "not_found",
 			})
-			assert.EqualError(t, err, "not found tree")
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "not found tree: ")
 			assert.Nil(t, tree)
 		})
 	})

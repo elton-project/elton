@@ -39,7 +39,7 @@ func TestLocalNodeServer_RegisterNode(t *testing.T) {
 				Node: &elton_v2.Node{Name: "bar"},
 			})
 			assert.Equal(t, codes.AlreadyExists, status.Code(err))
-			assert.Equal(t, "node already exists", status.Convert(err).Message())
+			assert.Contains(t, status.Convert(err).Message(), "node already exists: ")
 			assert.Nil(t, res)
 		})
 	})
@@ -85,7 +85,7 @@ func TestLocalNodeServer_Ping(t *testing.T) {
 				Id: &elton_v2.NodeID{Id: "deleted-node"},
 			})
 			assert.Equal(t, codes.NotFound, status.Code(err))
-			assert.Equal(t, "not found node", status.Convert(err).Message())
+			assert.Contains(t, status.Convert(err).Message(), "not found node: ")
 			assert.Nil(t, pres)
 		})
 	})

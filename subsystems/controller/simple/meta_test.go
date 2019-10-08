@@ -68,7 +68,7 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 				MustCreate: true,
 			})
 			assert.Equal(t, codes.AlreadyExists, status.Code(err))
-			assert.Equal(t, "already exists", status.Convert(err).Message())
+			assert.Contains(t, status.Convert(err).Message(), "already exists: ")
 			assert.Nil(t, res)
 		})
 	})
@@ -88,7 +88,7 @@ func TestLocalMetaServer_SetMeta(t *testing.T) {
 				Body: &elton_v2.Property{Body: "version 2", AllowReplace: true},
 			})
 			assert.Equal(t, codes.Unauthenticated, status.Code(err))
-			assert.Equal(t, "replacement not allowed", status.Convert(err).Message())
+			assert.Contains(t, status.Convert(err).Message(), "replacement not allowed: ")
 			assert.Nil(t, res)
 		})
 	})
