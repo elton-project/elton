@@ -369,13 +369,29 @@ const _ = grpc.SupportPackageIsVersion4
 type NodeServiceClient interface {
 	// クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
 	// ノードの情報を登録・更新をする。
+	//
+	// Error:
+	// - AlreadyExists: If specified NodeID is already registered.
+	// - Internal
 	RegisterNode(ctx context.Context, in *RegisterNodeRequest, opts ...grpc.CallOption) (*RegisterNodeResponse, error)
 	// クラスタから脱退するときに呼び出すAPI。
 	// ノードの退避処理を行い、ノードの情報を削除する。
+	//
+	// Error:
+	// - NotFound: If specified NodeID is not found.
+	// - Internal
 	UnregisterNode(ctx context.Context, in *UnregisterNodeRequest, opts ...grpc.CallOption) (*UnregisterNodeResponse, error)
 	// ノードが生存していることをcontrollerに通知する。
+	//
+	// Error:
+	// - NotFound: If specified NodeId is not found.
+	// - Internal
 	Ping(ctx context.Context, in *PingNodeRequest, opts ...grpc.CallOption) (*PingNodeResponse, error)
 	// 全ノードの一覧を取得する。
+	//
+	// Error:
+	// - Aborted: If interrupt of the nodes listing task.
+	// - Internal
 	ListNodes(ctx context.Context, in *ListNodesRequest, opts ...grpc.CallOption) (NodeService_ListNodesClient, error)
 }
 
@@ -450,13 +466,29 @@ func (x *nodeServiceListNodesClient) Recv() (*ListNodesResponse, error) {
 type NodeServiceServer interface {
 	// クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
 	// ノードの情報を登録・更新をする。
+	//
+	// Error:
+	// - AlreadyExists: If specified NodeID is already registered.
+	// - Internal
 	RegisterNode(context.Context, *RegisterNodeRequest) (*RegisterNodeResponse, error)
 	// クラスタから脱退するときに呼び出すAPI。
 	// ノードの退避処理を行い、ノードの情報を削除する。
+	//
+	// Error:
+	// - NotFound: If specified NodeID is not found.
+	// - Internal
 	UnregisterNode(context.Context, *UnregisterNodeRequest) (*UnregisterNodeResponse, error)
 	// ノードが生存していることをcontrollerに通知する。
+	//
+	// Error:
+	// - NotFound: If specified NodeId is not found.
+	// - Internal
 	Ping(context.Context, *PingNodeRequest) (*PingNodeResponse, error)
 	// 全ノードの一覧を取得する。
+	//
+	// Error:
+	// - Aborted: If interrupt of the nodes listing task.
+	// - Internal
 	ListNodes(*ListNodesRequest, NodeService_ListNodesServer) error
 }
 

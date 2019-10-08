@@ -4,8 +4,23 @@ import "types.proto";
 
 // Storageサブシステムが、他のサブシステムに公開しているサービス。
 service StorageService {
+  // Create and save an object.
+  //
+  // Error:
+  // - InvalidArgument: If specified object is invalid.
+  // - AlreadyExists: ???  TODO
   rpc CreateObject(CreateObjectRequest) returns (CreateObjectResponse);
+  // Get an object.
+  //
+  // Error:
+  // - InvalidArgument
+  // - Internal
   rpc GetObject(GetObjectRequest) returns (GetObjectResponse);
+  // Delete an object.
+  //
+  // Error:
+  // - InvalidArgument
+  // - Internal
   rpc DeleteObject(DeleteObjectRequest) returns (DeleteObjectResponse);
 }
 

@@ -328,8 +328,23 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type StorageServiceClient interface {
+	// Create and save an object.
+	//
+	// Error:
+	// - InvalidArgument: If specified object is invalid.
+	// - AlreadyExists: ???  TODO
 	CreateObject(ctx context.Context, in *CreateObjectRequest, opts ...grpc.CallOption) (*CreateObjectResponse, error)
+	// Get an object.
+	//
+	// Error:
+	// - InvalidArgument
+	// - Internal
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
+	// Delete an object.
+	//
+	// Error:
+	// - InvalidArgument
+	// - Internal
 	DeleteObject(ctx context.Context, in *DeleteObjectRequest, opts ...grpc.CallOption) (*DeleteObjectResponse, error)
 }
 
@@ -370,8 +385,23 @@ func (c *storageServiceClient) DeleteObject(ctx context.Context, in *DeleteObjec
 
 // StorageServiceServer is the server API for StorageService service.
 type StorageServiceServer interface {
+	// Create and save an object.
+	//
+	// Error:
+	// - InvalidArgument: If specified object is invalid.
+	// - AlreadyExists: ???  TODO
 	CreateObject(context.Context, *CreateObjectRequest) (*CreateObjectResponse, error)
+	// Get an object.
+	//
+	// Error:
+	// - InvalidArgument
+	// - Internal
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
+	// Delete an object.
+	//
+	// Error:
+	// - InvalidArgument
+	// - Internal
 	DeleteObject(context.Context, *DeleteObjectRequest) (*DeleteObjectResponse, error)
 }
 

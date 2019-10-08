@@ -6,13 +6,29 @@ import "types.proto";
 service NodeService {
   // クラスタに参加するときや、ノードの構成変更をしたときに呼び出すAPI。
   // ノードの情報を登録・更新をする。
+  //
+  // Error:
+  // - AlreadyExists: If specified NodeID is already registered.
+  // - Internal
   rpc RegisterNode(RegisterNodeRequest) returns (RegisterNodeResponse);
   // クラスタから脱退するときに呼び出すAPI。
   // ノードの退避処理を行い、ノードの情報を削除する。
+  //
+  // Error:
+  // - NotFound: If specified NodeID is not found.
+  // - Internal
   rpc UnregisterNode(UnregisterNodeRequest) returns (UnregisterNodeResponse);
   // ノードが生存していることをcontrollerに通知する。
+  //
+  // Error:
+  // - NotFound: If specified NodeId is not found.
+  // - Internal
   rpc Ping(PingNodeRequest) returns (PingNodeResponse);
   // 全ノードの一覧を取得する。
+  //
+  // Error:
+  // - Aborted: If interrupt of the nodes listing task.
+  // - Internal
   rpc ListNodes(ListNodesRequest) returns (stream ListNodesResponse);
 }
 
