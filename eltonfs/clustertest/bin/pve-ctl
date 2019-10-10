@@ -38,8 +38,8 @@ unsafe_ssh() {
 }
 
 ssh_to_vm() {
-  local node=elton-pve1
-  local vmid=$1
+  local node=$1
+  local vmid=$2
   shift
 
   local ip
@@ -100,18 +100,19 @@ get_node_ip() {
 }
 
 wait_node_to_up() {
-  local vmid=$1
+  local node=$1
+  local vmid=$2
 
   # Wait for all cloud-init tasks to complete.
-  until ssh_to_vm "$vmid" systemctl status cloud-final | grep 'Active: active (exited) since'; do
+  until ssh_to_vm "$node" "$vmid" systemctl status cloud-final | grep 'Active: active (exited) since'; do
     sleep 1
   done
   # The target host is started and all cloud-init tasks are completed.
 }
 
 wait_node_to_down() {
-  local node=elton-pve1
-  local vmid=$1
+  local node=$1
+  local vmid=$2
 
   while [[ "$(get_node_status "$node" "$vmid")" != "stopped" ]]; do
     sleep 1
@@ -196,11 +197,11 @@ run_setup_script() {
     --vcpus "$VCPUS"
   # Run the setup script.
   remote pvesh create "/nodes/${node}/qemu/${vmid}/status/start"
-  wait_node_to_up "$vmid"
-  ssh_to_vm "$vmid" bash <"$SETUP_SCRIPT_FILE"
-  ssh_to_vm "$vmid" poweroff ||
+  wait_node_to_up "$node" "$vmid"
+  ssh_to_vm "$node" "$vmid" bash <"$SETUP_SCRIPT_FILE"
+  ssh_to_vm "$node" "$vmid" poweroff ||
     echo 'WARNING: Ignored an error that occured in poweroff.'
-  wait_node_to_down "$vmid"
+  wait_node_to_down "$node" "$vmid"
   # Enable qemu agent.
   remote pvesh set "/nodes/${node}/qemu/${vmid}/config" \
     --agent enabled=1,fstrim_cloned_disks=1
