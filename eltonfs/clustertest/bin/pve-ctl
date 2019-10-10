@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+
+set -eux
+: "${API_NODE:=192.168.189.40}"
+: "${GATEWAY:=192.168.189.1}"
+: "${SETUP_NODE:=192.168.189.149}"
+: "${SETUP_NODE_NETMASK:=24}"
+: "${SETUP_SCRIPT_FILE:=./node-setup.sh}"
+: "${UBUNTU_IMAGE_URL:=https://cloud-images.ubuntu.com/disco/current/disco-server-cloudimg-amd64.img}"
+: "${UBUNTU_IMAGE_PATH:=/var/tmp/ubuntu-19.04.img}"
+: "${STORAGE:=ssd}"
+: "${MEMORY_SIZE:=4096}"
+: "${ADDITIONAL_DISK_SIZE:=5G}"
+: "${VCPUS:=8}"
+
+remote() {
+  # 空白やエスケープが必要な引数を持つコマンドを、ssh経由で正しく実行するための処置。
+  # 引数をNULL区切りにすることで、問題発生を回避する。
+  printf "%s\0" "$@" | ssh "root@${API_NODE}" -- xargs -0 env
+}
+
+unsafe_ssh() {
+  ssh -T -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "$@"
+}
+
+ssh_to_vm() {
+  local node=elton-pve1
+  local vmid=$1
+  shift
+
+  local ip
+  ip=$(get_node_ip "$vmid")
+  unsafe_ssh "root@$ip" "$@"
+}
+
+list_nodes() {
+  remote pvesh get /nodes --output-format=json |
+    jq '.[].node' --raw-output |
+    sort -u
+}
+
+list_vms() {
+  local node=$1
+  remote pvesh get "/nodes/$node/qemu" --output-format=json |
+    jq '.[].vmid' --raw-output
+}
+
+is_protected() {
+  local node=$1
+  local vmid=$2
+  remote pvesh get "/nodes/$node/qemu/$vmid/config" --output-format=json |
+    jq '.protection // 0' --raw-output |
+    grep -v '^0$' >/dev/null
+}
+
+get_vm_name() {
+  local vmid=$1
+  remote pvesh get "/nodes/elton-pve1/qemu/$vmid/config" --output-format=json |
+    jq '.name' --raw-output
+}
+
+get_node_status() {
+  local vmid=$1
+  remote pvesh get "/nodes/elton-pve1/qemu/$vmid/status/current" --output-format=json |
+    jq '.status' --raw-output
+}
+
+get_node_ip() {
+  local vmid=$1
+  remote pvesh get "/nodes/elton-pve1/qemu/$vmid/config" --output-format=json |
+    jq '.ipconfig0' --raw-output |
+    sed 's/,/\n/g' |
+    grep '^ip=' |
+    sed 's@^ip=@@; s@/[0-9]\+$@@'
+}
+
+wait_node_to_up() {
+  local vmid=$1
+
+  # Wait for all cloud-init tasks to complete.
+  until ssh_to_vm "$vmid" systemctl status cloud-final | grep 'Active: active (exited) since'; do
+    sleep 1
+  done
+  # The target host is started and all cloud-init tasks are completed.
+}
+
+wait_node_to_down() {
+  local vmid=$1
+
+  while [[ "$(get_node_status "$vmid")" != "stopped" ]]; do
+    sleep 1
+  done
+}
+
+remove_vm() {
+  local node=$1
+  local vmid=$2
+  if remote pvesh get "/nodes/$node/qemu/$vmid/status/current" --output-format=json; then
+    # WORKAROUND: The "pvesh delete" command always return non-zero exit code.
+    #             Ignore an error to prevent script interruption.
+    remote pvesh delete "/nodes/$node/qemu/$vmid" ||
+      echo 'WARNING: Ignored an error that occurred in "pvesh delete" command.'
+  fi
+}
+
+clone_template() {
+  local node=$1
+  local from=$2
+  local to=$3
+  local name=$4
+  local desc=$5
+
+  remote pvesh create "/nodes/$node/qemu/$from/clone" \
+    --newid "$to" \
+    --name "$name" \
+    --description "$desc" \
+    --pool clustertest \
+    --full 1
+  # Unset the protection flag.
+  remote pvesh set "/nodes/$node/qemu/$to/config" \
+    --protection 0
+}
+
+set_storage() {
+  local node=elton-pve1
+  local vmid=$1
+
+  # Download latest image.
+  remote rm -f "$UBUNTU_IMAGE_PATH"
+  remote wget "$UBUNTU_IMAGE_URL" -O "$UBUNTU_IMAGE_PATH"
+  # Set disk to the VM.
+  remote qm importdisk "$vmid" "$UBUNTU_IMAGE_PATH" "$STORAGE" --format qcow2
+  remote pvesh set "/nodes/$node/qemu/$vmid/config" \
+    --scsi0 "$STORAGE:$vmid/vm-$vmid-disk-0.qcow2,discard=on,ssd=on,cache=unsafe"
+  # Increase disk size.
+  remote pvesh set "/nodes/$node/qemu/$vmid/resize" \
+    --disk scsi0 \
+    --size "+$ADDITIONAL_DISK_SIZE"
+}
+
+convert_to_template() {
+  local node=elton-pve1
+  local vmid=$1
+
+  remote pvesh create "nodes/$node/qemu/$vmid/template"
+}
+
+run_setup_script() {
+  local node=elton-pve1
+  local vmid=$1
+
+  remote pvesh set "/nodes/${node}/qemu/${vmid}/config" \
+    --ipconfig0 "gw=${GATEWAY},ip=${SETUP_NODE}/${SETUP_NODE_NETMASK}" \
+    --agent enabled=0 \
+    --memory "$MEMORY_SIZE" \
+    --sockets 1 \
+    --cores "$VCPUS" \
+    --vcpus "$VCPUS"
+  # Run the setup script.
+  remote pvesh create "/nodes/${node}/qemu/${vmid}/status/start"
+  wait_node_to_up "$vmid"
+  ssh_to_vm "$vmid" bash <"$SETUP_SCRIPT_FILE"
+  ssh_to_vm "$vmid" poweroff ||
+    echo 'WARNING: Ignored an error that occured in poweroff.'
+  wait_node_to_down "$vmid"
+  # Enable qemu agent.
+  remote pvesh set "/nodes/${node}/qemu/${vmid}/config" \
+    --agent enabled=1,fstrim_cloned_disks=1
+}
+
+copy_template_to_all_nodes() {
+  # Template ID
+  local tmpl=$1
+
+  tmpl_name=$(get_vm_name "$tmpl")
+  desc="This VM cloned from original template"
+  storage=ssd
+  for t in $(list_nodes); do
+    next=$(remote pvesh get /cluster/nextid)
+    remote pvesh create "/nodes/elton-pve1/qemu/$tmpl/clone" \
+      --newid "$next" \
+      --name "$tmpl_name-$t" \
+      --description "$desc" \
+      --pool clustertest \
+      --full 1 \
+      --storage "$storage"
+    remote pvesh create "/nodes/elton-pve1/qemu/$next/template"
+    if [[ elton-pve1 != "$t" ]]; then
+      remote pvesh create "/nodes/elton-pve1/qemu/$next/migrate" \
+        --target "$t" \
+        --online 1 \
+        --targetstorage "$storage"
+    fi
+    (
+      sleep 10
+      remote pvesh set "/nodes/$t/qemu/$next/config" --ide0 none || :
+      remote pvesh set "/nodes/$t/qemu/$next/config" --ide0 "$storage:cloudinit" || :
+    ) &
+  done
+  wait
+}
+
+# Rebuild test environment from scratch.
+# Existing VMs and templates are forcibly removed unless the protected flag is set.
+rebuild_all() {
+  remove_all
+
+  remove_vm elton-pve1 9100
+  clone_template elton-pve1 9000 9100 "template-ubuntu-19.04-ltp" "The VM template for running LTP test cases."
+  set_storage 9100
+  run_setup_script 9100
+  convert_to_template 9100
+  copy_template_to_all_nodes 9100
+}
+
+# Remove all VMs and templates except the protected VMs and templates.
+remove_all() {
+  for node in $(list_nodes); do
+    for vmid in $(list_vms "$node"); do
+      if is_protected "$node" "$vmid"; then
+        continue
+      fi
+      remove_vm "$node" "$vmid"
+    done
+  done
+}
+
+"$@"
