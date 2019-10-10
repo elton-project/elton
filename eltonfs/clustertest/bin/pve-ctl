@@ -4,16 +4,27 @@
 #   pve-ctl remove_vms       - Stop and remove all VMs.
 
 set -eux
+# IP address or domain name of the Proxmox VE master node.
 : "${API_NODE:=192.168.189.40}"
+# Gateway address
 : "${GATEWAY:=192.168.189.1}"
+# IP address used on the setup node.
 : "${SETUP_NODE:=192.168.189.149}"
+# Netmask used on the setup node.
 : "${SETUP_NODE_NETMASK:=24}"
+# Path to bash script file.
 : "${SETUP_SCRIPT_FILE:=./node-setup.sh}"
+# URL to latest cloud image of the Ubuntu 19.04.
 : "${UBUNTU_IMAGE_URL:=https://cloud-images.ubuntu.com/disco/current/disco-server-cloudimg-amd64.img}"
+# Path to temporary file location.
 : "${UBUNTU_IMAGE_PATH:=/var/tmp/ubuntu-19.04.img}"
+# Name of main storage.
 : "${STORAGE:=ssd}"
+# Memory size allocated to the setup node (in megabytes).
 : "${MEMORY_SIZE:=4096}"
+# Additional disk size allocated to the setup node (in megabytes).
 : "${ADDITIONAL_DISK_SIZE:=5G}"
+# Number of CPU cores allocated to the setup node.
 : "${VCPUS:=8}"
 
 remote() {
