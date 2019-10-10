@@ -92,10 +92,22 @@ wait_node_to_down() {
   done
 }
 
+stop_vm() {
+  local node=$1
+  local vmid=$2
+  if remote pvesh get "/nodes/$node/qemu/$vmid/status/current" --output-format=json; then
+    if [[ "$(get_node_status "$vmid")" != "stopped" ]]; then
+      remote pvesh create "/nodes/$node/qemu/$vmid/status/stop"
+    fi
+  fi
+}
+
 remove_vm() {
   local node=$1
   local vmid=$2
   if remote pvesh get "/nodes/$node/qemu/$vmid/status/current" --output-format=json; then
+    stop_vm "$node" "$vmid"
+
     # WORKAROUND: The "pvesh delete" command always return non-zero exit code.
     #             Ignore an error to prevent script interruption.
     remote pvesh delete "/nodes/$node/qemu/$vmid" ||
