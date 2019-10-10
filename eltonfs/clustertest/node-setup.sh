@@ -7,6 +7,11 @@ apt_install() {
     done
 }
 
+# Change mirror server.
+sed -i 's@//archive.ubuntu.com/@//jp.archive.ubuntu.com/@' /etc/apt/sources.list
+apt update
+apt upgrade -y
+
 apt_install qemu-guest-agent
 # Install the required packages for the elton.
 apt_install build-essential automake libattr1-dev
