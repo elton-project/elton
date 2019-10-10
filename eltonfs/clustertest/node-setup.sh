@@ -20,8 +20,9 @@ apt_install libaio-dev libnuma-dev libacl1-dev
 
 
 # Install LTP
-[ -d ltp-full-20190517 ] || curl -SsL https://github.com/linux-test-project/ltp/releases/download/20190517/ltp-full-20190517.tar.xz |xz -d |tar xv
-ln -s ltp-full-20190517 ltp
+LTP_VERSION=20190930
+[ -d ltp-full-$LTP_VERSION ] || curl -SsL https://github.com/linux-test-project/ltp/releases/download/$LTP_VERSION/ltp-full-$LTP_VERSION.tar.xz |xz -d |tar xv
+ln -s ltp-full-$LTP_VERSION ltp
 pushd ltp
 make autotools
 ./configure
