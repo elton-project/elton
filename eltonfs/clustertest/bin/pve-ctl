@@ -42,6 +42,7 @@ ssh_to_vm() {
   local node=$1
   local vmid=$2
   shift
+  shift
 
   local ip
   ip=$(get_node_ip "$node" "$vmid")
