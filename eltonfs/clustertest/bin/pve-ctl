@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Usage:
-#   pve-ctl rebuild_all      - Rebuild test environment from scratch.
-#   pve-ctl remove_vms       - Stop and remove all VMs.
+#   pve-ctl rebuild_all             - Rebuild test environment from scratch.
+#   pve-ctl remove_vms              - Stop and remove all VMs.
+#   pve-ctl ssh_to_vm <NODE> <VMID> - Connect to the VM using SSH.
 
 set -eux
 # IP address or domain name of the Proxmox VE master node.
