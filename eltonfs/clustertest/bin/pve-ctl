@@ -53,6 +53,14 @@ is_protected() {
     grep -v '^0$' >/dev/null
 }
 
+is_template() {
+  local node=$1
+  local vmid=$2
+  remote pvesh get "/nodes/$node/qemu/$vmid/config" --output-format=json |
+    jq '.template // 0' --raw-output |
+    grep -v '^0$' >/dev/null
+}
+
 get_vm_name() {
   local node=$1
   local vmid=$2
@@ -228,6 +236,18 @@ rebuild_all() {
   run_setup_script 9100
   convert_to_template 9100
   copy_template_to_all_nodes 9100
+}
+
+# Remove all VMs unless the protected flag is set.
+remove_vms() {
+  for node in $(list_nodes); do
+    for vmid in $(list_vms "$node"); do
+      if is_protected "$node" "$vmid" || is_template "$node" "$vmid"; then
+        continue
+      fi
+      remove_vm "$node" "$vmid"
+    done
+  done
 }
 
 # Remove all VMs and templates except the protected VMs and templates.
