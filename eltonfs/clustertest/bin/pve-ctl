@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Usage:
+#   pve-ctl rebuild_all      - Rebuild test environment from scratch.
+#   pve-ctl remove_vms       - Stop and remove all VMs.
 
 set -eux
 : "${API_NODE:=192.168.189.40}"
