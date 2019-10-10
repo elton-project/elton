@@ -29,7 +29,7 @@ ssh_to_vm() {
   shift
 
   local ip
-  ip=$(get_node_ip "$vmid")
+  ip=$(get_node_ip "$node" "$vmid")
   unsafe_ssh "root@$ip" "$@"
 }
 
@@ -54,20 +54,23 @@ is_protected() {
 }
 
 get_vm_name() {
-  local vmid=$1
-  remote pvesh get "/nodes/elton-pve1/qemu/$vmid/config" --output-format=json |
+  local node=$1
+  local vmid=$2
+  remote pvesh get "/nodes/$node/qemu/$vmid/config" --output-format=json |
     jq '.name' --raw-output
 }
 
 get_node_status() {
-  local vmid=$1
-  remote pvesh get "/nodes/elton-pve1/qemu/$vmid/status/current" --output-format=json |
+  local node=$1
+  local vmid=$2
+  remote pvesh get "/nodes/$node/qemu/$vmid/status/current" --output-format=json |
     jq '.status' --raw-output
 }
 
 get_node_ip() {
-  local vmid=$1
-  remote pvesh get "/nodes/elton-pve1/qemu/$vmid/config" --output-format=json |
+  local node=$1
+  local vmid=$2
+  remote pvesh get "/nodes/$node/qemu/$vmid/config" --output-format=json |
     jq '.ipconfig0' --raw-output |
     sed 's/,/\n/g' |
     grep '^ip=' |
@@ -85,9 +88,10 @@ wait_node_to_up() {
 }
 
 wait_node_to_down() {
+  local node=elton-pve1
   local vmid=$1
 
-  while [[ "$(get_node_status "$vmid")" != "stopped" ]]; do
+  while [[ "$(get_node_status "$node" "$vmid")" != "stopped" ]]; do
     sleep 1
   done
 }
@@ -96,7 +100,7 @@ stop_vm() {
   local node=$1
   local vmid=$2
   if remote pvesh get "/nodes/$node/qemu/$vmid/status/current" --output-format=json; then
-    if [[ "$(get_node_status "$vmid")" != "stopped" ]]; then
+    if [[ "$(get_node_status "$node" "$vmid")" != "stopped" ]]; then
       remote pvesh create "/nodes/$node/qemu/$vmid/status/stop"
     fi
   fi
@@ -182,9 +186,10 @@ run_setup_script() {
 
 copy_template_to_all_nodes() {
   # Template ID
+  local node=elton-pve1
   local tmpl=$1
 
-  tmpl_name=$(get_vm_name "$tmpl")
+  tmpl_name=$(get_vm_name "$node" "$tmpl")
   desc="This VM cloned from original template"
   storage=ssd
   for t in $(list_nodes); do
