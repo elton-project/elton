@@ -84,12 +84,12 @@
 					"  Occurred on %s (%s:%d)\n" \
 					"  Expr: %s\n" \
 					"  Result: %d\n" \
-					"  Expected: %d\n", \
+					"  Expected: %ld\n", \
 					msg, \
 					__func__, __FILE__, __LINE__, \
 					#expr, \
 					ret, \
-					expect \
+					(long int)(expect) \
 					); \
 			exit(1); \
 		} \
