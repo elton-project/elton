@@ -19,7 +19,7 @@
 		for (i = 0, pos = 0; \
 			pos < size; \
 			i++, pos += strlen(&list[pos]) + 1) { \
-			LOG_INFOF("list elm[%ld] = key:%s", i, &list[pos]); \
+			LOG_INFOF("list elm[%d] = key:%s", i, &list[pos]); \
 		} \
 	}while(0)
 
