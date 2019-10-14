@@ -64,5 +64,5 @@ specs:
           after:
             type: remote-shell
             commands:
-              - 'cat /outfile'
-              - 'cat /logfile'
+              - 'cat /outfile || :'
+              - 'cat /logfile || :'

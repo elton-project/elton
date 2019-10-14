@@ -83,5 +83,5 @@ specs:
             type: remote-shell
             commands:
               # Show logs
-              - 'cat /outfile'
-              - 'cat /logfile'
+              - 'cat /outfile || :'
+              - 'cat /logfile || :'
