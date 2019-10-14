@@ -126,7 +126,8 @@ stop_vm() {
   local vmid=$2
   if remote pvesh get "/nodes/$node/qemu/$vmid/status/current" --output-format=json; then
     if [[ "$(get_node_status "$node" "$vmid")" != "stopped" ]]; then
-      remote pvesh create "/nodes/$node/qemu/$vmid/status/stop"
+      remote pvesh create "/nodes/$node/qemu/$vmid/status/stop" ||
+        echo 'WARNING: Ignored an error that occurred in "pvesh create" command.'
     fi
   fi
 }
