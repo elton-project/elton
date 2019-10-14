@@ -10,7 +10,7 @@ clean:
 
 test-all: \
 	test-fast \
-	test-fails \
+	test-ltp-fails \
 	test-apps \
 	test-long-time
 
