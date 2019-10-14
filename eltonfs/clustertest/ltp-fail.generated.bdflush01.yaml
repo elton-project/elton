@@ -58,7 +58,8 @@ specs:
               - '/opt/ltp/runltp -s bdflush01 -p -d /mnt -l /logfile -o /outfile || :'
               # Show result
               - 'find /mnt -ls'
-              - 'df -h'
+              - 'df'
+              - 'df -i'
               - 'free -h'
               - 'mount'
           after:

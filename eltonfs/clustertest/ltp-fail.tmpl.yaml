@@ -53,7 +53,8 @@ specs:
               - '/opt/ltp/runltp -s {{r.cmd}} -p -d /mnt -l /logfile -o /outfile || :'
               # Show result
               - 'find /mnt -ls'
-              - 'df -h'
+              - 'df'
+              - 'df -i'
               - 'free -h'
               - 'mount'
           after:
