@@ -28,8 +28,6 @@ fcntl25
 fcntl25_64
 fcntl26
 fcntl26_64
-llistxattr01
-llistxattr02
 fcntl33
 fcntl33_64
 '''.strip().splitlines()
