@@ -16,6 +16,10 @@ warn_message = '''
 # このテストは、カーネルがハングしてしまい、clustertestが完走しない。
 # execveat03
 
+# このテストは、ファイルシステム以外の要因により失敗している。
+# 他のファイルシステム (ext4とtmpfs) でも失敗することを確認した。
+# msgstress03
+
 # FAILしたテストケース
 names = '''
 fcntl24
@@ -28,7 +32,6 @@ llistxattr01
 llistxattr02
 fcntl33
 fcntl33_64
-msgstress03
 '''.strip().splitlines()
 
 # CONFで失敗したテストケース

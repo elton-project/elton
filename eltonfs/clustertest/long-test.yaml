@@ -61,6 +61,9 @@ specs:
               # Skip a test case to prevent kernel hangs.
               # TODO: fix bugs that kernel hangs when execute the execveat03.
               - echo execveat03 >>/skip
+              # Skip a test case.
+              # This test case would be fail, but it perhaps is not file system bug.
+              - echo msgstress03 >>/skip
               # Run the LTP.
               # Options:
               #   -t  -- running time
