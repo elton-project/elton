@@ -7,7 +7,7 @@ import (
 
 func Main() int {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Printf("%+v\n", err)
 		return 1
 	}
 	return 0
