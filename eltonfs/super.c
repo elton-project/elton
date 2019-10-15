@@ -273,7 +273,7 @@ static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
 
 static int __init fs_module_init(void) {
 	int error;
-	struct socket *sock;
+	struct eltonfs_helper helper;
 	DEBUG("Loading the module ...");
 
 	error = register_filesystem(&eltonfs_type);
@@ -282,7 +282,7 @@ static int __init fs_module_init(void) {
 	}
 	DEBUG("Registered eltonfs");
 
-	error = eltonfs_start_helper(&sock);
+	error = eltonfs_start_helper(&helper);
 	if(CHECK_ERROR(error)) {
 		goto out_unregister_fs;
 	}

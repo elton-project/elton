@@ -1,6 +1,7 @@
 #include <linux/umh.h>
 #include <linux/net.h>
 #include <uapi/linux/un.h>
+#include "helper.h"
 #include "elton.h"
 #include "assert.h"
 
@@ -53,7 +54,7 @@ static int eltonfs_stop_server(struct socket **sockp) {
     return 0;
 }
 
-static int eltonfs_start_helper(struct socket **sockp) {
+static int eltonfs_start_helper(struct eltonfs_helper *helper) {
     int error;
     char *argv[] = {
         ELTONFS_HELPER,
@@ -64,7 +65,7 @@ static int eltonfs_start_helper(struct socket **sockp) {
         NULL,
     };
 
-    error = eltonfs_serve_server(sockp);
+    error = eltonfs_serve_server(&helper->sock);
     if(CHECK_ERROR(error)) {
         goto out;
     }
@@ -79,11 +80,11 @@ static int eltonfs_start_helper(struct socket **sockp) {
     return 0;
 
 out_stop_server:
-    eltonfs_stop_server(sockp);
+    eltonfs_stop_server(&helper->sock);
 out:
     return error;
 }
 
-static int eltonfs_stop_helper(struct socket **sockp) {
-    return eltonfs_stop_server(sockp);
+static int eltonfs_stop_helper(struct eltonfs_helper *helper) {
+    return eltonfs_stop_server(&helper->sock);
 }
