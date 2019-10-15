@@ -16,6 +16,7 @@ require (
 	github.com/sonatard/werror v0.0.0-20190306034820-b331e8d3de8f
 	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.2.2 // indirect
+	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/yuuki0xff/goapptrace v0.3.0-beta
