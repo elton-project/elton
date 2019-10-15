@@ -65,6 +65,8 @@ static int eltonfs_start_helper(struct eltonfs_helper *helper) {
     int error;
     char *argv[] = {
         ELTONFS_HELPER,
+        "--socket",
+        ELTONFS_HELPER_SOCK,
         NULL,
     };
     char *envp[] = {
