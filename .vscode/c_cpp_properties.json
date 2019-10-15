@@ -14,7 +14,10 @@
                 "__KERNEL__",
                 "CONFIG_MMU",
                 "KBUILD_MODNAME",
-                "CONFIG_64BIT"
+                "CONFIG_64BIT",
+                "KERN_DEBUG",
+                "ELTONFS_STATISTIC",
+                "ELTONFS_XATTRS"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
