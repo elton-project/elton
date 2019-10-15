@@ -70,7 +70,9 @@ static int eltonfs_start_helper(struct eltonfs_helper *helper) {
         NULL,
     };
     char *envp[] = {
-        ELTONFS_HELPER,
+        "HOME=/",
+        "TERM=linux",
+        "PATH=/sbin:/usr/sbin:/bin:/usr/bin",
         NULL,
     };
 
