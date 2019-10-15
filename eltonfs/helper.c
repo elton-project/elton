@@ -95,7 +95,7 @@ static int eltonfs_start_helper(struct eltonfs_helper *helper) {
     return 0;
 
 out_stop_server:
-    eltonfs_stop_server(helper->sock);
+    eltonfs_stop_server(helper->sock);  // Ignore error
 out:
     return error;
 }
