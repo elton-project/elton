@@ -7,9 +7,11 @@
 #include <linux/pagemap.h>
 #include <linux/seq_file.h>
 #include <linux/statfs.h>
+#include <linux/net.h>
 #include "elton.h"
 #include "assert.h"
 #include "xattr.h"
+#include "helper.h"
 
 static bool is_registered = 0;
 static struct file_system_type eltonfs_type;
@@ -271,16 +273,29 @@ static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
 
 static int __init fs_module_init(void) {
 	int error;
+	struct socket *sock;
 	DEBUG("Loading the module ...");
 
 	error = register_filesystem(&eltonfs_type);
 	if(CHECK_ERROR(error)) {
-		return error;
+		goto out;
 	}
+	DEBUG("Registered eltonfs");
+
+	error = eltonfs_start_helper(&sock);
+	if(CHECK_ERROR(error)) {
+		goto out_unregister_fs;
+	}
+	DEBUG("Started an eltonfs user mode helper process");
 
 	is_registered = 1;
 	INFO("The module loaded");
 	return 0;
+
+out_unregister_fs:
+	unregister_filesystem(&eltonfs_type);
+out:
+	return error;
 }
 
 static void __exit fs_module_exit(void) {

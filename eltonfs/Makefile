@@ -6,6 +6,7 @@ CC := gcc -DELTONFS_STATISTIC \
 
 elton-y += super.o
 elton-y += simple_xattr.o xattr.o
+elton-y += helper.o
 obj-m := elton.o
 
 KERNEL ?= $(shell uname -r)

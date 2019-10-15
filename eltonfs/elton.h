@@ -10,6 +10,10 @@
 #define FS_NAME "elton"
 #define ELTONFS_SUPER_MAGIC 0x51891f5
 #define ELTONFS_NAME_LEN 255
+// Path to executable file of helper process.
+#define ELTONFS_HELPER "eltonfs-helper"
+// Path to UNIX domain socket to communicate with helper process.
+#define ELTONFS_HELPER_SOCK "/run/eltonfs-helper.sock"
 
 struct eltonfs_info {
 #ifdef ELTONFS_STATISTIC
