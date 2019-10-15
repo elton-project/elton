@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/eltonfs",
+                "/usr/include",
+                "/usr/src/linux-headers-5.2.0-3-amd64/include",
+                "/usr/src/linux-headers-5.2.0-3-amd64/arch/x86/include/generated",
+                "/usr/src/linux-headers-5.2.0-3-common/include",
+                "/usr/src/linux-headers-5.2.0-3-common/arch/x86/include"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "CONFIG_MMU",
+                "KBUILD_MODNAME",
+                "CONFIG_64BIT"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
