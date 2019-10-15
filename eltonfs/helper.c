@@ -46,14 +46,12 @@ out:
     return error;
 }
 
-static int eltonfs_stop_server(struct socket **sockp) {
+static int eltonfs_stop_server(struct socket *sock) {
     int error;
-    struct socket *sock;
 
-    if(sockp == NULL) {
+    if(sock == NULL) {
         return -EINVAL;
     }
-    sock = *sockp;
 
     error = sock->ops->release(sock);
     if(CHECK_ERROR(error)){
@@ -93,7 +91,7 @@ static int eltonfs_start_helper(struct eltonfs_helper *helper) {
     return 0;
 
 out_stop_server:
-    eltonfs_stop_server(&helper->sock);
+    eltonfs_stop_server(helper->sock);
 out:
     return error;
 }
@@ -102,5 +100,5 @@ static int eltonfs_stop_helper(struct eltonfs_helper *helper) {
     if(helper == NULL) {
         return -EINVAL;
     }
-    return eltonfs_stop_server(&helper->sock);
+    return eltonfs_stop_server(helper->sock);
 }
