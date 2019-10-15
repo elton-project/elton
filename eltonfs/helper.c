@@ -83,3 +83,7 @@ out_stop_server:
 out:
     return error;
 }
+
+static int eltonfs_stop_helper(struct socket **sockp) {
+    return eltonfs_stop_server(sockp);
+}
