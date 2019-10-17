@@ -14,6 +14,7 @@
 #include "helper.h"
 
 static bool is_registered = 0;
+struct eltonfs_helper helper;
 static struct file_system_type eltonfs_type;
 static struct super_operations eltonfs_s_op;
 static struct address_space_operations eltonfs_aops;
@@ -273,7 +274,6 @@ static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
 
 static int __init fs_module_init(void) {
 	int error;
-	struct eltonfs_helper helper;
 	DEBUG("Loading the module ...");
 
 	error = register_filesystem(&eltonfs_type);
@@ -303,6 +303,11 @@ static void __exit fs_module_exit(void) {
 	DEBUG("Unloading the module ...");
 
 	if(is_registered) {
+		error = eltonfs_stop_helper(&helper);
+		if(CHECK_ERROR(error)) {
+			return;
+		}
+
 		error = unregister_filesystem(&eltonfs_type);
 		if(CHECK_ERROR(error)) {
 			return;
