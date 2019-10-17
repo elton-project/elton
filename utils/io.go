@@ -6,7 +6,8 @@ import (
 )
 
 type MustWriter interface {
-	MustWrite([]byte)
+	MustWrite([]byte) (n int)
+	MustWriteAll([]byte)
 }
 type MustReader interface {
 	MustRead([]byte) (n int)
@@ -24,13 +25,17 @@ type mustW struct {
 	io.Writer
 }
 
-func (w *mustW) MustWrite(b []byte) {
+func (w *mustW) MustWrite(b []byte) (n int) {
+	n, err := w.Write(b)
+	if err != nil {
+		err := xerrors.Errorf("must write: %w", err)
+		panic(err)
+	}
+	return n
+}
+func (w *mustW) MustWriteAll(b []byte) {
 	for len(b) > 0 {
-		n, err := w.Write(b)
-		if err != nil {
-			err := xerrors.Errorf("must write: %w", err)
-			panic(err)
-		}
+		n := w.MustWrite(b)
 		b = b[n:]
 	}
 }

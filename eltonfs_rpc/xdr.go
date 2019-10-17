@@ -50,7 +50,7 @@ type binDecoder struct {
 }
 
 func (e *binEncoder) Uint8(n uint8) {
-	e.w.MustWrite([]byte{n})
+	e.w.MustWriteAll([]byte{n})
 }
 func (e *binEncoder) Bool(b bool) {
 	if b {
@@ -62,7 +62,7 @@ func (e *binEncoder) Bool(b bool) {
 func (e *binEncoder) Uint64(n uint64) {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, n)
-	e.w.MustWrite(b)
+	e.w.MustWriteAll(b)
 }
 func (e *binEncoder) String(s string) {
 	e.Bytes([]byte(s))
@@ -70,7 +70,7 @@ func (e *binEncoder) String(s string) {
 func (e *binEncoder) Bytes(b []byte) {
 	length := uint64(len(b))
 	e.Uint64(length)
-	e.w.MustWrite(b)
+	e.w.MustWriteAll(b)
 }
 func (e *binEncoder) Slice(s interface{}) {
 	kind := reflect.TypeOf(s).Kind()

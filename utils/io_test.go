@@ -17,6 +17,17 @@ func TestMustW_MustWrite(t *testing.T) {
 	})
 	assert.Equal(t, "foo bar", buf.String())
 }
+func TestMustW_MustWriteAll(t *testing.T) {
+	t.Run("partial_write", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		w := WrapMustWriter(&partialWriter{W: buf})
+		assert.NotPanics(t, func() {
+			w.MustWriteAll([]byte("foo "))
+			w.MustWriteAll([]byte("bar"))
+			assert.Equal(t, []byte("foo bar"), buf.Bytes())
+		})
+	})
+}
 func TestMustR_MustRead(t *testing.T) {
 	buf := bytes.NewBufferString("foo bar")
 	r := WrapMustReader(buf)
@@ -68,6 +79,17 @@ func TestMustR_MustReadAll(t *testing.T) {
 			r.MustReadAll(b[:])
 		})
 	})
+}
+
+type partialWriter struct {
+	W io.Writer
+}
+
+func (w *partialWriter) Write(b []byte) (int, error) {
+	if len(b) == 0 {
+		return w.W.Write(b)
+	}
+	return w.W.Write(b[:1])
 }
 
 type partialReader struct {
