@@ -61,7 +61,7 @@ static int eltonfs_stop_server(struct socket *sock) {
     return 0;
 }
 
-static int eltonfs_start_helper(struct eltonfs_helper *helper) {
+int eltonfs_start_helper(struct eltonfs_helper *helper) {
     int error;
     char *argv[] = {
         ELTONFS_HELPER,
@@ -100,7 +100,7 @@ out:
     return error;
 }
 
-static int eltonfs_stop_helper(struct eltonfs_helper *helper) {
+int eltonfs_stop_helper(struct eltonfs_helper *helper) {
     if(helper == NULL) {
         return -EINVAL;
     }
