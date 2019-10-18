@@ -289,7 +289,7 @@ func TestBinEncoder_Auto(t *testing.T) {
 func TestBinDecoder_Uint8(t *testing.T) {
 	n := uint8(10)
 	dec := newDec(n)
-	assert.Equal(t, n, dec)
+	assert.Equal(t, n, dec.Uint8())
 }
 func TestBinDecoder_Bool(t *testing.T) {
 	dec := newDec(true, false)
