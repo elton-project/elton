@@ -206,10 +206,10 @@ func TestBinEncoder_Struct(t *testing.T) {
 		enc.Struct(s)
 
 		assert.Equal(t, []byte{
-			1,
-			10,
+			1,  // number of fields
+			10, // field id
 			0, 0, 0, 0, 0, 0, 0, 4,
-			'h', 'o', 'g', 'e',
+			'h', 'o', 'g', 'e', // field value  (string)
 		}, buf.Bytes())
 	})
 }
