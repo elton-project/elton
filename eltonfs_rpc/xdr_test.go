@@ -193,7 +193,7 @@ func TestBinEncoder_Struct(t *testing.T) {
 			2,                      // field id
 			0, 0, 0, 0, 0, 0, 0, 2, // field value (uint64)
 			3, // field id
-			3, // field id (uint8)
+			3, // field value (uint8)
 		}, buf.Bytes())
 	})
 	t.Run("pointer to the struct", func(t *testing.T) {
