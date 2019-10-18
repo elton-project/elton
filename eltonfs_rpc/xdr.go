@@ -231,7 +231,7 @@ func (d *binDecoder) slice(t reflect.Type) interface{} {
 	slice := reflect.MakeSlice(t, int(length), int(length))
 	for i := 0; i < int(length); i++ {
 		value := d.auto(elemType)
-		slice = reflect.Append(slice, value)
+		slice.Index(i).Set(value)
 	}
 	return slice.Interface()
 }
