@@ -113,14 +113,27 @@ func TestBinEncoder_Map(t *testing.T) {
 		buf, enc := newEnc()
 		enc.Map(m)
 
-		assert.Equal(t, []byte{
-			0, 0, 0, 0, 0, 0, 0, 2,
-			0, 0, 0, 0, 0, 0, 0, 1,
+		pattern1 := []byte{
+			0, 0, 0, 0, 0, 0, 0, 2, // length
+			0, 0, 0, 0, 0, 0, 0, 1, // key1
 			0, 0, 0, 0, 0, 0, 0, 3,
-			'o', 'n', 'e',
-			0, 0, 0, 0, 0, 0, 0, 2,
+			'o', 'n', 'e', // value1
+			0, 0, 0, 0, 0, 0, 0, 2, // key2
 			0, 0, 0, 0, 0, 0, 0, 3,
-			't', 'w', 'o',
+			't', 'w', 'o', // value2
+		}
+		pattern2 := []byte{
+			0, 0, 0, 0, 0, 0, 0, 2,
+			0, 0, 0, 0, 0, 0, 0, 2, // key2
+			0, 0, 0, 0, 0, 0, 0, 3,
+			't', 'w', 'o', // value2
+			0, 0, 0, 0, 0, 0, 0, 1, // key1
+			0, 0, 0, 0, 0, 0, 0, 3,
+			'o', 'n', 'e', // value1
+		}
+		assert.Contains(t, [][]byte{
+			pattern1,
+			pattern2,
 		}, buf.Bytes())
 	})
 }
