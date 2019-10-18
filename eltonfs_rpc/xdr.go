@@ -310,6 +310,8 @@ func (d *binDecoder) auto(t reflect.Type) reflect.Value {
 		v = d.Bool()
 	case reflect.Uint64:
 		v = d.Uint64()
+	case reflect.String:
+		v = d.String()
 	case reflect.Slice:
 		if t.Elem().Kind() == reflect.Uint8 {
 			v = d.Bytes()
