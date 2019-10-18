@@ -179,6 +179,10 @@ func (e *binEncoder) Auto(v interface{}) {
 			e.Map(v)
 		case reflect.Struct:
 			e.Struct(v)
+		case reflect.Ptr:
+			// Dereference pointer.
+			v = reflect.ValueOf(v).Elem().Interface()
+			e.Auto(v)
 		default:
 			err := xerrors.Errorf("unsupported type: %s", kind)
 			panic(err)
