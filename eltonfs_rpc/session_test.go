@@ -38,6 +38,16 @@ func TestClientS_Setup(t *testing.T) {
 			conn.WriteBuf.Bytes(),
 		)
 	})
+	t.Run("invalid response", func(t *testing.T) {
+		// Prepare invalid server response (Setup2).
+		conn := &fakeConn{}
+		conn.ReadBuf.Write([]byte("invalid response"))
+
+		// Run the setup.
+		s := NewClientSession(conn)
+		err := s.Setup()
+		assert.Error(t, err)
+	})
 }
 
 type fakeConn struct {
