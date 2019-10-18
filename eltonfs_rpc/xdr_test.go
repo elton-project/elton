@@ -232,7 +232,7 @@ func TestBinEncoder_Auto(t *testing.T) {
 	})
 	t.Run("map", func(t *testing.T) {
 		buf, enc := newEnc()
-		enc.Auto(map[int8]string{
+		enc.Auto(map[uint8]string{
 			1: "one",
 		})
 
@@ -246,7 +246,7 @@ func TestBinEncoder_Auto(t *testing.T) {
 	t.Run("struct", func(t *testing.T) {
 		buf, enc := newEnc()
 		enc.Auto(struct {
-			A int8 `xdr:"10"`
+			A uint8 `xdr:"10"`
 		}{
 			A: 9,
 		})
@@ -260,7 +260,7 @@ func TestBinEncoder_Auto(t *testing.T) {
 	t.Run("pointer of struct", func(t *testing.T) {
 		buf, enc := newEnc()
 		enc.Auto(&struct {
-			A int8 `xdr:"10"`
+			A uint8 `xdr:"10"`
 		}{
 			A: 9,
 		})
