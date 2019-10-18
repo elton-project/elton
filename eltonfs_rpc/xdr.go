@@ -125,6 +125,11 @@ func (e *binEncoder) Struct(s interface{}) {
 			err := xerrors.Errorf("duplicated fieldID: %d", fieldID)
 			panic(err)
 		}
+		if !v.Field(i).CanInterface() {
+			// Skip unexported field
+			continue
+		}
+
 		fieldIDs = append(fieldIDs, fieldID)
 		fields[fieldID] = v.Field(i)
 	}
