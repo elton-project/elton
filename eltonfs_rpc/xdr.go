@@ -262,6 +262,13 @@ func (d *binDecoder) Struct(emptyStruct interface{}) interface{} {
 	return d.struct_(t)
 }
 func (d *binDecoder) struct_(t reflect.Type) interface{} {
+	var isPointer bool
+	if t.Kind() == reflect.Ptr {
+		// Dereference pointer.
+		t = t.Elem()
+		isPointer = true
+	}
+
 	// Key: FieldID
 	// Value: Field Index of the struct.
 	fieldID2Index := map[uint8]int{}
@@ -283,7 +290,10 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 		panic(err)
 	}
 
-	v := reflect.New(t)
+	// reflect.New() returns pointer to the struct.
+	vp := reflect.New(t)
+	v := vp.Elem()
+
 	length := d.Uint8()
 	for i := 0; i < int(length); i++ {
 		fieldID := d.Uint8()
@@ -297,6 +307,9 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 		v.Field(idx).Set(value)
 	}
 
+	if isPointer {
+		return vp.Interface()
+	}
 	return v.Interface()
 }
 func (d *binDecoder) auto(t reflect.Type) reflect.Value {
@@ -322,6 +335,14 @@ func (d *binDecoder) auto(t reflect.Type) reflect.Value {
 		v = d.map_(t)
 	case reflect.Struct:
 		v = d.struct_(t)
+	case reflect.Ptr:
+		switch t.Elem().Kind() {
+		case reflect.Struct:
+			v = d.struct_(t)
+		default:
+			err := xerrors.Errorf("unsupported type: pointer to %s", t.Elem().Kind())
+			panic(err)
+		}
 	default:
 		err := xerrors.Errorf("unsupported type: %s", kind)
 		panic(err)
