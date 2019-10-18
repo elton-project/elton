@@ -29,6 +29,7 @@ type XDRDecoder interface {
 	Uint8() uint8
 	Bool() bool
 	Uint64() uint64
+	String() string
 	Bytes() []byte
 	Slice(emptySlice interface{}) (slice interface{})
 	Map(emptyMapping interface{}) (mapping interface{})
@@ -190,6 +191,9 @@ func (d *binDecoder) Uint64() uint64 {
 	b := make([]byte, 8)
 	d.r.MustReadAll(b)
 	return binary.BigEndian.Uint64(b)
+}
+func (d *binDecoder) String() string {
+	return string(d.Bytes())
 }
 func (d *binDecoder) Bytes() []byte {
 	length := d.Uint64()
