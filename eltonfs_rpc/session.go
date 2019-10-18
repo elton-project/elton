@@ -10,7 +10,7 @@ type ClientSession interface {
 	// Setup initialize the connection.
 	Setup() error
 	// New creates new nested session.
-	New() ClientNS
+	New() (ClientNS, error)
 	// Close closes this session.
 	// If nested connections is not closed, it will return an error.
 	Close() error
@@ -70,8 +70,8 @@ func (s *clientS) Setup() error {
 		return nil
 	})
 }
-func (s *clientS) New() ClientNS { panic("todo") }
-func (s *clientS) Close() error  { panic("todo") }
+func (s *clientS) New() (ClientNS, error) { panic("todo") }
+func (s *clientS) Close() error           { panic("todo") }
 
 type clientNS struct {
 	s clientS
