@@ -97,11 +97,10 @@ func (e *binEncoder) Map(m interface{}) {
 	v := reflect.ValueOf(m)
 	length := uint64(v.Len())
 	e.Uint64(length)
-	for i := 0; i < int(length); i++ {
-		key := v.Index(i)
-		value := v.MapIndex(key)
-		e.Auto(key.Interface())
-		e.Auto(value.Interface())
+	iter := v.MapRange()
+	for iter.Next() {
+		e.Auto(iter.Key().Interface())
+		e.Auto(iter.Value().Interface())
 	}
 }
 func (e *binEncoder) Struct(s interface{}) {
