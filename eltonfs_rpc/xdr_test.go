@@ -350,12 +350,15 @@ func TestBinDecoder_Struct(t *testing.T) {
 	t.Run("private fields", func(t *testing.T) {
 		s := &struct {
 			A string `xdr:"2"`
-			b string `xdr:"1"`
+			B string `xdr:"1"`
 		}{"foo", "bar"}
 		dec := newDec(s)
-		assert.Equal(t, struct {
-			A string `xdr:"2"`
-		}{"foo"}, dec.Struct(s))
+		assert.Panics(t, func() {
+			dec.Struct(struct {
+				A string `xdr:"2"`
+				b string `xdr:"1"`
+			}{})
+		})
 	})
 	t.Run("missing xdr fields", func(t *testing.T) {
 		s := &struct {
