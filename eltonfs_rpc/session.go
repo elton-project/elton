@@ -50,6 +50,11 @@ type clientS struct {
 	Dec  XDRDecoder
 
 	setupOK bool
+	// Nested Sessions
+	// Key: nested session IDs
+	// Value: *clientNS
+	nss      map[uint64]*clientNS
+	lastNSID uint64
 }
 
 func (s *clientS) Setup() error {
@@ -70,11 +75,39 @@ func (s *clientS) Setup() error {
 		return nil
 	})
 }
-func (s *clientS) New() (ClientNS, error) { panic("todo") }
-func (s *clientS) Close() error           { panic("todo") }
+func (s *clientS) New() (ClientNS, error) {
+	if !s.setupOK {
+		return nil, xerrors.New("setup is not complete")
+	}
+	// Initialize　s.nss
+	if s.nss == nil {
+		s.nss = map[uint64]*clientNS{}
+	}
+
+	// Get next NSID.
+	var nextNSID uint64
+	for {
+		nextNSID = (s.lastNSID + 1) | 1<<63
+		if _, ok := s.nss[nextNSID]; ok {
+			continue
+		}
+		break
+	}
+	s.lastNSID = nextNSID
+
+	// Create new clientNS instance.
+	ns := &clientNS{
+		S:    s,
+		NSID: nextNSID,
+	}
+	s.nss[nextNSID] = ns
+	return ns, nil
+}
+func (s *clientS) Close() error { panic("todo") }
 
 type clientNS struct {
-	s clientS
+	S    *clientS
+	NSID uint64
 }
 
 func (ns *clientNS) Send(v interface{}) error                    { panic("todo") }
