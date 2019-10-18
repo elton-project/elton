@@ -364,14 +364,13 @@ func TestBinDecoder_Struct(t *testing.T) {
 		s := &struct {
 			A string `xdr:"1"`
 			B string `xdr:"2"`
-			C string `xdr:"3"`
-		}{"one", "two", "three"}
+		}{"one", "two"}
 		dec := newDec(s)
-		assert.Equal(t, struct {
-			B string `xdr:"2"`
-		}{"two"}, dec.Struct(struct {
-			B string `xdr:"2"`
-		}{}))
+		assert.Panics(t, func() {
+			dec.Struct(struct {
+				B string `xdr:"2"`
+			}{})
+		})
 	})
 	t.Run("different xdr field names", func(t *testing.T) {
 		s := &struct {
