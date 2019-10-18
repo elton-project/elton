@@ -302,7 +302,11 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 			panic(err)
 		}
 
-		idx := fieldID2Index[fieldID]
+		idx, ok := fieldID2Index[fieldID]
+		if !ok {
+			err := xerrors.Errorf("not found FieldID: %d", fieldID)
+			panic(err)
+		}
 		value := d.auto(t.Field(idx).Type)
 		v.Field(idx).Set(value)
 	}
