@@ -106,6 +106,12 @@ func (e *binEncoder) Map(m interface{}) {
 func (e *binEncoder) Struct(s interface{}) {
 	t := reflect.TypeOf(s)
 	kind := t.Kind()
+	if kind == reflect.Ptr {
+		// Dereference pointer.
+		v := reflect.ValueOf(s).Elem().Interface()
+		e.Struct(v)
+		return
+	}
 	if kind != reflect.Struct {
 		err := xerrors.Errorf("not a struct: %s", kind)
 		panic(err)
