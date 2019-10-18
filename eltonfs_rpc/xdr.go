@@ -308,6 +308,10 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 			panic(err)
 		}
 		value := d.auto(t.Field(idx).Type)
+		if !v.Field(idx).CanSet() {
+			err := xerrors.Errorf("failed to set the value: FieldID=%d", fieldID)
+			panic(err)
+		}
 		v.Field(idx).Set(value)
 	}
 
