@@ -327,12 +327,47 @@ func TestBinDecoder_Struct(t *testing.T) {
 	t.Run("pointer to the struct", func(t *testing.T) {
 		s := &struct {
 			A string `xdr:"2"`
-		}{
-			"hello world",
-		}
+		}{"hello world"}
 		dec := newDec(s)
 		assert.Equal(t, s, dec.Struct(&struct {
 			A string `xdr:"2"`
+		}{}))
+	})
+	t.Run("private fields", func(t *testing.T) {
+		s := &struct {
+			A string `xdr:"2"`
+			b string `xdr:"1"`
+		}{"foo", "bar"}
+		dec := newDec(s)
+		assert.Equal(t, struct {
+			A string `xdr:"2"`
+		}{"foo"}, dec.Struct(s))
+	})
+	t.Run("missing xdr fields", func(t *testing.T) {
+		s := &struct {
+			A string `xdr:"1"`
+			B string `xdr:"2"`
+			C string `xdr:"3"`
+		}{"one", "two", "three"}
+		dec := newDec(s)
+		assert.Equal(t, struct {
+			B string `xdr:"2"`
+		}{"two"}, dec.Struct(struct {
+			B string `xdr:"2"`
+		}{}))
+	})
+	t.Run("different xdr field names", func(t *testing.T) {
+		s := &struct {
+			A string `xdr:"1"`
+			B string `xdr:"2"`
+		}{"one", "two"}
+		dec := newDec(s)
+		assert.Equal(t, struct {
+			X string `xdr:"1"`
+			Y string `xdr:"2"`
+		}{"one", "two"}, dec.Struct(struct {
+			X string `xdr:"1"`
+			Y string `xdr:"2"`
 		}{}))
 	})
 }
