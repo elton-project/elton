@@ -176,7 +176,7 @@ func (e *binEncoder) Auto(v interface{}) {
 		case reflect.Slice:
 			e.Slice(v)
 		case reflect.Map:
-			e.Slice(v)
+			e.Map(v)
 		case reflect.Struct:
 			e.Struct(v)
 		default:
