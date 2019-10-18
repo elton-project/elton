@@ -105,8 +105,8 @@ func TestBinEncoder_Map(t *testing.T) {
 		assert.NotNil(t, m)
 		assert.Equal(t, []byte{0, 0, 0, 0, 0, 0, 0, 0}, buf.Bytes())
 	})
-	t.Run("map[int32]string", func(t *testing.T) {
-		m := map[int32]string{
+	t.Run("map[uint64]string", func(t *testing.T) {
+		m := map[uint64]string{
 			1: "one",
 			2: "two",
 		}
@@ -115,10 +115,10 @@ func TestBinEncoder_Map(t *testing.T) {
 
 		assert.Equal(t, []byte{
 			0, 0, 0, 0, 0, 0, 0, 2,
-			0, 0, 0, 1,
+			0, 0, 0, 0, 0, 0, 0, 1,
 			0, 0, 0, 0, 0, 0, 0, 3,
 			'o', 'n', 'e',
-			0, 0, 0, 2,
+			0, 0, 0, 0, 0, 0, 0, 2,
 			0, 0, 0, 0, 0, 0, 0, 3,
 			't', 'w', 'o',
 		}, buf.Bytes())
@@ -134,7 +134,7 @@ func TestBinEncoder_Struct(t *testing.T) {
 	})
 	t.Run("no-xdr fields", func(t *testing.T) {
 		s := struct {
-			A int32
+			A uint64
 			B string
 		}{
 			A: 1,
@@ -147,7 +147,7 @@ func TestBinEncoder_Struct(t *testing.T) {
 	})
 	t.Run("private xdr fields", func(t *testing.T) {
 		s := struct {
-			a int32
+			a uint64
 			b string `xdr:"1"`
 		}{
 			a: 1,
@@ -160,8 +160,8 @@ func TestBinEncoder_Struct(t *testing.T) {
 	})
 	t.Run("multiple xdr fields", func(t *testing.T) {
 		s := struct {
-			A int32  `xdr:"3"`
-			B int64  `xdr:"2"`
+			A uint8  `xdr:"3"`
+			B uint64 `xdr:"2"`
 			C string `xdr:"1"`
 		}{
 			A: 3,
@@ -180,7 +180,7 @@ func TestBinEncoder_Struct(t *testing.T) {
 			2,
 			0, 0, 0, 0, 0, 0, 0, 2,
 			3,
-			0, 0, 0, 3,
+			3,
 		}, buf.Bytes())
 	})
 	t.Run("pointer to the struct", func(t *testing.T) {
@@ -308,14 +308,14 @@ func TestBinDecoder_Slice(t *testing.T) {
 }
 func TestBinDecoder_Map(t *testing.T) {
 	m := map[string]*struct {
-		A int32 `xdr:"2"`
+		A uint64 `xdr:"2"`
 	}{
 		"one": {A: 1},
 		"two": {A: 2},
 	}
 	dec := newDec(m)
 	assert.Equal(t, m, dec.Map(map[string]*struct {
-		A int32 `xdr:"2"`
+		A uint64 `xdr:"2"`
 	}{}))
 }
 func TestBinDecoder_Struct(t *testing.T) {
