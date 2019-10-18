@@ -186,14 +186,14 @@ func TestBinEncoder_Struct(t *testing.T) {
 		enc.Struct(s)
 
 		assert.Equal(t, []byte{
-			0, 0, 0, 0, 0, 0, 0, 3,
-			1,
+			3, // number of fields
+			1, // field id
 			0, 0, 0, 0, 0, 0, 0, 1,
-			'1',
-			2,
-			0, 0, 0, 0, 0, 0, 0, 2,
-			3,
-			3,
+			'1',                    // field value (string)
+			2,                      // field id
+			0, 0, 0, 0, 0, 0, 0, 2, // field value (uint64)
+			3, // field id
+			3, // field id (uint8)
 		}, buf.Bytes())
 	})
 	t.Run("pointer to the struct", func(t *testing.T) {
@@ -206,10 +206,10 @@ func TestBinEncoder_Struct(t *testing.T) {
 		enc.Struct(s)
 
 		assert.Equal(t, []byte{
-			0, 0, 0, 0, 0, 0, 0, 1,
+			1,
 			10,
 			0, 0, 0, 0, 0, 0, 0, 4,
-			'h', '0', 'g', 'e',
+			'h', 'o', 'g', 'e',
 		}, buf.Bytes())
 	})
 }
