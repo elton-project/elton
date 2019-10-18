@@ -239,6 +239,7 @@ func TestBinEncoder_Auto(t *testing.T) {
 		enc.Auto([]string{"foo"})
 
 		assert.Equal(t, []byte{
+			0, 0, 0, 0, 0, 0, 0, 1,
 			0, 0, 0, 0, 0, 0, 0, 3,
 			'f', 'o', 'o',
 		}, buf.Bytes())
@@ -251,9 +252,9 @@ func TestBinEncoder_Auto(t *testing.T) {
 
 		assert.Equal(t, []byte{
 			0, 0, 0, 0, 0, 0, 0, 1, // length of map
-			1, // key
-			0, 0, 0, 0, 0, 0, 0, 1,
-			'f', 'o', 'o', // value
+			1, // key (uint8)
+			0, 0, 0, 0, 0, 0, 0, 3,
+			'o', 'n', 'e', // value (string)
 		}, buf.Bytes())
 	})
 	t.Run("struct", func(t *testing.T) {
