@@ -2,6 +2,7 @@ package eltonfs_rpc
 
 import (
 	"bytes"
+	"fmt"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
 	"net"
@@ -136,6 +137,9 @@ func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) er
 	}
 	return nil
 }
+func (s *clientS) recvPacket(nsid uint64, empty interface{}) (data interface{}, flags PacketFlag, err error) {
+	panic("todo")
+}
 
 type clientNS struct {
 	S    *clientS
@@ -169,7 +173,26 @@ func (ns *clientNS) SendErr(err *SessionError) error {
 	flags |= ErrorSessionFlag
 	return ns.S.sendPacket(ns.NSID, flags, err)
 }
-func (ns *clientNS) Recv(empty interface{}) (interface{}, error) { panic("todo") }
+func (ns *clientNS) Recv(empty interface{}) (interface{}, error) {
+	if !ns.established {
+		return nil, xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
+	}
+	if ns.closedS2C {
+		return nil, xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
+	}
+
+	data, flags, err := ns.S.recvPacket(ns.NSID, empty)
+	if err != nil {
+		return nil, xerrors.Errorf("recv: %w", err)
+	}
+	if flags&CloseSessionFlag != 0 {
+		ns.closedS2C = true
+	}
+	if flags&ErrorSessionFlag != 0 {
+		return nil, xerrors.New(fmt.Sprint(data))
+	}
+	return data, err
+}
 func (ns *clientNS) CloseWithError(err SessionError) error {
 	if !ns.established {
 		return xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
@@ -177,7 +200,6 @@ func (ns *clientNS) CloseWithError(err SessionError) error {
 	if ns.closedC2S {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
-
 	return ns.S.sendPacket(ns.NSID, CloseSessionFlag|ErrorSessionFlag, err)
 }
 func (ns *clientNS) Close() error {
