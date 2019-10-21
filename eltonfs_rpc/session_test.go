@@ -49,6 +49,53 @@ func TestClientS_Setup(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+func TestClientS_New(t *testing.T) {
+	t.Run("send and recv", func(t *testing.T) {
+		conn := &fakeConn{}
+
+		s := NewClientSession(conn)
+		s.(*clientS).setupOK = true
+
+		ns, err := s.New()
+		assert.NoError(t, err)
+		assert.NotNil(t, ns)
+		assert.Equal(t, []byte(nil), conn.WriteBuf.Bytes())
+
+		err = ns.Send(&Ping{})
+		assert.NoError(t, err)
+		expected := func() []byte {
+			// Prepare expected packet
+			buf := &bytes.Buffer{}
+			enc := NewXDREncoder(utils.WrapMustWriter(buf))
+			enc.Uint64(1)                       // Number of data size in bytes.
+			enc.Uint64(1<<63 | 1)               // SessionID
+			enc.Uint8(uint8(CreateSessionFlag)) // Flags
+			enc.Uint64(3)                       // StructID (ping)
+			enc.Uint8(0)                        // Number of fields in struct.
+			return buf.Bytes()
+		}()
+		assert.Equal(t, expected, conn.WriteBuf.Bytes())
+
+		go func() {
+			enc := NewXDREncoder(utils.WrapMustWriter(&conn.ReadBuf))
+			enc.Uint64(1)         // Number of data size in bytes.
+			enc.Uint64(1<<63 | 1) // SessionID
+			enc.Uint8(0)          // Flags
+			enc.Uint64(3)         // StructID ()
+			enc.Uint8(0)          // Number of fields in struct.
+		}()
+		ping, err := ns.Recv(&Ping{})
+		assert.NoError(t, err)
+		assert.Equal(t, &Ping{}, ping)
+	})
+	t.Run("try to create nested session before setup", func(t *testing.T) {
+		conn := &fakeConn{}
+		s := NewClientSession(conn)
+		ns, err := s.New()
+		assert.EqualError(t, err, "setup is not complete")
+		assert.Nil(t, ns)
+	})
+}
 
 type fakeConn struct {
 	ReadBuf     bytes.Buffer
