@@ -7,6 +7,7 @@ import (
 	"golang.org/x/xerrors"
 	"net"
 	"reflect"
+	"sync"
 )
 
 type PacketFlag uint8
@@ -16,6 +17,11 @@ const (
 	CreateSessionFlag
 	CloseSessionFlag
 	ErrorSessionFlag
+)
+
+const (
+	SendQueueSize = 64
+	RecvQueueSize = 16
 )
 
 type ClientSession interface {
@@ -51,6 +57,7 @@ func NewClientSession(conn net.Conn) ClientSession {
 	r := utils.WrapMustReader(conn)
 	return &clientS{
 		Conn: conn,
+		R:    r,
 		W:    w,
 		Enc:  NewXDREncoder(w),
 		Dec:  NewXDRDecoder(r),
@@ -59,6 +66,7 @@ func NewClientSession(conn net.Conn) ClientSession {
 
 type clientS struct {
 	Conn net.Conn
+	R    utils.MustReader
 	W    utils.MustWriter
 	Enc  XDREncoder
 	Dec  XDRDecoder
@@ -69,6 +77,22 @@ type clientS struct {
 	// Value: *clientNS
 	nss      map[uint64]*clientNS
 	lastNSID uint64
+
+	// Queue for packets waiting to be sent.
+	// Elements are serialized packets.
+	sendQ chan []byte
+	// Queue for packets waiting to be received.
+	// A lock must be acquired before access to the recvQ.
+	recvQ     map[uint64]chan *rawPacket
+	recvQLock sync.RWMutex
+}
+
+type rawPacket struct {
+	size  uint64
+	nsid  uint64
+	flags PacketFlag
+	sid   uint64
+	data  []byte
 }
 
 func (s *clientS) Setup() error {
@@ -86,6 +110,12 @@ func (s *clientS) Setup() error {
 			)
 		}
 		s.setupOK = true
+
+		// Start workers.
+		s.sendQ = make(chan []byte, SendQueueSize)
+		s.recvQ = map[uint64]chan *rawPacket{}
+		go s.recvWorker()
+		go s.sendWorker()
 		return nil
 	})
 }
@@ -115,23 +145,33 @@ func (s *clientS) New() (ClientNS, error) {
 		NSID: nextNSID,
 	}
 	s.nss[nextNSID] = ns
+
+	// Create channel.
+	s.recvQLock.Lock()
+	defer s.recvQLock.Unlock()
+	s.recvQ[nextNSID] = make(chan *rawPacket, RecvQueueSize)
+
 	return ns, nil
 }
 func (s *clientS) Close() error { panic("todo") }
 func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) error {
-	buf := &bytes.Buffer{}
-	enc := NewXDREncoder(utils.WrapMustWriter(buf))
-	enc.Struct(data)
-	size := uint64(buf.Len())
-
 	err := HandlePanic(func() error {
 		sid := parseXDRStructIDTag(reflect.TypeOf(data))
 
-		s.Enc.Uint64(size)
-		s.Enc.Uint64(nsid)
-		s.Enc.Uint8(uint8(flags))
-		s.Enc.Uint64(sid)
-		s.W.MustWriteAll(buf.Bytes())
+		buf := &bytes.Buffer{}
+		enc := NewXDREncoder(utils.WrapMustWriter(buf))
+		enc.Struct(data)
+		size := uint64(buf.Len())
+
+		buf2 := &bytes.Buffer{}
+		enc = NewXDREncoder(utils.WrapMustWriter(buf2))
+		enc.Uint64(size)
+		enc.Uint64(nsid)
+		enc.Uint8(uint8(flags))
+		enc.Uint64(sid)
+		buf2.Write(buf.Bytes())
+
+		s.sendQ <- buf2.Bytes()
 		return nil
 	})
 	if err != nil {
@@ -140,7 +180,52 @@ func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) er
 	return nil
 }
 func (s *clientS) recvPacket(nsid uint64, empty interface{}) (data interface{}, flags PacketFlag, err error) {
-	panic("todo")
+	s.recvQLock.RLock()
+	defer s.recvQLock.RUnlock()
+
+	ch := s.recvQ[nsid]
+	if ch == nil {
+		err := xerrors.Errorf("not found channel: nsid=%d", nsid)
+		panic(err)
+	}
+
+	p := <-ch
+	return p.data, p.flags, nil
+}
+func (s *clientS) recvWorker() {
+	err := HandlePanic(func() error {
+		for {
+			p := &rawPacket{
+				size:  s.Dec.Uint64(),
+				nsid:  s.Dec.Uint64(),
+				flags: PacketFlag(s.Dec.Uint8()),
+				sid:   s.Dec.Uint64(),
+				data:  nil,
+			}
+			p.data = make([]byte, p.size)
+			s.R.MustReadAll(p.data)
+
+			s.recvQLock.RLock()
+			ch := s.recvQ[p.nsid]
+			if ch == nil {
+				panic("todo")
+			}
+			ch <- p
+			s.recvQLock.RUnlock()
+		}
+	})
+	// TODO
+	_ = err
+}
+func (s *clientS) sendWorker() {
+	err := HandlePanic(func() error {
+		for b := range s.sendQ {
+			s.W.MustWriteAll(b)
+		}
+		return nil
+	})
+	// TODO
+	_ = err
 }
 
 type clientNS struct {
