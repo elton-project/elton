@@ -6,6 +6,7 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
 	"net"
+	"reflect"
 )
 
 type PacketFlag uint8
@@ -122,9 +123,10 @@ func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) er
 	enc := NewXDREncoder(utils.WrapMustWriter(buf))
 	enc.Struct(data)
 	size := uint64(buf.Len())
-	sid := uint64(0) // StructID
 
 	err := HandlePanic(func() error {
+		sid := parseXDRStructIDTag(reflect.TypeOf(data))
+
 		s.Enc.Uint64(size)
 		s.Enc.Uint64(nsid)
 		s.Enc.Uint8(uint8(flags))

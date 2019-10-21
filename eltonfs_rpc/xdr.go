@@ -12,6 +12,8 @@ import (
 )
 
 const XDRTag = "xdr"
+const XDRStructIDField = "XXX_XDR_ID"
+const XDRStructIDTag = "xdrid"
 
 type XDREncoder interface {
 	Uint8(n uint8)
@@ -376,4 +378,29 @@ func parseXDRTag(field reflect.StructField) uint8 {
 		panic(err)
 	}
 	return uint8(n)
+}
+
+// parseXDRStructIDTag parses "xdrid" tag and return a StructID.
+func parseXDRStructIDTag(p reflect.Type) uint64 {
+	field, ok := p.FieldByName(XDRStructIDField)
+	if !ok {
+		err := xerrors.Errorf("not found %s field", XDRStructIDField)
+		panic(err)
+	}
+
+	tag, ok := field.Tag.Lookup(XDRStructIDTag)
+	if !ok {
+		err := xerrors.Errorf("not found %s tag in %s", XDRStructIDTag, XDRStructIDField)
+		panic(err)
+	}
+	n, err := strconv.ParseUint(tag, 10, 64)
+	if err != nil {
+		err := xerrors.Errorf("not unsigned integer: %w", err)
+		panic(err)
+	}
+	if n == 0 {
+		err := xerrors.Errorf("parse XDRStructID: out of range: %d", n)
+		panic(err)
+	}
+	return n
 }
