@@ -207,14 +207,17 @@ func (ns *clientNS) Recv(empty interface{}) (interface{}, error) {
 	}
 	return data, err
 }
-func (ns *clientNS) CloseWithError(err SessionError) error {
+func (ns *clientNS) CloseWithError(se SessionError) error {
 	if !ns.established {
 		return xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
 	}
 	if ns.closedC2S {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
-	return ns.S.sendPacket(ns.NSID, CloseSessionFlag|ErrorSessionFlag, err)
+
+	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag|ErrorSessionFlag, se)
+	ns.closedC2S = true
+	return err
 }
 func (ns *clientNS) Close() error {
 	if !ns.established {
@@ -223,7 +226,10 @@ func (ns *clientNS) Close() error {
 	if ns.closedC2S {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
-	return ns.S.sendPacket(ns.NSID, CloseSessionFlag, nil)
+
+	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag, nil)
+	ns.closedC2S = true
+	return err
 }
 func (ns *clientNS) IsSendable() bool {
 	return ns.closedC2S
