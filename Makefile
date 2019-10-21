@@ -25,7 +25,7 @@ fmt:
 
 .PHONY: test
 test:
-	go test -cover ./...
+	go test -cover -timeout 5s ./...
 
 .PHONY: clean
 clean:
