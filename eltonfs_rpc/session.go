@@ -227,7 +227,7 @@ func (ns *clientNS) Close() error {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
 
-	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag, nil)
+	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag, &Ping{})
 	ns.closedC2S = true
 	return err
 }
