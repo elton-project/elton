@@ -368,13 +368,13 @@ func parseXDRTag(field reflect.StructField) uint8 {
 	if tag == "" || tag == "ignore" {
 		return 0
 	}
-	n, err := strconv.Atoi(tag)
+	n, err := strconv.ParseUint(tag, 10, 8)
 	if err != nil {
-		err = xerrors.Errorf("encode a struct: %w", err)
+		err = xerrors.Errorf("parse FieldID: %w", err)
 		panic(err)
 	}
-	if n < 0 || math.MaxUint8 < n {
-		err = xerrors.Errorf("parse FieldID: out of range: %s", n)
+	if n == 0 {
+		err = xerrors.Errorf("parse FieldID: out of range: %d", n)
 		panic(err)
 	}
 	return uint8(n)
