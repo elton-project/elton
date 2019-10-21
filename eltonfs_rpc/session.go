@@ -161,9 +161,15 @@ func (ns *clientNS) Send(v interface{}) error {
 	if !ns.established {
 		flags |= CreateSessionFlag
 	}
-	return ns.S.sendPacket(ns.NSID, flags, v)
+
+	err := ns.S.sendPacket(ns.NSID, flags, v)
+	if err != nil {
+		return xerrors.Errorf("ClientSession.Send: %w", err)
+	}
+	ns.established = true
+	return nil
 }
-func (ns *clientNS) SendErr(err *SessionError) error {
+func (ns *clientNS) SendErr(se *SessionError) error {
 	if ns.closedS2C {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
@@ -173,7 +179,13 @@ func (ns *clientNS) SendErr(err *SessionError) error {
 		flags |= CreateSessionFlag
 	}
 	flags |= ErrorSessionFlag
-	return ns.S.sendPacket(ns.NSID, flags, err)
+
+	err := ns.S.sendPacket(ns.NSID, flags, se)
+	if err != nil {
+		return xerrors.Errorf("ClientSession.SendErr: %w", err)
+	}
+	ns.established = true
+	return nil
 }
 func (ns *clientNS) Recv(empty interface{}) (interface{}, error) {
 	if !ns.established {
