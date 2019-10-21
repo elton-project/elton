@@ -72,6 +72,16 @@ type clientS struct {
 	Dec  XDRDecoder
 
 	setupOK bool
+	// closed is closed when clientS.Close() called.  The purpose is notify workers of server termination event.
+	//
+	// Usage:
+	//	select {
+	//	case <-other:
+	//		// Do something.
+	//	case <-s.closed:
+	//		return
+	//	}
+	closed chan struct{}
 	// Nested Sessions
 	// Key: nested session IDs
 	// Value: *clientNS
@@ -113,6 +123,7 @@ func (s *clientS) Setup() error {
 		s.setupOK = true
 
 		// Start workers.
+		s.closed = make(chan struct{})
 		s.sendQ = make(chan []byte, SendQueueSize)
 		s.recvQ = map[uint64]chan *rawPacket{}
 		s.nss = map[uint64]*clientNS{}
@@ -154,7 +165,12 @@ func (s *clientS) New() (ClientNS, error) {
 
 	return ns, nil
 }
-func (s *clientS) Close() error { panic("todo") }
+func (s *clientS) Close() error {
+	if s.closed != nil {
+		close(s.closed)
+	}
+	return nil
+}
 func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) error {
 	err := HandlePanic(func() error {
 		sid := parseXDRStructIDTag(reflect.TypeOf(data))
@@ -194,6 +210,11 @@ func (s *clientS) recvPacket(nsid uint64, empty interface{}) (data interface{}, 
 	return p.data, p.flags, nil
 }
 func (s *clientS) recvWorker() {
+	go func() {
+		<-s.closed
+		s.Conn.Close()
+	}()
+
 	err := HandlePanic(func() error {
 		for {
 			p := &rawPacket{
@@ -211,7 +232,11 @@ func (s *clientS) recvWorker() {
 			if ch == nil {
 				panic("todo")
 			}
-			ch <- p
+			select {
+			case ch <- p:
+			case <-s.closed:
+				return nil
+			}
 			s.recvQLock.RUnlock()
 		}
 	})
@@ -220,8 +245,13 @@ func (s *clientS) recvWorker() {
 }
 func (s *clientS) sendWorker() {
 	err := HandlePanic(func() error {
-		for b := range s.sendQ {
-			s.W.MustWriteAll(b)
+		for {
+			select {
+			case b := <-s.sendQ:
+				s.W.MustWriteAll(b)
+			case <-s.closed:
+				return nil
+			}
 		}
 		return nil
 	})

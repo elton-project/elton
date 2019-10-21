@@ -53,6 +53,7 @@ func TestClientS_Setup(t *testing.T) {
 
 		// Run the setup.
 		s := NewClientSession(conn)
+		defer s.Close()
 		err := s.Setup()
 		assert.NoError(t, err)
 
@@ -70,6 +71,7 @@ func TestClientS_Setup(t *testing.T) {
 
 		// Run the setup.
 		s := NewClientSession(conn)
+		defer s.Close()
 		err := s.Setup()
 		assert.Error(t, err)
 	})
@@ -77,6 +79,7 @@ func TestClientS_Setup(t *testing.T) {
 func TestClientS_New(t *testing.T) {
 	t.Run("send and recv", func(t *testing.T) {
 		conn, s := newClientSession()
+		defer s.Close()
 
 		ns, err := s.New()
 		assert.NoError(t, err)
