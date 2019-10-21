@@ -10,6 +10,31 @@ import (
 	"time"
 )
 
+// newClientSession returns a session that it has been set up.
+func newClientSession() (*fakeConn, ClientSession) {
+	conn := &fakeConn{}
+
+	// Prepare server response (Setup2).
+	enc := NewXDREncoder(utils.WrapMustWriter(&conn.ReadBuf))
+	enc.Struct(&Setup2{
+		Error:      0,
+		Reason:     "",
+		ServerName: "eltonfs",
+	})
+
+	s := NewClientSession(conn)
+	err := s.Setup()
+	if err != nil {
+		panic(err)
+	}
+	if len(conn.ReadBuf.Bytes()) != 0 {
+		panic(xerrors.Errorf("partial read of Setup2 struct: remaining bytes are %d", len(conn.ReadBuf.Bytes())))
+	}
+	conn.ReadBuf.Reset()
+	conn.WriteBuf.Reset()
+	return conn, s
+}
+
 func TestClientS_Setup(t *testing.T) {
 	t.Run("no_error", func(t *testing.T) {
 		// Prepare server response (Setup2).
@@ -51,10 +76,7 @@ func TestClientS_Setup(t *testing.T) {
 }
 func TestClientS_New(t *testing.T) {
 	t.Run("send and recv", func(t *testing.T) {
-		conn := &fakeConn{}
-
-		s := NewClientSession(conn)
-		s.(*clientS).setupOK = true
+		conn, s := newClientSession()
 
 		ns, err := s.New()
 		assert.NoError(t, err)
