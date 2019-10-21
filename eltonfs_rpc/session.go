@@ -230,7 +230,8 @@ func (s *clientS) recvWorker() {
 			s.recvQLock.RLock()
 			ch := s.recvQ[p.nsid]
 			if ch == nil {
-				panic("todo")
+				err := xerrors.Errorf("not found channel: nsid=%d", p.nsid)
+				panic(err)
 			}
 			select {
 			case ch <- p:
