@@ -381,6 +381,10 @@ func parseXDRTag(field reflect.StructField) uint8 {
 }
 
 // parseXDRStructIDTag parses "xdrid" tag and return a StructID.
+// It will panics in the following situations:
+// * If p is not struct type.
+// * If XXX_XDR_ID field is not found.
+// * If xdrid tag on XXX_XDR_ID field is not found.
 func parseXDRStructIDTag(p reflect.Type) uint64 {
 	if p.Kind() == reflect.Ptr {
 		// Dereference pointer.
