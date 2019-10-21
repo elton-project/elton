@@ -382,6 +382,11 @@ func parseXDRTag(field reflect.StructField) uint8 {
 
 // parseXDRStructIDTag parses "xdrid" tag and return a StructID.
 func parseXDRStructIDTag(p reflect.Type) uint64 {
+	if p.Kind() == reflect.Ptr {
+		// Dereference pointer.
+		p = p.Elem()
+	}
+
 	field, ok := p.FieldByName(XDRStructIDField)
 	if !ok {
 		err := xerrors.Errorf("not found %s field", XDRStructIDField)
