@@ -77,6 +77,7 @@ type clientS struct {
 	// Value: *clientNS
 	nss      map[uint64]*clientNS
 	lastNSID uint64
+	nssLock  sync.RWMutex
 
 	// Queue for packets waiting to be sent.
 	// Elements are serialized packets.
@@ -114,6 +115,7 @@ func (s *clientS) Setup() error {
 		// Start workers.
 		s.sendQ = make(chan []byte, SendQueueSize)
 		s.recvQ = map[uint64]chan *rawPacket{}
+		s.nss = map[uint64]*clientNS{}
 		go s.recvWorker()
 		go s.sendWorker()
 		return nil
@@ -123,10 +125,9 @@ func (s *clientS) New() (ClientNS, error) {
 	if !s.setupOK {
 		return nil, xerrors.New("setup is not complete")
 	}
-	// Initialize　s.nss
-	if s.nss == nil {
-		s.nss = map[uint64]*clientNS{}
-	}
+
+	s.nssLock.Lock()
+	defer s.nssLock.Unlock()
 
 	// Get next NSID.
 	var nextNSID uint64
