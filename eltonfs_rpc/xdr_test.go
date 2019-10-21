@@ -158,6 +158,22 @@ func TestBinEncoder_Struct(t *testing.T) {
 
 		assert.Equal(t, []byte{0}, buf.Bytes())
 	})
+	t.Run("invalid id", func(t *testing.T) {
+		s1 := struct {
+			A uint64 `xdr:"0"`
+		}{A: 1}
+		s2 := struct {
+			A uint64 `xdr:"-1"`
+		}{A: 1}
+
+		_, enc := newEnc()
+		assert.Panics(t, func() {
+			enc.Struct(s1)
+		})
+		assert.Panics(t, func() {
+			enc.Struct(s2)
+		})
+	})
 	t.Run("private xdr fields", func(t *testing.T) {
 		s := struct {
 			a uint64
