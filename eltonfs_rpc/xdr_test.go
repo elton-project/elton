@@ -160,10 +160,12 @@ func TestBinEncoder_Struct(t *testing.T) {
 	})
 	t.Run("invalid id", func(t *testing.T) {
 		s1 := struct {
-			A uint64 `xdr:"0"`
+			XXX_XDR_ID struct{} `xdrid:"10"`
+			A          uint64   `xdr:"0"`
 		}{A: 1}
 		s2 := struct {
-			A uint64 `xdr:"-1"`
+			XXX_XDR_ID struct{} `xdrid:"11"`
+			A          uint64   `xdr:"-1"`
 		}{A: 1}
 
 		_, enc := newEnc()
