@@ -122,6 +122,9 @@ static int dec_bytes(struct xdr_decoder *dec, char *bytes, int *len) {
     CHECK_READ_SIZE(dec, size);
     memcpy(bytes, dec->buffer + dec->pos, size);
     dec->pos += size;
+
+    // Set decoded data size to len.
+    *len = size;
     return 0;
 }
 
