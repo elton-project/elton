@@ -1,4 +1,4 @@
-#ifndef ELTONFS_UNIT_TEST
+#ifdef ELTONFS_UNIT_TEST
 #include "interface.h"
 #include <assert.h>
 
