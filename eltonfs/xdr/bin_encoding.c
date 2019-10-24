@@ -1,7 +1,7 @@
 #include <linux/string.h>
-#include "xdr/interface.h"
-#include "xdr/bin_encoding.h"
-#include "xdr/error.h"
+#include "interface.h"
+#include "bin_encoding.h"
+#include "error.h"
 
 int __check_encoder_status(struct xdr_encoder *enc) {
     if(
