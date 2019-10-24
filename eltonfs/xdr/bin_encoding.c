@@ -3,6 +3,9 @@
 #include "bin_encoding.h"
 #include "error.h"
 
+static struct xdr_encoder_operations bin_encoder_op;
+static struct xdr_decoder_operations bin_decoder_op;
+
 int __check_encoder_status(struct xdr_encoder *enc) {
     if(
         enc->buffer == NULL ||
