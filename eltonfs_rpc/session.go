@@ -206,8 +206,14 @@ func (s *clientS) recvPacket(nsid uint64, empty interface{}) (data interface{}, 
 		panic(err)
 	}
 
+	// Receive a packet.
 	p := <-ch
-	return p.data, p.flags, nil
+
+	// Decode it.
+	buf := utils.WrapMustReader(bytes.NewBuffer(p.data))
+	dec := NewXDRDecoder(buf)
+	data = dec.Struct(empty)
+	return data, p.flags, nil
 }
 func (s *clientS) recvWorker() {
 	go func() {
