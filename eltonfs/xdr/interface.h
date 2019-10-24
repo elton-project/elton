@@ -21,7 +21,7 @@ struct xdr_encoder_operations {
 struct xdr_decoder_operations {
     int (*u8)(struct xdr_decoder *dec, u8 *val);
     int (*u64)(struct xdr_decoder *dec, u64 *val);
-    int (*bytes)(struct xdr_decoder *dec, char *bytes, int len);
+    int (*bytes)(struct xdr_decoder *dec, char *bytes, int *len);
 };
 
 int default_encoder_init(struct xdr_encoder *enc, char *buff, int len);
