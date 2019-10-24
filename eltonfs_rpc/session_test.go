@@ -7,22 +7,39 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"sync"
 	"testing"
 	"time"
 )
 
 // newClientSession returns a session that it has been set up.
-func newClientSession() (server *fakeConn, s ClientSession) {
+func newClientSession() (server *fakeConn, s ClientSession, closer func()) {
 	var client *fakeConn
 	client, server = newFakeConn()
+	closer = func() {
+		client.Close()
+		server.Close()
+	}
 
-	// Prepare server response (Setup2).
-	enc := NewXDREncoder(utils.WrapMustWriter(server))
-	enc.Struct(&Setup2{
-		Error:      0,
-		Reason:     "",
-		ServerName: "eltonfs",
-	})
+	var wg sync.WaitGroup
+	defer wg.Wait()
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		// Send response (Setup2) to client.
+		enc := NewXDREncoder(utils.WrapMustWriter(server))
+		enc.Struct(&Setup2{
+			Error:      0,
+			Reason:     "",
+			ServerName: "eltonfs",
+		})
+	}()
+	go func() {
+		defer wg.Done()
+		// Read request (Setup1) from client.
+		dec := NewXDRDecoder(utils.WrapMustReader(server))
+		dec.Struct(&Setup1{})
+	}()
 
 	s = NewClientSession(client)
 	err := s.Setup()
@@ -36,38 +53,69 @@ func TestClientS_Setup(t *testing.T) {
 	t.Run("no_error", func(t *testing.T) {
 		// Prepare server response (Setup2).
 		client, server := newFakeConn()
-		enc := NewXDREncoder(utils.WrapMustWriter(server))
-		enc.Struct(&Setup2{
-			Error:      0,
-			Reason:     "",
-			ServerName: "eltonfs",
-		})
-		// Prepare expected setup request (Setup1)
-		req := &bytes.Buffer{}
-		NewXDREncoder(utils.WrapMustWriter(req)).Struct(&Setup1{
-			ClientName: "eltonfs-helper",
-		})
+		defer client.Close()
+		defer server.Close()
+
+		var wg sync.WaitGroup
+		defer wg.Wait()
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			// Send data to client.
+			enc := NewXDREncoder(utils.WrapMustWriter(server))
+			enc.Struct(&Setup2{
+				Error:      0,
+				Reason:     "",
+				ServerName: "eltonfs",
+			})
+		}()
+		go func() {
+			defer wg.Done()
+			// Prepare expected setup request (Setup1)
+			expected := func() []byte {
+				req := &bytes.Buffer{}
+				NewXDREncoder(utils.WrapMustWriter(req)).Struct(&Setup1{
+					ClientName: "eltonfs-helper",
+				})
+				return req.Bytes()
+			}()
+			// Read data from client and check setup request (Setup1).
+			assert.Equal(t,
+				expected,
+				server.MustReadAll(),
+			)
+		}()
 
 		// Run the setup.
 		s := NewClientSession(client)
 		defer s.Close()
 		err := s.Setup()
 		assert.NoError(t, err)
-
-		// Check setup request (Setup1).
-		assert.NoError(t, err)
-		assert.Equal(t,
-			req.Bytes(),
-			server.MustReadAll(),
-		)
 	})
 	t.Run("invalid response", func(t *testing.T) {
 		// Prepare invalid server response (Setup2).
 		client, server := newFakeConn()
-		utils.WrapMustWriter(server).MustWriteAll([]byte("invalid response"))
+
+		var wg sync.WaitGroup
+		// Should close connections before call wg.Wait() to prevent deadlock.
+		defer wg.Wait()
+		defer client.Close()
+		defer server.Close()
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			// Send data to client.
+			server.Write([]byte("invalid response"))
+		}()
+		go func() {
+			defer wg.Done()
+			// Read data from client.
+			dec := NewXDRDecoder(utils.WrapMustReader(server))
+			dec.Struct(&Setup1{})
+		}()
 
 		s := NewClientSession(client)
-		defer client.Close()
+		defer s.Close()
 		// Run the setup.
 		err := s.Setup()
 		assert.Error(t, err)
@@ -75,26 +123,34 @@ func TestClientS_Setup(t *testing.T) {
 }
 func TestClientS_New(t *testing.T) {
 	t.Run("send and recv", func(t *testing.T) {
-		server, s := newClientSession()
+		server, s, closer := newClientSession()
+		defer closer()
 		defer s.Close()
 
+		// s.New() should not send any packet.
 		ns, err := s.New()
 		assert.NoError(t, err)
 		assert.NotNil(t, ns)
-		expected := func() []byte {
-			// Prepare expected packet
-			buf := &bytes.Buffer{}
-			enc := NewXDREncoder(utils.WrapMustWriter(buf))
-			enc.Uint64(1)                       // Number of data size in bytes.
-			enc.Uint64(1<<63 | 1)               // SessionID
-			enc.Uint8(uint8(CreateSessionFlag)) // Flags
-			enc.Uint64(3)                       // StructID (ping)
-			enc.Uint8(0)                        // Number of fields in struct.
-			return buf.Bytes()
-		}()
-		assert.Equal(t, expected, server.MustReadAll())
 
+		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
+			// Prepare expected packet
+			dec := NewXDRDecoder(utils.WrapMustReader(server))
+			assert.Equal(t, dec.Uint64(), uint64(1))               // Number of data size in bytes.
+			assert.Equal(t, dec.Uint64(), uint64(1<<63|1))         // SessionID
+			assert.Equal(t, dec.Uint8(), uint8(CreateSessionFlag)) // Flags
+			assert.Equal(t, dec.Uint64(), uint64(3))               // StructID (ping)
+			assert.Equal(t, dec.Uint8(), uint8(0))                 // Number of fields in struct.
+		}()
+		err = ns.Send(&Ping{})
+		assert.NoError(t, err)
+		wg.Wait()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 			enc := NewXDREncoder(utils.WrapMustWriter(server))
 			enc.Uint64(1)         // Number of data size in bytes.
 			enc.Uint64(1<<63 | 1) // SessionID
@@ -105,6 +161,7 @@ func TestClientS_New(t *testing.T) {
 		ping, err := ns.Recv(&Ping{})
 		assert.NoError(t, err)
 		assert.Equal(t, &Ping{}, ping)
+		wg.Wait()
 	})
 	t.Run("try to create nested session before setup", func(t *testing.T) {
 		conn := &fakeConn{}
