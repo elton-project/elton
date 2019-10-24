@@ -17,7 +17,8 @@
                 "CONFIG_64BIT",
                 "KERN_DEBUG",
                 "ELTONFS_STATISTIC",
-                "ELTONFS_XATTRS"
+                "ELTONFS_XATTRS",
+                "ELTONFS_UNIT_TEST"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
