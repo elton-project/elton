@@ -9,7 +9,8 @@
 
 // エラーならtrueを返す。
 // また、エラー発生時にログを残す。
-#define CHECK_ERROR(error) ({ \
+#define CHECK_ERROR(expr) ({ \
+    int error = expr; \
 	if(error) { \
 		ERR("Occurred an error %d on %s (%s:%d)", error, __func__, __FILE__, __LINE__); \
 	} \
