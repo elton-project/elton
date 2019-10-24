@@ -2,7 +2,7 @@
 #include "interface.h"
 #include <assert.h>
 
-int test_encode_u8() {
+int test_encode_u8(void) {
     struct xdr_encoder enc;
     char buff[4] = {0, 0, 0, 99};
     int len = 3;
