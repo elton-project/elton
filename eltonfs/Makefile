@@ -7,7 +7,9 @@ CC := gcc -DELTONFS_STATISTIC \
 elton-y += super.o
 elton-y += simple_xattr.o xattr.o
 elton-y += helper.o
-elton-y += xdr/default.o xdr/bin_encoding.o
+elton-y += xdr/default.o \
+	xdr/bin_encoding.o \
+	xdr/bin_encoding_test.o
 obj-m := elton.o
 
 KERNEL ?= $(shell uname -r)
