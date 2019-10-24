@@ -1,6 +1,9 @@
 #ifndef _ELTON_ASSERT_H
 #define _ELTON_ASSERT_H
 
+#include <linux/printk.h>
+#include <elton.h>
+
 
 #define _PRINTLNK(level, fmt, ...) (printk(level MODULE_NAME ": " fmt "\n", ##__VA_ARGS__))
 #define DEBUG(fmt, ...) _PRINTLNK(KERN_DEBUG, fmt, ##__VA_ARGS__)
