@@ -1,0 +1,3 @@
+#define ELTON_XDR_INVAL 1
+#define ELTON_XDR_NOMEM 2
+#define ELTON_XDR_NEED_MORE_MEM 3
