@@ -1,5 +1,5 @@
 .PHONY: all
-all: build-deps generate fmt test build
+all: build-deps generate fmt test-fast build
 
 .PHONY: build-deps
 build-deps:
@@ -23,9 +23,13 @@ fmt:
 	go fmt ./...
 	clang-format -i ./api/v*/*.proto
 
-.PHONY: test
-test:
+.PHONY: test-fast
+test-fast:
 	go test -cover -timeout 5s ./...
+	$(MAKE) -C eltonfs/clustertest test-fast
+
+.PHONY: test
+test: test-fast
 
 .PHONY: clean
 clean:
