@@ -90,7 +90,7 @@ extern volatile bool __assertion_failed;
 #define ASSERT_EQUAL_BYTES(expected, actual, size) ({ \
 	int i, result=memcmp(expected, actual, size); \
 	if(result) { \
-		ERR("ASSERT: two values does not match"); \
+		ERR("ASSERT: two values does not match (%s %s:%d)", __func__, __FILE__, __LINE__); \
 		ERR("ASSERT:    expected  actual"); \
 		for(i=0; i<size; i++) { \
 			char e=(expected)[i], a=(actual)[i]; \
