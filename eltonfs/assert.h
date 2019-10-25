@@ -23,7 +23,7 @@
 	typeof(expr) error = expr; \
 	if(!expr) { \
 		ERR(#expr " is NULL"); \
-		BUG_ON(p); \
+		BUG(); \
 	} \
 	error; \
 })
