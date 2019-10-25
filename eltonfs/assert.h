@@ -58,6 +58,17 @@ extern volatile bool __assertion_failed;
 	} \
 	fail; \
 })
+#define ASSERT_EQUAL_INT(expected, expr) ({ \
+	typeof(expr) actual = expr; \
+	bool fail = actual != expected; \
+	if(fail) { \
+		ERR("ASSERT: %s return expeccted value (%s %s:%d)\n" \
+			"  expected=%d\n" \
+			"  actual=%d", \
+			#expr, __func__, __FILE__, __LINE__, \ 
+			expected, actual); \
+	} \
+})
 // Assertionが失敗したことにする。
 #define SET_ASSERTION_FAILED() do{ __assertion_failed = true; }while(0)
 // Assertionが失敗したときにtrueを返す。
