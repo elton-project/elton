@@ -58,6 +58,8 @@ extern volatile bool __assertion_failed;
 	} \
 	fail; \
 })
+// 条件式が想定外の数値を返した場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
 #define ASSERT_EQUAL_INT(expected, expr) ({ \
 	typeof(expr) actual = expr; \
 	bool fail = actual != expected; \
