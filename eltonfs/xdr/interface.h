@@ -1,3 +1,6 @@
+#ifndef _ELTON_XDR_INTERFACE_H
+#define _ELTON_XDR_INTERFACE_H
+
 #include <linux/types.h>
 
 struct xdr_encoder {
@@ -26,3 +29,5 @@ struct xdr_decoder_operations {
 
 int default_encoder_init(struct xdr_encoder *enc, char *buff, size_t len);
 int default_decoder_init(struct xdr_decoder *dec, char *buff, size_t len);
+
+#endif // _ELTON_XDR_INTERFACE_H
