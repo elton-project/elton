@@ -158,8 +158,26 @@ static void test_encode_u8(void) {
     ASSERT_EQUAL_ERROR(ELTON_XDR_NOMEM, enc.enc_op->u8(&enc, 4));
 }
 
+static void test_decdoe_u8(void) {
+    struct xdr_decoder dec;
+    char buff[4] = {1, 2, 3, 99};
+    int len = 3;
+    u8 val = 0;
+
+    if(ASSERT_NO_ERROR(default_decoder_init(&dec, buff, len))) return;
+
+    ASSERT_NO_ERROR(dec.dec_op->u8(&dec, &val));
+    ASSERT_EQUAL_ERROR(1, val);
+    ASSERT_NO_ERROR(dec.dec_op->u8(&dec, &val));
+    ASSERT_EQUAL_ERROR(2, val);
+    ASSERT_NO_ERROR(dec.dec_op->u8(&dec, &val));
+    ASSERT_EQUAL_ERROR(3, val);
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM, dec.dec_op->u8(&dec, &val));
+}
+
 void test_xdr_bin(void) {
     test_encode_u8();
+    test_decdoe_u8();
 }
 
 #endif // ELTONFS_UNIT_TEST
