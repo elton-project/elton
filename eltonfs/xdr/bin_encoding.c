@@ -10,8 +10,6 @@ static struct xdr_decoder_operations bin_decoder_op;
 int __check_encoder_status(struct xdr_encoder *enc) {
     if(
         enc->buffer == NULL ||
-        enc->pos < 0 ||
-        enc->len < 0 ||
         enc->len < enc->pos ||
         enc->enc_op == NULL
     ) return -ELTON_XDR_INVAL;
@@ -26,8 +24,6 @@ int __check_encoder_status(struct xdr_encoder *enc) {
 int __check_decoder_status(struct xdr_decoder *dec) {
     if(
         dec->buffer == NULL ||
-        dec->pos < 0 ||
-        dec->len < 0 ||
         dec->len < dec->pos ||
         dec->dec_op == NULL
     ) return -ELTON_XDR_INVAL;
