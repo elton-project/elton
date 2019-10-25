@@ -13,18 +13,19 @@
 // エラーならtrueを返す。
 // また、エラー発生時にログを残す。
 #define CHECK_ERROR(expr) ({ \
-    int error = expr; \
+    typeof(expr) error = expr; \
 	if(error) { \
 		ERR("Occurred an error %d on %s (%s:%d)", error, __func__, __FILE__, __LINE__); \
 	} \
 	error; \
 })
-#define ASSERT_NOT_NULL(p) ({ \
-	if(!p) { \
-		ERR(#p " is NULL "); \
+#define ASSERT_NOT_NULL(expr) ({ \
+	typeof(expr) error = expr; \
+	if(!expr) { \
+		ERR(#expr " is NULL "); \
 		BUG_ON(p); \
 	} \
-	p; \
+	error; \
 })
 
 
