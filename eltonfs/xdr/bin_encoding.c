@@ -230,7 +230,6 @@ static void test_encode_bytes(void) {
         'w', 'o', 'r', 'l', 'd', '!', '!',  // data2
         0, 0, 0, 0, 0, 0, 0, 0, 0,  // padding for detect out-of-bounds writing.
     };
-    char expected3[] = {0, 0, 0, 0};
     BUILD_BUG_ON_MSG(sizeof(buff)!=sizeof(expected12), "mismatch data size of buff and expected12");
 
     if(ASSERT_NO_ERROR(default_encoder_init(&enc, buff, len))) return;
