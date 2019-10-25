@@ -180,10 +180,11 @@ static void test_decdoe_u8(void) {
 
 static void test_encode_u64(void) {
     struct xdr_encoder enc;
-    char buff[20];
-    int len = 20;
+    char buff[8*3];
+    int len = 8*2 + 4;
     const char expected1[] = {1, 2, 3, 4, 5, 6, 7, 8};
     const char expected2[] = {0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0x1f, 0x2f};
+    const char expected3[] = {201, 202, 203, 204, 205, 206, 207, 208};
 
     if(ASSERT_NO_ERROR(default_encoder_init(&enc, buff, len))) return;
 
@@ -191,7 +192,11 @@ static void test_encode_u64(void) {
     ASSERT_EQUAL_BYTES(expected1, buff, 8);
     ASSERT_NO_ERROR(enc.enc_op->u64(&enc, 0x0a0b0c0d0e0f1f2f));
     ASSERT_EQUAL_BYTES(expected2, buff+8, 8);
+
+    // Check out-of-bounds writing.
+    memcpy(buff+(8*2), expected3, 8);
     ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM, enc.enc_op->u64(&enc, 0x123));
+    ASSERT_EQUAL_BYTES(expected3, buff+(8*2), 8);
 }
 static void test_decode_u64(void) {
     struct xdr_decoder dec;
