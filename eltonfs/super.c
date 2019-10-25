@@ -279,6 +279,7 @@ static int __init fs_module_init(void) {
 
 #ifdef ELTONFS_UNIT_TEST
 	test_xdr();
+	if(IS_ASSERTION_FAILED()) return 1;
 #endif // ELTONFS_UNIT_TEST
 
 	error = register_filesystem(&eltonfs_type);
