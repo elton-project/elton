@@ -26,7 +26,7 @@ extern volatile bool __assertion_failed;
 // ポインタがNULLの場合、WARNINGを表示する。
 #define ASSERT_NOT_NULL(expr) ({ \
 	typeof(expr) error = expr; \
-	if(!expr) { \
+	if(!error) { \
 		ERR("ASSERT: %s is NULL (%s %s:%d)", #expr, __func__, __FILE__, __LINE__); \
 		SET_ASSERTION_FAILED(); \
 	} \
@@ -41,7 +41,7 @@ extern volatile bool __assertion_failed;
 })
 #define ASSERT_EQUAL_ERROR(expected, expr) ({ \
 	typeof(expr) actual = expr; \
-	if(actual) { \
+	if(actual != expected) { \
 		ERR("ASSERT: %s returns unexpected error (%s %s:%d)\n" \
 			"  expected=%d\n" \
 			"  actual=%d", \
