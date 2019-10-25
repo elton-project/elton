@@ -71,6 +71,22 @@ extern volatile bool __assertion_failed;
 			expected, actual); \
 	} \
 })
+// 2つのchar*型の配列の内容が一致しない場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
+// 表示内容は、
+#define ASSERT_EQUAL_BYTES(expected, actual, size) ({ \
+	int i, result=memcmp(expected, actual, size); \
+	if(result) { \
+		ERR("ASSERT: two values does not match"); \
+		ERR("     expected  actual"); \
+		for(i=0; i<size; i++) { \
+			char e=(expected)[i], a=(actual)[i]; \
+			if(e == a) ERR("ASSERT:   %d   %d", e, a); \
+			else       ERR("ASSERT:   %d   %d   <=== !!", e, a); \
+		} \
+	} \
+	result; \
+})
 // Assertionが失敗したことにする。
 #define SET_ASSERTION_FAILED() do{ __assertion_failed = true; }while(0)
 // Assertionが失敗したときにtrueを返す。
