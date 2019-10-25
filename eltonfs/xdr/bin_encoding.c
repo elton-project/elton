@@ -216,12 +216,41 @@ static void test_decode_u64(void) {
     ASSERT_EQUAL_LL(0x0a0b0c0d0e0f1f2fLL, val);
     ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM, dec.dec_op->u64(&dec, &val));
 }
+static void test_encode_bytes(void) {
+    struct xdr_encoder enc;
+    char buff[37];
+    int len = 30;
+    char *data1 = "hello";
+    char *data2 = "world!!";
+    char *data3 = "long-long-data";
+    char expected12[] = {
+        0, 0, 0, 0, 0, 0, 0, 5,  // length
+        'h', 'e', 'l', 'l', 'o',  // data1
+        0, 0, 0, 0, 0, 0, 0, 7,  // length
+        'w', 'o', 'r', 'l', 'd', '!', '!',  // data2
+        0, 0, 0, 0, 0, 0, 0, 0, 0,  // padding for detect out-of-bounds writing.
+    };
+    char expected3[] = {0, 0, 0, 0};
+    BUILD_BUG_ON_MSG(sizeof(buff)!=sizeof(expected12), "mismatch data size of buff and expected12");
+
+    if(ASSERT_NO_ERROR(default_encoder_init(&enc, buff, len))) return;
+
+    memset(buff, 0, sizeof(buff));
+    ASSERT_NO_ERROR(enc.enc_op->bytes(&enc, data1, strlen(data1)));
+    ASSERT_NO_ERROR(enc.enc_op->bytes(&enc, data2, strlen(data2)));
+    ASSERT_EQUAL_BYTES(expected12, buff, sizeof(buff));
+
+    // Check out-of-bounds writing.
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM, enc.enc_op->bytes(&enc, data3, strlen(data3)));
+    ASSERT_EQUAL_BYTES(expected12, buff, sizeof(buff));
+}
 
 void test_xdr_bin(void) {
     test_encode_u8();
     test_decdoe_u8();
     test_encode_u64();
     test_decode_u64();
+    test_encode_bytes();
 }
 
 #endif // ELTONFS_UNIT_TEST
