@@ -23,7 +23,8 @@ extern volatile bool __assertion_failed;
 	} \
 	error; \
 })
-// ポインタがNULLの場合、WARNINGを表示する。
+// ポインタがNULLの場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
 #define ASSERT_NOT_NULL(expr) ({ \
 	typeof(expr) error = expr; \
 	bool fail = !error; \
@@ -33,6 +34,8 @@ extern volatile bool __assertion_failed;
 	} \
 	fail; \
 })
+// 条件式がエラーを返した場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
 #define ASSERT_NO_ERROR(expr) ({ \
 	typeof(expr) error = expr;\
 	bool fail = error; \
@@ -41,6 +44,8 @@ extern volatile bool __assertion_failed;
 	} \
 	fail; \
 })
+// 条件式が指定したエラーコードと異なる値を返した場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
 #define ASSERT_EQUAL_ERROR(expected, expr) ({ \
 	typeof(expr) actual = expr; \
 	bool fail = actual != expected; \
