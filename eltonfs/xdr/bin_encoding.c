@@ -45,14 +45,14 @@ int __check_decoder_status(struct xdr_decoder *dec) {
     if(xdr->pos + (size) > xdr->len) return -ELTON_XDR_NOMEM
 
 
-int bin_encoder_init(struct xdr_encoder *enc, char *buff, int len) {
+int bin_encoder_init(struct xdr_encoder *enc, char *buff, size_t len) {
     enc->buffer = buff;
     enc->pos = 0;
     enc->len = len;
     enc->enc_op = &bin_encoder_op;
     return 0;
 }
-int bin_decoder_init(struct xdr_decoder *dec, char *buff, int len) {
+int bin_decoder_init(struct xdr_decoder *dec, char *buff, size_t len) {
     dec->buffer = buff;
     dec->pos = 0;
     dec->len = len;
@@ -80,7 +80,7 @@ static int enc_u64(struct xdr_encoder *enc, u64 val) {
     enc->buffer[enc->pos++] = (u8)(val);
     return 0;
 }
-static int enc_bytes(struct xdr_encoder *enc, char *bytes, int len) {
+static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
     CHECK_ENCODER_STATUS(enc);
     CHECK_WRITE_SIZE(enc, 8+len);
     // Write length.
@@ -112,7 +112,7 @@ static int dec_u64(struct xdr_decoder *dec, u64 *val) {
     *val |= (u64)(dec->buffer[dec->pos++]);
     return 0;
 }
-static int dec_bytes(struct xdr_decoder *dec, char *bytes, int *len) {
+static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
     u64 size;
     int err;
     err = dec_u64(dec, &size);
@@ -151,7 +151,7 @@ static struct xdr_decoder_operations bin_decoder_op = {
 static void test_encode_u8(void) {
     struct xdr_encoder enc;
     char buff[4] = {0, 0, 0, 99};
-    int len = 3;
+    size_t len = 3;
 
     if(ASSERT_NO_ERROR(default_encoder_init(&enc, buff, len))) return;
 
@@ -167,7 +167,7 @@ static void test_encode_u8(void) {
 static void test_decdoe_u8(void) {
     struct xdr_decoder dec;
     char buff[4] = {1, 2, 3, 99};
-    int len = 3;
+    size_t len = 3;
     u8 val = 0;
 
     if(ASSERT_NO_ERROR(default_decoder_init(&dec, buff, len))) return;
@@ -184,7 +184,7 @@ static void test_decdoe_u8(void) {
 static void test_encode_u64(void) {
     struct xdr_encoder enc;
     char buff[8*3];
-    int len = 8*2 + 4;
+    size_t len = 8*2 + 4;
     const char expected1[] = {1, 2, 3, 4, 5, 6, 7, 8};
     const char expected2[] = {0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0x1f, 0x2f};
     const char expected3[] = {201, 202, 203, 204, 205, 206, 207, 208};
@@ -208,7 +208,7 @@ static void test_decode_u64(void) {
         0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0x1f, 0x2f,
         1, 2, 3, 4,
     };
-    int len = 20;
+    size_t len = 20;
     u64 val = 0;
 
     if(ASSERT_NO_ERROR(default_decoder_init(&dec, buff, len))) return;
@@ -222,7 +222,7 @@ static void test_decode_u64(void) {
 static void test_encode_bytes(void) {
     struct xdr_encoder enc;
     char buff[37];
-    int len = 30;
+    size_t len = 30;
     char *data1 = "hello";
     char *data2 = "world!!";
     char *data3 = "long-long-data";
@@ -257,7 +257,7 @@ static void test_decode_bytes(void) {
         'a', 'b',  // The partial data
     };
     char read_buff[10];
-    int read_size;
+    size_t read_size;
     char *expected1 = "hello";
     char *expected2 = "world!!";
 
@@ -265,12 +265,12 @@ static void test_decode_bytes(void) {
 
     read_size = sizeof(read_buff);
     ASSERT_NO_ERROR(dec.dec_op->bytes(&dec, read_buff, &read_size));
-    ASSERT_EQUAL_INT(strlen(expected1), read_size);
+    ASSERT_EQUAL_SIZE_T(strlen(expected1), read_size);
     ASSERT_EQUAL_BYTES(expected1, read_buff, strlen(expected1));
 
     read_size = sizeof(read_buff);
     ASSERT_NO_ERROR(dec.dec_op->bytes(&dec, read_buff, &read_size));
-    ASSERT_EQUAL_INT(strlen(expected2), read_size);
+    ASSERT_EQUAL_SIZE_T(strlen(expected2), read_size);
     ASSERT_EQUAL_BYTES(expected2, read_buff, strlen(expected2));
 
     read_size = sizeof(read_buff);

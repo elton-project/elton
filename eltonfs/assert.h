@@ -84,6 +84,19 @@ extern volatile bool __assertion_failed;
 		SET_ASSERTION_FAILED(); \
 	} \
 })
+// 条件式が想定外のサイズを返した場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
+#define ASSERT_EQUAL_SIZE_T(expected, expr) ({ \
+	size_t actual = expr; \
+	bool fail = actual != expected; \
+	if(fail) { \
+		ERR("ASSERT: %s return unexpected value (%s %s:%d): " \
+			"expected=%zu actual=%zu", \
+			#expr, __func__, __FILE__, __LINE__, \
+			expected, actual); \
+		SET_ASSERTION_FAILED(); \
+	} \
+})
 // 2つのchar*型の配列の内容が一致しない場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
 // 表示内容は、
