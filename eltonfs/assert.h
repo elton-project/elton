@@ -22,7 +22,7 @@
 #define ASSERT_NOT_NULL(expr) ({ \
 	typeof(expr) error = expr; \
 	if(!expr) { \
-		ERR(#expr " is NULL "); \
+		ERR(#expr " is NULL"); \
 		BUG_ON(p); \
 	} \
 	error; \
