@@ -1,3 +1,8 @@
+#ifndef _ELTON_RPC_ERROR_H
+#define _ELTON_RPC_ERROR_H
+
 #define ELTON_XDR_INVAL 1
 #define ELTON_XDR_NOMEM 2
 #define ELTON_XDR_NEED_MORE_MEM 3
+
+#endif // _ELTON_RPC_ERROR_H
