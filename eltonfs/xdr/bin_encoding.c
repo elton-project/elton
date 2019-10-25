@@ -82,7 +82,10 @@ static int enc_u64(struct xdr_encoder *enc, u64 val) {
 }
 static int enc_bytes(struct xdr_encoder *enc, char *bytes, int len) {
     CHECK_ENCODER_STATUS(enc);
-    CHECK_WRITE_SIZE(enc, len);
+    CHECK_WRITE_SIZE(enc, 8+len);
+    // Write length.
+    enc_u64(enc, len);
+    // Write body.
     memcpy(enc->buffer + enc->pos, bytes, len);
     enc->pos += len;
     return 0;
