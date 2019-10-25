@@ -91,7 +91,7 @@ extern volatile bool __assertion_failed;
 	int i, result=memcmp(expected, actual, size); \
 	if(result) { \
 		ERR("ASSERT: two values does not match"); \
-		ERR("          expected  actual"); \
+		ERR("ASSERT:    expected  actual"); \
 		for(i=0; i<size; i++) { \
 			char e=(expected)[i], a=(actual)[i]; \
 			if(e == a) ERR("ASSERT:  [%d]  %d   %d", i, e, a); \
