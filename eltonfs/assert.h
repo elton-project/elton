@@ -19,11 +19,11 @@
 	} \
 	error; \
 })
+// ポインタがNULLの場合、WARNINGを表示する。
 #define ASSERT_NOT_NULL(expr) ({ \
 	typeof(expr) error = expr; \
 	if(!expr) { \
-		ERR("%s is NULL (%s %s:%d)", #expr, __func__, __FILE__, __LINE__); \
-		BUG(); \
+		ERR("ASSERT: %s is NULL (%s %s:%d)", #expr, __func__, __FILE__, __LINE__); \
 	} \
 	error; \
 })
