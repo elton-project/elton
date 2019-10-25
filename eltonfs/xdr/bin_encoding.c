@@ -193,10 +193,30 @@ static void test_encode_u64(void) {
     ASSERT_EQUAL_BYTES(expected2, buff+8, 8);
     ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM, enc.enc_op->u64(&enc, 0x123));
 }
+static void test_decode_u64(void) {
+    struct xdr_decoder dec;
+    char buff[20] = {
+        1, 2, 3, 4, 5, 6, 7, 8,
+        0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0x1f, 0x2f,
+        1, 2, 3, 4,
+    };
+    int len = 20;
+    u64 val = 0;
+
+    if(ASSERT_NO_ERROR(default_decoder_init(&dec, buff, len))) return;
+
+    ASSERT_NO_ERROR(dec.dec_op->u64(&dec, &val));
+    ASSERT_EQUAL_LL(0x0102030405060708LL, val);
+    ASSERT_NO_ERROR(dec.dec_op->u64(&dec, &val));
+    ASSERT_EQUAL_LL(0x0a0b0c0d0e0f1f2fLL, val);
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM, dec.dec_op->u64(&dec, &val));
+}
+
 void test_xdr_bin(void) {
     test_encode_u8();
     test_decdoe_u8();
     test_encode_u64();
+    test_decode_u64();
 }
 
 #endif // ELTONFS_UNIT_TEST

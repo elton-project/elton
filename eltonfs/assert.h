@@ -61,12 +61,25 @@ extern volatile bool __assertion_failed;
 // 条件式が想定外の数値を返した場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
 #define ASSERT_EQUAL_INT(expected, expr) ({ \
-	typeof(expr) actual = expr; \
+	int actual = expr; \
 	bool fail = actual != expected; \
 	if(fail) { \
 		ERR("ASSERT: %s return expeccted value (%s %s:%d)\n" \
 			"  expected=%d\n" \
 			"  actual=%d", \
+			#expr, __func__, __FILE__, __LINE__, \
+			expected, actual); \
+	} \
+})
+// 条件式が想定外の数値を返した場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
+#define ASSERT_EQUAL_LL(expected, expr) ({ \
+	long long actual = expr; \
+	bool fail = actual != expected; \
+	if(fail) { \
+		ERR("ASSERT: %s return expeccted value (%s %s:%d)\n" \
+			"  expected=%lld\n" \
+			"  actual=%lld", \
 			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
 	} \
