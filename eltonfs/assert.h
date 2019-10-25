@@ -22,7 +22,7 @@
 #define ASSERT_NOT_NULL(expr) ({ \
 	typeof(expr) error = expr; \
 	if(!expr) { \
-		ERR(#expr " is NULL"); \
+		ERR("%s is NULL (%s %s:%d)", #expr, __func__, __FILE__, __LINE__); \
 		BUG(); \
 	} \
 	error; \
