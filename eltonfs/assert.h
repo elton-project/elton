@@ -50,9 +50,8 @@ extern volatile bool __assertion_failed;
 	typeof(expr) actual = expr; \
 	bool fail = actual != expected; \
 	if(fail) { \
-		ERR("ASSERT: %s returns unexpected error (%s %s:%d)\n" \
-			"  expected=%d\n" \
-			"  actual=%d", \
+		ERR("ASSERT: %s returns unexpected error (%s %s:%d): " \
+			"expected=%d actual=%d", \
 			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
 		SET_ASSERTION_FAILED(); \
@@ -65,9 +64,8 @@ extern volatile bool __assertion_failed;
 	int actual = expr; \
 	bool fail = actual != expected; \
 	if(fail) { \
-		ERR("ASSERT: %s return expeccted value (%s %s:%d)\n" \
-			"  expected=%d\n" \
-			"  actual=%d", \
+		ERR("ASSERT: %s return expeccted value (%s %s:%d): " \
+			"expected=%d actual=%d", \
 			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
 		SET_ASSERTION_FAILED(); \
@@ -79,9 +77,8 @@ extern volatile bool __assertion_failed;
 	long long actual = expr; \
 	bool fail = actual != expected; \
 	if(fail) { \
-		ERR("ASSERT: %s return expeccted value (%s %s:%d)\n" \
-			"  expected=%lld\n" \
-			"  actual=%lld", \
+		ERR("ASSERT: %s return expeccted value (%s %s:%d): " \
+			"expected=%lld actual=%lld", \
 			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
 		SET_ASSERTION_FAILED(); \
