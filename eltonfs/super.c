@@ -8,11 +8,11 @@
 #include <linux/seq_file.h>
 #include <linux/statfs.h>
 #include <linux/net.h>
-#include "elton.h"
-#include "assert.h"
-#include "xattr.h"
-#include "helper.h"
-#include "xdr/test.h"
+#include <elton/elton.h>
+#include <elton/assert.h>
+#include <elton/xattr.h>
+#include <elton/helper.h>
+#include <elton/xdr/test.h>
 
 static bool is_registered = 0;
 struct eltonfs_helper helper;

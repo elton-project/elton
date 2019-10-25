@@ -1,8 +1,8 @@
 #include <linux/string.h>
-#include "interface.h"
-#include "bin_encoding.h"
-#include "error.h"
-#include <assert.h>
+#include <elton/xdr/interface.h>
+#include <elton/xdr/bin_encoding.h>
+#include <elton/xdr/error.h>
+#include <elton/assert.h>
 
 static struct xdr_encoder_operations bin_encoder_op;
 static struct xdr_decoder_operations bin_decoder_op;

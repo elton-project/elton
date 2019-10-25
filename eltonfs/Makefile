@@ -2,7 +2,7 @@ MODULE_NAME := elton
 FS_NAME := elton
 LTP_DIR := /mnt/ltp
 CC := gcc \
-	-I $(PWD) \
+	-I $(PWD)/include \
 	-DELTONFS_STATISTIC \
 	-DELTONFS_XATTRS \
 	-DELTONFS_UNIT_TEST

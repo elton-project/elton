@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/eltonfs",
+                "${workspaceFolder}/eltonfs/include",
                 "/usr/include",
                 "/usr/src/linux-headers-5.2.0-3-amd64/include",
                 "/usr/src/linux-headers-5.2.0-3-amd64/arch/x86/include/generated",

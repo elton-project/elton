@@ -2,7 +2,7 @@
 #define _ELTON_ASSERT_H
 
 #include <linux/printk.h>
-#include <elton.h>
+#include <elton/elton.h>
 
 // ASSERT_*()マクロが失敗したとき、trueに設定される。
 // デフォルト値はfalse。

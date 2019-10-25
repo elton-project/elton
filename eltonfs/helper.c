@@ -1,9 +1,9 @@
 #include <linux/umh.h>
 #include <linux/net.h>
 #include <uapi/linux/un.h>
-#include "helper.h"
-#include "elton.h"
-#include "assert.h"
+#include <elton/helper.h>
+#include <elton/elton.h>
+#include <elton/assert.h>
 
 static int eltonfs_serve_server(struct socket **sockp) {
     int error;
