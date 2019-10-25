@@ -13,7 +13,7 @@ elton-y += helper.o
 elton-y += assert.o
 elton-y += xdr/default.o \
 	xdr/bin_encoding.o \
-	xdr/bin_encoding_test.o
+	xdr/test.o
 obj-m := elton.o
 
 KERNEL ?= $(shell uname -r)

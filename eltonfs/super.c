@@ -12,6 +12,7 @@
 #include "assert.h"
 #include "xattr.h"
 #include "helper.h"
+#include "xdr/test.h"
 
 static bool is_registered = 0;
 struct eltonfs_helper helper;
@@ -275,6 +276,10 @@ static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
 static int __init fs_module_init(void) {
 	int error;
 	DEBUG("Loading the module ...");
+
+#ifdef ELTONFS_UNIT_TEST
+	test_xdr();
+#endif // ELTONFS_UNIT_TEST
 
 	error = register_filesystem(&eltonfs_type);
 	if(CHECK_ERROR(error)) {

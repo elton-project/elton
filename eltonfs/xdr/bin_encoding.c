@@ -2,6 +2,7 @@
 #include "interface.h"
 #include "bin_encoding.h"
 #include "error.h"
+#include <assert.h>
 
 static struct xdr_encoder_operations bin_encoder_op;
 static struct xdr_decoder_operations bin_decoder_op;
@@ -139,3 +140,26 @@ static struct xdr_decoder_operations bin_decoder_op = {
     .u64 = dec_u64,
     .bytes = dec_bytes,
 };
+
+
+
+#ifdef ELTONFS_UNIT_TEST
+
+static void test_encode_u8(void) {
+    struct xdr_encoder enc;
+    char buff[4] = {0, 0, 0, 99};
+    int len = 3;
+
+    if(ASSERT_NO_ERROR(default_encoder_init(&enc, buff, len))) return;
+
+    ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 1));
+    ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 2));
+    ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 3));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_NOMEM, enc.enc_op->u8(&enc, 4));
+}
+
+void test_xdr_bin(void) {
+    test_encode_u8();
+}
+
+#endif // ELTONFS_UNIT_TEST
