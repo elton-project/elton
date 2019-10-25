@@ -244,6 +244,36 @@ static void test_encode_bytes(void) {
     ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM, enc.enc_op->bytes(&enc, data3, strlen(data3)));
     ASSERT_EQUAL_BYTES(expected12, buff, sizeof(buff));
 }
+static void test_decode_bytes(void) {
+    struct xdr_decoder dec;
+    char buff[] = {
+        0, 0, 0, 0, 0, 0, 0, 5,  // length
+        'h', 'e', 'l', 'l', 'o',  // data1
+        0, 0, 0, 0, 0, 0, 0, 7,  // length
+        'w', 'o', 'r', 'l', 'd', '!', '!',  // data2
+        0, 0, 0, 0, 0, 0, 0, 5,  // length
+        'a', 'b',  // The partial data
+    };
+    char read_buff[10];
+    int read_size;
+    char *expected1 = "hello";
+    char *expected2 = "world!!";
+
+    if(ASSERT_NO_ERROR(default_decoder_init(&dec, buff, sizeof(buff)))) return;
+
+    read_size = sizeof(read_buff);
+    ASSERT_NO_ERROR(dec.dec_op->bytes(&dec, read_buff, &read_size));
+    ASSERT_EQUAL_INT(strlen(expected1), read_size);
+    ASSERT_EQUAL_BYTES(expected1, read_buff, strlen(expected1));
+
+    read_size = sizeof(read_buff);
+    ASSERT_NO_ERROR(dec.dec_op->bytes(&dec, read_buff, &read_size));
+    ASSERT_EQUAL_INT(strlen(expected2), read_size);
+    ASSERT_EQUAL_BYTES(expected2, read_buff, strlen(expected2));
+
+    read_size = sizeof(read_buff);
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM, dec.dec_op->bytes(&dec, read_buff, &read_size));
+}
 
 void test_xdr_bin(void) {
     test_encode_u8();
@@ -251,6 +281,7 @@ void test_xdr_bin(void) {
     test_encode_u64();
     test_decode_u64();
     test_encode_bytes();
+    test_decode_bytes();
 }
 
 #endif // ELTONFS_UNIT_TEST
