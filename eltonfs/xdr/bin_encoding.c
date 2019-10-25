@@ -155,7 +155,7 @@ static void test_encode_u8(void) {
     ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 1));
     ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 2));
     ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 3));
-    ASSERT_EQUAL_ERROR(ELTON_XDR_NOMEM, enc.enc_op->u8(&enc, 4));
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM, enc.enc_op->u8(&enc, 4));
 
     // Check out-of-bounds writing.
     ASSERT_EQUAL_INT(99, buff[3]);
