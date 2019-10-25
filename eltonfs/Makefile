@@ -10,6 +10,7 @@ CC := gcc \
 elton-y += super.o
 elton-y += simple_xattr.o xattr.o
 elton-y += helper.o
+elton-y += assert.o
 elton-y += xdr/default.o \
 	xdr/bin_encoding.o \
 	xdr/bin_encoding_test.o

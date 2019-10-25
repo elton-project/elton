@@ -4,6 +4,10 @@
 #include <linux/printk.h>
 #include <elton.h>
 
+// ASSERT_*()マクロが失敗したとき、trueに設定される。
+// デフォルト値はfalse。
+extern volatile bool __assertion_failed;
+
 
 #define _PRINTLNK(level, fmt, ...) (printk(level MODULE_NAME ": " fmt "\n", ##__VA_ARGS__))
 #define DEBUG(fmt, ...) _PRINTLNK(KERN_DEBUG, fmt, ##__VA_ARGS__)
@@ -24,9 +28,14 @@
 	typeof(expr) error = expr; \
 	if(!expr) { \
 		ERR("ASSERT: %s is NULL (%s %s:%d)", #expr, __func__, __FILE__, __LINE__); \
+		SET_ASSERTION_FAILED(); \
 	} \
 	error; \
 })
+// Assertionが失敗したことにする。
+#define SET_ASSERTION_FAILED() do{ __assertion_failed = true; }while(0)
+// Assertionが失敗したときにtrueを返す。
+#define IS_ASSERTION_FAILED() (!!__assertion_failed)
 
 
 #endif // _ELTON_ASSERT_H
