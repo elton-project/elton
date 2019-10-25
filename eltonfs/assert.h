@@ -32,6 +32,24 @@ extern volatile bool __assertion_failed;
 	} \
 	error; \
 })
+#define ASSERT_NO_ERROR(expr) ({ \
+	typeof(expr) error = expr;\
+	if(error) { \
+		ERR("ASSERT: %s returns an error %d (%s %s:%d)", #expr, error, __func__, __FILE__, __LINE__); \
+	} \
+	error; \
+})
+#define ASSERT_EQUAL_ERROR(expected, expr) ({ \
+	typeof(expr) actual = expr; \
+	if(actual) { \
+		ERR("ASSERT: %s returns unexpected error (%s %s:%d)\n" \
+			"  expected=%d\n" \
+			"  actual=%d", \
+			#expr, __func__, __FILE__, __LINE__, \
+			expected, actual); \
+	} \
+	actual; \
+})
 // Assertionが失敗したことにする。
 #define SET_ASSERTION_FAILED() do{ __assertion_failed = true; }while(0)
 // Assertionが失敗したときにtrueを返す。

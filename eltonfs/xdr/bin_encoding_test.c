@@ -1,5 +1,6 @@
 #ifdef ELTONFS_UNIT_TEST
 #include "interface.h"
+#include "error.h"
 #include <assert.h>
 
 int test_encode_u8(void) {
@@ -11,10 +12,10 @@ int test_encode_u8(void) {
     err = default_encoder_init(&enc, buff, len);
     if(err) return err;
 
-    CHECK_ERROR(enc.enc_op->u8(&enc, 1));
-    CHECK_ERROR(enc.enc_op->u8(&enc, 2));
-    CHECK_ERROR(enc.enc_op->u8(&enc, 3));
-    enc.enc_op->u8(&enc, 4);
+    ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 1));
+    ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 2));
+    ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 3));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_NOMEM, enc.enc_op->u8(&enc, 4));
     return 0;
 }
 
