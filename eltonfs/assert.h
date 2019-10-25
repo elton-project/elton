@@ -65,7 +65,7 @@ extern volatile bool __assertion_failed;
 		ERR("ASSERT: %s return expeccted value (%s %s:%d)\n" \
 			"  expected=%d\n" \
 			"  actual=%d", \
-			#expr, __func__, __FILE__, __LINE__, \ 
+			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
 	} \
 })
