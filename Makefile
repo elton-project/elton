@@ -1,5 +1,5 @@
 .PHONY: all
-all: build-deps generate fmt test-fast build
+all: build-deps generate fmt build test-fast
 
 .PHONY: build-deps
 build-deps:
