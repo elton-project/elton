@@ -55,6 +55,7 @@ extern volatile bool __assertion_failed;
 			"  actual=%d", \
 			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
+		SET_ASSERTION_FAILED(); \
 	} \
 	fail; \
 })
@@ -69,6 +70,7 @@ extern volatile bool __assertion_failed;
 			"  actual=%d", \
 			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
+		SET_ASSERTION_FAILED(); \
 	} \
 })
 // 条件式が想定外の数値を返した場合、WARNINGを表示してtrueを返す。
@@ -82,6 +84,7 @@ extern volatile bool __assertion_failed;
 			"  actual=%lld", \
 			#expr, __func__, __FILE__, __LINE__, \
 			expected, actual); \
+		SET_ASSERTION_FAILED(); \
 	} \
 })
 // 2つのchar*型の配列の内容が一致しない場合、WARNINGを表示してtrueを返す。
@@ -97,6 +100,7 @@ extern volatile bool __assertion_failed;
 			if(e == a) ERR("ASSERT:  [%d]  %d   %d", i, e, a); \
 			else       ERR("ASSERT:  [%d]  %d   %d   <=== !!", i, e, a); \
 		} \
+		SET_ASSERTION_FAILED(); \
 	} \
 	result; \
 })
