@@ -286,4 +286,12 @@ help() {
   sed '1d; /^$/Q; s/^# \?//' "$SELF"
 }
 
+
+if [ $# -eq 0 ]; then
+  # Show help if no argument.
+  help
+  exit 1
+fi
+
+# Execute specified command.
 "$@"
