@@ -1,17 +1,92 @@
 #include <linux/bug.h>
 #include <linux/vmalloc.h>
 #include <elton/rpc/packet.h>
+#include <elton/rpc/struct.h>
+#include <elton/xdr/interface.h>
 #include <elton/assert.h>
+
+void free_raw_packet(struct raw_packet *packet) {
+    vfree(packet);
+}
 
 struct entry {
     int (*encode)(struct packet *in, struct raw_packet **out);
     int (*decode)(struct raw_packet *in, void **out);
 };
 
+static int setup1_encode(struct packet *in, struct raw_packet **out) {
+    // TODO: add error handling
+    struct elton_rpc_setup1 *s;
+
+    BUG_ON(in->struct_id != ELTON_RPC_SETUP1_ID);
+    BUG_ON(in == NULL);
+    BUG_ON(in->data == NULL);
+
+    s = (struct elton_rpc_setup1 *)in->data;
+
+    // TODO: マクロ化する
+    // TODO: bufferがNULLでもencode出来るようにする。
+    struct xdr_encoder enc;
+    struct raw_packet *raw = NULL;
+    default_encoder_init(&enc, NULL, 0);
+    do{
+        size_t size;
+        // The behavior is different between the first and second time.
+        //
+        // First time: calculate the required buffer size.
+        // Second time: encode data to buffer.
+        enc.enc_op->bytes(&enc, s->client_name, strlen(s->client_name));
+        enc.enc_op->u64(&enc, s->version_major);
+        enc.enc_op->u64(&enc, s->version_minor);
+        enc.enc_op->u64(&enc, s->version_revision);
+
+        // Break the loop when second time.
+        if(enc.buffer) break;
+
+        // Initialize raw_packet.
+        size = enc.pos;
+        raw = (struct raw_packet *)vmalloc(sizeof(struct raw_packet) + size);
+        raw->size = size;
+        raw->struct_id = ELTON_RPC_SETUP1_ID;
+        raw->free = free_raw_packet;
+        raw->data = &raw->__embeded_buffer;
+
+        // Set buffer to encoder and start the second time loop.
+        default_encoder_init(&enc, raw->data, raw->size);
+    }while(1);
+
+    BUG_ON(raw == NULL);
+    BUG_ON(raw->size != enc.pos);
+    *out = raw;
+    return 0;
+}
+static int setup1_decode(struct raw_packet *in, void **out) {
+    struct xdr_decoder dec;
+    size_t str_size;
+    struct elton_rpc_setup1 *s;
+
+    default_decoder_init(&dec, in->data, in->size);
+    // TODO: 文字列サイズだけを取得するモードを用意
+    dec.dec_op->bytes(&dec, NULL, &str_size);
+
+    // TODO: add error handling
+    s = (struct elton_rpc_setup1 *)kmalloc(sizeof(struct elton_rpc_setup1) + str_size + 1, GFP_KERNEL);
+    s->client_name = &s->__embeded_buffer;
+
+    default_decoder_init(&dec, in->data, in->size);
+    dec.dec_op->bytes(&dec, s->client_name, &str_size);
+    s->client_name[str_size] = '\0';
+    dec.dec_op->u64(&dec, &s->version_major);
+    dec.dec_op->u64(&dec, &s->version_minor);
+    dec.dec_op->u64(&dec, &s->version_revision);
+    // todo: add error handling
+
+    *out = s;
+    return 0;
+}
 const static struct entry setup1_entry = {
-    // todo
-    .encode = NULL,
-    .decode = NULL,
+    .encode = setup1_encode,
+    .decode = setup1_decode,
 };
 const static struct entry setup2_entry = {
     // todo
@@ -73,5 +148,5 @@ int elton_rpc_decode_packet(struct raw_packet *in, void **out) {
 }
 
 void elton_rpc_free_decoded_data(void *data) {
-    vfree(data);
+    kfree(data);
 }

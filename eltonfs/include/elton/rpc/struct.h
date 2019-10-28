@@ -10,6 +10,10 @@ struct elton_rpc_setup1 {
     u64 version_major;     // FieldID=2
     u64 version_minor;     // FieldID=3
     u64 version_revision;  // FieldID=4
+
+    // Embeds string at the tail of this struct.
+    char __embeded_buffer;
+    // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
 #define ELTON_RPC_SETUP2_ID 2
@@ -20,6 +24,10 @@ struct elton_rpc_setup2 {
     u64 version_major;     // FieldID=4
     u64 version_minor;     // FieldID=5
     u64 version_revision;  // FieldID=6
+    
+    // Embeds strings at the tail of this struct.
+    char __embeded_buffer;
+    // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
 #define ELTON_RPC_PING_ID 3
