@@ -105,8 +105,8 @@ void test_packet_queue(void) {
     elton_rpc_queue_init(q);
 
     spin_lock(&q->lock);
-    elton_rpc_enqueue(q, in); // todo
-    elton_rpc_dequeue(q, &out); // todo
+    ASSERT_NO_ERROR(elton_rpc_enqueue(q, in));
+    ASSERT_NO_ERROR(elton_rpc_dequeue(q, &out));
     spin_unlock(&q->lock);
 }
 
