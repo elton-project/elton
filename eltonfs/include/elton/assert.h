@@ -1,8 +1,15 @@
 #ifndef _ELTON_ASSERT_H
 #define _ELTON_ASSERT_H
 
+#include <linux/bug.h>
 #include <linux/printk.h>
 #include <elton/elton.h>
+
+
+#define lengthof(array) (sizeof(array)/sizeof((array)[0]))
+// Break compile if array size is not match.
+#define BUILD_ASSERT_EQUAL_ARRAY_SIZE(expected, array) BUILD_BUG_ON((expected) != lengthof(array))
+
 
 // ASSERT_*()マクロが失敗したとき、trueに設定される。
 // デフォルト値はfalse。
