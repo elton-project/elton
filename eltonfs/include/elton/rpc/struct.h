@@ -16,7 +16,7 @@ struct elton_rpc_setup1 {
 struct elton_rpc_setup2 {
     u64 error;             // FieldID=1
     char *reason;          // FieldID=2
-    char* server_name;     // FieldID=3
+    char *server_name;     // FieldID=3
     u64 version_major;     // FieldID=4
     u64 version_minor;     // FieldID=5
     u64 version_revision;  // FieldID=6
