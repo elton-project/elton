@@ -4,7 +4,7 @@
 #   pve-ctl remove_vms              - Stop and remove all VMs.
 #   pve-ctl ssh_to_vm <NODE> <VMID> - Connect to the VM using SSH.
 
-set -eux
+set -eu
 # Absolute path to pve-ctl command.
 SELF=$(readlink -f "$0")
 # IP address or domain name of the Proxmox VE master node.
