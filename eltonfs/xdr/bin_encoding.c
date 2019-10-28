@@ -147,6 +147,7 @@ static struct xdr_decoder_operations bin_decoder_op = {
 static void test_encode_u8(void) {
     struct xdr_encoder enc;
     char buff[4] = {0, 0, 0, 99};
+    char expected[] = {1, 2, 3};
     size_t len = 3;
 
     if(ASSERT_NO_ERROR(default_encoder_init(&enc, buff, len))) return;
@@ -155,6 +156,7 @@ static void test_encode_u8(void) {
     ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 2));
     ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 3));
     ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM, enc.enc_op->u8(&enc, 4));
+    ASSERT_EQUAL_BYTES(expected, buff, sizeof(expected));
 
     // Check out-of-bounds writing.
     ASSERT_EQUAL_INT(99, buff[3]);
