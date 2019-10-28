@@ -23,7 +23,7 @@ struct raw_packet {
     // The function to release memory of the packet.
     void (*free)(struct raw_packet *packet);
 
-    // Embeds encoded data after the data field.
+    // Embeds encoded data at the tail of this struct.
     char __embeded_buffer;
     // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
