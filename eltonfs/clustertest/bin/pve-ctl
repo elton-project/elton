@@ -5,6 +5,8 @@
 #   pve-ctl ssh_to_vm <NODE> <VMID> - Connect to the VM using SSH.
 
 set -eux
+# Absolute path to pve-ctl command.
+SELF=$(readlink -f "$0")
 # IP address or domain name of the Proxmox VE master node.
 : "${API_NODE:=192.168.189.40}"
 # Gateway address
@@ -278,6 +280,10 @@ remove_all() {
       remove_vm "$node" "$vmid"
     done
   done
+}
+
+help() {
+  sed '1d; /^$/Q; s/^# \?//' "$SELF"
 }
 
 "$@"
