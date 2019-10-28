@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# pve-ctl - non-interactive Proxmox VE API clients for help operation of elton test infrastructures.
+#
 # Usage:
 #   pve-ctl rebuild_all             - Rebuild test environment from scratch.
 #   pve-ctl remove_vms              - Stop and remove all VMs.
