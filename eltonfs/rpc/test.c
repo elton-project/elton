@@ -1,8 +1,9 @@
 #include <linux/bug.h>
 #include <linux/vmalloc.h>
+#include <elton/assert.h>
+#include <elton/compiler_attributes.h>
 #include <elton/rpc/server.h>
 #include <elton/rpc/test.h>
-#include <elton/assert.h>
 #include <elton/rpc/error.h>
 #include <elton/rpc/struct.h>
 #include <elton/rpc/packet.h>
@@ -17,7 +18,7 @@ static char encoded_ping[] = {
 };
 static char bad_encoded_ping[] = {};
 
-static void __attribute__((unused)) ___elton_rpc_test___detect_build_bug(void) {
+static void __unused ___elton_rpc_test___detect_build_bug(void) {
     BUILD_BUG_ON_MSG((8*3 + 1) != sizeof(encoded_ping), "unexpected size");
     BUILD_BUG_ON_MSG(0 != sizeof(bad_encoded_ping), "unexpected size");
 }
