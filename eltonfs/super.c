@@ -13,6 +13,7 @@
 #include <elton/xattr.h>
 #include <elton/helper.h>
 #include <elton/xdr/test.h>
+#include <elton/rpc/test.h>
 
 static bool is_registered = 0;
 struct eltonfs_helper helper;
@@ -279,6 +280,7 @@ static int __init fs_module_init(void) {
 
 #ifdef ELTONFS_UNIT_TEST
 	test_xdr();
+	test_rpc();
 	if(IS_ASSERTION_FAILED()) return 1;
 #endif // ELTONFS_UNIT_TEST
 
