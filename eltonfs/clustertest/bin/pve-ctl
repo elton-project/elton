@@ -9,6 +9,8 @@
 set -eu
 # Absolute path to pve-ctl command.
 SELF=$(readlink -f "$0")
+# Absolute path to the directory containing pve-ctl command.
+SELF_DIR=$(dirname "$SELF")
 # IP address or domain name of the Proxmox VE master node.
 : "${API_NODE:=192.168.189.40}"
 # Gateway address
@@ -18,7 +20,7 @@ SELF=$(readlink -f "$0")
 # Netmask used on the setup node.
 : "${SETUP_NODE_NETMASK:=24}"
 # Path to bash script file.
-: "${SETUP_SCRIPT_FILE:=./node-setup.sh}"
+: "${SETUP_SCRIPT_FILE:=$SELF_DIR/../node-setup.sh}"
 # URL to latest cloud image of the Ubuntu 19.04.
 : "${UBUNTU_IMAGE_URL:=https://cloud-images.ubuntu.com/disco/current/disco-server-cloudimg-amd64.img}"
 # Path to temporary file location.
