@@ -1,3 +1,4 @@
+#include <linux/vmalloc.h>
 #include <elton/rpc/server.h>
 #include <elton/rpc/test.h>
 #include <elton/assert.h>
@@ -83,12 +84,14 @@ void test_decode_packet(void) {
     ASSERT_NO_ERROR(elton_rpc_decode_packet(&p5, &out));
 }
 void test_packet_queue(void) {
-    struct elton_rpc_queue q;
+    struct elton_rpc_queue *q;
     struct raw_packet *in, out;
 
-    elton_rpc_queue_init(&q);
-    elton_rpc_enqueue(&q, in); // todo
-    elton_rpc_dequeue(&q, &out); // todo
+    q = vmalloc(sizeof(struct elton_rpc_queue));
+    if(ASSERT_NOT_NULL(q)) return; // Memory allocation error.
+    elton_rpc_queue_init(q);
+    elton_rpc_enqueue(q, in); // todo
+    elton_rpc_dequeue(q, &out); // todo
 }
 
 static void test_server(void) {
