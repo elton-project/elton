@@ -170,6 +170,12 @@ static void test_encode_u8(void) {
 
   // Check out-of-bounds writing.
   ASSERT_EQUAL_INT(99, buff[3]);
+
+  // Test for discard mode.
+  if (ASSERT_NO_ERROR(default_encoder_init(&enc, NULL, 0)))
+    return;
+  ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 1));
+  ASSERT_NO_ERROR(enc.enc_op->u8(&enc, 2));
 }
 
 static void test_decdoe_u8(void) {
@@ -188,6 +194,12 @@ static void test_decdoe_u8(void) {
   ASSERT_NO_ERROR(dec.dec_op->u8(&dec, &val));
   ASSERT_EQUAL_ERROR(3, val);
   ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM, dec.dec_op->u8(&dec, &val));
+
+  // Test for discard mode.
+  if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, len)))
+    return;
+  ASSERT_NO_ERROR(dec.dec_op->u8(&dec, NULL));
+  ASSERT_NO_ERROR(dec.dec_op->u8(&dec, NULL));
 }
 
 static void test_encode_u64(void) {
@@ -210,6 +222,12 @@ static void test_encode_u64(void) {
   memcpy(buff + (8 * 2), expected3, 8);
   ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM, enc.enc_op->u64(&enc, 0x123));
   ASSERT_EQUAL_BYTES(expected3, buff + (8 * 2), 8);
+
+  // Test for discard mode.
+  if (ASSERT_NO_ERROR(default_encoder_init(&enc, NULL, 0)))
+    return;
+  ASSERT_NO_ERROR(enc.enc_op->u64(&enc, 123));
+  ASSERT_NO_ERROR(enc.enc_op->u64(&enc, 456));
 }
 static void test_decode_u64(void) {
   struct xdr_decoder dec;
@@ -228,6 +246,12 @@ static void test_decode_u64(void) {
   ASSERT_NO_ERROR(dec.dec_op->u64(&dec, &val));
   ASSERT_EQUAL_LL(0x0a0b0c0d0e0f1f2fLL, val);
   ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM, dec.dec_op->u64(&dec, &val));
+
+  // Test for discard mode.
+  if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, len)))
+    return;
+  ASSERT_NO_ERROR(dec.dec_op->u64(&dec, NULL));
+  ASSERT_NO_ERROR(dec.dec_op->u64(&dec, NULL));
 }
 static void test_encode_bytes(void) {
   struct xdr_encoder enc;
@@ -259,6 +283,12 @@ static void test_encode_bytes(void) {
   ASSERT_EQUAL_ERROR(-ELTON_XDR_NOMEM,
                      enc.enc_op->bytes(&enc, data3, strlen(data3)));
   ASSERT_EQUAL_BYTES(expected12, buff, sizeof(buff));
+
+  // Test for discard mode.
+  if (ASSERT_NO_ERROR(default_encoder_init(&enc, NULL, 0)))
+    return;
+  ASSERT_NO_ERROR(enc.enc_op->bytes(&enc, data1, strlen(data1)));
+  ASSERT_NO_ERROR(enc.enc_op->bytes(&enc, data2, strlen(data2)));
 }
 static void test_decode_bytes(void) {
   struct xdr_decoder dec;
@@ -291,6 +321,16 @@ static void test_decode_bytes(void) {
   read_size = sizeof(read_buff);
   ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM,
                      dec.dec_op->bytes(&dec, read_buff, &read_size));
+
+  // Test for discard mode.
+  if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, sizeof(buff))))
+    return;
+  read_size = 0;
+  ASSERT_NO_ERROR(dec.dec_op->bytes(&dec, NULL, &read_size));
+  ASSERT_EQUAL_SIZE_T(strlen(expected1), read_size);
+  read_size = 0;
+  ASSERT_NO_ERROR(dec.dec_op->bytes(&dec, NULL, &read_size));
+  ASSERT_EQUAL_SIZE_T(strlen(expected2), read_size);
 }
 
 void test_xdr_bin(void) {
