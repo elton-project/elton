@@ -45,6 +45,22 @@
     raw; \
 })
 
+#define DECODE(struct_type, in, additional_space, decode_process) ({ \
+    struct xdr_decoder dec; \
+    size_t size; \
+    struct_type *s; \
+    \
+    default_decoder_init(&dec, in->data, in->size); \
+    size = additional_space; \
+    \
+    s = (struct_type *)kmalloc(sizeof(struct_type) + str_size + 1, GFP_KERNEL); \
+    s->client_name = &s->__embeded_buffer; \
+    \
+    default_decoder_init(&dec, in->data, in->size); \
+    decode_process; \
+    s; \
+}) 
+
 
 void free_raw_packet(struct raw_packet *packet) {
     vfree(packet);
@@ -67,27 +83,20 @@ static int setup1_encode(struct packet *in, struct raw_packet **out) {
     return 0;
 }
 static int setup1_decode(struct raw_packet *in, void **out) {
-    struct xdr_decoder dec;
-    size_t str_size;
-    struct elton_rpc_setup1 *s;
-
-    default_decoder_init(&dec, in->data, in->size);
-    // TODO: 文字列サイズだけを取得するモードを用意
-    dec.dec_op->bytes(&dec, NULL, &str_size);
-
     // TODO: add error handling
-    s = (struct elton_rpc_setup1 *)kmalloc(sizeof(struct elton_rpc_setup1) + str_size + 1, GFP_KERNEL);
-    s->client_name = &s->__embeded_buffer;
+    // TODO: 文字列サイズだけを取得するモードを用意
 
-    default_decoder_init(&dec, in->data, in->size);
-    dec.dec_op->bytes(&dec, s->client_name, &str_size);
-    s->client_name[str_size] = '\0';
-    dec.dec_op->u64(&dec, &s->version_major);
-    dec.dec_op->u64(&dec, &s->version_minor);
-    dec.dec_op->u64(&dec, &s->version_revision);
-    // todo: add error handling
-
-    *out = s;
+    size_t str_size;
+    *out = DECODE(struct elton_rpc_setup1, in, ({
+        dec.dec_op->bytes(&dec, NULL, &str_size);
+        str_size;
+    }), {
+        dec.dec_op->bytes(&dec, s->client_name, &str_size);
+        s->client_name[str_size] = '\0';
+        dec.dec_op->u64(&dec, &s->version_major);
+        dec.dec_op->u64(&dec, &s->version_minor);
+        dec.dec_op->u64(&dec, &s->version_revision);
+    });
     return 0;
 }
 const static struct entry setup1_entry = {
