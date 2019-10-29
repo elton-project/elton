@@ -110,7 +110,6 @@ struct entry {
 };
 
 static int setup1_encode(struct packet *in, struct raw_packet **out) {
-  // TODO: bufferがNULLでもencode出来るようにする。
   *out = ENCODE(ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, {
     enc.enc_op->bytes(&enc, s->client_name, strlen(s->client_name));
     enc.enc_op->u64(&enc, s->version_major);

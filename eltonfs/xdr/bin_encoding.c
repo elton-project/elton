@@ -8,7 +8,9 @@ static struct xdr_encoder_operations bin_encoder_op;
 static struct xdr_decoder_operations bin_decoder_op;
 
 int __check_encoder_status(struct xdr_encoder *enc) {
-  if (enc->buffer == NULL || enc->len < enc->pos || enc->enc_op == NULL)
+  if (!((enc->buffer == NULL && enc->len == 0) ||
+        (enc->buffer != NULL && enc->pos <= enc->len)) ||
+      enc->enc_op == NULL)
     return -ELTON_XDR_INVAL;
   return 0;
 }
@@ -35,7 +37,7 @@ int __check_decoder_status(struct xdr_decoder *dec) {
   if (xdr->pos + (size) > xdr->len)                                            \
   return -ELTON_XDR_NEED_MORE_MEM
 #define CHECK_WRITE_SIZE(xdr, size)                                            \
-  if (xdr->pos + (size) > xdr->len)                                            \
+  if (xdr->buffer != NULL && xdr->pos + (size) > xdr->len)                     \
   return -ELTON_XDR_NOMEM
 
 int bin_encoder_init(struct xdr_encoder *enc, char *buff, size_t len) {
@@ -56,20 +58,26 @@ int bin_decoder_init(struct xdr_decoder *dec, char *buff, size_t len) {
 static int enc_u8(struct xdr_encoder *enc, u8 val) {
   CHECK_ENCODER_STATUS(enc);
   CHECK_WRITE_SIZE(enc, 1);
-  enc->buffer[enc->pos++] = val;
+  if (enc->buffer)
+    enc->buffer[enc->pos] = val;
+  enc->pos++;
   return 0;
 }
 static int enc_u64(struct xdr_encoder *enc, u64 val) {
   CHECK_ENCODER_STATUS(enc);
   CHECK_WRITE_SIZE(enc, 8);
-  enc->buffer[enc->pos++] = (u8)(val >> 56);
-  enc->buffer[enc->pos++] = (u8)(val >> 48);
-  enc->buffer[enc->pos++] = (u8)(val >> 40);
-  enc->buffer[enc->pos++] = (u8)(val >> 32);
-  enc->buffer[enc->pos++] = (u8)(val >> 24);
-  enc->buffer[enc->pos++] = (u8)(val >> 16);
-  enc->buffer[enc->pos++] = (u8)(val >> 8);
-  enc->buffer[enc->pos++] = (u8)(val);
+  if (enc->buffer) {
+    enc->buffer[enc->pos++] = (u8)(val >> 56);
+    enc->buffer[enc->pos++] = (u8)(val >> 48);
+    enc->buffer[enc->pos++] = (u8)(val >> 40);
+    enc->buffer[enc->pos++] = (u8)(val >> 32);
+    enc->buffer[enc->pos++] = (u8)(val >> 24);
+    enc->buffer[enc->pos++] = (u8)(val >> 16);
+    enc->buffer[enc->pos++] = (u8)(val >> 8);
+    enc->buffer[enc->pos++] = (u8)(val);
+  } else {
+    enc->pos += 8;
+  }
   return 0;
 }
 static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
@@ -78,7 +86,8 @@ static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
   // Write length.
   enc_u64(enc, len);
   // Write body.
-  memcpy(enc->buffer + enc->pos, bytes, len);
+  if (enc->buffer)
+    memcpy(enc->buffer + enc->pos, bytes, len);
   enc->pos += len;
   return 0;
 }
