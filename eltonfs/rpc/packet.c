@@ -184,10 +184,20 @@ const static struct entry setup2_entry = {
     .encode = setup2_encode,
     .decode = setup2_decode,
 };
+
+static int ping_encode(struct packet *in, struct raw_packet **out) {
+  *out =
+      ENCODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, {/* Do nothing. */});
+  return 0;
+}
+static int ping_decode(struct raw_packet *in, void **out) {
+  *out = DECODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, 0,
+                {/* Do nothing. */});
+  return 0;
+}
 const static struct entry ping_entry = {
-    // todo
-    .encode = NULL,
-    .decode = NULL,
+    .encode = ping_encode,
+    .decode = ping_decode,
 };
 const static struct entry error_entry = {
     // todo
