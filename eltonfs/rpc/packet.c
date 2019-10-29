@@ -138,10 +138,46 @@ const static struct entry setup1_entry = {
     .encode = setup1_encode,
     .decode = setup1_decode,
 };
+
+int setup2_encode(struct packet *in, struct raw_packet **out) {
+  *out = ENCODE(struct elton_rpc_setup2, in, {
+    enc.enc_op->u64(&enc, s->error);
+    enc.enc_op->bytes(&enc, s->reason, strlen(s->reason));
+    enc.enc_op->bytes(&enc, s->server_name, strlen(s->server_name));
+    enc.enc_op->u64(&enc, s->version_major);
+    enc.enc_op->u64(&enc, s->version_minor);
+    enc.enc_op->u64(&enc, s->version_revision);
+  });
+  return 0;
+}
+int setup2_decode(struct raw_packet *in, void **out) {
+  size_t reason_size, name_size;
+  *out = DECODE(struct elton_rpc_setup2, in, ({
+                  u64 dummy;
+                  dec.dec_op->u64(&dec, &dummy); // Skip FieldID1.
+                  dec.dec_op->bytes(&dec, NULL, &reason_size);
+                  dec.dec_op->bytes(&dec, NULL, &name_size);
+                  reason_size + 1 + name_size + 1;
+                }),
+                {
+                  // initialize setup2.
+                  s->reason = &s->__embeded_buffer;
+                  s->server_name = s->reason + reason_size + 1;
+                  // Decodes.
+                  dec.dec_op->u64(&dec, &s->error);
+                  dec.dec_op->bytes(&dec, s->reason, &reason_size);
+                  s->reason[reason_size] = '\0';
+                  dec.dec_op->bytes(&dec, s->server_name, &name_size);
+                  s->server_name[name_size] = '\0';
+                  dec.dec_op->u64(&dec, &s->version_major);
+                  dec.dec_op->u64(&dec, &s->version_minor);
+                  dec.dec_op->u64(&dec, &s->version_revision);
+                });
+  return 0;
+}
 const static struct entry setup2_entry = {
-    // todo
-    .encode = NULL,
-    .decode = NULL,
+    .encode = setup2_encode,
+    .decode = setup2_decode,
 };
 const static struct entry ping_entry = {
     // todo
