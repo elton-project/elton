@@ -72,9 +72,11 @@
     struct_type *s;                                                            \
     int error = 0;                                                             \
                                                                                \
+    /* Calculate additional space of struct_type. */                           \
     GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
     size = additional_space;                                                   \
                                                                                \
+    /* Allocate memory of strct_type. */                                       \
     s = (struct_type *)kmalloc(sizeof(struct_type) + size, GFP_KERNEL);        \
     if (s == NULL) {                                                           \
       error = -ENOMEM;                                                         \
@@ -82,6 +84,7 @@
     }                                                                          \
     s->client_name = &s->__embeded_buffer;                                     \
                                                                                \
+    /* Decode it. */                                                           \
     GOTO_IF(error_s, default_decoder_init(&dec, in->data, in->size));          \
     decode_process;                                                            \
     goto finish;                                                               \
