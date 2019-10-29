@@ -82,7 +82,6 @@
       error = -ENOMEM;                                                         \
       goto error;                                                              \
     }                                                                          \
-    s->client_name = &s->__embeded_buffer;                                     \
                                                                                \
     /* Decode it. */                                                           \
     GOTO_IF(error_s, default_decoder_init(&dec, in->data, in->size));          \
@@ -126,6 +125,9 @@ static int setup1_decode(struct raw_packet *in, void **out) {
                   str_size + 1;
                 }),
                 {
+                  // Initialize setup1.
+                  s->client_name = &s->__embeded_buffer;
+                  // Decodes.
                   dec.dec_op->bytes(&dec, s->client_name, &str_size);
                   s->client_name[str_size] = '\0';
                   dec.dec_op->u64(&dec, &s->version_major);
