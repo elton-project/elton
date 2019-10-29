@@ -144,7 +144,7 @@ const static struct entry setup1_entry = {
     .decode = setup1_decode,
 };
 
-int setup2_encode(struct packet *in, struct raw_packet **out) {
+static int setup2_encode(struct packet *in, struct raw_packet **out) {
   *out = ENCODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, {
     enc.enc_op->u64(&enc, s->error);
     enc.enc_op->bytes(&enc, s->reason, strlen(s->reason));
@@ -155,7 +155,7 @@ int setup2_encode(struct packet *in, struct raw_packet **out) {
   });
   return 0;
 }
-int setup2_decode(struct raw_packet *in, void **out) {
+static int setup2_decode(struct raw_packet *in, void **out) {
   size_t reason_size, name_size;
   *out = DECODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, ({
                   u64 dummy;
