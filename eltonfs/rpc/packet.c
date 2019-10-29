@@ -105,7 +105,6 @@ struct entry {
 };
 
 static int setup1_encode(struct packet *in, struct raw_packet **out) {
-  // TODO: add error handling
   // TODO: bufferがNULLでもencode出来るようにする。
   *out = ENCODE(struct elton_rpc_setup1, in, {
     enc.enc_op->bytes(&enc, s->client_name, strlen(s->client_name));
@@ -116,7 +115,6 @@ static int setup1_encode(struct packet *in, struct raw_packet **out) {
   return 0;
 }
 static int setup1_decode(struct raw_packet *in, void **out) {
-  // TODO: add error handling
   // TODO: 文字列サイズだけを取得するモードを用意
 
   size_t str_size;
