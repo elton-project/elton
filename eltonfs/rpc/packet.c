@@ -9,14 +9,14 @@
 // struct_type:    Type name of the target struct.
 // in:             Variable name of struct packet.
 // encode_process: Statements or block that encodes a struct.
-#define ENCODE(struct_id_, struct_type, in, encode_process)                     \
+#define ENCODE(struct_id_, struct_type, in, encode_process)                    \
   ({                                                                           \
     struct_type *s;                                                            \
     struct xdr_encoder enc;                                                    \
     struct raw_packet *raw = NULL;                                             \
     int error = 0;                                                             \
                                                                                \
-    BUG_ON(in->struct_id != (struct_id_));                                      \
+    BUG_ON(in->struct_id != (struct_id_));                                     \
     BUG_ON(in == NULL);                                                        \
     BUG_ON(in->data == NULL);                                                  \
                                                                                \
