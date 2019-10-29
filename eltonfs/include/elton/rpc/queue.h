@@ -15,6 +15,8 @@ struct elton_rpc_queue {
   // FIFO queue of received packets.
   // If queue is empty, the entry should be NULL.
   struct elton_rpc_queue_entry *entry;
+  // NOTE: Unused field.
+  //
   // Free the allocated memory of raw_packet.
   // This field must not be NULL and can be accessed without locking.
   void (*free)(const struct raw_packet *packet);
