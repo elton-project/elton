@@ -66,12 +66,16 @@
 // additional_space: The expression or statement expression to calculate
 //                   additional space of struct_type.
 // decode_process:   Statements or block that decodes a struct.
-#define DECODE(struct_type, in, additional_space, decode_process)              \
+#define DECODE(struct_id_, struct_type, in, additional_space, decode_process)  \
   ({                                                                           \
     struct xdr_decoder dec;                                                    \
     size_t size;                                                               \
     struct_type *s;                                                            \
     int error = 0;                                                             \
+                                                                               \
+    BUG_ON(in->struct_id != (struct_id_));                                     \
+    BUG_ON(in == NULL);                                                        \
+    BUG_ON(in->data == NULL);                                                  \
                                                                                \
     /* Calculate additional space of struct_type. */                           \
     GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
@@ -119,7 +123,7 @@ static int setup1_decode(struct raw_packet *in, void **out) {
   // TODO: 文字列サイズだけを取得するモードを用意
 
   size_t str_size;
-  *out = DECODE(struct elton_rpc_setup1, in, ({
+  *out = DECODE(ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, ({
                   dec.dec_op->bytes(&dec, NULL, &str_size);
                   str_size + 1;
                 }),
@@ -153,7 +157,7 @@ int setup2_encode(struct packet *in, struct raw_packet **out) {
 }
 int setup2_decode(struct raw_packet *in, void **out) {
   size_t reason_size, name_size;
-  *out = DECODE(struct elton_rpc_setup2, in, ({
+  *out = DECODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, ({
                   u64 dummy;
                   dec.dec_op->u64(&dec, &dummy); // Skip FieldID1.
                   dec.dec_op->bytes(&dec, NULL, &reason_size);
