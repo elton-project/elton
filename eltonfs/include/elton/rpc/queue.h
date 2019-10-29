@@ -21,7 +21,7 @@ struct elton_rpc_queue {
 };
 struct elton_rpc_queue_entry {
   struct list_head list_head;
-  struct raw_packet raw;
+  struct raw_packet *raw;
 };
 
 // Initialize the elton_rpc_queue.
