@@ -42,6 +42,8 @@ static int rpc_session_worker(void *data) {
     } while (elton_rpc_decode_packet(&raw, (void **)&setup1));
   }
 
+  INFO("rpc: connected from %s",
+       setup1->client_name ? setup1->client_name : "no-name client");
   // todo: check setup1.
 
   elton_rpc_free_decoded_data(setup1);
