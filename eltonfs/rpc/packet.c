@@ -19,7 +19,7 @@
     BUG_ON(in == NULL);                                                        \
     BUG_ON(in->data == NULL);                                                  \
                                                                                \
-    s = (struct elton_rpc_setup1 *)in->data;                                   \
+    s = (struct_type *)in->data;                                               \
     GOTO_IF(error, default_encoder_init(&enc, NULL, 0));                       \
     do {                                                                       \
       size_t size;                                                             \
