@@ -247,11 +247,7 @@ const static struct entry *look_table[] = {
 
 static int lookup(u64 struct_id, const struct entry **entry) {
   BUILD_ASSERT_EQUAL_ARRAY_SIZE(ELTON_MAX_STRUCT_ID + 1, look_table);
-
-  if (struct_id == 0 || struct_id > ELTON_MAX_STRUCT_ID) {
-    // invalid struct id.
-    // todo
-  }
+  BUG_ON(struct_id == 0 || struct_id > ELTON_MAX_STRUCT_ID);
 
   *entry = look_table[struct_id];
   return 0;
