@@ -32,4 +32,10 @@ struct elton_rpc_setup2 {
 #define ELTON_RPC_PING_ID 3
 struct elton_rpc_ping {};
 
+#define ELTON_RPC_ERROR_ID 4
+struct elton_rpc_error {
+  u64 error_id;
+  char *reason;
+};
+
 #endif // _ELTON_RPC_STRUCT_H
