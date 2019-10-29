@@ -52,8 +52,8 @@
 // struct_type:      Type name of the target struct.
 // in:               Variable name of struct raw_packet.
 // additional_space: The expression or statement expression to calculate
-// additional space of struct_type. decode_process:   Statements or block that
-// decodes a struct.
+//                   additional space of struct_type.
+// decode_process:   Statements or block that decodes a struct.
 #define DECODE(struct_type, in, additional_space, decode_process)              \
   ({                                                                           \
     struct xdr_decoder dec;                                                    \
