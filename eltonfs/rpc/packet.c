@@ -199,10 +199,35 @@ const static struct entry ping_entry = {
     .encode = ping_encode,
     .decode = ping_decode,
 };
+
+static int error_encode(struct packet *in, struct raw_packet **out) {
+  *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, {
+    enc.enc_op->u64(&enc, s->error_id);
+    enc.enc_op->bytes(&enc, s->reason, strlen(s->reason));
+  });
+  return 0;
+}
+static int error_decode(struct raw_packet *in, void **out) {
+  size_t reason_size;
+  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, ({
+                  u64 dummy;
+                  dec.dec_op->u64(&dec, &dummy);
+                  dec.dec_op->bytes(&dec, NULL, &reason_size);
+                  reason_size + 1;
+                }),
+                {
+                  // Initialize error.
+                  s->reason = &s->__embeded_buffer;
+
+                  dec.dec_op->u64(&dec, &s->error_id);
+                  dec.dec_op->bytes(&dec, s->reason, &reason_size);
+                  s->reason[reason_size] = '\0';
+                });
+  return 0;
+}
 const static struct entry error_entry = {
-    // todo
-    .encode = NULL,
-    .decode = NULL,
+    .encode = error_encode,
+    .decode = error_decode,
 };
 
 // Lookup table from struct_id to encoder/decoder function.

@@ -36,6 +36,10 @@ struct elton_rpc_ping {};
 struct elton_rpc_error {
   u64 error_id;
   char *reason;
+
+  // Embeds strings at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
 #endif // _ELTON_RPC_STRUCT_H
