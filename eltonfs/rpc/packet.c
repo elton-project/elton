@@ -5,17 +5,18 @@
 #include <linux/bug.h>
 #include <linux/vmalloc.h>
 
+// struct_id:      Struct ID.
 // struct_type:    Type name of the target struct.
 // in:             Variable name of struct packet.
 // encode_process: Statements or block that encodes a struct.
-#define ENCODE(struct_type, in, encode_process)                                \
+#define ENCODE(struct_id_, struct_type, in, encode_process)                     \
   ({                                                                           \
     struct_type *s;                                                            \
     struct xdr_encoder enc;                                                    \
     struct raw_packet *raw = NULL;                                             \
     int error = 0;                                                             \
                                                                                \
-    BUG_ON(in->struct_id != ELTON_RPC_SETUP1_ID);                              \
+    BUG_ON(in->struct_id != (struct_id_));                                      \
     BUG_ON(in == NULL);                                                        \
     BUG_ON(in->data == NULL);                                                  \
                                                                                \
@@ -106,7 +107,7 @@ struct entry {
 
 static int setup1_encode(struct packet *in, struct raw_packet **out) {
   // TODO: bufferがNULLでもencode出来るようにする。
-  *out = ENCODE(struct elton_rpc_setup1, in, {
+  *out = ENCODE(ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, {
     enc.enc_op->bytes(&enc, s->client_name, strlen(s->client_name));
     enc.enc_op->u64(&enc, s->version_major);
     enc.enc_op->u64(&enc, s->version_minor);
@@ -140,7 +141,7 @@ const static struct entry setup1_entry = {
 };
 
 int setup2_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(struct elton_rpc_setup2, in, {
+  *out = ENCODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, {
     enc.enc_op->u64(&enc, s->error);
     enc.enc_op->bytes(&enc, s->reason, strlen(s->reason));
     enc.enc_op->bytes(&enc, s->server_name, strlen(s->server_name));
