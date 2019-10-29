@@ -17,8 +17,10 @@ int __check_encoder_status(struct xdr_encoder *enc) {
 #define CHECK_ENCODER_STATUS(enc)                                              \
   {                                                                            \
     int err = __check_encoder_status(enc);                                     \
-    if (err)                                                                   \
+    if (err) {                                                                 \
+      enc->error = err;                                                        \
       return err;                                                              \
+    }                                                                          \
   }
 
 int __check_decoder_status(struct xdr_decoder *dec) {
@@ -29,21 +31,29 @@ int __check_decoder_status(struct xdr_decoder *dec) {
 #define CHECK_DECODER_STATUS(dec)                                              \
   {                                                                            \
     int err = __check_decoder_status(dec);                                     \
-    if (err)                                                                   \
+    if (err) {                                                                 \
+      dec->error = err;                                                        \
       return err;                                                              \
+    }                                                                          \
   }
 
 #define CHECK_READ_SIZE(xdr, size)                                             \
-  if (xdr->pos + (size) > xdr->len)                                            \
-  return -ELTON_XDR_NEED_MORE_MEM
+  if (xdr->pos + (size) > xdr->len) {                                          \
+    xdr->error = -ELTON_XDR_NEED_MORE_MEM;                                     \
+    return -ELTON_XDR_NEED_MORE_MEM;                                           \
+  }
+
 #define CHECK_WRITE_SIZE(xdr, size)                                            \
-  if (xdr->buffer != NULL && xdr->pos + (size) > xdr->len)                     \
-  return -ELTON_XDR_NOMEM
+  if (xdr->buffer != NULL && xdr->pos + (size) > xdr->len) {                   \
+    xdr->error = -ELTON_XDR_NOMEM;                                             \
+    return -ELTON_XDR_NOMEM;                                                   \
+  }
 
 int bin_encoder_init(struct xdr_encoder *enc, char *buff, size_t len) {
   enc->buffer = buff;
   enc->pos = 0;
   enc->len = len;
+  enc->error = 0;
   enc->enc_op = &bin_encoder_op;
   return 0;
 }
@@ -51,6 +61,7 @@ int bin_decoder_init(struct xdr_decoder *dec, char *buff, size_t len) {
   dec->buffer = buff;
   dec->pos = 0;
   dec->len = len;
+  dec->error = 0;
   dec->dec_op = &bin_decoder_op;
   return 0;
 }
@@ -126,6 +137,7 @@ static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
     return err;
 
   if (bytes != NULL && *len < size) {
+    dec->error = -ELTON_XDR_NOMEM;
     return -ELTON_XDR_NOMEM;
   }
 

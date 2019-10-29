@@ -11,6 +11,8 @@ struct xdr_encoder {
   size_t pos;
   // Size of buffer.  Should be zero if buffer is NULL.
   size_t len;
+  // Latest error no.
+  int error;
   struct xdr_encoder_operations *enc_op;
 };
 struct xdr_decoder {
@@ -20,6 +22,8 @@ struct xdr_decoder {
   size_t pos;
   // Size of buffer.
   size_t len;
+  // Latest error no.
+  int error;
   struct xdr_decoder_operations *dec_op;
 };
 
