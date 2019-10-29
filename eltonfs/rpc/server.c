@@ -74,8 +74,8 @@ error:
   return error;
 }
 
+// todo
 static struct elton_rpc_operations rpc_ops = {
-    // todo
     .listen = rpc_listen,
     .start_umh = NULL,
     .new_session = NULL,
