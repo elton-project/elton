@@ -51,12 +51,12 @@
       raw->data = &raw->__embeded_buffer;                                      \
                                                                                \
       /* Set buffer to encoder and start the second time loop. */              \
-      GOTO_IF(error_raw, default_encoder_init(&enc, raw->data, raw->size));    \
+      GOTO_IF(error, default_encoder_init(&enc, raw->data, raw->size));        \
     } while (1);                                                               \
                                                                                \
-  error_raw:                                                                   \
-    vfree(raw);                                                                \
   error:                                                                       \
+    if (raw)                                                                   \
+      vfree(raw);                                                              \
     return error;                                                              \
                                                                                \
   finish:                                                                      \
