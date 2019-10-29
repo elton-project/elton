@@ -95,21 +95,27 @@ static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
 static int dec_u8(struct xdr_decoder *dec, u8 *val) {
   CHECK_DECODER_STATUS(dec);
   CHECK_READ_SIZE(dec, 1);
-  *val = dec->buffer[dec->pos++];
+  if (val)
+    *val = dec->buffer[dec->pos];
+  dec->pos++;
   return 0;
 }
 static int dec_u64(struct xdr_decoder *dec, u64 *val) {
   CHECK_DECODER_STATUS(dec);
   CHECK_READ_SIZE(dec, 8);
-  *val = 0;
-  *val |= (u64)(dec->buffer[dec->pos++]) << 56;
-  *val |= (u64)(dec->buffer[dec->pos++]) << 48;
-  *val |= (u64)(dec->buffer[dec->pos++]) << 40;
-  *val |= (u64)(dec->buffer[dec->pos++]) << 32;
-  *val |= (u64)(dec->buffer[dec->pos++]) << 24;
-  *val |= (u64)(dec->buffer[dec->pos++]) << 16;
-  *val |= (u64)(dec->buffer[dec->pos++]) << 8;
-  *val |= (u64)(dec->buffer[dec->pos++]);
+  if (val) {
+    *val = 0;
+    *val |= (u64)(dec->buffer[dec->pos++]) << 56;
+    *val |= (u64)(dec->buffer[dec->pos++]) << 48;
+    *val |= (u64)(dec->buffer[dec->pos++]) << 40;
+    *val |= (u64)(dec->buffer[dec->pos++]) << 32;
+    *val |= (u64)(dec->buffer[dec->pos++]) << 24;
+    *val |= (u64)(dec->buffer[dec->pos++]) << 16;
+    *val |= (u64)(dec->buffer[dec->pos++]) << 8;
+    *val |= (u64)(dec->buffer[dec->pos++]);
+  } else {
+    dec->pos += 8;
+  }
   return 0;
 }
 static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
@@ -125,7 +131,8 @@ static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
 
   CHECK_DECODER_STATUS(dec);
   CHECK_READ_SIZE(dec, size);
-  memcpy(bytes, dec->buffer + dec->pos, size);
+  if (bytes)
+    memcpy(bytes, dec->buffer + dec->pos, size);
   dec->pos += size;
 
   // Set decoded data size to len.

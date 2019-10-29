@@ -119,8 +119,6 @@ static int setup1_encode(struct packet *in, struct raw_packet **out) {
   return 0;
 }
 static int setup1_decode(struct raw_packet *in, void **out) {
-  // TODO: 文字列サイズだけを取得するモードを用意
-
   size_t str_size;
   *out = DECODE(ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, ({
                   dec.dec_op->bytes(&dec, NULL, &str_size);
