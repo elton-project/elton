@@ -1,14 +1,14 @@
+#include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "common.h"
 
 int main(int argc, char **argv) {
-	char template[] = "/mnt/mkdtemp-testXXXXXX";
-	char *name = mkdtemp(template);
-	if(name == NULL) {
-		PRINT_ERROR();
-		exit(1);
-	}
-	LOG_INFO(name);
-	return 0;
+  char template[] = "/mnt/mkdtemp-testXXXXXX";
+  char *name = mkdtemp(template);
+  if (name == NULL) {
+    PRINT_ERROR();
+    exit(1);
+  }
+  LOG_INFO(name);
+  return 0;
 }

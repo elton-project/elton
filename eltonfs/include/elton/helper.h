@@ -4,7 +4,7 @@
 #include <linux/net.h>
 
 struct eltonfs_helper {
-    struct socket *sock;
+  struct socket *sock;
 };
 
 int eltonfs_start_helper(struct eltonfs_helper *helper);

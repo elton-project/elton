@@ -21,7 +21,8 @@ build:
 .PHONY: fmt
 fmt:
 	go fmt ./...
-	clang-format -i ./api/v*/*.proto
+	find ./api/ -name '*.proto' |xargs -r clang-format -i
+	find ./eltonfs/ -name '*.c' -o -name '*.h' |xargs -r clang-format -i
 
 .PHONY: test-fast
 test-fast:
