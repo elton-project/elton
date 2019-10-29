@@ -16,7 +16,8 @@ elton-y += xdr/default.o \
 	xdr/test.o
 elton-y += rpc/test.o \
 	rpc/packet.o \
-	rpc/queue.o
+	rpc/queue.o \
+	rpc/server.o
 obj-m := elton.o
 
 KERNEL ?= $(shell uname -r)

@@ -1,0 +1,92 @@
+#include <elton/assert.h>
+#include <elton/rpc/server.h>
+#include <linux/kthread.h>
+#include <linux/un.h>
+#include <net/sock.h>
+
+#define LISTEN_LENGTH 4
+
+static int rpc_session_worker(void *data) {
+  struct socket *sock = (struct socket *)data;
+  // todo: start handshake.
+  // todo: register new session.
+  // todo: execute recv worker
+  return 0;
+}
+
+static int rpc_master_worker(void *data) {
+  int error = 0;
+  int worker_id;
+  struct socket *sock = (struct socket *)data;
+
+  for (worker_id = 1;; worker_id++) {
+    struct socket *newsock;
+    struct task_struct *task;
+
+    newsock = kzalloc(sizeof(struct socket), GFP_KERNEL);
+    if (newsock == NULL) {
+      error = -ENOMEM;
+      break;
+    }
+    GOTO_IF(error_accept, sock->ops->accept(sock, newsock, 0, false));
+
+    task = (struct task_struct *)kthread_run(rpc_session_worker, newsock,
+                                             "elton-rpc [%d]", worker_id);
+    if (IS_ERR(task)) {
+      error = PTR_ERR(task);
+      goto error_kthread;
+    }
+    continue;
+
+  error_kthread:
+    newsock->ops->release(newsock);
+  error_accept:
+    kfree(newsock);
+    break;
+  }
+  return error;
+}
+
+static int rpc_listen(struct elton_rpc_server *s) {
+  int error = 0;
+  struct socket *sock;
+  struct sockaddr_un addr;
+  struct task_struct *task;
+
+  GOTO_IF(error, sock_create(AF_UNIX, SOCK_STREAM, 0, &sock));
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, s->socket_path, UNIX_PATH_MAX);
+
+  GOTO_IF(error_sock, sock->ops->bind(sock, (struct sockaddr *)&addr,
+                                      sizeof(struct sockaddr_un)));
+  GOTO_IF(error_sock, sock->ops->listen(sock, LISTEN_LENGTH));
+
+  task = kthread_run(rpc_master_worker, sock, "elton-rpc [master]");
+  if (IS_ERR(task)) {
+    error = PTR_ERR(task);
+    goto error_sock;
+  }
+  return 0;
+
+error_sock:
+  sock_release(sock);
+error:
+  return error;
+}
+
+static struct elton_rpc_operations rpc_ops = {
+    // todo
+    .listen = rpc_listen,
+    .start_umh = NULL,
+    .new_session = NULL,
+    .close_nowait = NULL,
+    .close = NULL,
+};
+
+int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
+  if (socket_path == NULL)
+    socket_path = ELTON_UMH_SOCK;
+  server->socket_path = socket_path;
+  server->ops = &rpc_ops;
+  return 0;
+}
