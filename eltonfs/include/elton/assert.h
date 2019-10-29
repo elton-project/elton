@@ -31,6 +31,22 @@ extern volatile bool __assertion_failed;
     }                                                                          \
     error;                                                                     \
   })
+// エラーなら指定したラベルにジャンプする。
+#define GOTO_IF(label, expr)                                                   \
+  ({                                                                           \
+    error = CHECK_ERROR(expr);                                                 \
+    if (error)                                                                 \
+      goto label;                                                              \
+    error;                                                                     \
+  })
+// エラーならreturnする。
+#define RETURN_IF(expr)                                                        \
+  ({                                                                           \
+    error = CHECK_ERROR(expr);                                                 \
+    if (error)                                                                 \
+      return error;                                                            \
+    error;                                                                     \
+  })
 // ポインタがNULLの場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
 #define ASSERT_NOT_NULL(expr)                                                  \

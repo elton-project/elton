@@ -13,13 +13,14 @@
     struct_type *s;                                                            \
     struct xdr_encoder enc;                                                    \
     struct raw_packet *raw = NULL;                                             \
+    int error = 0;                                                             \
                                                                                \
     BUG_ON(in->struct_id != ELTON_RPC_SETUP1_ID);                              \
     BUG_ON(in == NULL);                                                        \
     BUG_ON(in->data == NULL);                                                  \
                                                                                \
     s = (struct elton_rpc_setup1 *)in->data;                                   \
-    default_encoder_init(&enc, NULL, 0);                                       \
+    GOTO_IF(error, default_encoder_init(&enc, NULL, 0));                       \
     do {                                                                       \
       size_t size;                                                             \
       /* The behavior is different between the first and second time.          \
@@ -30,20 +31,30 @@
                                                                                \
       /* Break the loop when second time. */                                   \
       if (enc.buffer)                                                          \
-        break;                                                                 \
+        goto finish;                                                           \
                                                                                \
       /* Initialize raw_packet. */                                             \
       size = enc.pos;                                                          \
       raw = (struct raw_packet *)vmalloc(sizeof(struct raw_packet) + size);    \
+      if (raw == NULL) {                                                       \
+        error = -ENOMEM;                                                       \
+        goto error;                                                            \
+      }                                                                        \
       raw->size = size;                                                        \
       raw->struct_id = ELTON_RPC_SETUP1_ID;                                    \
       raw->free = free_raw_packet;                                             \
       raw->data = &raw->__embeded_buffer;                                      \
                                                                                \
       /* Set buffer to encoder and start the second time loop. */              \
-      default_encoder_init(&enc, raw->data, raw->size);                        \
+      GOTO_IF(error_raw, default_encoder_init(&enc, raw->data, raw->size));    \
     } while (1);                                                               \
                                                                                \
+  error_raw:                                                                   \
+    vfree(raw);                                                                \
+  error:                                                                       \
+    return error;                                                              \
+                                                                               \
+  finish:                                                                      \
     BUG_ON(raw == NULL);                                                       \
     BUG_ON(raw->size != enc.pos);                                              \
     raw;                                                                       \
@@ -59,16 +70,29 @@
     struct xdr_decoder dec;                                                    \
     size_t size;                                                               \
     struct_type *s;                                                            \
+    int error = 0;                                                             \
                                                                                \
-    default_decoder_init(&dec, in->data, in->size);                            \
+    GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
     size = additional_space;                                                   \
                                                                                \
     s = (struct_type *)kmalloc(sizeof(struct_type) + str_size + 1,             \
                                GFP_KERNEL);                                    \
+    if (s == NULL) {                                                           \
+      error = -ENOMEM;                                                         \
+      goto error;                                                              \
+    }                                                                          \
     s->client_name = &s->__embeded_buffer;                                     \
                                                                                \
-    default_decoder_init(&dec, in->data, in->size);                            \
+    GOTO_IF(error_s, default_decoder_init(&dec, in->data, in->size));          \
     decode_process;                                                            \
+    goto finish;                                                               \
+                                                                               \
+  error_s:                                                                     \
+    kfree(s);                                                                  \
+  error:                                                                       \
+    return error;                                                              \
+                                                                               \
+  finish:                                                                      \
     s;                                                                         \
   })
 
