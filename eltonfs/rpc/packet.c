@@ -29,6 +29,10 @@
        * First time: calculate the required buffer size.                       \
        * Second time: encode data to buffer. */                                \
       encode_process;                                                          \
+      if (enc.error) {                                                         \
+        error = enc.error;                                                     \
+        goto error;                                                            \
+      }                                                                        \
                                                                                \
       /* Break the loop when second time. */                                   \
       if (enc.buffer)                                                          \
@@ -80,6 +84,10 @@
     /* Calculate additional space of struct_type. */                           \
     GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
     size = additional_space;                                                   \
+    if (dec.error) {                                                           \
+      error = dec.error;                                                       \
+      goto error;                                                              \
+    }                                                                          \
                                                                                \
     /* Allocate memory of strct_type. */                                       \
     s = (struct_type *)kmalloc(sizeof(struct_type) + size, GFP_KERNEL);        \
@@ -91,6 +99,10 @@
     /* Decode it. */                                                           \
     GOTO_IF(error_s, default_decoder_init(&dec, in->data, in->size));          \
     decode_process;                                                            \
+    if (dec.error) {                                                           \
+      error = dec.error;                                                       \
+      goto error_s;                                                            \
+    }                                                                          \
     goto finish;                                                               \
                                                                                \
   error_s:                                                                     \
