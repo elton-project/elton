@@ -125,7 +125,7 @@ static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
   if (err < 0)
     return err;
 
-  if (*len < size) {
+  if (bytes != NULL && *len < size) {
     return -ELTON_XDR_NOMEM;
   }
 
