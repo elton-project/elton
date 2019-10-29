@@ -6,6 +6,9 @@
 #include <elton/assert.h>
 
 
+// struct_type:    Type name of the target struct.
+// in:             Variable name of struct packet.
+// encode_process: Statements or block that encodes a struct.
 #define ENCODE(struct_type, in, encode_process) ({ \
     struct_type *s; \
     struct xdr_encoder enc; \
@@ -45,6 +48,10 @@
     raw; \
 })
 
+// struct_type:      Type name of the target struct.
+// in:               Variable name of struct raw_packet.
+// additional_space: The expression or statement expression to calculate additional space of struct_type.
+// decode_process:   Statements or block that decodes a struct.
 #define DECODE(struct_type, in, additional_space, decode_process) ({ \
     struct xdr_decoder dec; \
     size_t size; \
