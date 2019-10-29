@@ -16,8 +16,8 @@
     struct raw_packet *raw = NULL;                                             \
     int error = 0;                                                             \
                                                                                \
-    BUG_ON(in->struct_id != (struct_id_));                                     \
     BUG_ON(in == NULL);                                                        \
+    BUG_ON(in->struct_id != (struct_id_));                                     \
     BUG_ON(in->data == NULL);                                                  \
                                                                                \
     s = (struct_type *)in->data;                                               \
@@ -73,8 +73,8 @@
     struct_type *s;                                                            \
     int error = 0;                                                             \
                                                                                \
-    BUG_ON(in->struct_id != (struct_id_));                                     \
     BUG_ON(in == NULL);                                                        \
+    BUG_ON(in->struct_id != (struct_id_));                                     \
     BUG_ON(in->data == NULL);                                                  \
                                                                                \
     /* Calculate additional space of struct_type. */                           \
