@@ -75,8 +75,7 @@
     GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
     size = additional_space;                                                   \
                                                                                \
-    s = (struct_type *)kmalloc(sizeof(struct_type) + str_size + 1,             \
-                               GFP_KERNEL);                                    \
+    s = (struct_type *)kmalloc(sizeof(struct_type) + size, GFP_KERNEL);        \
     if (s == NULL) {                                                           \
       error = -ENOMEM;                                                         \
       goto error;                                                              \
@@ -121,7 +120,7 @@ static int setup1_decode(struct raw_packet *in, void **out) {
   size_t str_size;
   *out = DECODE(struct elton_rpc_setup1, in, ({
                   dec.dec_op->bytes(&dec, NULL, &str_size);
-                  str_size;
+                  str_size + 1;
                 }),
                 {
                   dec.dec_op->bytes(&dec, s->client_name, &str_size);
