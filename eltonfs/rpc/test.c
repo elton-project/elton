@@ -10,32 +10,15 @@
 #include <linux/vmalloc.h>
 
 static char encoded_ping[] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // Size of this packet.
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,                            // Nested Session ID
-    ELTON_RPC_PACKET_FLAG_CREATE, // Packet Flags
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    3, // Struct ID (ping)
-       // data (ping)
+    // Size of this packet
+    0, 0, 0, 0, 0, 0, 0, 0,
+    // Nested Session ID
+    0, 0, 0, 0, 0, 0, 0, 1,
+    // Packet Flags
+    ELTON_RPC_PACKET_FLAG_CREATE,
+    // Struct ID (ping)
+    0, 0, 0, 0, 0, 0, 0, 3,
+    // data (ping)
 };
 static char bad_encoded_ping[] = {};
 
