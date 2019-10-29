@@ -1,17 +1,87 @@
 #include <elton/assert.h>
+#include <elton/rpc/packet.h>
 #include <elton/rpc/server.h>
+#include <elton/rpc/struct.h>
 #include <linux/kthread.h>
 #include <linux/un.h>
 #include <net/sock.h>
-
 #define LISTEN_LENGTH 4
 
+static struct elton_rpc_setup2 setup2 = {
+    .error = 0,
+    .reason = "",
+    .server_name = "eltonfs",
+    .version_major = 0,    // todo
+    .version_minor = 0,    // todo
+    .version_revision = 0, // todo
+};
+
 static int rpc_session_worker(void *data) {
+  int error = 0;
   struct socket *sock = (struct socket *)data;
-  // todo: start handshake.
+  struct elton_rpc_setup1 *setup1;
+  char buff[50];
+
+  // Start handshake.
+  {
+    // Receiving setup1.
+    struct raw_packet raw = {
+        .struct_id = ELTON_RPC_SETUP1_ID,
+        .data = buff,
+    };
+    ssize_t n;
+    loff_t readed = 0;
+    do {
+      BUG_ON(readed == sizeof(readed));
+
+      n = sock->file->f_op->read(sock->file, buff, sizeof(buff), &readed);
+      if (n < 0) {
+        error = n;
+        goto error_setup1;
+      }
+    } while (elton_rpc_decode_packet(&raw, (void **)&setup1));
+  }
+
+  // todo: check setup1.
+
+  elton_rpc_free_decoded_data(setup1);
+
+  // Sending setup2.
+  {
+    struct packet pk = {
+        .struct_id = ELTON_RPC_SETUP2_ID,
+        .data = &setup2,
+    };
+    struct raw_packet *raw;
+    ssize_t n;
+    loff_t wrote = 0;
+
+    // Encode data.
+    RETURN_IF(elton_rpc_encode_packet(&pk, &raw));
+    BUG_ON(raw == NULL);
+    BUG_ON(raw->data == NULL);
+    // Send data to client.
+    while (wrote < raw->size) {
+      n = sock->file->f_op->write(sock->file, raw->data, raw->size, &wrote);
+      if (n < 0) {
+        error = n;
+        goto error_setup2;
+      }
+    }
+
+  error_setup2:
+    if (raw)
+      raw->free(raw);
+    if (error)
+      goto error_setup1;
+  }
+
   // todo: register new session.
   // todo: execute recv worker
   return 0;
+
+error_setup1:
+  return error;
 }
 
 static int rpc_master_worker(void *data) {
