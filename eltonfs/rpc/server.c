@@ -293,6 +293,9 @@ static int rpc_listen(struct elton_rpc_server *s) {
     error = PTR_ERR(task);
     goto error_sock;
   }
+  mutex_lock(&s->task_lock);
+  s->task = task;
+  mutex_unlock(&s->task_lock);
   return 0;
 
 error_sock:
