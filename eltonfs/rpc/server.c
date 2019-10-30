@@ -117,16 +117,12 @@ static int rpc_session_worker(void *_s) {
       goto error_setup1;
   }
 
-  // Register new session.
-  hash_add(s->server->ss_table, &s->_hash, s->sid);
-
   // todo: execute recv worker
 
-error_session:
-  hash_del(&s->_hash);
 error_setup1:
   kfree(s->sock);
   s->sock = NULL;
+  hash_del(&s->_hash);
   return error;
 }
 
@@ -177,6 +173,9 @@ static int rpc_master_worker(void *_srv) {
       error = PTR_ERR(task);
       goto error_kthread;
     }
+
+    // Register new session.
+    hash_add(srv->ss_table, &s->_hash, s->sid);
     continue;
 
   error_kthread:
