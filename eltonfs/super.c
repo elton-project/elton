@@ -1,6 +1,6 @@
 #include <elton/assert.h>
 #include <elton/elton.h>
-#include <elton/helper.h>
+#include <elton/rpc/server.h>
 #include <elton/rpc/test.h>
 #include <elton/xattr.h>
 #include <elton/xdr/test.h>
@@ -16,7 +16,7 @@
 #include <linux/statfs.h>
 
 static bool is_registered = 0;
-struct eltonfs_helper helper;
+static struct elton_rpc_server server;
 static struct file_system_type eltonfs_type;
 static struct super_operations eltonfs_s_op;
 static struct address_space_operations eltonfs_aops;
@@ -295,22 +295,22 @@ static int __init fs_module_init(void) {
     return 1;
 #endif // ELTONFS_UNIT_TEST
 
-  error = register_filesystem(&eltonfs_type);
-  if (CHECK_ERROR(error)) {
-    goto out;
-  }
+  // Register filesystem.
+  GOTO_IF(out, register_filesystem(&eltonfs_type));
   DEBUG("Registered eltonfs");
 
-  error = eltonfs_start_helper(&helper);
-  if (CHECK_ERROR(error)) {
-    goto out_unregister_fs;
-  }
+  // Start UMH and RPC server.
+  GOTO_IF(out_unregister_fs, elton_rpc_server_init(&server, NULL));
+  GOTO_IF(out_unregister_fs, server.ops->listen(&server));
+  GOTO_IF(out_close_server, server.ops->start_umh(&server));
   DEBUG("Started an eltonfs user mode helper process");
 
   is_registered = 1;
   INFO("The module loaded");
   return 0;
 
+out_close_server:
+  server.ops->close(&server);
 out_unregister_fs:
   unregister_filesystem(&eltonfs_type);
 out:
@@ -322,15 +322,8 @@ static void __exit fs_module_exit(void) {
   DEBUG("Unloading the module ...");
 
   if (is_registered) {
-    error = eltonfs_stop_helper(&helper);
-    if (CHECK_ERROR(error)) {
-      return;
-    }
-
-    error = unregister_filesystem(&eltonfs_type);
-    if (CHECK_ERROR(error)) {
-      return;
-    }
+    RETURN_VOID_IF(server.ops->close(&server));
+    RETURN_VOID_IF(unregister_filesystem(&eltonfs_type));
   }
 
   INFO("The module unloaded");

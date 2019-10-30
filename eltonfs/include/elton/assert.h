@@ -39,12 +39,20 @@ extern volatile bool __assertion_failed;
       goto label;                                                              \
     error;                                                                     \
   })
-// エラーならreturnする。
+// エラーならreturnする。関数に戻り値がない場合、RETURN_VOID_IF()を使う。
 #define RETURN_IF(expr)                                                        \
   ({                                                                           \
     error = CHECK_ERROR(expr);                                                 \
     if (error)                                                                 \
       return error;                                                            \
+    error;                                                                     \
+  })
+// エラーならreturnする。戻り値が無い関数用。
+#define RETURN_VOID_IF(expr)                                                   \
+  ({                                                                           \
+    error = CHECK_ERROR(expr);                                                 \
+    if (error)                                                                 \
+      return;                                                                  \
     error;                                                                     \
   })
 // ポインタがNULLの場合、WARNINGを表示してtrueを返す。
