@@ -415,9 +415,9 @@ static struct file_operations eltonfs_file_operations = {
     .get_unmapped_area = eltonfs_get_unmapped_area,
     .unlocked_ioctl = eltonfs_ioctl,
 #ifdef CONFIG_COMPAT
-    .compat_ioctl =
-        eltonfs_compat_ioctl, // for 32bit application.  See
-                              // https://qiita.com/akachochin/items/94ba679b2941f55c1d2d
+    // for 32bit application.  See
+    // https://qiita.com/akachochin/items/94ba679b2941f55c1d2d
+    .compat_ioctl = eltonfs_compat_ioctl,
 #endif
 };
 
