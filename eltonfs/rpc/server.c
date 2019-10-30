@@ -2,6 +2,8 @@
 #include <elton/rpc/packet.h>
 #include <elton/rpc/server.h>
 #include <elton/rpc/struct.h>
+#include <elton/xdr/error.h>
+#include <elton/xdr/interface.h>
 #include <linux/kthread.h>
 #include <linux/un.h>
 #include <net/sock.h>
@@ -118,7 +120,72 @@ static int rpc_session_worker(void *_s) {
   }
 
   // todo: execute recv worker
+  {
+    struct raw_packet *raw = NULL;
+    char *buff;
+    size_t buff_size = PAGE_SIZE;
+    loff_t readed = 0;
+    size_t need_size;
+    size_t consumed_size;
 
+    BUILD_BUG_ON(sizeof(struct raw_packet) > PAGE_SIZE);
+
+    buff = vmalloc(buff_size);
+    if (buff == NULL) {
+      error = -ENOMEM;
+      goto error_alloc_buffer;
+    }
+
+    for (;;) {
+      int n = READ_SOCK(s->sock, buff, sizeof(buff), &readed);
+      if (n < 0) {
+        error = n;
+        goto error_read_sock;
+      }
+      // todo: try to decode packet
+
+      need_size = elton_rpc_get_raw_packet_size(buff, buff_size);
+      if (need_size == -ELTON_XDR_NEED_MORE_MEM)
+        // Need more bytes to calculate the raw packet size.
+        continue;
+      if (need_size < 0)
+        // Unexpected error.
+        goto error_get_size;
+      if (buff_size < need_size) {
+        // Insufficient buffer size.  Increase buffer size.
+        size_t new_size = round_up(need_size, PAGE_SIZE);
+        char *new_buff = vmalloc(new_size);
+        if (new_buff == NULL) {
+          error = -ENOMEM;
+          goto error_alloc_buffer;
+        }
+        memcpy(new_buff, buff, buff_size);
+        vfree(buff);
+        buff = new_buff;
+        buff_size = new_size;
+        continue;
+      }
+      if (readed < need_size)
+        continue;
+      // Enough data was read to decode the raw packet.  Try to decode it.
+      consumed_size = elton_rpc_build_raw_packet(&raw, buff, readed);
+      if (consumed_size < 0) {
+        error = consumed_size;
+        goto error_decode;
+      }
+      // todo: enqueue raw.
+      memmove(buff, buff + consumed_size, readed - consumed_size);
+    }
+
+  error_decode:
+  error_get_size:
+  error_read_sock:
+  error_alloc_buffer:
+    if (buff)
+      vfree(buff);
+    goto error_recv;
+  }
+error_recv:
 error_setup1:
   kfree(s->sock);
   s->sock = NULL;
