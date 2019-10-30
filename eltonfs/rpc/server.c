@@ -5,6 +5,7 @@
 #include <linux/kthread.h>
 #include <linux/un.h>
 #include <net/sock.h>
+
 #define LISTEN_LENGTH 4
 
 struct worker_args {
@@ -201,10 +202,28 @@ error:
   return error;
 }
 
+// Start UMH (User Mode Helper) in the background.
+int rpc_start_umh(struct elton_rpc_server *s) {
+  char *argv[] = {
+      ELTONFS_HELPER,
+      "--socket",
+      ELTONFS_HELPER_SOCK,
+      NULL,
+  };
+  char *envp[] = {
+      "HOME=/",
+      "TERM=linux",
+      "PATH=" PATH_ENV,
+      NULL,
+  };
+
+  return call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
+}
+
 // todo
 static struct elton_rpc_operations rpc_ops = {
     .listen = rpc_listen,
-    .start_umh = NULL,
+    .start_umh = rpc_start_umh,
     .new_session = NULL,
     .close_nowait = NULL,
     .close = NULL,
