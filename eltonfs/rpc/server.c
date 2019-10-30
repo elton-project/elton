@@ -7,6 +7,10 @@
 #include <net/sock.h>
 #define LISTEN_LENGTH 4
 
+struct worker_args {
+  struct elton_rpc_server *server;
+  struct socket *sock;
+};
 static struct elton_rpc_setup2 setup2 = {
     .error = 0,
     .reason = "",
@@ -16,9 +20,10 @@ static struct elton_rpc_setup2 setup2 = {
     .version_revision = 0, // todo
 };
 
-static int rpc_session_worker(void *data) {
+static int rpc_session_worker(void *_args) {
   int error = 0;
-  struct socket *sock = (struct socket *)data;
+  struct worker_args *args = (struct worker_args *)_args;
+  struct socket *sock = args->sock;
   struct elton_rpc_setup1 *setup1;
 
   // Start handshake.
@@ -80,29 +85,38 @@ static int rpc_session_worker(void *data) {
 
   // todo: register new session.
   // todo: execute recv worker
-  return 0;
 
 error_setup1:
+  kfree(sock);
+  kfree(args);
   return error;
 }
 
-static int rpc_master_worker(void *data) {
+static int rpc_master_worker(void *_args) {
   int error = 0;
   int worker_id;
-  struct socket *sock = (struct socket *)data;
+  struct worker_args *args = (struct worker_args *)_args;
+  struct socket *sock = args->sock;
 
   for (worker_id = 1;; worker_id++) {
-    struct socket *newsock;
+    struct worker_args *newargs = NULL;
+    struct socket *newsock = NULL;
     struct task_struct *task;
 
-    newsock = kzalloc(sizeof(struct socket), GFP_KERNEL);
+    newargs = kmalloc(sizeof(struct worker_args), GFP_KERNEL);
+    if (newargs == NULL) {
+      error = -ENOMEM;
+      break;
+    }
+    newargs->server = args->server;
+    newargs->sock = newsock = kzalloc(sizeof(struct socket), GFP_KERNEL);
     if (newsock == NULL) {
       error = -ENOMEM;
       break;
     }
     GOTO_IF(error_accept, sock->ops->accept(sock, newsock, 0, false));
 
-    task = (struct task_struct *)kthread_run(rpc_session_worker, newsock,
+    task = (struct task_struct *)kthread_run(rpc_session_worker, newargs,
                                              "elton-rpc [%d]", worker_id);
     if (IS_ERR(task)) {
       error = PTR_ERR(task);
@@ -113,9 +127,14 @@ static int rpc_master_worker(void *data) {
   error_kthread:
     newsock->ops->release(newsock);
   error_accept:
-    kfree(newsock);
+    if (newsock)
+      kfree(newsock);
+    if (newargs)
+      kfree(newargs);
     break;
   }
+
+  kfree(args);
   return error;
 }
 
@@ -124,16 +143,27 @@ static int rpc_listen(struct elton_rpc_server *s) {
   struct socket *sock;
   struct sockaddr_un addr;
   struct task_struct *task;
+  struct worker_args *args;
 
+  // Initialize socket and listen.
   GOTO_IF(error, sock_create(AF_UNIX, SOCK_STREAM, 0, &sock));
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, s->socket_path, UNIX_PATH_MAX);
-
   GOTO_IF(error_sock, sock->ops->bind(sock, (struct sockaddr *)&addr,
                                       sizeof(struct sockaddr_un)));
   GOTO_IF(error_sock, sock->ops->listen(sock, LISTEN_LENGTH));
 
-  task = kthread_run(rpc_master_worker, sock, "elton-rpc [master]");
+  // Initialize args.
+  args = kmalloc(sizeof(struct worker_args), GFP_KERNEL);
+  if (args == NULL) {
+    error = -ENOMEM;
+    goto error_sock;
+  }
+  args->server = s;
+  args->sock = sock;
+
+  // Start master worker.
+  task = kthread_run(rpc_master_worker, args, "elton-rpc [master]");
   if (IS_ERR(task)) {
     error = PTR_ERR(task);
     goto error_sock;
