@@ -143,13 +143,12 @@ static int rpc_session_worker(void *_s) {
         goto error_read_sock;
       }
 
-      need_size = elton_rpc_get_raw_packet_size(buff, buff_size);
-      if (need_size == -ELTON_XDR_NEED_MORE_MEM)
+      error = elton_rpc_get_raw_packet_size(buff, buff_size, &need_size);
+      if (error == -ELTON_XDR_NEED_MORE_MEM)
         // Need more bytes to calculate the raw packet size.
         continue;
-      if (need_size < 0)
-        // Unexpected error.
-        goto error_get_size;
+      GOTO_IF(error_get_size, error); // Unexpected error.
+
       if (buff_size < need_size) {
         // Insufficient buffer size.  Increase buffer size.
         size_t new_size = round_up(need_size, PAGE_SIZE);
@@ -166,12 +165,10 @@ static int rpc_session_worker(void *_s) {
       }
       if (readed < need_size)
         continue;
+
       // Enough data was read to decode the raw packet.  Try to decode it.
-      consumed_size = elton_rpc_build_raw_packet(&raw, buff, readed);
-      if (consumed_size < 0) {
-        error = consumed_size;
-        goto error_decode;
-      }
+      GOTO_IF(error_decode,
+              elton_rpc_build_raw_packet(&raw, buff, readed, &consumed_size));
       // todo: enqueue raw.
       memmove(buff, buff + consumed_size, readed - consumed_size);
       readed -= consumed_size;

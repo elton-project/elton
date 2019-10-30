@@ -41,9 +41,9 @@ int elton_rpc_decode_packet(struct raw_packet *in, void **out);
 void elton_rpc_free_decoded_data(void *data);
 // Get byte size of the whole of next raw_packet packet.
 // If need more bytes to calculate byte size, returns -ELTON_XDR_NEED_MORE_MEM.
-size_t elton_rpc_get_raw_packet_size(char *buff, size_t len);
+int elton_rpc_get_raw_packet_size(char *buff, size_t len, size_t *packed_size);
 // Build raw_packet from bytes.
-size_t elton_rpc_build_raw_packet(struct raw_packet **out, char *buff,
-                                  size_t len);
+int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff, size_t len,
+                               size_t *consumed);
 
 #endif // _ELTON_RPC_PACKET_H
