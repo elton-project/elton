@@ -50,6 +50,7 @@ static void elton_rpc_session_init(struct elton_rpc_session *s,
   s->sid = sid;
   s->sock = sock;
   s->task = NULL;
+  mutex_init(&s->task_lock);
   elton_rpc_queue_init(&s->q);
 }
 
@@ -245,13 +246,16 @@ static int rpc_master_worker(void *_srv) {
 
     GOTO_IF(error_accept, srv->sock->ops->accept(srv->sock, s->sock, 0, false));
 
+    // Start session worker.
     task = (struct task_struct *)kthread_run(rpc_session_worker, s,
                                              "elton-rpc [%d]", session_id);
     if (IS_ERR(task)) {
       error = PTR_ERR(task);
       goto error_kthread;
     }
+    mutex_lock(&s->task_lock);
     s->task = task;
+    mutex_unlock(&s->task_lock);
 
     // Register new session.
     hash_add(srv->ss_table, &s->_hash, s->sid);

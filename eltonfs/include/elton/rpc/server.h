@@ -37,14 +37,16 @@ struct elton_rpc_session {
   struct elton_rpc_server *server;
   // Required for building a hashtable.
   struct hlist_node _hash;
-
   // Session ID.
   u8 sid;
   // Socket for the RPC session.  It can only be sent/received packets.
   struct socket *sock;
+  struct mutex sock_write_lock;
+
   // For session worker thread.
   // It reads everything from the socket and decode to raw_packets.
   struct task_struct *task;
+  struct mutex task_lock;
   // Queue for received packets.
   // The nested session reads the packet from it.
   struct elton_rpc_queue q;
