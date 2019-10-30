@@ -38,6 +38,8 @@ struct elton_rpc_session {
   // Required for building a hashtable.
   struct hlist_node _hash;
 
+  // Session ID.
+  u8 sid;
   // Socket for the RPC session.  It can only be sent/received packets.
   struct socket *sock;
   // For session worker thread.

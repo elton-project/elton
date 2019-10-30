@@ -97,9 +97,13 @@ static int rpc_session_worker(void *_s) {
       goto error_setup1;
   }
 
-  // todo: register new session.
+  // Register new session.
+  hash_add(s->server->ss_table, &s->_hash, s->sid);
+
   // todo: execute recv worker
 
+error_session:
+  hash_del(&s->_hash);
 error_setup1:
   kfree(s->sock);
   s->sock = NULL;
