@@ -152,6 +152,7 @@ static int rpc_master_worker(void *_srv) {
     if (GET_SESSION(srv, worker_id))
       // Skips because this session ID already used.
       continue;
+    // TODO: Detect session ID depletion.
 
     s = kzalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
     if (s == NULL) {
