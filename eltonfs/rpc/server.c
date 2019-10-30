@@ -20,6 +20,20 @@ static struct elton_rpc_setup2 setup2 = {
     .version_revision = 0, // todo
 };
 
+// Handle an accepted session and start handshake process with client.
+// If handshake is compleated, execute following tasks:
+//   * Register it to available session list.
+//   * Until close the socket, read continuously from the socket and enqueue it
+//     to the receive packet queue.
+//
+// Arguments:
+//   _args: pointer to struct worker_args.  MUST allocate args and args->sock
+//          with kmalloc().  The args and args->sock will be release memory with
+//          kfree() before this thread finished.
+//
+// Returns:
+//   0:  Finished normally.
+//   <0: Failed session worker with an error.
 static int rpc_session_worker(void *_args) {
   int error = 0;
   struct worker_args *args = (struct worker_args *)_args;
@@ -92,6 +106,16 @@ error_setup1:
   return error;
 }
 
+// Handle an listened socket and wait for the client to connect.
+// When connected from client, accept it and start the rpc_session_worker().
+//
+// Arguments:
+//   _args: The pointer to struct worker_args.  MUST close args->sock and
+//          release args->sock and args.
+//
+// Returns:
+//   0:  Finished normally.
+//   <0: Failed master worker with an error.
 static int rpc_master_worker(void *_args) {
   int error = 0;
   int worker_id;
@@ -138,6 +162,7 @@ static int rpc_master_worker(void *_args) {
   return error;
 }
 
+// Listen unix domain socket and serve RPC in the background.
 static int rpc_listen(struct elton_rpc_server *s) {
   int error = 0;
   struct socket *sock;
