@@ -55,7 +55,7 @@ struct elton_rpc_ns {
   struct hlist_node _hash;
   // Nested Session ID
   u64 nsid;
-  struct elton_rpc_ns *ops;
+  struct elton_rpc_ns_operations *ops;
 };
 
 struct elton_rpc_operations {
