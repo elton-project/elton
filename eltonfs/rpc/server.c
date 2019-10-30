@@ -164,6 +164,7 @@ static int rpc_session_worker(void *_s) {
         continue;
       }
       if (readed < need_size)
+        // Need more bytes to decode raw packet.
         continue;
 
       // Enough data was read to decode the raw packet.  Try to decode it.
