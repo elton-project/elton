@@ -7,6 +7,10 @@
 #include <net/sock.h>
 
 #define LISTEN_LENGTH 4
+#define READ_SOCK(sock, buff, size, offset)                                    \
+  (sock)->file->f_op->read((sock)->file, (buff), (size), (offset));
+#define WRITE_SOCK(sock, buff, size, offset)                                   \
+  (sock)->file->f_op->read((sock)->file, (buff), (size), (offset));
 
 static struct elton_rpc_setup2 setup2 = {
     .error = 0,
@@ -34,7 +38,6 @@ static struct elton_rpc_setup2 setup2 = {
 static int rpc_session_worker(void *_s) {
   int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
-  struct socket *sock = s->sock;
   struct elton_rpc_setup1 *setup1;
 
   // Start handshake.
@@ -50,7 +53,7 @@ static int rpc_session_worker(void *_s) {
     do {
       BUG_ON(readed >= sizeof(buff));
 
-      n = sock->file->f_op->read(sock->file, buff, sizeof(buff), &readed);
+      n = READ_SOCK(s->sock, buff, sizeof(buff), &readed);
       if (n < 0) {
         error = n;
         goto error_setup1;
@@ -80,7 +83,7 @@ static int rpc_session_worker(void *_s) {
     BUG_ON(raw->data == NULL);
     // Send data to client.
     while (wrote < raw->size) {
-      n = sock->file->f_op->write(sock->file, raw->data, raw->size, &wrote);
+      n = WRITE_SOCK(s->sock, raw->data, raw->size, &wrote);
       if (n < 0) {
         error = n;
         goto error_setup2;
