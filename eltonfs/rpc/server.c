@@ -122,6 +122,7 @@ static int rpc_session_worker(void *_s) {
 error_setup1:
   kfree(s->sock);
   s->sock = NULL;
+  // Unregister from s->server->ss_table.
   hash_del(&s->_hash);
   return error;
 }
