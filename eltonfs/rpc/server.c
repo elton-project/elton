@@ -174,6 +174,7 @@ static int rpc_session_worker(void *_s) {
       }
       // todo: enqueue raw.
       memmove(buff, buff + consumed_size, readed - consumed_size);
+      readed -= consumed_size;
     }
 
   error_decode:
