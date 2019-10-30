@@ -43,6 +43,16 @@ static struct elton_rpc_setup2 setup2 = {
     .version_revision = 0, // todo
 };
 
+static void elton_rpc_session_init(struct elton_rpc_session *s,
+                                   struct elton_rpc_server *server, u8 sid,
+                                   struct socket *sock) {
+  s->server = server;
+  s->sid = sid;
+  s->sock = sock;
+  s->task = NULL;
+  elton_rpc_queue_init(&s->q);
+}
+
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
 //   * Register it to available session list.
@@ -211,6 +221,7 @@ static int rpc_master_worker(void *_srv) {
   for (session_id = 1;; session_id++) {
     struct elton_rpc_session *s = NULL;
     struct task_struct *task;
+    struct socket *sock;
 
     if (session_id == 0)
       // Skips because the session ID is invalid.
@@ -220,18 +231,18 @@ static int rpc_master_worker(void *_srv) {
       continue;
     // TODO: Detect session ID depletion.
 
-    s = kzalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
-    if (s == NULL) {
-      error = -ENOMEM;
-      break;
-    }
-    s->server = srv;
-    s->sid = session_id;
-    s->sock = kzalloc(sizeof(struct socket), GFP_KERNEL);
-    if (s->sock == NULL) {
+    sock = kzalloc(sizeof(struct socket), GFP_KERNEL);
+    if (sock == NULL) {
       error = -ENOMEM;
       goto error_accept;
     }
+    s = kmalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
+    if (s == NULL) {
+      error = -ENOMEM;
+      goto error_accept;
+    }
+    elton_rpc_session_init(s, srv, session_id, sock);
+
     GOTO_IF(error_accept, srv->sock->ops->accept(srv->sock, s->sock, 0, false));
 
     task = (struct task_struct *)kthread_run(rpc_session_worker, s,
@@ -240,6 +251,7 @@ static int rpc_master_worker(void *_srv) {
       error = PTR_ERR(task);
       goto error_kthread;
     }
+    s->task = task;
 
     // Register new session.
     hash_add(srv->ss_table, &s->_hash, s->sid);
@@ -248,11 +260,10 @@ static int rpc_master_worker(void *_srv) {
   error_kthread:
     s->sock->ops->release(s->sock);
   error_accept:
-    if (s) {
-      if (s->sock)
-        kfree(s->sock);
+    if (sock)
+      kfree(sock);
+    if (s)
       kfree(s);
-    }
     break;
   }
   return error;
