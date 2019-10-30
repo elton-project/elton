@@ -142,7 +142,6 @@ static int rpc_session_worker(void *_s) {
         error = n;
         goto error_read_sock;
       }
-      // todo: try to decode packet
 
       need_size = elton_rpc_get_raw_packet_size(buff, buff_size);
       if (need_size == -ELTON_XDR_NEED_MORE_MEM)
