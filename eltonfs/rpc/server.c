@@ -333,9 +333,11 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
   if (socket_path == NULL)
     socket_path = ELTON_UMH_SOCK;
   server->socket_path = socket_path;
-  server->ops = &rpc_ops;
+  server->sock = NULL;
+  server->task = NULL;
   mutex_init(&server->task_lock);
   hash_init(server->ss_table);
   hash_init(server->nss_table);
+  server->ops = &rpc_ops;
   return 0;
 }
