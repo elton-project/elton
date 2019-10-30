@@ -25,12 +25,14 @@ struct elton_rpc_server {
   // Key: Session ID.
   // Value: struct elton_rpc_session
   DECLARE_HASHTABLE(ss_table, ELTON_SESSIONS_HASH_SIZE);
+  struct spinlock ss_table_lock;
   // Hash table for nested sessions.  We supposes that number of nested sessions
   // is 1 to 1024.
   //
   // Key: Nested Session ID
   // Value: struct elton_rpc_ns
   DECLARE_HASHTABLE(nss_table, ELTON_NS_HASH_SIZE);
+  struct spinlock nss_table_lock;
 
   struct elton_rpc_operations *ops;
 };

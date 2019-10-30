@@ -31,8 +31,32 @@
     obj;                                                                       \
   })
 // Get session by session ID.  If session is not found, returns NULL.
+// MUST NOT call when acquired the server->ss_table_lock.
 #define GET_SESSION(server, session_id)                                        \
-  HASH_GET((server)->ss_table, struct elton_rpc_session, _hash, sid, session_id)
+  ({                                                                           \
+    struct elton_rpc_session *entry;                                           \
+    spin_lock(&(server)->ss_table_lock);                                       \
+    entry = HASH_GET((server)->ss_table, struct elton_rpc_session, _hash, sid, \
+                     session_id);                                              \
+    spin_unlock(&(server)->ss_table_lock);                                     \
+    entry;                                                                     \
+  })
+// Add session to server.
+// MUST NOT call when acquired the session->server->ss_table_lock.
+#define ADD_SESSION(session)                                                   \
+  do {                                                                         \
+    spin_lock(&(session)->server->ss_table_lock);                              \
+    hash_add((session)->server->ss_table, &(session)->_hash, (session)->sid);  \
+    spin_unlock(&(session)->server->ss_table_lock);                            \
+  } while (0);
+// Delete session from server.
+// MUST NOT call when acquired the session->server->ss_table_lock.
+#define DELETE_SESSION(session)                                                \
+  do {                                                                         \
+    spin_lock(&(session)->server->ss_table_lock);                              \
+    hash_del(&(session)->_hash);                                               \
+    spin_unlock(&(session)->server->ss_table_lock);                            \
+  } while (0);
 
 static struct elton_rpc_setup2 setup2 = {
     .error = 0,
@@ -199,7 +223,7 @@ error_setup1:
   kfree(s->sock);
   s->sock = NULL;
   // Unregister from s->server->ss_table.
-  hash_del(&s->_hash);
+  DELETE_SESSION(s);
   return error;
 }
 
@@ -258,7 +282,7 @@ static int rpc_master_worker(void *_srv) {
     mutex_unlock(&s->task_lock);
 
     // Register new session.
-    hash_add(srv->ss_table, &s->_hash, s->sid);
+    ADD_SESSION(s);
     continue;
 
   error_kthread:
@@ -340,7 +364,9 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
   server->task = NULL;
   mutex_init(&server->task_lock);
   hash_init(server->ss_table);
+  spin_lock_init(&server->ss_table_lock);
   hash_init(server->nss_table);
+  spin_lock_init(&server->nss_table_lock);
   server->ops = &rpc_ops;
   return 0;
 }
