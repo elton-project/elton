@@ -217,6 +217,7 @@ int rpc_start_umh(struct elton_rpc_server *s) {
       NULL,
   };
 
+  // todo: register subprocess_info to server.
   return call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
 }
 
