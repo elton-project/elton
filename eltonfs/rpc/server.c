@@ -11,6 +11,26 @@
   (sock)->file->f_op->read((sock)->file, (buff), (size), (offset));
 #define WRITE_SOCK(sock, buff, size, offset)                                   \
   (sock)->file->f_op->read((sock)->file, (buff), (size), (offset));
+// Get an entry from hashtable.  If entry is not found, returns NULL.
+//
+// Arguments:
+//   hashtable:
+//   type: the type name of entry.
+//   member: the name of the hlist_node.
+//   key_member: the field name that the hash key is stored.
+//   key:
+#define HASH_GET(hashtable, type, member, key_member, key)                     \
+  ({                                                                           \
+    type *obj = NULL;                                                          \
+    hash_for_each_possible((hashtable), obj, member, (key)) {                  \
+      if (obj->key_member == key)                                              \
+        break;                                                                 \
+    }                                                                          \
+    obj;                                                                       \
+  })
+// Get session by session ID.  If session is not found, returns NULL.
+#define GET_SESSION(server, session_id)                                        \
+  HASH_GET((server)->ss_table, struct elton_rpc_session, _hash, sid, session_id)
 
 static struct elton_rpc_setup2 setup2 = {
     .error = 0,
@@ -129,6 +149,13 @@ static int rpc_master_worker(void *_srv) {
   for (worker_id = 1;; worker_id++) {
     struct elton_rpc_session *s = NULL;
     struct task_struct *task;
+
+    if (worker_id == 0)
+      // Skips because the session ID is invalid.
+      continue;
+    if (GET_SESSION(srv, worker_id))
+      // Skips because this session ID already used.
+      continue;
 
     s = kzalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
     if (s == NULL) {
