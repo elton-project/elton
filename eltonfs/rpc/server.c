@@ -123,7 +123,7 @@ error_setup1:
 //   <0: Failed master worker with an error.
 static int rpc_master_worker(void *_srv) {
   int error = 0;
-  int worker_id;
+  u8 worker_id;
   struct elton_rpc_server *srv = (struct elton_rpc_server *)_srv;
 
   for (worker_id = 1;; worker_id++) {
@@ -136,6 +136,7 @@ static int rpc_master_worker(void *_srv) {
       break;
     }
     s->server = srv;
+    s->sid = worker_id;
     s->sock = kzalloc(sizeof(struct socket), GFP_KERNEL);
     if (s->sock == NULL) {
       error = -ENOMEM;
