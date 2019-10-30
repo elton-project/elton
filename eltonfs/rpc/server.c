@@ -20,11 +20,11 @@ static int rpc_session_worker(void *data) {
   int error = 0;
   struct socket *sock = (struct socket *)data;
   struct elton_rpc_setup1 *setup1;
-  char buff[50];
 
   // Start handshake.
   {
     // Receiving setup1.
+    char buff[50];
     struct raw_packet raw = {
         .struct_id = ELTON_RPC_SETUP1_ID,
         .data = buff,
