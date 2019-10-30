@@ -139,17 +139,17 @@ error_setup1:
 //   <0: Failed master worker with an error.
 static int rpc_master_worker(void *_srv) {
   int error = 0;
-  u8 worker_id;
+  u8 session_id;
   struct elton_rpc_server *srv = (struct elton_rpc_server *)_srv;
 
-  for (worker_id = 1;; worker_id++) {
+  for (session_id = 1;; session_id++) {
     struct elton_rpc_session *s = NULL;
     struct task_struct *task;
 
-    if (worker_id == 0)
+    if (session_id == 0)
       // Skips because the session ID is invalid.
       continue;
-    if (GET_SESSION(srv, worker_id))
+    if (GET_SESSION(srv, session_id))
       // Skips because this session ID already used.
       continue;
     // TODO: Detect session ID depletion.
@@ -160,7 +160,7 @@ static int rpc_master_worker(void *_srv) {
       break;
     }
     s->server = srv;
-    s->sid = worker_id;
+    s->sid = session_id;
     s->sock = kzalloc(sizeof(struct socket), GFP_KERNEL);
     if (s->sock == NULL) {
       error = -ENOMEM;
@@ -169,7 +169,7 @@ static int rpc_master_worker(void *_srv) {
     GOTO_IF(error_accept, srv->sock->ops->accept(srv->sock, s->sock, 0, false));
 
     task = (struct task_struct *)kthread_run(rpc_session_worker, s,
-                                             "elton-rpc [%d]", worker_id);
+                                             "elton-rpc [%d]", session_id);
     if (IS_ERR(task)) {
       error = PTR_ERR(task);
       goto error_kthread;
