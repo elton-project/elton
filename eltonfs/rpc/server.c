@@ -32,7 +32,7 @@ static int rpc_session_worker(void *data) {
     ssize_t n;
     loff_t readed = 0;
     do {
-      BUG_ON(readed == sizeof(readed));
+      BUG_ON(readed >= sizeof(buff));
 
       n = sock->file->f_op->read(sock->file, buff, sizeof(buff), &readed);
       if (n < 0) {
