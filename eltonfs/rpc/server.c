@@ -57,6 +57,23 @@
     hash_del(&(session)->_hash);                                               \
     spin_unlock(&(session)->server->ss_table_lock);                            \
   } while (0);
+// Loops all sessions in the server->ss_table.
+// MUST NOT call when acquired the server->ss_table_lock.
+#define FOR_EACH_SESSIONS(server, session, code_block)                         \
+  do {                                                                         \
+    int i;                                                                     \
+    spin_lock(&(server)->ss_table_lock);                                       \
+    hash_for_each((server)->ss_table, i, (session), _hash) code_block;         \
+    spin_unlock(&(server)->ss_table_lock);                                     \
+  } while (0)
+// Add nested session to server.
+// MUST NOT call when acquired the server->nss_table_lock.
+#define ADD_NS(ns)                                                             \
+  do {                                                                         \
+    spin_lock(&(ns)->session->server->nss_table_lock);                         \
+    hash_add((ns)->session->server->nss_table, &(ns)->_hash, (ns)->nsid);      \
+    spin_unlock(&(ns)->session->server->nss_table_lock);                       \
+  } while (0)
 
 static struct elton_rpc_setup2 setup2 = {
     .error = 0,
@@ -77,6 +94,9 @@ static void elton_rpc_session_init(struct elton_rpc_session *s,
   mutex_init(&s->task_lock);
   elton_rpc_queue_init(&s->q);
 }
+
+static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
+                              struct elton_rpc_session *s, u64 nsid);
 
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
@@ -350,11 +370,34 @@ int rpc_start_umh(struct elton_rpc_server *s) {
   return call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
 }
 
+u64 generate_nsid(struct elton_rpc_session *s) {
+  // todo
+  return 0;
+}
+
+int rpc_new_session(struct elton_rpc_server *srv, struct elton_rpc_ns *ns) {
+  struct elton_rpc_session *s = NULL;
+  u64 nsid;
+
+  // Select a session.
+  FOR_EACH_SESSIONS(srv, s, break);
+  if (s == NULL)
+    // Session not found.  Elton needs at least one session to create nested
+    // session.
+    return -EINVAL;
+
+  // Initialize and register ns.
+  nsid = generate_nsid(s);
+  elton_rpc_ns_init(ns, s, nsid);
+  ADD_NS(ns);
+  return 0;
+}
+
 // todo
 static struct elton_rpc_operations rpc_ops = {
     .listen = rpc_listen,
     .start_umh = rpc_start_umh,
-    .new_session = NULL,
+    .new_session = rpc_new_session,
     .close_nowait = NULL,
     .close = NULL,
 };
@@ -372,4 +415,21 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
   spin_lock_init(&server->nss_table_lock);
   server->ops = &rpc_ops;
   return 0;
+}
+
+// todo
+static struct elton_rpc_ns_operations ns_op = {
+    .send_struct = NULL,
+    .send_error = NULL,
+    .recv_struct = NULL,
+    .close = NULL,
+    .is_sendable = NULL,
+    .is_receivable = NULL,
+};
+
+static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
+                              struct elton_rpc_session *s, u64 nsid) {
+  ns->session = s;
+  ns->nsid = nsid;
+  ns->ops = &ns_op;
 }
