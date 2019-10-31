@@ -74,6 +74,15 @@
     hash_add((ns)->session->server->nss_table, &(ns)->_hash, (ns)->nsid);      \
     spin_unlock(&(ns)->session->server->nss_table_lock);                       \
   } while (0)
+#define GET_NS_BY_HASH(server, hash)                                           \
+  ({                                                                           \
+    struct elton_rpc_ns *entry;                                                \
+    spin_lock(&(server)->nss_table_lock);                                      \
+    entry =                                                                    \
+        HASH_GET((server)->nss_table, struct elton_rpc_ns, _hash, nsid, hash); \
+    spin_unlock(&(server)->nss_table_lock);                                    \
+    entry;                                                                     \
+  })
 
 static struct elton_rpc_setup2 setup2 = {
     .error = 0,
@@ -370,14 +379,54 @@ int rpc_start_umh(struct elton_rpc_server *s) {
   return call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
 }
 
-u64 generate_nsid(struct elton_rpc_session *s) {
-  // todo
-  return 0;
+// Get new nsid.
+//
+// ============== Bit field structure of nsid ==============
+//
+// 63                          32                          0
+// .      .      .      .      .      .      .      .      .
+// |           32bit           | |         31bit           |
+// |      reserved area        | |        sequence         |
+//                              ^
+//                              |
+//                             1bit
+//                          Client flag
+u64 get_nsid(void) {
+  static DEFINE_SPINLOCK(lock);
+  static u64 sequence = 0;
+  u64 i;
+  const u64 SEQUENCE_MASK = (1U << 31) - 1U;
+
+  spin_lock(&lock);
+  sequence++;
+  i = sequence;
+  spin_unlock(&lock);
+
+  return i & SEQUENCE_MASK;
+}
+
+// Get hash value of specified NS.
+//
+// ============ Bit field structure of nsid hash ===========
+//
+// 63                          32                          0
+// .      .      .      .      .      .      .      .      .
+// |        24bit       | 8bit | |         31bit           |
+// |   reserved area    | sid  | |        sequence         |
+//                              ^
+//                              |
+//                             1bit
+//                          Client flag
+u64 get_nsid_hash(struct elton_rpc_ns *ns) {
+  const int SID_SHIFT = 32;
+  return (u64)(ns->session->sid) << SID_SHIFT | ns->nsid;
 }
 
 int rpc_new_session(struct elton_rpc_server *srv, struct elton_rpc_ns *ns) {
   struct elton_rpc_session *s = NULL;
   u64 nsid;
+  u64 hash;
+  bool found;
 
   // Select a session.
   FOR_EACH_SESSIONS(srv, s, break);
@@ -386,8 +435,13 @@ int rpc_new_session(struct elton_rpc_server *srv, struct elton_rpc_ns *ns) {
     // session.
     return -EINVAL;
 
+  // Find the unused nsid.
+  do {
+    nsid = get_nsid();
+    hash = get_nsid_hash(ns);
+    found = GET_NS_BY_HASH(srv, hash) != NULL;
+  } while (found);
   // Initialize and register ns.
-  nsid = generate_nsid(s);
   elton_rpc_ns_init(ns, s, nsid);
   ADD_NS(ns);
   return 0;
