@@ -154,6 +154,7 @@ static int rpc_session_worker(void *_s) {
       goto error_setup1;
   }
 
+  // Receive data from client until socket is closed.
   {
     struct raw_packet *raw = NULL;
     char *buff;
