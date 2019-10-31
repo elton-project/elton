@@ -154,7 +154,6 @@ static int rpc_session_worker(void *_s) {
       goto error_setup1;
   }
 
-  // todo: execute recv worker
   {
     struct raw_packet *raw = NULL;
     char *buff;
