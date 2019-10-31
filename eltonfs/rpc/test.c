@@ -109,10 +109,13 @@ void test_packet_queue(void) {
     return; // Memory allocation error.
   elton_rpc_queue_init(q);
 
+  out = NULL;
   spin_lock(&q->lock);
   ASSERT_NO_ERROR(elton_rpc_enqueue(q, in));
   ASSERT_NO_ERROR(elton_rpc_dequeue(q, &out));
   spin_unlock(&q->lock);
+  if (out)
+    q->free(out);
 }
 
 static void test_server(void) {
