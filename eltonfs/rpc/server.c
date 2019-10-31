@@ -205,9 +205,12 @@ static int rpc_session_worker(void *_s) {
       // Enough data was read to decode the raw packet.  Try to decode it.
       GOTO_IF(error_decode,
               elton_rpc_build_raw_packet(&raw, buff, readed, &consumed_size));
-      // todo: enqueue raw.
       memmove(buff, buff + consumed_size, readed - consumed_size);
       readed -= consumed_size;
+
+      // Qneueue raw packet.
+      elton_rpc_enqueue(&s->q, raw);
+      raw = NULL;
     }
 
   error_decode:
