@@ -24,6 +24,11 @@ const (
 	RecvQueueSize = 16
 )
 
+const (
+	// Flag value for the NS started from client side.
+	nsidClientFlag = 1 << 31
+)
+
 type ClientSession interface {
 	// Setup initialize the connection.
 	Setup() error

@@ -138,11 +138,11 @@ func TestClientS_New(t *testing.T) {
 			defer wg.Done()
 			// Prepare expected packet
 			dec := NewXDRDecoder(utils.WrapMustReader(server))
-			assert.Equal(t, dec.Uint64(), uint64(1))               // Number of data size in bytes.
-			assert.Equal(t, dec.Uint64(), uint64(1<<63|1))         // SessionID
-			assert.Equal(t, dec.Uint8(), uint8(CreateSessionFlag)) // Flags
-			assert.Equal(t, dec.Uint64(), uint64(3))               // StructID (ping)
-			assert.Equal(t, dec.Uint8(), uint8(0))                 // Number of fields in struct.
+			assert.Equal(t, dec.Uint64(), uint64(1))                // Number of data size in bytes.
+			assert.Equal(t, dec.Uint64(), uint64(nsidClientFlag|1)) // SessionID
+			assert.Equal(t, dec.Uint8(), uint8(CreateSessionFlag))  // Flags
+			assert.Equal(t, dec.Uint64(), uint64(3))                // StructID (ping)
+			assert.Equal(t, dec.Uint8(), uint8(0))                  // Number of fields in struct.
 		}()
 		err = ns.Send(&Ping{})
 		assert.NoError(t, err)
@@ -152,11 +152,11 @@ func TestClientS_New(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			enc := NewXDREncoder(utils.WrapMustWriter(server))
-			enc.Uint64(1)         // Number of data size in bytes.
-			enc.Uint64(1<<63 | 1) // SessionID
-			enc.Uint8(0)          // Flags
-			enc.Uint64(3)         // StructID ()
-			enc.Uint8(0)          // Number of fields in struct.
+			enc.Uint64(1)                  // Number of data size in bytes.
+			enc.Uint64(nsidClientFlag | 1) // SessionID
+			enc.Uint8(0)                   // Flags
+			enc.Uint64(3)                  // StructID ()
+			enc.Uint8(0)                   // Number of fields in struct.
 		}()
 		ping, err := ns.Recv(&Ping{})
 		assert.NoError(t, err)
