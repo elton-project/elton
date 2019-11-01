@@ -159,7 +159,6 @@ static int rpc_session_worker(void *_s) {
   // Start handshake.
   {
     // Receiving setup1.
-    SESSION_DEBUG(s, "waiting setup1 ...");
     char buff[50];
     struct raw_packet raw = {
         .struct_id = ELTON_RPC_SETUP1_ID,
@@ -167,6 +166,8 @@ static int rpc_session_worker(void *_s) {
     };
     ssize_t n;
     loff_t readed = 0;
+
+    SESSION_DEBUG(s, "waiting setup1 ...");
     do {
       BUG_ON(readed >= sizeof(buff));
 
