@@ -58,9 +58,6 @@ struct elton_rpc_session {
   // It reads everything from the socket and decode to raw_packets.
   struct task_struct *task;
   struct mutex task_lock;
-  // Queue for received packets.
-  // The nested session reads the packet from it.
-  struct elton_rpc_queue q;
 };
 struct elton_rpc_ns {
   struct elton_rpc_session *session;
@@ -68,6 +65,9 @@ struct elton_rpc_ns {
   struct hlist_node _hash;
   // Nested Session ID
   u64 nsid;
+  // Queue for received packets.
+  // The nested session reads the packet from it.
+  struct elton_rpc_queue q;
 
   // MUST acquire a lock before accessing to these fields.
   struct spinlock lock;

@@ -104,12 +104,13 @@ static void elton_rpc_session_init(struct elton_rpc_session *s,
   s->sock_wb_size = 0;
   s->task = NULL;
   mutex_init(&s->task_lock);
-  elton_rpc_queue_init(&s->q);
 }
 
 static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
                               struct elton_rpc_session *s, u64 nsid,
                               bool is_client);
+
+static u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
 
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
@@ -195,6 +196,8 @@ static int rpc_session_worker(void *_s) {
     loff_t readed = 0;
     size_t need_size;
     size_t consumed_size;
+    u64 nsid_hash;
+    struct elton_rpc_ns *ns;
 
     BUILD_BUG_ON(sizeof(struct raw_packet) > PAGE_SIZE);
 
@@ -242,7 +245,25 @@ static int rpc_session_worker(void *_s) {
       readed -= consumed_size;
 
       // Qneueue raw packet.
-      elton_rpc_enqueue(&s->q, raw);
+      spin_lock(&s->server->nss_table_lock);
+      nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
+      ns = GET_NS_BY_HASH(s->server, nsid_hash);
+      if (ns)
+        // Enqueue it.
+        elton_rpc_enqueue(&ns->q, raw);
+      else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
+        // Create session and enqueue it.
+        ns = (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns),
+                                            GFP_KERNEL);
+        if (ns == NULL) {
+          error = -ENOMEM;
+          goto error_decode;
+        }
+        elton_rpc_ns_init(ns, s, raw->session_id, false);
+        ADD_NS(ns);
+        ns = NULL;
+      }
+      spin_unlock(&s->server->nss_table_lock);
       raw = NULL;
     }
 
@@ -409,6 +430,11 @@ static u64 get_nsid(void) {
   return i & SEQUENCE_MASK;
 }
 
+static u64 get_nsid_hash_by_values(u8 session_id, u64 nsid) {
+  const int SID_SHIFT = 32;
+  return ((u64)session_id) << SID_SHIFT | nsid;
+}
+
 // Get hash value of specified NS.
 //
 // ============ Bit field structure of nsid hash ===========
@@ -422,8 +448,7 @@ static u64 get_nsid(void) {
 //                             1bit
 //                          Client flag
 static u64 get_nsid_hash(struct elton_rpc_ns *ns) {
-  const int SID_SHIFT = 32;
-  return (u64)(ns->session->sid) << SID_SHIFT | ns->nsid;
+  return get_nsid_hash_by_values(ns->session->sid, ns->nsid);
 }
 
 static int rpc_new_session(struct elton_rpc_server *srv,
@@ -614,6 +639,7 @@ static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
                               bool is_client) {
   ns->session = s;
   ns->nsid = nsid;
+  elton_rpc_queue_init(&ns->q);
   spin_lock_init(&ns->lock);
   if (is_client) {
     // client
