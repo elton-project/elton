@@ -1,4 +1,5 @@
 #include <elton/assert.h>
+#include <elton/rpc/error.h>
 #include <elton/rpc/packet.h>
 #include <elton/rpc/server.h>
 #include <elton/rpc/struct.h>
@@ -527,7 +528,7 @@ static int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
   spin_lock(&ns->lock);
   if (!ns->sendable) {
     // Can not send data because it is closed.
-    // TODO: set error
+    error = -ELTON_RPC_ALREADY_CLOSED;
     goto error_precondition;
   }
   if (!ns->established)
@@ -567,7 +568,7 @@ static int ns_close(struct elton_rpc_ns *ns) {
     goto out;
   if (!ns->sendable) {
     // Already closed?
-    // todo: set error.
+    error = -ELTON_RPC_ALREADY_CLOSED;
     goto out;
   }
   spin_unlock(&ns->lock);

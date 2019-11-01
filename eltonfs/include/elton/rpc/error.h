@@ -3,5 +3,6 @@
 
 #define ELTON_RPC_INVAL 1
 #define ELTON_RPC_BAD_PACKET 2
+#define ELTON_RPC_ALREADY_CLOSED 3
 
 #endif // _ELTON_RPC_ERROR_H
