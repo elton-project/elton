@@ -485,5 +485,9 @@ static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
                               struct elton_rpc_session *s, u64 nsid) {
   ns->session = s;
   ns->nsid = nsid;
+  spin_lock_init(&ns->lock);
+  ns->established = false;
+  ns->closedC2S = false;
+  ns->closedS2C = false;
   ns->ops = &ns_op;
 }

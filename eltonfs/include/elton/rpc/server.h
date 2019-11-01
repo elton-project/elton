@@ -60,6 +60,13 @@ struct elton_rpc_ns {
   struct hlist_node _hash;
   // Nested Session ID
   u64 nsid;
+
+  // MUST acquire a lock before accessing to these fields.
+  struct spinlock lock;
+  bool established;
+  bool closedC2S;
+  bool closedS2C;
+
   struct elton_rpc_ns_operations *ops;
 };
 
