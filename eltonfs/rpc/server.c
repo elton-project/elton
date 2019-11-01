@@ -599,7 +599,6 @@ static bool ns_is_receivable(struct elton_rpc_ns *ns) {
   return receivable;
 }
 
-// todo
 static struct elton_rpc_ns_operations ns_op = {
     .send_struct = ns_send_struct,
     .send_error = ns_send_error,
