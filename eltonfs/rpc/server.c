@@ -164,12 +164,12 @@ static int rpc_session_worker(void *_s) {
         .struct_id = ELTON_RPC_SETUP2_ID,
         .data = &setup2,
     };
-    struct raw_packet *raw;
+    struct raw_packet *raw = NULL;
     ssize_t n;
     loff_t wrote = 0;
 
     // Encode data.
-    RETURN_IF(elton_rpc_encode_packet(&pk, &raw));
+    GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw));
     BUG_ON(raw == NULL);
     BUG_ON(raw->data == NULL);
     // Send data to client.
