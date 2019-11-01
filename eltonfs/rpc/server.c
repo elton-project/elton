@@ -615,8 +615,16 @@ static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
   ns->session = s;
   ns->nsid = nsid;
   spin_lock_init(&ns->lock);
-  ns->established = false;
-  ns->sendable = is_client;
-  ns->receivable = !is_client;
+  if (is_client) {
+    // client
+    ns->established = false;
+    ns->sendable = true;
+    ns->receivable = false;
+  } else {
+    // server
+    ns->established = true;
+    ns->sendable = true;
+    ns->receivable = true;
+  }
   ns->ops = &ns_op;
 }
