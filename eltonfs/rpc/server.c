@@ -197,7 +197,7 @@ static int rpc_session_worker(void *_s) {
     size_t need_size;
     size_t consumed_size;
     u64 nsid_hash;
-    struct elton_rpc_ns *ns;
+    struct elton_rpc_ns *ns = NULL;
 
     BUILD_BUG_ON(sizeof(struct raw_packet) > PAGE_SIZE);
 
@@ -257,14 +257,21 @@ static int rpc_session_worker(void *_s) {
                                             GFP_KERNEL);
         if (ns == NULL) {
           error = -ENOMEM;
-          goto error_decode;
+          goto error_enqueue;
         }
         elton_rpc_ns_init(ns, s, raw->session_id, false);
         ADD_NS(ns);
         ns = NULL;
       }
+
+    error_enqueue:
       spin_unlock(&s->server->nss_table_lock);
+      if (raw)
+        raw->free(raw);
       raw = NULL;
+
+      if (error)
+        break;
     }
 
   error_decode:
