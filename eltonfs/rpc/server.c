@@ -156,8 +156,6 @@ static int rpc_session_worker(void *_s) {
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
   struct elton_rpc_setup1 *setup1;
 
-  SESSION_INFO(s, "connected from %s",
-               setup1->client_name ? setup1->client_name : "no-name client");
   // Start handshake.
   {
     // Receiving setup1.
@@ -185,6 +183,8 @@ static int rpc_session_worker(void *_s) {
 
   SESSION_DEBUG(s, "validating setup1");
   // todo: check setup1.
+  SESSION_INFO(s, "connected from %s",
+               setup1->client_name ? setup1->client_name : "no-name client");
   elton_rpc_free_decoded_data(setup1);
 
   // Sending setup2.
