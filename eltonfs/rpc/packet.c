@@ -1,6 +1,7 @@
 #include <elton/assert.h>
 #include <elton/rpc/packet.h>
 #include <elton/rpc/struct.h>
+#include <elton/xdr/error.h>
 #include <elton/xdr/interface.h>
 #include <linux/bug.h>
 #include <linux/vmalloc.h>
@@ -290,4 +291,41 @@ int elton_rpc_get_raw_packet_size(char *buff, size_t len, size_t *packet_size) {
   RETURN_IF(dec.dec_op->u64(&dec, &n));
   *packet_size = n;
   return 0;
+}
+
+int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff, size_t len,
+                               size_t *consumed) {
+  int error = 0;
+  struct xdr_decoder dec;
+  struct raw_packet *raw = NULL;
+  u64 data_size;
+
+  RETURN_IF(default_decoder_init(&dec, buff, len));
+  RETURN_IF(dec.dec_op->u64(&dec, &data_size));
+
+  raw = (struct raw_packet *)kmalloc(sizeof(struct raw_packet) + data_size,
+                                     GFP_KERNEL);
+  if (raw == NULL) {
+    error = -ENOMEM;
+    goto error;
+  }
+  raw->size = data_size;
+  GOTO_IF(error, dec.dec_op->u64(&dec, &raw->session_id));
+  GOTO_IF(error, dec.dec_op->u8(&dec, &raw->flags));
+  GOTO_IF(error, dec.dec_op->u64(&dec, &raw->struct_id));
+
+  if (len < dec.pos + data_size) {
+    error = -ELTON_XDR_NEED_MORE_MEM;
+    goto error;
+  }
+  raw->data = &raw->__embeded_buffer;
+  memcpy(raw->data, buff + dec.pos, data_size);
+
+  *out = raw;
+  return 0;
+
+error:
+  if (raw)
+    kfree(raw);
+  return error;
 }
