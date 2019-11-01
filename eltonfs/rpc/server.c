@@ -543,14 +543,30 @@ out:
   return error;
 }
 
+bool ns_is_sendable(struct elton_rpc_ns *ns) {
+  bool sendable;
+  spin_lock(&ns->lock);
+  sendable = ns->sendable;
+  spin_unlock(&ns->lock);
+  return sendable;
+}
+
+bool ns_is_receivable(struct elton_rpc_ns *ns) {
+  bool receivable;
+  spin_lock(&ns->lock);
+  receivable = ns->receivable;
+  spin_unlock(&ns->lock);
+  return receivable;
+}
+
 // todo
 static struct elton_rpc_ns_operations ns_op = {
     .send_struct = ns_send_struct,
     .send_error = ns_send_error,
     .recv_struct = ns_recv_struct,
     .close = ns_close,
-    .is_sendable = NULL,
-    .is_receivable = NULL,
+    .is_sendable = ns_is_sendable,
+    .is_receivable = ns_is_receivable,
 };
 
 static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
