@@ -143,7 +143,7 @@ func (s *clientS) New() (ClientNS, error) {
 	// Get next NSID.
 	var nextNSID uint64
 	for {
-		nextNSID = (s.lastNSID + 1) | 1<<63
+		nextNSID = ((s.lastNSID + 1) | 1<<31)& (1<<32 - 1)
 		if _, ok := s.nss[nextNSID]; ok {
 			continue
 		}
