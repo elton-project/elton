@@ -656,7 +656,7 @@ static int ns_send_error(struct elton_rpc_ns *ns,
   return ns_send_struct(ns, ELTON_RPC_ERROR_ID, error);
 }
 
-static int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void **data) {
+static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
   int error = 0;
   struct raw_packet *raw = NULL;
 
