@@ -281,3 +281,13 @@ int elton_rpc_decode_packet(struct raw_packet *in, void **out) {
 }
 
 void elton_rpc_free_decoded_data(void *data) { kfree(data); }
+
+int elton_rpc_get_raw_packet_size(char *buff, size_t len, size_t *packet_size) {
+  int error = 0;
+  u64 n;
+  struct xdr_decoder dec;
+  RETURN_IF(default_decoder_init(&dec, buff, len));
+  RETURN_IF(dec.dec_op->u64(&dec, &n));
+  *packet_size = n;
+  return 0;
+}
