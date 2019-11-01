@@ -484,13 +484,22 @@ static int rpc_new_session(struct elton_rpc_server *srv,
   return 0;
 }
 
-// todo
+static void rpc_close_nowait(struct elton_rpc_server *srv) {
+  // todo: impl
+  // todo: 既存のセッションは強制切断する?
+}
+
+static int rpc_close(struct elton_rpc_server *srv) {
+  rpc_close_nowait(srv);
+  // todo: Wait for close.
+}
+
 static struct elton_rpc_operations rpc_ops = {
     .listen = rpc_listen,
     .start_umh = rpc_start_umh,
     .new_session = rpc_new_session,
-    .close_nowait = NULL,
-    .close = NULL,
+    .close_nowait = rpc_close_nowait,
+    .close = rpc_close,
 };
 
 int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
