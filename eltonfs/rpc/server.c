@@ -364,7 +364,7 @@ error:
 }
 
 // Start UMH (User Mode Helper) in the background.
-int rpc_start_umh(struct elton_rpc_server *s) {
+static int rpc_start_umh(struct elton_rpc_server *s) {
   char *argv[] = {
       ELTONFS_HELPER,
       "--socket",
@@ -394,7 +394,7 @@ int rpc_start_umh(struct elton_rpc_server *s) {
 //                              |
 //                             1bit
 //                          Client flag
-u64 get_nsid(void) {
+static u64 get_nsid(void) {
   static DEFINE_SPINLOCK(lock);
   static u64 sequence = 0;
   u64 i;
@@ -420,12 +420,13 @@ u64 get_nsid(void) {
 //                              |
 //                             1bit
 //                          Client flag
-u64 get_nsid_hash(struct elton_rpc_ns *ns) {
+static u64 get_nsid_hash(struct elton_rpc_ns *ns) {
   const int SID_SHIFT = 32;
   return (u64)(ns->session->sid) << SID_SHIFT | ns->nsid;
 }
 
-int rpc_new_session(struct elton_rpc_server *srv, struct elton_rpc_ns *ns) {
+static int rpc_new_session(struct elton_rpc_server *srv,
+                           struct elton_rpc_ns *ns) {
   struct elton_rpc_session *s = NULL;
   u64 nsid;
   u64 hash;
@@ -475,12 +476,12 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
 }
 
 // Send a packet.  MUST acquire sock_write_lock and ns->lock before call it.
-int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
-                                int struct_id, void *data) {
+static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
+                                       int struct_id, void *data) {
   // todo
 }
 
-int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
+static int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
   int error = 0;
   int flags = 0;
 
@@ -508,15 +509,16 @@ error_precondition:
   return error;
 }
 
-int ns_send_error(struct elton_rpc_ns *ns, struct elton_rpc_error *error) {
+static int ns_send_error(struct elton_rpc_ns *ns,
+                         struct elton_rpc_error *error) {
   return ns_send_struct(ns, ELTON_RPC_ERROR_ID, error);
 }
 
-int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
+static int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
   // todo
 }
 
-int ns_close(struct elton_rpc_ns *ns) {
+static int ns_close(struct elton_rpc_ns *ns) {
   int error = 0;
   struct elton_rpc_ping ping;
 
@@ -543,7 +545,7 @@ out:
   return error;
 }
 
-bool ns_is_sendable(struct elton_rpc_ns *ns) {
+static bool ns_is_sendable(struct elton_rpc_ns *ns) {
   bool sendable;
   spin_lock(&ns->lock);
   sendable = ns->sendable;
@@ -551,7 +553,7 @@ bool ns_is_sendable(struct elton_rpc_ns *ns) {
   return sendable;
 }
 
-bool ns_is_receivable(struct elton_rpc_ns *ns) {
+static bool ns_is_receivable(struct elton_rpc_ns *ns) {
   bool receivable;
   spin_lock(&ns->lock);
   receivable = ns->receivable;
