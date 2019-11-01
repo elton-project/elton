@@ -93,7 +93,7 @@ struct elton_rpc_operations {
 struct elton_rpc_ns_operations {
   int (*send_struct)(struct elton_rpc_ns *ns, int struct_id, void *data);
   int (*send_error)(struct elton_rpc_ns *ns, struct elton_rpc_error *err);
-  int (*recv_struct)(struct elton_rpc_ns *ns, int struct_id, void *data);
+  int (*recv_struct)(struct elton_rpc_ns *ns, int struct_id, void **data);
   int (*close)(struct elton_rpc_ns *ns);
   bool (*is_sendable)(struct elton_rpc_ns *ns);
   bool (*is_receivable)(struct elton_rpc_ns *ns);

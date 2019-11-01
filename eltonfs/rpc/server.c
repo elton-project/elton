@@ -594,8 +594,32 @@ static int ns_send_error(struct elton_rpc_ns *ns,
   return ns_send_struct(ns, ELTON_RPC_ERROR_ID, error);
 }
 
-static int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
-  // todo
+static int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void **data) {
+  int error = 0;
+  struct raw_packet *raw = NULL;
+
+  elton_rpc_dequeue(&ns->q, &raw);
+
+  if (raw->flags & ELTON_SESSION_FLAG_CLOSE) {
+    // todo: race conditionの可能性あり
+    // dequeueしてからflagsをチェックする間は、排他制御が行われていない.
+    spin_lock(&ns->lock);
+    ns->receivable = false;
+    spin_unlock(&ns->lock);
+  }
+
+  if (raw->struct_id != struct_id) {
+    // Unexpected struct.
+    error = -ELTON_RPC_DIFF_TYPE;
+    goto error_dequeue;
+  }
+
+  GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, data));
+
+error_dequeue:
+  if (raw)
+    raw->free(raw);
+  return error;
 }
 
 static int ns_close(struct elton_rpc_ns *ns) {
