@@ -99,13 +99,16 @@ static void elton_rpc_session_init(struct elton_rpc_session *s,
   s->server = server;
   s->sid = sid;
   s->sock = sock;
+  s->sock_wb = NULL;
+  s->sock_wb_size = 0;
   s->task = NULL;
   mutex_init(&s->task_lock);
   elton_rpc_queue_init(&s->q);
 }
 
 static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
-                              struct elton_rpc_session *s, u64 nsid);
+                              struct elton_rpc_session *s, u64 nsid,
+                              bool is_client);
 
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
@@ -442,7 +445,7 @@ int rpc_new_session(struct elton_rpc_server *srv, struct elton_rpc_ns *ns) {
     found = GET_NS_BY_HASH(srv, hash) != NULL;
   } while (found);
   // Initialize and register ns.
-  elton_rpc_ns_init(ns, s, nsid);
+  elton_rpc_ns_init(ns, s, nsid, true);
   ADD_NS(ns);
   return 0;
 }
@@ -471,23 +474,93 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
   return 0;
 }
 
+// Send a packet.  MUST acquire sock_write_lock and ns->lock before call it.
+int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
+                                int struct_id, void *data) {
+  // todo
+}
+
+int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
+  int error = 0;
+  int flags = 0;
+
+  mutex_lock(&ns->session->sock_write_lock);
+  spin_lock(&ns->lock);
+  if (!ns->sendable) {
+    // Can not send data because it is closed.
+    // TODO: set error
+    goto error_precondition;
+  }
+  if (!ns->established)
+    flags |= ELTON_SESSION_FLAG_CREATE;
+  if (struct_id == ELTON_RPC_ERROR_ID)
+    flags |= ELTON_SESSION_FLAG_ERROR;
+  spin_unlock(&ns->lock);
+
+  error = ns_send_packet_without_lock(ns, flags, struct_id, data);
+
+  spin_lock(&ns->lock);
+  if (!error)
+    ns->established = true;
+error_precondition:
+  spin_unlock(&ns->lock);
+  mutex_unlock(&ns->session->sock_write_lock);
+  return error;
+}
+
+int ns_send_error(struct elton_rpc_ns *ns, struct elton_rpc_error *error) {
+  return ns_send_struct(ns, ELTON_RPC_ERROR_ID, error);
+}
+
+int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
+  // todo
+}
+
+int ns_close(struct elton_rpc_ns *ns) {
+  int error = 0;
+  struct elton_rpc_ping ping;
+
+  mutex_lock(&ns->session->sock_write_lock);
+  spin_lock(&ns->lock);
+  if (!ns->established)
+    // This session is not established. Does not need to send a close packet.
+    goto out;
+  if (!ns->sendable) {
+    // Already closed?
+    // todo: set error.
+    goto out;
+  }
+  spin_unlock(&ns->lock);
+
+  error = ns_send_packet_without_lock(ns, ELTON_RPC_PACKET_FLAG_CLOSE,
+                                      ELTON_RPC_PING_ID, &ping);
+
+  spin_lock(&ns->lock);
+  ns->sendable = false;
+out:
+  spin_unlock(&ns->lock);
+  mutex_unlock(&ns->session->sock_write_lock);
+  return error;
+}
+
 // todo
 static struct elton_rpc_ns_operations ns_op = {
-    .send_struct = NULL,
-    .send_error = NULL,
-    .recv_struct = NULL,
-    .close = NULL,
+    .send_struct = ns_send_struct,
+    .send_error = ns_send_error,
+    .recv_struct = ns_recv_struct,
+    .close = ns_close,
     .is_sendable = NULL,
     .is_receivable = NULL,
 };
 
 static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
-                              struct elton_rpc_session *s, u64 nsid) {
+                              struct elton_rpc_session *s, u64 nsid,
+                              bool is_client) {
   ns->session = s;
   ns->nsid = nsid;
   spin_lock_init(&ns->lock);
   ns->established = false;
-  ns->closedC2S = false;
-  ns->closedS2C = false;
+  ns->sendable = is_client;
+  ns->receivable = !is_client;
   ns->ops = &ns_op;
 }

@@ -3,12 +3,17 @@
 
 #include <elton/rpc/packet.h>
 #include <elton/rpc/queue.h>
+#include <elton/rpc/struct.h>
 #include <linux/hashtable.h>
 #include <linux/types.h>
 
 #define ELTON_UMH_SOCK "/run/elton.sock"
 #define ELTON_SESSIONS_HASH_SIZE 3
 #define ELTON_NS_HASH_SIZE 12
+
+#define ELTON_SESSION_FLAG_CREATE 1
+#define ELTON_SESSION_FLAG_CLOSE 2
+#define ELTON_SESSION_FLAG_ERROR 3
 
 struct elton_rpc_server {
   // Path to UNIX domain socket.
@@ -45,6 +50,9 @@ struct elton_rpc_session {
   // Socket for the RPC session.  It can only be sent/received packets.
   struct socket *sock;
   struct mutex sock_write_lock;
+  // Buffer for writing to socket.  MUST acquire sock_write_lock before use it.
+  char *sock_wb;
+  size_t sock_wb_size;
 
   // For session worker thread.
   // It reads everything from the socket and decode to raw_packets.
@@ -64,8 +72,8 @@ struct elton_rpc_ns {
   // MUST acquire a lock before accessing to these fields.
   struct spinlock lock;
   bool established;
-  bool closedC2S;
-  bool closedS2C;
+  bool sendable;
+  bool receivable;
 
   struct elton_rpc_ns_operations *ops;
 };
@@ -84,7 +92,7 @@ struct elton_rpc_operations {
 };
 struct elton_rpc_ns_operations {
   int (*send_struct)(struct elton_rpc_ns *ns, int struct_id, void *data);
-  int (*send_error)(struct elton_rpc_ns *ns, int error);
+  int (*send_error)(struct elton_rpc_ns *ns, struct elton_rpc_error *err);
   int (*recv_struct)(struct elton_rpc_ns *ns, int struct_id, void *data);
   int (*close)(struct elton_rpc_ns *ns);
   bool (*is_sendable)(struct elton_rpc_ns *ns);
