@@ -1,11 +1,11 @@
 MODULE_NAME := elton
 FS_NAME := elton
 LTP_DIR := /mnt/ltp
-CC := gcc \
-	-I $(PWD)/include \
-	-DELTONFS_STATISTIC \
-	-DELTONFS_XATTRS \
-	-DELTONFS_UNIT_TEST
+CC_FLAGS += -I $(PWD)/include
+CC_FLAGS += -DELTONFS_STATISTIC
+CC_FLAGS += -DELTONFS_XATTRS
+CC_FLAGS += -DELTONFS_UNIT_TEST
+CC := gcc $(CC_FLAGS)
 
 elton-y += super.o
 elton-y += simple_xattr.o xattr.o
