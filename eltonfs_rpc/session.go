@@ -27,6 +27,8 @@ const (
 const (
 	// Flag value for the NS started from client side.
 	nsidClientFlag = 1 << 31
+	// Maximum value of NSID.
+	nsidMaxValue = (1 << 32) - 1
 )
 
 type ClientSession interface {
@@ -237,6 +239,11 @@ func (s *clientS) recvWorker() {
 			}
 			p.data = make([]byte, p.size)
 			s.R.MustReadAll(p.data)
+
+			if p.nsid > nsidMaxValue {
+				err := xerrors.Errorf("NSID is out-of-range")
+				panic(err)
+			}
 
 			s.recvQLock.RLock()
 			ch := s.recvQ[p.nsid]
