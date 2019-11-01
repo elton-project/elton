@@ -48,7 +48,7 @@
     spin_lock(&(session)->server->ss_table_lock);                              \
     hash_add((session)->server->ss_table, &(session)->_hash, (session)->sid);  \
     spin_unlock(&(session)->server->ss_table_lock);                            \
-  } while (0);
+  } while (0)
 // Delete session from server.
 // MUST NOT call when acquired the session->server->ss_table_lock.
 #define DELETE_SESSION(session)                                                \
@@ -56,7 +56,7 @@
     spin_lock(&(session)->server->ss_table_lock);                              \
     hash_del(&(session)->_hash);                                               \
     spin_unlock(&(session)->server->ss_table_lock);                            \
-  } while (0);
+  } while (0)
 // Loops all sessions in the server->ss_table.
 // MUST NOT call when acquired the server->ss_table_lock.
 #define FOR_EACH_SESSIONS(server, session, code_block)                         \
