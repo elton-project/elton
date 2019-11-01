@@ -478,7 +478,45 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
 // Send a packet.  MUST acquire sock_write_lock and ns->lock before call it.
 static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
                                        int struct_id, void *data) {
-  // todo
+  int error = 0;
+  struct raw_packet *raw;
+  struct packet pkt = {
+      .struct_id = struct_id,
+      .data = data,
+  };
+  struct xdr_encoder enc;
+  char buff[25];
+  loff_t offset;
+  ssize_t n;
+
+  GOTO_IF(error, elton_rpc_encode_packet(&pkt, &raw));
+  raw->session_id = ns->nsid;
+  raw->flags = flags;
+
+  GOTO_IF(error_encode, default_encoder_init(&enc, buff, sizeof(buff)));
+  enc.enc_op->u64(&enc, raw->size);
+  enc.enc_op->u64(&enc, raw->session_id);
+  enc.enc_op->u8(&enc, raw->flags);
+  enc.enc_op->u64(&enc, raw->struct_id);
+  if (enc.error) {
+    error = enc.error;
+    goto error_encode;
+  }
+
+  offset = 0;
+  while (offset < sizeof(buff)) {
+    n = WRITE_SOCK(ns->session->sock, buff, sizeof(buff), &offset);
+    if (n < 0) {
+      error = n;
+      goto error_write;
+    }
+  }
+
+error_write:
+error_encode:
+  raw->free(raw);
+error:
+  return error;
 }
 
 static int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
