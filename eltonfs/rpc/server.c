@@ -9,6 +9,31 @@
 #include <linux/un.h>
 #include <net/sock.h>
 
+#define __RPC_LOG_PREFIX "RPC: "
+#define __SESSION_LOG_PREFIX "RPC sid=%d: "
+#define __NS_LOG_PREFIX "RPC nsid=%llu: "
+
+#ifdef ELTON_RPC_DEBUG
+#define RPC_DEBUG(fmt, ...) DEBUG(__RPC_LOG_PREFIX fmt, ##__VA_ARGS__)
+#define SESSION_DEBUG(session, fmt, ...)                                       \
+  DEBUG(__SESSION_LOG_PREFIX fmt, session->sid, ##__VA_ARGS__)
+#define NS_DEBUG(ns, fmt, ...)                                                 \
+  DEBUG(__NS_LOG_PREFIX fmt, ns->nsid, ##__VA_ARGS__)
+#else
+#define RPC_DEBUG(fmt, ...)
+#define SESSION_DEBUG(session, fmt, ...)
+#define NS_DEBUG(ns, fmt, ...)
+#endif
+
+#define RPC_INFO(fmt, ...) INFO(__RPC_LOG_PREFIX fmt, ##__VA_ARGS__)
+#define SESSION_INFO(session, fmt, ...)                                        \
+  INFO(__SESSION_LOG_PREFIX fmt, session->sid, ##__VA_ARGS__)
+#define NS_INFO(ns, fmt, ...) INFO(__NS_LOG_PREFIX fmt, ns->nsid, ##__VA_ARGS__)
+#define RPC_ERR(fmt, ...) ERR(__RPC_LOG_PREFIX fmt, ##__VA_ARGS__)
+#define SESSION_ERR(session, fmt, ...)                                         \
+  ERR(__SESSION_LOG_PREFIX fmt, session->sid, ##__VA_ARGS__)
+#define NS_ERR(ns, fmt, ...) ERR(__NS_LOG_PREFIX fmt, ns->nsid, ##__VA_ARGS__)
+
 #define LISTEN_LENGTH 4
 #define READ_SOCK(sock, buff, size, offset)                                    \
   (sock)->file->f_op->read((sock)->file, (buff), (size), (offset));
@@ -131,9 +156,12 @@ static int rpc_session_worker(void *_s) {
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
   struct elton_rpc_setup1 *setup1;
 
+  SESSION_INFO(s, "connected from %s",
+               setup1->client_name ? setup1->client_name : "no-name client");
   // Start handshake.
   {
     // Receiving setup1.
+    SESSION_DEBUG(s, "waiting setup1 ...");
     char buff[50];
     struct raw_packet raw = {
         .struct_id = ELTON_RPC_SETUP1_ID,
@@ -147,15 +175,16 @@ static int rpc_session_worker(void *_s) {
       n = READ_SOCK(s->sock, buff, sizeof(buff), &readed);
       if (n < 0) {
         error = n;
+        SESSION_ERR(s, "failed handshake on setup1 stage: read error %d",
+                    error);
         goto error_setup1;
       }
     } while (elton_rpc_decode_packet(&raw, (void **)&setup1));
+    SESSION_DEBUG(s, "received setup1 from client");
   }
 
-  INFO("rpc: connected from %s",
-       setup1->client_name ? setup1->client_name : "no-name client");
+  SESSION_DEBUG(s, "validating setup1");
   // todo: check setup1.
-
   elton_rpc_free_decoded_data(setup1);
 
   // Sending setup2.
@@ -169,17 +198,22 @@ static int rpc_session_worker(void *_s) {
     loff_t wrote = 0;
 
     // Encode data.
+    SESSION_DEBUG(s, "preparing setup2 ...");
     GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw));
     BUG_ON(raw == NULL);
     BUG_ON(raw->data == NULL);
     // Send data to client.
+    SESSION_DEBUG(s, "sending setup2 ...");
     while (wrote < raw->size) {
       n = WRITE_SOCK(s->sock, raw->data, raw->size, &wrote);
       if (n < 0) {
         error = n;
+        SESSION_ERR(s, "failed handshake on setup2 stage: write error %d",
+                    error);
         goto error_setup2;
       }
     }
+    SESSION_DEBUG(s, "sent setup2");
 
   error_setup2:
     if (raw)
@@ -187,6 +221,7 @@ static int rpc_session_worker(void *_s) {
     if (error)
       goto error_setup1;
   }
+  SESSION_INFO(s, "established connection");
 
   // Receive data from client until socket is closed.
   {
@@ -204,6 +239,7 @@ static int rpc_session_worker(void *_s) {
     buff = vmalloc(buff_size);
     if (buff == NULL) {
       error = -ENOMEM;
+      SESSION_ERR(s, "failed to allocate %zu bytes for read buffer", buff_size);
       goto error_alloc_buffer;
     }
 
@@ -211,6 +247,7 @@ static int rpc_session_worker(void *_s) {
       int n = READ_SOCK(s->sock, buff, sizeof(buff), &readed);
       if (n < 0) {
         error = n;
+        SESSION_ERR(s, "read error %d", error);
         goto error_read_sock;
       }
 
@@ -226,6 +263,8 @@ static int rpc_session_worker(void *_s) {
         char *new_buff = vmalloc(new_size);
         if (new_buff == NULL) {
           error = -ENOMEM;
+          SESSION_ERR(s, "failed to allocate %zu bytes for read buffer",
+                      new_size);
           goto error_alloc_buffer;
         }
         memcpy(new_buff, buff, buff_size);
@@ -248,18 +287,22 @@ static int rpc_session_worker(void *_s) {
       spin_lock(&s->server->nss_table_lock);
       nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
       ns = GET_NS_BY_HASH(s->server, nsid_hash);
-      if (ns)
+      SESSION_DEBUG(s, "received a packet: struct_id=%llu, flags=%d, size=%zu",
+                    raw->struct_id, raw->flags, raw->size);
+      if (ns) {
         // Enqueue it.
         elton_rpc_enqueue(&ns->q, raw);
-      else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
+      } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
         // Create session and enqueue it.
         ns = (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns),
                                             GFP_KERNEL);
         if (ns == NULL) {
           error = -ENOMEM;
+          SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
           goto error_enqueue;
         }
         elton_rpc_ns_init(ns, s, raw->session_id, false);
+        SESSION_DEBUG(s, "created new session by umh");
         ADD_NS(ns);
         ns = NULL;
       }
@@ -278,12 +321,14 @@ static int rpc_session_worker(void *_s) {
   error_get_size:
   error_read_sock:
   error_alloc_buffer:
+    SESSION_INFO(s, "stopping receiver");
     if (buff)
       vfree(buff);
     goto error_recv;
   }
 error_recv:
 error_setup1:
+  SESSION_INFO(s, "stopping session worker");
   kfree(s->sock);
   s->sock = NULL;
   // Unregister from s->server->ss_table.
@@ -323,11 +368,13 @@ static int rpc_master_worker(void *_srv) {
     sock = kzalloc(sizeof(struct socket), GFP_KERNEL);
     if (sock == NULL) {
       error = -ENOMEM;
+      RPC_ERR("master: failed to allocate socket object");
       goto error_accept;
     }
     s = kmalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
     if (s == NULL) {
       error = -ENOMEM;
+      RPC_ERR("master: failed to allocate elton_rpc_session");
       goto error_accept;
     }
     elton_rpc_session_init(s, srv, session_id, sock);
@@ -339,6 +386,7 @@ static int rpc_master_worker(void *_srv) {
                                              "elton-rpc [%d]", session_id);
     if (IS_ERR(task)) {
       error = PTR_ERR(task);
+      RPC_ERR("master: kthread_run returns an error %d", error);
       goto error_kthread;
     }
     mutex_lock(&s->task_lock);
@@ -358,6 +406,7 @@ static int rpc_master_worker(void *_srv) {
       kfree(s);
     break;
   }
+  RPC_ERR("master: stopped");
   return error;
 }
 
@@ -374,13 +423,16 @@ static int rpc_listen(struct elton_rpc_server *s) {
   GOTO_IF(error_sock, s->sock->ops->bind(s->sock, (struct sockaddr *)&addr,
                                          sizeof(struct sockaddr_un)));
   GOTO_IF(error_sock, s->sock->ops->listen(s->sock, LISTEN_LENGTH));
+  RPC_DEBUG("listened UNIX Domain Socket");
 
   // Start master worker.
   task = kthread_run(rpc_master_worker, s, "elton-rpc [master]");
   if (IS_ERR(task)) {
     error = PTR_ERR(task);
+    RPC_ERR("kthread_run returns an error %d", error);
     goto error_sock;
   }
+  RPC_INFO("started master worker");
   mutex_lock(&s->task_lock);
   s->task = task;
   mutex_unlock(&s->task_lock);
@@ -394,6 +446,7 @@ error:
 
 // Start UMH (User Mode Helper) in the background.
 static int rpc_start_umh(struct elton_rpc_server *s) {
+  int error;
   char *argv[] = {
       ELTONFS_HELPER,
       "--socket",
@@ -408,7 +461,13 @@ static int rpc_start_umh(struct elton_rpc_server *s) {
   };
 
   // todo: register subprocess_info to server.
-  return call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
+  error = call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
+  if (error) {
+    RPC_ERR("failed to start UMH");
+    return error;
+  }
+  RPC_INFO("start " ELTONFS_HELPER);
+  return error;
 }
 
 // Get new nsid.
@@ -542,6 +601,7 @@ static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
   enc.enc_op->u64(&enc, raw->struct_id);
   if (enc.error) {
     error = enc.error;
+    NS_ERR(ns, "failed to encode with error code %d", error);
     goto error_encode;
   }
 
@@ -550,9 +610,11 @@ static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
     n = WRITE_SOCK(ns->session->sock, buff, sizeof(buff), &offset);
     if (n < 0) {
       error = n;
+      NS_ERR(ns, "write error %d", error);
       goto error_write;
     }
   }
+  NS_DEBUG(ns, "sent a struct: struct_id=%d, flags=%d", struct_id, flags);
 
 error_write:
 error_encode:
@@ -598,6 +660,7 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void **data) {
   int error = 0;
   struct raw_packet *raw = NULL;
 
+  NS_DEBUG(ns, "waiting a struct to be received");
   elton_rpc_dequeue(&ns->q, &raw);
 
   if (raw->flags & ELTON_SESSION_FLAG_CLOSE) {
@@ -606,15 +669,19 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, int struct_id, void **data) {
     spin_lock(&ns->lock);
     ns->receivable = false;
     spin_unlock(&ns->lock);
+    NS_DEBUG(ns, "receivable=false");
   }
 
   if (raw->struct_id != struct_id) {
     // Unexpected struct.
     error = -ELTON_RPC_DIFF_TYPE;
+    NS_ERR(ns, "unexpected struct is received: expected=%llu, actual=%llu",
+           struct_id, raw->struct_id);
     goto error_dequeue;
   }
 
   GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, data));
+  NS_DEBUG(ns, "received a struct")
 
 error_dequeue:
   if (raw)
