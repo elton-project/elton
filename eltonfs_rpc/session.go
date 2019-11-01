@@ -141,9 +141,9 @@ func (s *clientS) New() (ClientNS, error) {
 	defer s.nssLock.Unlock()
 
 	// Get next NSID.
-	var nextNSID uint64
+	nextNSID := s.lastNSID
 	for {
-		nextNSID = ((s.lastNSID + 1) | 1<<31)& (1<<32 - 1)
+		nextNSID = ((nextNSID + 1) | 1<<31) & (1<<32 - 1)
 		if _, ok := s.nss[nextNSID]; ok {
 			continue
 		}
