@@ -40,6 +40,15 @@ remote() {
   printf "%s\0" "$@" | ssh "root@${API_NODE}" -- xargs -0 env
 }
 
+remote_on() {
+  local node_name=$1
+  local ip=$(get_node_ip2 "$node_name")
+
+  API_NODE=$ip
+  shift
+  remote "$@"
+}
+
 unsafe_ssh() {
   ssh -T -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "$@"
 }
@@ -65,6 +74,12 @@ list_vms() {
   local node=$1
   remote pvesh get "/nodes/$node/qemu" --output-format=json |
     jq '.[].vmid' --raw-output
+}
+
+get_node_ip2() {
+  local node_name=$1
+  remote pvesh get "/cluster/status" --output-format=json | \
+    jq ".[] | if .name == \"$node_name\" then . else empty end | .ip" --raw-output
 }
 
 is_protected() {
@@ -219,34 +234,36 @@ run_setup_script() {
 copy_template_to_all_nodes() {
   # Template ID
   local node=elton-pve1
-  local tmpl=$1
+  local vm_tmpl=$1
+  local disk_tmpl=$2
+  local shared_image=/mnt/pve/nas/vm_image.qcow2
 
-  tmpl_name=$(get_vm_name "$node" "$tmpl")
+  # Copy disk image from local storage to shared storage.
+  remote cp -a /mnt/ssd/images/$disk_tmpl/base-$disk_tmpl-disk-0.qcow2 $shared_image
+
+  # Clone VM template to all nodes.
+  tmpl_name=$(get_vm_name "$node" "$disk_tmpl")
   desc="This VM cloned from original template"
   storage=ssd
   for t in $(list_nodes); do
     next=$(remote pvesh get /cluster/nextid)
-    remote pvesh create "/nodes/elton-pve1/qemu/$tmpl/clone" \
+    remote pvesh create "/nodes/elton-pve1/qemu/$vm_tmpl/clone" \
       --newid "$next" \
       --name "$tmpl_name-$t" \
       --description "$desc" \
       --pool clustertest \
       --full 1 \
       --storage "$storage"
+    remote pvesh set "/nodes/elton-pve1/qemu/$next/config" --ide0 none || :
     remote pvesh create "/nodes/elton-pve1/qemu/$next/template"
     if [[ elton-pve1 != "$t" ]]; then
       remote pvesh create "/nodes/elton-pve1/qemu/$next/migrate" \
-        --target "$t" \
-        --online 1 \
-        --targetstorage "$storage"
+        --target "$t"
     fi
-    (
-      sleep 10
-      remote pvesh set "/nodes/$t/qemu/$next/config" --ide0 none || :
-      remote pvesh set "/nodes/$t/qemu/$next/config" --ide0 "$storage:cloudinit" || :
-    ) &
+    remote_on "$t" qm importdisk "$next" "$shared_image" "$storage" --format qcow2
+    remote pvesh set "/nodes/$t/qemu/$next/config" --scsi0 "$storage:$t/vm-$t-disk-0.qcow2,discard=on,ssd=on,cache=unsafe" || :
+    remote pvesh set "/nodes/$t/qemu/$next/config" --ide0 "$storage:cloudinit" || :
   done
-  wait
 }
 
 # Rebuild test environment from scratch.
