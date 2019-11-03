@@ -261,7 +261,7 @@ copy_template_to_all_nodes() {
         --target "$t"
     fi
     remote_on "$t" qm importdisk "$next" "$shared_image" "$storage" --format qcow2
-    remote pvesh set "/nodes/$t/qemu/$next/config" --scsi0 "$storage:$t/vm-$t-disk-0.qcow2,discard=on,ssd=on,cache=unsafe" || :
+    remote pvesh set "/nodes/$t/qemu/$next/config" --scsi0 "$storage:$next/vm-$next-disk-0.qcow2,discard=on,ssd=on,cache=unsafe" || :
     remote pvesh set "/nodes/$t/qemu/$next/config" --ide0 "$storage:cloudinit" || :
   done
 }
