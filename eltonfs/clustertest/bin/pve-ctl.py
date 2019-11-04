@@ -322,7 +322,7 @@ class TemplateDistributor(typing.NamedTuple):
 
         # Copy target disk image to shared storage.
         ip = Node(name=self.disk_image.node).ip
-        RemoteCommand(ip=ip, cmd=['cp', '-a', self.target_disk_path, SHARED_IMAGE]).execute()
+        RemoteCommand(ip=ip, cmd=['cp', '-a', self._disk_path, SHARED_IMAGE]).execute()
 
         for node in Node.list():
             vm = VM(node=node.name, vmid=VM.next_id())
@@ -350,8 +350,8 @@ class TemplateDistributor(typing.NamedTuple):
             # 作成したVMを即座に利用すると失敗する可能性があるので、後続の処理ではsleepするべき。
 
     @property
-    def target_disk_path(self) -> str:
-        vmid = self.target.vmid
+    def _disk_path(self) -> str:
+        vmid = self.disk_image.vmid
         return f'/mnt/ssd/images/{vmid}/vm-{vmid}-disk-0.qcow2'
 
     @property
