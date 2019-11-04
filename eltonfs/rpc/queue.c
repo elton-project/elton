@@ -3,11 +3,13 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 
+static void elton_rpc_free(struct raw_packet *packet) { packet->free(packet); }
+
 int elton_rpc_queue_init(struct elton_rpc_queue *q) {
   spin_lock_init(&q->lock);
   init_waitqueue_head(&q->wq);
   q->entry = NULL;
-  q->free = NULL; // todo
+  q->free = elton_rpc_free;
   return 0;
 }
 

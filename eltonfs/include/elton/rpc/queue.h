@@ -19,7 +19,7 @@ struct elton_rpc_queue {
   //
   // Free the allocated memory of raw_packet.
   // This field must not be NULL and can be accessed without locking.
-  void (*free)(const struct raw_packet *packet);
+  void (*free)(struct raw_packet *packet);
 };
 struct elton_rpc_queue_entry {
   struct list_head list_head;
