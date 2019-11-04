@@ -325,6 +325,7 @@ class TemplateDistributor(typing.NamedTuple):
         ip = Node(name=self.disk_image.node).ip
         RemoteCommand(ip=ip, cmd=['cp', '-a', self._disk_path, SHARED_IMAGE]).execute()
 
+        vms = []
         for node in Node.list():
             vm = VM(node=node.name, vmid=VM.next_id())
             cloned_vm = VM(node=self.template.node, vmid=vm.vmid)
@@ -346,6 +347,9 @@ class TemplateDistributor(typing.NamedTuple):
                 'scsi0': f'{STORAGE}:{vm.vmid}/vm-{vm.vmid}-disk-0.qcow2,{STORAGE_OPT}',
                 'ide0': f'{STORAGE}:cloudinit',
             }
+            vms.append(vm)
+
+        for vm in vms:
             vm.set_template()
             # templateは非同期APIだが、完了したことを検出できないため、待機処理はしない。
             # 作成したVMを即座に利用すると失敗する可能性があるので、後続の処理ではsleepするべき。
