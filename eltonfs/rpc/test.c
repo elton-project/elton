@@ -31,27 +31,15 @@ void test_encode_packet(void) {
   struct raw_packet *out;
   struct elton_rpc_ping ping;
   struct packet p1 = {
-      .struct_id = 0,
-      .data = &ping,
-  };
-  struct packet p2 = {
-      .struct_id = 3,
-      .data = NULL,
-  };
-  struct packet p3 = {
       .struct_id = 3,
       .data = &ping,
   };
 
-  // Invalid struct_id.
-  ASSERT_EQUAL_ERROR(-ELTON_RPC_INVAL, elton_rpc_encode_packet(&p1, &out));
-  out->free(out);
-  // Invalid data pointer.
-  ASSERT_EQUAL_ERROR(-ELTON_RPC_INVAL, elton_rpc_encode_packet(&p2, &out));
-  out->free(out);
   // Valid data.
-  ASSERT_NO_ERROR(elton_rpc_encode_packet(&p3, &out));
+  ASSERT_NO_ERROR(elton_rpc_encode_packet(&p1, &out));
   out->free(out);
+  // Invalid data.
+  // MUST panic while encoding.
 }
 void test_decode_packet(void) {
   struct ping *out;
