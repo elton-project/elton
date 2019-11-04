@@ -27,6 +27,8 @@ static void __unused ___elton_rpc_test___detect_build_bug(void) {
   BUILD_BUG_ON_MSG(0 != sizeof(bad_encoded_ping), "unexpected size");
 }
 
+void vfree_raw_packet(struct raw_packet *packet) { vfree(packet); }
+
 void test_encode_packet(void) {
   struct raw_packet *out;
   struct elton_rpc_ping ping;
@@ -90,6 +92,7 @@ void test_packet_queue(void) {
   in->struct_id = 3;
   in->data = encoded_ping;
   in->size = sizeof(encoded_ping);
+  in->free = vfree_raw_packet;
 
   // Initialize the q.
   q = vmalloc(sizeof(struct elton_rpc_queue));
