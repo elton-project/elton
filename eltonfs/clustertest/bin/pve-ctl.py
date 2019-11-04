@@ -176,6 +176,13 @@ class VM(typing.NamedTuple):
     def is_running(self) -> bool:
         return self._client.status.current.get()['status'] == 'running'
 
+    def is_exists(self) -> bool:
+        try:
+            self.is_running()
+            return True
+        except proxmoxer.core.ResourceException:
+            return False
+
     def set_template(self):
         self._client.template.post()
 
@@ -224,8 +231,9 @@ class TemplateBuilder(typing.NamedTuple):
     output: VM
 
     def remove(self):
-        self.output.config = {'protection': 0}
-        self.output.remove().wait()
+        if self.output.is_exists():
+            self.output.config = {'protection': 0}
+            self.output.remove().wait()
 
     def build(self):
         self.base.clone(
