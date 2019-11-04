@@ -312,6 +312,7 @@ class TemplateDistributor(typing.NamedTuple):
                     match = True
                     break
             if match:
+                vm.config = {'protection': 0}
                 tasks.append(vm.remove())
         for t in tasks:
             t.wait()
