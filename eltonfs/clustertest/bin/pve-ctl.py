@@ -300,7 +300,7 @@ class TemplateDistributor(typing.NamedTuple):
         for vm in VM.list():
             match = False
             for line in vm.config.get('description', '').splitlines():
-                if line.strip() == f'clustertest.based_on={self.template.vmid}/{self.disk_image.vmid}':
+                if line.strip() == self._vm_property_in_description:
                     match = True
                     break
             if match:
@@ -321,7 +321,7 @@ class TemplateDistributor(typing.NamedTuple):
             cloned_vm = VM(node=self.template.node, vmid=vm.vmid)
             self.template.clone(vm.vmid,
                                 name=f'{target_name}-{node.name}',
-                                description=f'{target_desc}\nclustertest.based_on={self.target.vmid}',
+                                description=f'{target_desc}\n{self._vm_property_in_description}',
                                 pool='clustertest',
                                 full=1,
                                 storage=STORAGE).wait()
@@ -345,6 +345,10 @@ class TemplateDistributor(typing.NamedTuple):
     def target_disk_path(self) -> str:
         vmid = self.target.vmid
         return f'/mnt/ssd/images/{vmid}/vm-{vmid}-disk-0.qcow2'
+
+    @property
+    def _vm_property_in_description(self):
+        return f'clustertest.based_on={self.template.vmid}/{self.disk_image.vmid}'
 
 
 base = VM('elton-pve1', 9000)
