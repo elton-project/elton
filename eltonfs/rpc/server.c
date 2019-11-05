@@ -356,7 +356,7 @@ static int rpc_master_worker(void *_srv) {
   for (session_id = 1;; session_id++) {
     struct elton_rpc_session *s = NULL;
     struct task_struct *task;
-    struct socket *sock;
+    struct socket *sock = NULL;
 
     if (session_id == 0)
       // Skips because the session ID is invalid.
@@ -366,9 +366,8 @@ static int rpc_master_worker(void *_srv) {
       continue;
     // TODO: Detect session ID depletion.
 
-    sock = kzalloc(sizeof(struct socket), GFP_KERNEL);
-    if (sock == NULL) {
-      error = -ENOMEM;
+    error = sock_create(AF_UNIX, SOCK_STREAM, 0, &sock);
+    if (error) {
       RPC_ERR("master: failed to allocate socket object");
       goto error_accept;
     }
@@ -402,7 +401,7 @@ static int rpc_master_worker(void *_srv) {
     s->sock->ops->release(s->sock);
   error_accept:
     if (sock)
-      kfree(sock);
+      sock_release(sock);
     if (s)
       kfree(s);
     break;
