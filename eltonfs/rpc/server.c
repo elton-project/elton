@@ -36,9 +36,39 @@
 
 #define LISTEN_LENGTH 4
 #define READ_SOCK(sock, buff, size, offset)                                    \
-  (sock)->file->f_op->read((sock)->file, (buff), (size), (offset));
+  ({                                                                           \
+    struct iovec iov = {                                                       \
+        .iov_base = (buff) + (*offset),                                        \
+        .iov_len = (size) - (*offset),                                         \
+    };                                                                         \
+    struct iov_iter iter;                                                      \
+    struct kiocb kiocb;                                                        \
+    ssize_t result;                                                            \
+    iov_iter_init(&iter, READ, &iov, 1, iov.iov_len);                          \
+    init_sync_kiocb(&kiocb, (sock)->file);                                     \
+    kiocb.ki_pos = 0;                                                          \
+    result = (sock)->file->f_op->read_iter(&kiocb, &iter);                     \
+    if (result > 0)                                                            \
+      *(offset) += result;                                                     \
+    result;                                                                    \
+  })
 #define WRITE_SOCK(sock, buff, size, offset)                                   \
-  (sock)->file->f_op->read((sock)->file, (buff), (size), (offset));
+  ({                                                                           \
+    struct iovec iov = {                                                       \
+        .iov_base = (buff) + (*offset),                                        \
+        .iov_len = (size) - (*offset),                                         \
+    };                                                                         \
+    struct iov_iter iter;                                                      \
+    struct kiocb kiocb;                                                        \
+    ssize_t result;                                                            \
+    iov_iter_init(&iter, WRITE, &iov, 1, iov.iov_len);                         \
+    init_sync_kiocb(&kiocb, (sock)->file);                                     \
+    kiocb.ki_pos = 0;                                                          \
+    result = (sock)->file->f_op->write_iter(&kiocb, &iter);                    \
+    if (result > 0)                                                            \
+      *(offset) += result;                                                     \
+    result;                                                                    \
+  })
 // Get an entry from hashtable.  If entry is not found, returns NULL.
 //
 // Arguments:
