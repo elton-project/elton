@@ -161,11 +161,7 @@ func (s *clientS) New() (ClientNS, error) {
 	s.lastNSID = nextNSID
 
 	// Create new clientNS instance.
-	ns := &clientNS{
-		S:        s,
-		NSID:     nextNSID,
-		sendable: true,
-	}
+	ns := newClientNS(s, nextNSID, true)
 	s.nss[nextNSID] = ns
 
 	// Create channel.
@@ -265,13 +261,7 @@ func (s *clientS) recvWorker() {
 					panic(err)
 				}
 				// New nested session was created by server.
-				ns := &clientNS{
-					S:           s,
-					NSID:        p.nsid,
-					established: true,
-					sendable:    true,
-					receivable:  true,
-				}
+				ns := newClientNS(s, p.nsid, false)
 				s.nssLock.Lock()
 				s.nss[ns.NSID] = ns
 				s.nssLock.Unlock()
@@ -304,6 +294,23 @@ func (s *clientS) sendWorker() {
 	})
 	// TODO
 	_ = err
+}
+
+// newClientNS initializes clientNS struct.
+// If nested session created by opponent, isClient must be false.  Otherwise isClient must be true.
+func newClientNS(s *clientS, nsid uint64, isClient bool) *clientNS {
+	ns := &clientNS{
+		S:    s,
+		NSID: nsid,
+	}
+	if isClient {
+		ns.sendable = true
+	} else {
+		ns.established = true
+		ns.sendable = true
+		ns.receivable = true
+	}
+	return ns
 }
 
 type clientNS struct {
