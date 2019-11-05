@@ -248,8 +248,25 @@ func (s *clientS) recvWorker() {
 			s.recvQLock.RLock()
 			ch := s.recvQ[p.nsid]
 			if ch == nil {
-				err := xerrors.Errorf("not found channel: nsid=%d", p.nsid)
-				panic(err)
+				s.recvQLock.RUnlock()
+				if p.flags|CreateSessionFlag == 0 {
+					err := xerrors.Errorf("not found channel: nsid=%d", p.nsid)
+					panic(err)
+				}
+				// New nested session was created by server.
+				ns := &clientNS{
+					S:           s,
+					NSID:        p.nsid,
+					established: true,
+					closedC2S:   false, // todo
+					closedS2C:   false, // todo
+				}
+				s.nssLock.Lock()
+				s.nss[ns.NSID] = ns
+				s.nssLock.Unlock()
+				s.recvQLock.Lock()
+				s.recvQ[ns.NSID] = make(chan *rawPacket, RecvQueueSize)
+				s.recvQLock.Unlock()
 			}
 			select {
 			case ch <- p:
