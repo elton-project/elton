@@ -268,7 +268,7 @@ func (s *clientS) recvWorker() {
 					S:           s,
 					NSID:        p.nsid,
 					established: true,
-					closedC2S:   false, // todo
+					sendable:    false, // todo
 					closedS2C:   false, // todo
 				}
 				s.nssLock.Lock()
@@ -310,7 +310,7 @@ type clientNS struct {
 	NSID uint64
 
 	established bool
-	closedC2S   bool
+	sendable    bool
 	closedS2C   bool
 }
 
@@ -373,28 +373,28 @@ func (ns *clientNS) CloseWithError(se SessionError) error {
 	if !ns.established {
 		return xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
 	}
-	if ns.closedC2S {
+	if ns.sendable {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
 
 	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag|ErrorSessionFlag, se)
-	ns.closedC2S = true
+	ns.sendable = true
 	return err
 }
 func (ns *clientNS) Close() error {
 	if !ns.established {
 		return xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
 	}
-	if ns.closedC2S {
+	if ns.sendable {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
 
 	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag, &Ping{})
-	ns.closedC2S = true
+	ns.sendable = true
 	return err
 }
 func (ns *clientNS) IsSendable() bool {
-	return ns.closedC2S
+	return ns.sendable
 }
 func (ns *clientNS) IsReceivable() bool {
 	return ns.established && !ns.closedS2C
