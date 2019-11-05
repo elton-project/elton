@@ -162,8 +162,9 @@ func (s *clientS) New() (ClientNS, error) {
 
 	// Create new clientNS instance.
 	ns := &clientNS{
-		S:    s,
-		NSID: nextNSID,
+		S:        s,
+		NSID:     nextNSID,
+		sendable: true,
 	}
 	s.nss[nextNSID] = ns
 
