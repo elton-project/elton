@@ -10,7 +10,7 @@
 #define ELTONFS_SUPER_MAGIC 0x51891f5
 #define ELTONFS_NAME_LEN 255
 // Path to executable file of helper process.
-#define ELTONFS_HELPER "/usr/local/bin/eltonfs-helper"
+#define ELTONFS_HELPER "/usr/local/sbin/eltonfs-helper"
 // Path to UNIX domain socket to communicate with helper process.
 #define ELTONFS_HELPER_SOCK "/run/eltonfs-helper.sock"
 // PATH Environment value for elton-helper.
