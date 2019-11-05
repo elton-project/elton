@@ -322,12 +322,12 @@ type clientNS struct {
 	receivable  bool
 }
 
-func (ns *clientNS) Send(v interface{}) error {
-	if ns.receivable {
+func (ns *clientNS) Send(v interface{}) error       { return ns.sendWithFlags(v, 0) }
+func (ns *clientNS) SendErr(se *SessionError) error { return ns.sendWithFlags(se, ErrorSessionFlag) }
+func (ns *clientNS) sendWithFlags(v interface{}, flags PacketFlag) error {
+	if !ns.sendable {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
-
-	var flags PacketFlag
 	if !ns.established {
 		flags |= CreateSessionFlag
 	}
@@ -336,33 +336,15 @@ func (ns *clientNS) Send(v interface{}) error {
 	if err != nil {
 		return xerrors.Errorf("ClientSession.Send: %w", err)
 	}
-	ns.established = true
-	return nil
-}
-func (ns *clientNS) SendErr(se *SessionError) error {
-	if ns.receivable {
-		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
-	}
-
-	var flags PacketFlag
 	if !ns.established {
-		flags |= CreateSessionFlag
+		ns.established = true
+		ns.receivable = true
 	}
-	flags |= ErrorSessionFlag
-
-	err := ns.S.sendPacket(ns.NSID, flags, se)
-	if err != nil {
-		return xerrors.Errorf("ClientSession.SendErr: %w", err)
-	}
-	ns.established = true
 	return nil
 }
 func (ns *clientNS) Recv(empty interface{}) (interface{}, error) {
-	if !ns.established {
-		return nil, xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
-	}
-	if ns.receivable {
-		return nil, xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
+	if !ns.receivable {
+		return nil, xerrors.Errorf("the nested session (NSID=%d) is not receivable", ns.NSID)
 	}
 
 	data, flags, err := ns.S.recvPacket(ns.NSID, empty)
@@ -370,35 +352,25 @@ func (ns *clientNS) Recv(empty interface{}) (interface{}, error) {
 		return nil, xerrors.Errorf("recv: %w", err)
 	}
 	if flags&CloseSessionFlag != 0 {
-		ns.receivable = true
+		ns.receivable = false
 	}
 	if flags&ErrorSessionFlag != 0 {
 		return nil, xerrors.New(fmt.Sprint(data))
 	}
 	return data, err
 }
-func (ns *clientNS) CloseWithError(se SessionError) error {
+func (ns *clientNS) CloseWithError(se SessionError) error { return ns.closeWith(se, ErrorSessionFlag) }
+func (ns *clientNS) Close() error                         { return ns.closeWith(&Ping{}, 0) }
+func (ns *clientNS) closeWith(v interface{}, flags PacketFlag) error {
 	if !ns.established {
 		return xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
 	}
-	if ns.sendable {
+	if !ns.sendable {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
 	}
 
-	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag|ErrorSessionFlag, se)
-	ns.sendable = true
-	return err
-}
-func (ns *clientNS) Close() error {
-	if !ns.established {
-		return xerrors.Errorf("the nested session (NSID=%d) is not established", ns.NSID)
-	}
-	if ns.sendable {
-		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.NSID)
-	}
-
-	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag, &Ping{})
-	ns.sendable = true
+	err := ns.S.sendPacket(ns.NSID, CloseSessionFlag|flags, v)
+	ns.sendable = false
 	return err
 }
 func (ns *clientNS) IsSendable() bool {
