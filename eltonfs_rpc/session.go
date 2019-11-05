@@ -2,6 +2,7 @@ package eltonfs_rpc
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
@@ -36,6 +37,7 @@ type ClientSession interface {
 	Setup() error
 	// New creates new nested session.
 	New() (ClientNS, error)
+	Serve(ctx context.Context) error
 	// Close closes this session.
 	// If nested connections is not closed, it will return an error.
 	Close() error
@@ -171,6 +173,10 @@ func (s *clientS) New() (ClientNS, error) {
 	s.recvQ[nextNSID] = make(chan *rawPacket, RecvQueueSize)
 
 	return ns, nil
+}
+func (s *clientS) Serve(ctx context.Context) error {
+	// TODO
+	panic("todo")
 }
 func (s *clientS) Close() error {
 	if s.closed != nil {

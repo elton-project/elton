@@ -15,6 +15,8 @@ func handle(ctx context.Context, conn net.Conn) error {
 	if err := s.Setup(); err != nil {
 		return xerrors.Errorf("server: %w", err)
 	}
-	// TODO: wait for context finished or closed.
+	if err := s.Serve(ctx); err != nil {
+		return xerrors.Errorf("server: %w", err)
+	}
 	return nil
 }
