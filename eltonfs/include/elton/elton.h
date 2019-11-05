@@ -14,7 +14,13 @@
 // Path to UNIX domain socket to communicate with helper process.
 #define ELTONFS_HELPER_SOCK "/run/eltonfs-helper.sock"
 // PATH Environment value for elton-helper.
-#define PATH_ENV "/sbin:/usr/sbin:/bin:/usr/bin"
+#define PATH_ENV                                                               \
+  "/sbin:"                                                                     \
+  "/usr/sbin:"                                                                 \
+  "/usr/local/sbin:"                                                           \
+  "/bin:"                                                                      \
+  "/usr/bin:"                                                                  \
+  "/usr/local/bin"
 
 struct eltonfs_info {
 #ifdef ELTONFS_STATISTIC
