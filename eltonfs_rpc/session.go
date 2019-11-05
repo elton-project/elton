@@ -268,8 +268,8 @@ func (s *clientS) recvWorker() {
 					S:           s,
 					NSID:        p.nsid,
 					established: true,
-					sendable:    false, // todo
-					receivable:  false, // todo
+					sendable:    true,
+					receivable:  true,
 				}
 				s.nssLock.Lock()
 				s.nss[ns.NSID] = ns
