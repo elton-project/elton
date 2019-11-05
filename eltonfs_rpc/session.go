@@ -175,13 +175,17 @@ func (s *clientS) New() (ClientNS, error) {
 	return ns, nil
 }
 func (s *clientS) Serve(ctx context.Context) error {
-	// TODO
-	panic("todo")
+	select {
+	case <-ctx.Done():
+	case <-s.closed:
+	}
+	return s.Close()
 }
 func (s *clientS) Close() error {
 	if s.closed != nil {
 		close(s.closed)
 	}
+	// TODO: wait for workers.
 	return nil
 }
 func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) error {
