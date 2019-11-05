@@ -464,7 +464,7 @@ static int rpc_start_umh(struct elton_rpc_server *s) {
   // todo: register subprocess_info to server.
   error = call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
   if (error) {
-    RPC_ERR("failed to start UMH");
+    RPC_ERR("failed to start UMH with error %d", error);
     return error;
   }
   RPC_INFO("start " ELTONFS_HELPER);
