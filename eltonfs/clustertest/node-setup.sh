@@ -18,6 +18,10 @@ apt update
 apt upgrade -y
 
 apt_install qemu-guest-agent
+# Install the kernel debug utilities.
+# Disable writeback to prevent data lost when kernel panics.
+apt_install kdump-tools crash gdb
+sed -i 's/defaults/sync,noatime,nodiratime/' /etc/fstab
 # Install the required packages for the elton.
 apt_install build-essential automake libattr1-dev
 # Install the required packages for the LTP test cases.
