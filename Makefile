@@ -1,3 +1,16 @@
+# Usage (for development):
+#   make help       - Print help and exit.
+#   make            - Run following tasks.
+#   make build-deps - Check requirement commands and install it.
+#   make generate   - Generate codes.
+#   make fmt        - Run the code formatter.
+#   make build-dev  - Build elton inside docker container.
+#   make test-fast  - Run test cases.
+#
+# Usage (for staging and production):
+#   make build   - Build elton.
+#   make install - Install elton to this system.
+
 PREFIX = /usr/local
 MODULE_DIR = /lib/modules/$(shell uname -r)/elton
 
@@ -59,6 +72,10 @@ test: test-fast
 clean:
 	rm -rf build/
 	$(MAKE) -C eltonfs clean
+
+.PHONY: help
+help:
+	@ sed '/^$$/Q; s/^# \?//;' Makefile
 
 
 
