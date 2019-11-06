@@ -38,6 +38,11 @@ install_go
 apt_install libaio-dev libnuma-dev libacl1-dev
 
 
+# Clone latest elton source code.
+# This directory used to manually debugging.
+git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git elton-base
+
+
 # Install LTP
 LTP_VERSION=20190930
 [ -d ltp-full-$LTP_VERSION ] || curl -SsL https://github.com/linux-test-project/ltp/releases/download/$LTP_VERSION/ltp-full-$LTP_VERSION.tar.xz |xz -d |tar xv
