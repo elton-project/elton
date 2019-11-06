@@ -2,7 +2,7 @@
 set -euvx
 
 apt_install() {
-    apt install -y "$@"
+    DEBIAN_FRONTEND=noninteractive apt install -y "$@"
 }
 
 # Change mirror server.
