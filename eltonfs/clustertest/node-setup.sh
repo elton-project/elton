@@ -42,7 +42,7 @@ apt_install libaio-dev libnuma-dev libacl1-dev
 # This directory used to manually debugging.
 git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git elton-base
 # Download dependent modules to reduce execution time of "go build" command.
-cd elton
+cd elton-base
 make mod download
 cd
 
