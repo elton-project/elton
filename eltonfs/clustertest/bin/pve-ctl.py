@@ -18,6 +18,7 @@ SETUP_NODE_NETMASK = 24
 # Path to bash script file.
 SETUP_SCRIPT_FILE = 'eltonfs/clustertest/node-setup.sh'
 # Memory size allocated to the setup node (in megabytes).
+MAX_MEMORY_SIZE = 8192
 MEMORY_SIZE = 4096
 # Name of main storage.
 STORAGE = 'ssd'
@@ -249,7 +250,8 @@ class TemplateBuilder(typing.NamedTuple):
         self.output.config = {
             'ipconfig0': f'gw={GATEWAY},ip={SETUP_NODE}/{SETUP_NODE_NETMASK}',
             'agent': 'enabled=0',
-            'memory': MEMORY_SIZE,
+            'memory': MAX_MEMORY_SIZE,
+            'balloon': MEMORY_SIZE,
             'sockets': 1,
             'cores': VCPUS,
             'vcpus': VCPUS,
