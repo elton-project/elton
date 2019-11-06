@@ -6,6 +6,7 @@ import typing
 import subprocess
 import tempfile
 import re
+import logging
 import proxmoxer
 
 # Gateway address
@@ -291,10 +292,13 @@ class TemplateBuilder(typing.NamedTuple):
                 [*vm.unsafe_ssh_command, 'bash'],
                 stdin=stdin,
             ).check_returncode()
-        subprocess.run(
-            [*vm.unsafe_ssh_command, 'poweroff'],
-            stdin=None,
-        ).check_returncode()
+        try:
+            subprocess.run(
+                [*vm.unsafe_ssh_command, 'poweroff'],
+                stdin=None,
+            ).check_returncode()
+        except subprocess.CalledProcessError:
+            logging.warning("ignore error when executing poweroff command")
 
 
 class TemplateDistributor(typing.NamedTuple):
