@@ -5,6 +5,13 @@ apt_install() {
     DEBIAN_FRONTEND=noninteractive apt install -y "$@"
 }
 
+# Wait for all cloud-init tasks to complete.
+until systemctl status cloud-final |grep -q 'Active: active (exited) since'; do
+    sleep 1
+    echo 'Waiting for all cloud-init tasks to complate ...'
+done
+
+
 # Change mirror server.
 sed -i 's@//archive.ubuntu.com/@//jp.archive.ubuntu.com/@' /etc/apt/sources.list
 apt update
