@@ -8,3 +8,6 @@
 .tmp_versions/
 Module.symvers
 modules.order
+
+# Build directory
+build/
