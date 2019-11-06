@@ -2,9 +2,7 @@
 set -euvx
 
 apt_install() {
-    until apt install -y "$@"; do
-        sleep 1
-    done
+    apt install -y "$@"
 }
 
 # Change mirror server.
