@@ -500,6 +500,7 @@ static int rpc_listen(struct elton_rpc_server *s) {
   GOTO_IF(error, sock_create(AF_UNIX, SOCK_STREAM, 0, &s->sock));
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, s->socket_path, UNIX_PATH_MAX);
+  GOTO_IF(error_sock, rpc_sock_set_file(s->sock, SOCK_PROTO_NAME(s->sock)));
   GOTO_IF(error_sock, s->sock->ops->bind(s->sock, (struct sockaddr *)&addr,
                                          sizeof(struct sockaddr_un)));
   GOTO_IF(error_sock, s->sock->ops->listen(s->sock, LISTEN_LENGTH));
