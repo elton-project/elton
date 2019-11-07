@@ -10,9 +10,9 @@ deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiver
 deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse
 deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse
 EOF
-    apt install ubuntu-dbgsym-keyring
+    apt_install ubuntu-dbgsym-keyring
     apt update
-    apt install linux-image-$(uname -r)-dbgsym
+    apt_install linux-image-$(uname -r)-dbgsym
 }
 install_go() {
     cd /usr/local/lib/
