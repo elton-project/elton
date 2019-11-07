@@ -4,6 +4,22 @@ set -euvx
 apt_install() {
     DEBIAN_FRONTEND=noninteractive apt install -y "$@"
 }
+setup_crash() {
+    cat >~/.crashrc <<EOF
+mod -s elton
+bt
+EOF
+    cat >/usr/local/bin/last-crash <<EOF
+#!/bin/bash
+KERNEL=/usr/lib/debug/boot/vmlinux-$(uname -r)
+DUMP=$(find /var/crash/ -type f -name 'dump.*' |sort |tail -n1)
+
+echo "Kernel: $KERNEL"
+echo "Dump: $DUMP"
+crash "$KERNEL" "$DUMP"
+EOF
+    chmod +x /usr/local/bin/last-crash
+}
 install_kernel_debug_symbols() {
     cat >/etc/apt/sources.list.d/ddebs.list <<EOF
 deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse
@@ -41,6 +57,7 @@ apt_install qemu-guest-agent
 # Disable writeback to prevent data lost when kernel panics.
 apt_install kdump-tools crash gdb
 sed -i '/^#MAKEDUMP_ARGS/ i MAKEDUMP_ARGS=\"-c\"' /etc/default/kdump-tools
+setup_crash
 install_kernel_debug_symbols
 sed -i 's/defaults/sync,noatime,nodiratime/' /etc/fstab
 # Install the required packages for the elton.
