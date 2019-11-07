@@ -40,6 +40,7 @@ apt_install qemu-guest-agent
 # Install the kernel debug utilities.
 # Disable writeback to prevent data lost when kernel panics.
 apt_install kdump-tools crash gdb
+sed -i '/^#MAKEDUMP_ARGS/ i MAKEDUMP_ARGS=\"-c\"' /etc/default/kdump-tools
 install_kernel_debug_symbols
 sed -i 's/defaults/sync,noatime,nodiratime/' /etc/fstab
 # Install the required packages for the elton.
