@@ -4,6 +4,16 @@ set -euvx
 apt_install() {
     DEBIAN_FRONTEND=noninteractive apt install -y "$@"
 }
+install_kernel_debug_symbols() {
+    cat >/etc/apt/sources.list.d/ddebs.list <<EOF
+deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse
+deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse
+deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse
+EOF
+    apt install ubuntu-dbgsym-keyring
+    apt update
+    apt install linux-image-$(uname -r)-dbgsym
+}
 install_go() {
     cd /usr/local/lib/
     wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
@@ -30,6 +40,7 @@ apt_install qemu-guest-agent
 # Install the kernel debug utilities.
 # Disable writeback to prevent data lost when kernel panics.
 apt_install kdump-tools crash gdb
+install_kernel_debug_symbols
 sed -i 's/defaults/sync,noatime,nodiratime/' /etc/fstab
 # Install the required packages for the elton.
 apt_install build-essential automake libattr1-dev
