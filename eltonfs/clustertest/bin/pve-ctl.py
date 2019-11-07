@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import re
 import logging
+import contextlib
 import proxmoxer
 
 # Gateway address
@@ -310,18 +311,26 @@ class TemplateDistributor(typing.NamedTuple):
     disk_image: VM
 
     def remove_all(self):
-        tasks = []
-        for vm in VM.list():
-            match = False
-            for line in vm.config.get('description', '').splitlines():
-                if line.strip() == self._vm_property_in_description:
-                    match = True
-                    break
-            if match:
-                vm.config = {'protection': 0}
-                tasks.append(vm.remove())
-        for t in tasks:
-            t.wait()
+        while True:
+            tasks = []
+            for vm in VM.list():
+                match = False
+                for line in vm.config.get('description', '').splitlines():
+                    if line.strip() == self._vm_property_in_description:
+                        match = True
+                        break
+                if match:
+                    vm.config = {'protection': 0}
+                    tasks.append(vm.remove())
+
+            if len(tasks) == 0:
+                # All VMs are deleted.
+                return
+
+            for t in tasks:
+                with contextlib.suppress(TaskFailed):
+                    t.wait()
+            # Some tasks may be failed.  Should retry until tasks is empty.
 
     def distribute(self):
         target_name = self.disk_image.config['name']
