@@ -1,6 +1,7 @@
 MODULE_NAME := elton
 FS_NAME := elton
 LTP_DIR := /mnt/ltp
+CC_FLAGS += -g
 CC_FLAGS += -I $(PWD)/include
 CC_FLAGS += -DELTONFS_STATISTIC
 CC_FLAGS += -DELTONFS_XATTRS
