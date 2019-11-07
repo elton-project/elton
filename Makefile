@@ -49,8 +49,9 @@ build-dev:
 
 .PHONY: install
 install:
-	install -D -m 700 $(BUILD_SBIN_FILES) $(PREFIX)/sbin/
-	install -D -m 644 $(BUILD_KMOD_FILES) $(MODULE_DIR)/
+	install -m 700 $(BUILD_SBIN_FILES) $(PREFIX)/sbin/
+	install -d -m 755 $(MODULE_DIR)/
+	install -m 644 $(BUILD_KMOD_FILES) $(MODULE_DIR)/
 	depmod
 
 .PHONY: fmt
