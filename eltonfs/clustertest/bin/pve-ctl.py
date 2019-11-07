@@ -173,11 +173,17 @@ class VM(typing.NamedTuple):
     def start(self) -> Task:
         return Task(node=self.node, upid=self._client.status.start.post())
 
+    def stop(self) -> Task:
+        return Task(node=self.node, upid=self._client.status.stop.post())
+
     def migrate(self, to: Node) -> Task:
         return Task(node=self.node, upid=self._client.migrate.post(target=to.name))
 
     def is_running(self) -> bool:
         return self._client.status.current.get()['status'] == 'running'
+
+    def is_stopped(self) -> bool:
+        return self._client.status.current.get()['status'] == 'stopped'
 
     def is_exists(self) -> bool:
         try:
@@ -235,6 +241,8 @@ class TemplateBuilder(typing.NamedTuple):
 
     def remove(self):
         if self.output.is_exists():
+            if not self.output.is_stopped():
+                self.output.stop().wait()
             self.output.config = {'protection': 0}
             self.output.remove().wait()
 
@@ -320,8 +328,11 @@ class TemplateDistributor(typing.NamedTuple):
                         match = True
                         break
                 if match:
-                    vm.config = {'protection': 0}
-                    tasks.append(vm.remove())
+                    if vm.is_stopped():
+                        vm.config = {'protection': 0}
+                        tasks.append(vm.remove())
+                    else:
+                        tasks.append(vm.stop())
 
             if len(tasks) == 0:
                 # All VMs are deleted.
