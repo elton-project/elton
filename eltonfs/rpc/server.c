@@ -44,6 +44,7 @@
     struct iov_iter iter;                                                      \
     struct kiocb kiocb;                                                        \
     ssize_t result;                                                            \
+    BUG_ON((sock)->file == NULL);                                              \
     iov_iter_init(&iter, READ, &iov, 1, iov.iov_len);                          \
     init_sync_kiocb(&kiocb, (sock)->file);                                     \
     kiocb.ki_pos = 0;                                                          \
@@ -61,6 +62,7 @@
     struct iov_iter iter;                                                      \
     struct kiocb kiocb;                                                        \
     ssize_t result;                                                            \
+    BUG_ON((sock)->file == NULL);                                              \
     iov_iter_init(&iter, WRITE, &iov, 1, iov.iov_len);                         \
     init_sync_kiocb(&kiocb, (sock)->file);                                     \
     kiocb.ki_pos = 0;                                                          \
