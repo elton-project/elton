@@ -71,6 +71,8 @@
       *(offset) += result;                                                     \
     result;                                                                    \
   })
+#define SOCK_PROTO_NAME(sock) (sock)->sk->sk_prot_creator->name
+
 // Get an entry from hashtable.  If entry is not found, returns NULL.
 //
 // Arguments:
@@ -369,10 +371,33 @@ error_setup1:
   return error;
 }
 
-int rpc_sock_accpet(struct socket *sock, struct socket **new) {
-  int error, newfd;
-  struct socket *newsock;
+int rpc_sock_set_file(struct socket *newsock, char *name) {
+  int error;
+  int newfd;
   struct file *newfile;
+
+  newfd = get_unused_fd_flags(0);
+  if (newfd < 0) {
+    error = newfd;
+    goto error_newfd;
+  }
+  newfile = sock_alloc_file(newsock, 0, name);
+  if (IS_ERR(newfile)) {
+    error = PTR_ERR(newfile);
+    goto error_alloc_file;
+  }
+  fd_install(newfd, newfile);
+  return error;
+
+error_alloc_file:
+  put_unused_fd(newfd);
+error_newfd:
+  return error;
+}
+
+int rpc_sock_accpet(struct socket *sock, struct socket **new) {
+  int error;
+  struct socket *newsock;
 
   newsock = sock_alloc();
   if (!newsock) {
@@ -381,31 +406,17 @@ int rpc_sock_accpet(struct socket *sock, struct socket **new) {
   }
   newsock->type = sock->type;
   newsock->ops = sock->ops;
-
-  newfd = get_unused_fd_flags(0);
-  if (newfd < 0) {
-    error = newfd;
-    goto error_newfd;
-  }
-
-  newfile = sock_alloc_file(newsock, 0, sock->sk->sk_prot_creator->name);
-  if (IS_ERR(newfile)) {
-    error = PTR_ERR(newfile);
-    goto error_alloc_file;
-  }
+  GOTO_IF(error_set_file, rpc_sock_set_file(newsock, SOCK_PROTO_NAME(sock)));
 
   error = sock->ops->accept(sock, newsock, sock->file->f_flags, false);
   if (error < 0)
     goto error_accept;
 
-  fd_install(newfd, newfile);
   *new = newsock;
   return error;
 
 error_accept:
-error_alloc_file:
-  put_unused_fd(newfd);
-error_newfd:
+error_set_file:
   sock_release(newsock);
 error_sock_alloc:
   return error;
