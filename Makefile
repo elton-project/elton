@@ -34,7 +34,6 @@ build-deps:
 	which go
 	which docker
 	which docker-compose
-	which dep || go get github.com/golang/dep/cmd/dep
 	$(MAKE) -C api build-deps
 
 .PHONY: generate
