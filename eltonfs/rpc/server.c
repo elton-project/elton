@@ -388,7 +388,7 @@ int rpc_sock_accpet(struct socket *sock, struct socket **new) {
     goto error_newfd;
   }
 
-  newfile = sock_alloc_file(sock, 0, sock->sk->sk_prot_creator->name);
+  newfile = sock_alloc_file(newsock, 0, sock->sk->sk_prot_creator->name);
   if (IS_ERR(newfile)) {
     error = PTR_ERR(newfile);
     goto error_alloc_file;
