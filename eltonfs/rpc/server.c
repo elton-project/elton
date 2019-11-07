@@ -367,6 +367,48 @@ error_setup1:
   return error;
 }
 
+int rpc_sock_accpet(struct socket *sock, struct socket **new) {
+  int error, newfd;
+  struct socket *newsock;
+  struct file *newfile;
+
+  newsock = sock_alloc();
+  if (!newsock) {
+    error = PTR_ERR(newsock);
+    goto error_sock_alloc;
+  }
+  newsock->type = sock->type;
+  newsock->ops = sock->ops;
+
+  newfd = get_unused_fd_flags(0);
+  if (newfd < 0) {
+    error = newfd;
+    goto error_newfd;
+  }
+
+  newfile = sock_alloc_file(sock, 0, sock->sk->sk_prot_creator->name);
+  if (IS_ERR(newfile)) {
+    error = PTR_ERR(newfile);
+    goto error_alloc_file;
+  }
+
+  error = sock->ops->accept(sock, newsock, sock->file->f_flags, false);
+  if (error < 0)
+    goto error_accept;
+
+  fd_install(newfd, newfile);
+  *new = newsock;
+  return error;
+
+error_accept:
+error_alloc_file:
+  put_unused_fd(newfd);
+error_newfd:
+  sock_release(newsock);
+error_sock_alloc:
+  return error;
+}
+
 // Handle an listened socket and wait for the client to connect.
 // When connected from client, accept it and start the rpc_session_worker().
 //
@@ -386,7 +428,7 @@ static int rpc_master_worker(void *_srv) {
   for (session_id = 1;; session_id++) {
     struct elton_rpc_session *s = NULL;
     struct task_struct *task;
-    struct socket *sock = NULL;
+    struct socket *newsock = NULL;
 
     if (session_id == 0)
       // Skips because the session ID is invalid.
@@ -396,20 +438,15 @@ static int rpc_master_worker(void *_srv) {
       continue;
     // TODO: Detect session ID depletion.
 
-    error = sock_create(AF_UNIX, SOCK_STREAM, 0, &sock);
-    if (error) {
-      RPC_ERR("master: failed to allocate socket object");
-      goto error_accept;
-    }
+    GOTO_IF(error_accept, rpc_sock_accpet(srv->sock, &newsock));
+
     s = kmalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
     if (s == NULL) {
       error = -ENOMEM;
       RPC_ERR("master: failed to allocate elton_rpc_session");
       goto error_accept;
     }
-    elton_rpc_session_init(s, srv, session_id, sock);
-
-    GOTO_IF(error_accept, srv->sock->ops->accept(srv->sock, s->sock, 0, false));
+    elton_rpc_session_init(s, srv, session_id, newsock);
 
     // Start session worker.
     task = (struct task_struct *)kthread_run(rpc_session_worker, s,
@@ -430,8 +467,8 @@ static int rpc_master_worker(void *_srv) {
   error_kthread:
     s->sock->ops->release(s->sock);
   error_accept:
-    if (sock)
-      sock_release(sock);
+    if (newsock)
+      sock_release(newsock);
     if (s)
       kfree(s);
     break;
