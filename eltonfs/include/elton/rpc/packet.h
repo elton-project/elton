@@ -8,6 +8,7 @@
    8 + /* session_id (u64) */                                                  \
    1 + /* flags (u8) */                                                        \
    8 /* struct_id (u64) */)
+#define ELTON_RPC_MAX_RAW_PACKET_SIZE 64 << 20 // 64 MiB
 
 struct packet {
   int struct_id;

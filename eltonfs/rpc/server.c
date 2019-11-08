@@ -181,7 +181,8 @@ static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
 
 static u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
 
-static int rpc_sock_read_packet(struct socket *sock, char *buff, size_t size) {
+static int __rpc_sock_read_packet(struct socket *sock, char *buff,
+                                  size_t size) {
   int error;
   size_t payload_size;
   ssize_t offset;
@@ -206,6 +207,13 @@ error_size:
 error_read_header:
   return error;
 }
+static int rpc_sock_read_packet(struct socket *sock, struct raw_packet *in,
+                                void **out) {
+  int error;
+  RETURN_IF(__rpc_sock_read_packet(sock, in->data, in->size));
+  RETURN_IF(elton_rpc_decode_packet(in, out));
+  return 0;
+}
 
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
@@ -225,41 +233,29 @@ static int rpc_session_worker(void *_s) {
   int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
   struct elton_rpc_setup1 *setup1;
+  char *buff;
+  const size_t buff_size = ELTON_RPC_MAX_RAW_PACKET_SIZE;
+
+  buff = vmalloc(buff_size);
+  if (buff == NULL) {
+    error = -ENOMEM;
+    goto error_buff_alloc;
+  }
 
   // Start handshake.
   {
     // Receiving setup1.
-    const int buffer_size = PAGE_SIZE;
-    char *buff;
     struct raw_packet raw = {
+        .size = buff_size,
         .struct_id = ELTON_RPC_SETUP1_ID,
-        .data = NULL,
+        .data = buff,
     };
-    ssize_t n;
-    loff_t readed = 0;
-
-    buff = vmalloc(buffer_size);
-    if (buff == NULL) {
-      error = -ENOMEM;
-      goto error_setup1;
-    }
-    raw.data = buff;
 
     SESSION_DEBUG(s, "waiting setup1 ...");
-    do {
-      BUG_ON(readed >= buffer_size);
-
-      n = READ_SOCK(s->sock, buff, buffer_size, &readed);
-      if (n < 0) {
-        error = n;
-        SESSION_ERR(s, "failed handshake on setup1 stage: read error %d",
-                    error);
-        vfree(buff);
-        goto error_setup1;
-      }
-    } while (elton_rpc_decode_packet(&raw, (void **)&setup1));
+    GOTO_IF(error_setup1,
+            rpc_sock_read_packet(s->sock, &raw, (void **)&setup1));
+    SESSION_ERR(s, "failed handshake on setup1 stage: read error %d");
     SESSION_DEBUG(s, "received setup1 from client");
-    vfree(buff);
   }
 
   SESSION_DEBUG(s, "validating setup1");
@@ -414,6 +410,7 @@ error_setup1:
   s->sock = NULL;
   // Unregister from s->server->ss_table.
   DELETE_SESSION(s);
+error_buff_alloc:
   return error;
 }
 
