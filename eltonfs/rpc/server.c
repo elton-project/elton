@@ -491,10 +491,6 @@ static int rpc_master_worker(void *_srv) {
   return error;
 }
 
-// Change the file mode.
-static int rpc_sock_chmod(const char *path, umode_t mode) {
-  return do_fchmodat(AT_FDCWD, path, mode);
-}
 
 // Listen unix domain socket and serve RPC in the background.
 static int rpc_listen(struct elton_rpc_server *s) {
@@ -511,7 +507,7 @@ static int rpc_listen(struct elton_rpc_server *s) {
                                          sizeof(struct sockaddr_un)));
   // Correct socket file mode.  We can safely change the mode of socket file
   // because it is not listened yet.
-  GOTO_IF(error_sock, rpc_sock_chmod(s->socket_path, 0600));
+  GOTO_IF(error_sock, ksys_chmod(s->socket_path, 0600));
   GOTO_IF(error_sock, s->sock->ops->listen(s->sock, LISTEN_LENGTH));
   RPC_DEBUG("listened UNIX Domain Socket");
 
