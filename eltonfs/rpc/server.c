@@ -214,6 +214,41 @@ static int rpc_sock_read_packet(struct socket *sock, struct raw_packet *in,
   RETURN_IF(elton_rpc_decode_packet(in, out));
   return 0;
 }
+static int rpc_sock_read_raw_packet(struct socket *sock,
+                                    struct raw_packet **out) {
+  int error;
+  char buff_header[ELTON_RPC_PACKET_HEADER_SIZE];
+  size_t payload_size;
+  ssize_t offset = 0;
+  char buff;
+  size_t buff_size;
+  size_t consumed_size;
+
+  GOTO_IF(error_header, READ_SOCK_ALL(sock, buff_header,
+                                      ELTON_RPC_PACKET_HEADER_SIZE, &offset));
+  GOTO_IF(error_header,
+          elton_rpc_get_raw_packet_size(buff_header, 0, &payload_size));
+
+  buff_size = ELTON_RPC_PACKET_HEADER_SIZE + payload_size;
+  buff = vmalloc(buff_size);
+  if (buff == NULL) {
+    error = -ENOMEM;
+    goto error_alloc_buff;
+  }
+  memcpy(buff, buff_header, offset);
+
+  GOTO_IF(error_body, READ_SOCK_ALL(sock, buff, buff_size, &offset));
+  GOTO_IF(error_body,
+          elton_rpc_build_raw_packet(out, buff, buff_size, &consumed_size));
+  return 0;
+
+error_body:
+  if (buff)
+    vfree(buff);
+error_alloc_buff:
+error_header:
+  return error;
+}
 
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
