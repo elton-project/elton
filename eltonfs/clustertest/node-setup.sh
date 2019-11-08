@@ -19,6 +19,14 @@ echo "Dump: $DUMP"
 crash "$KERNEL" "$DUMP"
 EOF
     chmod +x /usr/local/bin/last-crash
+    cat >/usr/local/bin/live-crash <<EOF
+#!/bin/bash
+KERNEL=/usr/lib/debug/boot/vmlinux-$(uname -r)
+
+echo "Kernel: $KERNEL"
+crash "$KERNEL"
+EOF
+    chmod +x /usr/local/bin/live-crash
 }
 install_kernel_debug_symbols() {
     cat >/etc/apt/sources.list.d/ddebs.list <<EOF
