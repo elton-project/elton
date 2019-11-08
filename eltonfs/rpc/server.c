@@ -6,6 +6,7 @@
 #include <elton/xdr/error.h>
 #include <elton/xdr/interface.h>
 #include <linux/kthread.h>
+#include <linux/syscalls.h>
 #include <linux/un.h>
 #include <net/sock.h>
 
@@ -490,6 +491,11 @@ static int rpc_master_worker(void *_srv) {
   return error;
 }
 
+// Change the file mode.
+static int rpc_sock_chmod(const char *path, umode_t mode) {
+  return do_fchmodat(AT_FDCWD, path, mode);
+}
+
 // Listen unix domain socket and serve RPC in the background.
 static int rpc_listen(struct elton_rpc_server *s) {
   int error = 0;
@@ -503,6 +509,7 @@ static int rpc_listen(struct elton_rpc_server *s) {
   GOTO_IF(error_sock, rpc_sock_set_file(s->sock, SOCK_PROTO_NAME(s->sock)));
   GOTO_IF(error_sock, s->sock->ops->bind(s->sock, (struct sockaddr *)&addr,
                                          sizeof(struct sockaddr_un)));
+  GOTO_IF(error_sock, rpc_sock_chmod(s->socket_path, 0600));
   GOTO_IF(error_sock, s->sock->ops->listen(s->sock, LISTEN_LENGTH));
   RPC_DEBUG("listened UNIX Domain Socket");
 
