@@ -387,7 +387,7 @@ int rpc_sock_set_file(struct socket *newsock, char *name) {
     goto error_alloc_file;
   }
   fd_install(newfd, newfile);
-  return error;
+  return 0;
 
 error_alloc_file:
   put_unused_fd(newfd);
