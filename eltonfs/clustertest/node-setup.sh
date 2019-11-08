@@ -9,7 +9,7 @@ setup_crash() {
 mod -s elton
 bt
 EOF
-    cat >/usr/local/bin/last-crash <<EOF
+    cat >/usr/local/bin/last-crash <<'EOF'
 #!/bin/bash
 KERNEL=/usr/lib/debug/boot/vmlinux-$(uname -r)
 DUMP=$(find /var/crash/ -type f -name 'dump.*' |sort |tail -n1)
@@ -19,7 +19,7 @@ echo "Dump: $DUMP"
 crash "$KERNEL" "$DUMP"
 EOF
     chmod +x /usr/local/bin/last-crash
-    cat >/usr/local/bin/live-crash <<EOF
+    cat >/usr/local/bin/live-crash <<'EOF'
 #!/bin/bash
 KERNEL=/usr/lib/debug/boot/vmlinux-$(uname -r)
 
