@@ -53,6 +53,16 @@
       *(offset) += result;                                                     \
     result;                                                                    \
   })
+#define READ_SOCK_ALL(sock, buff, size, offset)                                \
+  ({                                                                           \
+    ssize_t result;                                                            \
+    while (*offset < size) {                                                   \
+      result = READ_SOCK((sock), (buff), (size), (offset));                    \
+      if (result < 0)                                                          \
+        break;                                                                 \
+    }                                                                          \
+    result;                                                                    \
+  })
 #define WRITE_SOCK(sock, buff, size, offset)                                   \
   ({                                                                           \
     struct iovec iov = {                                                       \
@@ -170,6 +180,33 @@ static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
                               bool is_client);
 
 static u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
+
+static int rpc_sock_read_packet(struct socket *sock, char *buff, size_t size,
+                                ssize_t *offset) {
+  int error;
+  size_t payload_size;
+
+  BUG_ON(size < ELTON_RPC_PACKET_HEADER_SIZE);
+  BUG_ON(offset < 0);
+  BUG_ON(offset > size);
+
+  GOTO_IF(error_read_header,
+          READ_SOCK_ALL(sock, buff, ELTON_RPC_PACKET_HEADER_SIZE, offset));
+  GOTO_IF(error_size,
+          elton_rpc_get_raw_packet_size(buff, offset, &payload_size));
+
+  if (size < *offset + payload_size) {
+    error = -ELTON_XDR_NEED_MORE_MEM;
+    goto error_size;
+  }
+  GOTO_IF(error_read_body, READ_SOCK_ALL(sock, buff, size, offset));
+  return 0;
+
+error_read_body:
+error_size:
+error_read_header:
+  return error;
+}
 
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:

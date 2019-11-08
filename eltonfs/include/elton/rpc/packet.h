@@ -3,6 +3,12 @@
 
 #include <linux/types.h>
 
+#define ELTON_RPC_PACKET_HEADER_SIZE                                           \
+  (8 + /* size (u64) */                                                        \
+   8 + /* session_id (u64) */                                                  \
+   1 + /* flags (u8) */                                                        \
+   8 /* struct_id (u64) */)
+
 struct packet {
   int struct_id;
   // Native data of the struct.
