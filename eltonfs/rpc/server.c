@@ -185,7 +185,7 @@ static int __rpc_sock_read_packet(struct socket *sock, char *buff,
                                   size_t size) {
   int error;
   size_t payload_size;
-  ssize_t offset;
+  ssize_t offset = 0;
 
   BUG_ON(size < ELTON_RPC_PACKET_HEADER_SIZE);
 
