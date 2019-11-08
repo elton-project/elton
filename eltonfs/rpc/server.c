@@ -396,7 +396,18 @@ error_newfd:
 }
 
 int rpc_sock_accpet(struct socket *sock, struct socket **new) {
-  return kernel_accept(sock, new, sock->file->f_flags);
+  int error;
+  struct socket *newsock = NULL;
+  GOTO_IF(error, kernel_accept(sock, &newsock, sock->file->f_flags));
+  GOTO_IF(error_set_file, rpc_sock_set_file(newsock, SOCK_PROTO_NAME(sock)));
+  *new = newsock;
+  return 0;
+
+error_set_file:
+  BUG_ON(newsock == NULL);
+  sock_release(newsock);
+error:
+  return error;
 }
 
 // Listen and accept new connection.
