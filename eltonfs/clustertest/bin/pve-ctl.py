@@ -373,6 +373,7 @@ class TemplateDistributor(typing.NamedTuple):
             vm.config = {
                 'scsi0': f'{STORAGE}:{vm.vmid}/vm-{vm.vmid}-disk-0.qcow2,{STORAGE_OPT}',
                 'ide0': f'{STORAGE}:cloudinit',
+                'protection': '0',
             }
             vms.append(vm)
 
