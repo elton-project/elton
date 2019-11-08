@@ -396,30 +396,7 @@ error_newfd:
 }
 
 int rpc_sock_accpet(struct socket *sock, struct socket **new) {
-  int error;
-  struct socket *newsock;
-
-  newsock = sock_alloc();
-  if (!newsock) {
-    error = PTR_ERR(newsock);
-    goto error_sock_alloc;
-  }
-  newsock->type = sock->type;
-  newsock->ops = sock->ops;
-  GOTO_IF(error_set_file, rpc_sock_set_file(newsock, SOCK_PROTO_NAME(sock)));
-
-  error = sock->ops->accept(sock, newsock, sock->file->f_flags, false);
-  if (error < 0)
-    goto error_accept;
-
-  *new = newsock;
-  return error;
-
-error_accept:
-error_set_file:
-  sock_release(newsock);
-error_sock_alloc:
-  return error;
+  return kernel_accept(sock, new, sock->file->f_flags);
 }
 
 // Handle an listened socket and wait for the client to connect.
