@@ -18,7 +18,8 @@
                 "KERN_DEBUG",
                 "ELTONFS_STATISTIC",
                 "ELTONFS_XATTRS",
-                "ELTONFS_UNIT_TEST"
+                "ELTONFS_UNIT_TEST",
+                "ELTON_RPC_DEBUG"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
