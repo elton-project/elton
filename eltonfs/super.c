@@ -301,7 +301,7 @@ static int __init fs_module_init(void) {
 
   // Start UMH and RPC server.
   GOTO_IF(out_unregister_fs, elton_rpc_server_init(&server, NULL));
-  GOTO_IF(out_unregister_fs, server.ops->listen(&server));
+  GOTO_IF(out_unregister_fs, server.ops->start_worker(&server));
   GOTO_IF(out_close_server, server.ops->start_umh(&server));
   DEBUG("Started an eltonfs user mode helper process");
 

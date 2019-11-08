@@ -79,8 +79,8 @@ struct elton_rpc_ns {
 };
 
 struct elton_rpc_operations {
-  // Start server.
-  int (*listen)(struct elton_rpc_server *);
+  // Start RPC server.
+  int (*start_worker)(struct elton_rpc_server *);
   // Start UMH (User Mode Helper) process.
   int (*start_umh)(struct elton_rpc_server *);
   // Create new nested session.

@@ -399,7 +399,7 @@ int rpc_sock_accpet(struct socket *sock, struct socket **new) {
   return kernel_accept(sock, new, sock->file->f_flags);
 }
 
-// Handle an listened socket and wait for the client to connect.
+// Listen and accept new connection.
 // When connected from client, accept it and start the rpc_session_worker().
 //
 // Arguments:
@@ -414,6 +414,19 @@ static int rpc_master_worker(void *_srv) {
   int error = 0;
   u8 session_id;
   struct elton_rpc_server *srv = (struct elton_rpc_server *)_srv;
+  struct sockaddr_un addr;
+
+  // Initialize socket and listen.
+  GOTO_IF(error, sock_create(AF_UNIX, SOCK_STREAM, 0, &srv->sock));
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, srv->socket_path, UNIX_PATH_MAX);
+  GOTO_IF(error_sock, rpc_sock_set_file(srv->sock, SOCK_PROTO_NAME(srv->sock)));
+  GOTO_IF(error_sock, srv->sock->ops->bind(srv->sock, (struct sockaddr *)&addr,
+                                           sizeof(struct sockaddr_un)));
+  // TODO: Change socket file mode. We can safely change the mode of socket file
+  // at this time because it is not listened yet.
+  GOTO_IF(error_sock, srv->sock->ops->listen(srv->sock, LISTEN_LENGTH));
+  RPC_DEBUG("listened UNIX Domain Socket");
 
   for (session_id = 1;; session_id++) {
     struct elton_rpc_session *s = NULL;
@@ -463,34 +476,25 @@ static int rpc_master_worker(void *_srv) {
       kfree(s);
     break;
   }
+
+error_sock:
+  sock_release(srv->sock);
+error:
   RPC_ERR("master: stopped");
   return error;
 }
 
-// Listen unix domain socket and serve RPC in the background.
-static int rpc_listen(struct elton_rpc_server *s) {
+// Start a worker that serve RPC in the background.
+static int rpc_start_worker(struct elton_rpc_server *s) {
   int error = 0;
-  struct sockaddr_un addr;
   struct task_struct *task;
-
-  // Initialize socket and listen.
-  GOTO_IF(error, sock_create(AF_UNIX, SOCK_STREAM, 0, &s->sock));
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, s->socket_path, UNIX_PATH_MAX);
-  GOTO_IF(error_sock, rpc_sock_set_file(s->sock, SOCK_PROTO_NAME(s->sock)));
-  GOTO_IF(error_sock, s->sock->ops->bind(s->sock, (struct sockaddr *)&addr,
-                                         sizeof(struct sockaddr_un)));
-  // TODO: Change socket file mode. We can safely change the mode of socket file
-  // at this time because it is not listened yet.
-  GOTO_IF(error_sock, s->sock->ops->listen(s->sock, LISTEN_LENGTH));
-  RPC_DEBUG("listened UNIX Domain Socket");
 
   // Start master worker.
   task = kthread_run(rpc_master_worker, s, "elton-rpc [master]");
   if (IS_ERR(task)) {
     error = PTR_ERR(task);
     RPC_ERR("kthread_run returns an error %d", error);
-    goto error_sock;
+    goto error;
   }
   RPC_INFO("started master worker");
   mutex_lock(&s->task_lock);
@@ -498,8 +502,6 @@ static int rpc_listen(struct elton_rpc_server *s) {
   mutex_unlock(&s->task_lock);
   return 0;
 
-error_sock:
-  sock_release(s->sock);
 error:
   return error;
 }
@@ -614,7 +616,7 @@ static int rpc_close(struct elton_rpc_server *srv) {
 }
 
 static struct elton_rpc_operations rpc_ops = {
-    .listen = rpc_listen,
+    .start_worker = rpc_start_worker,
     .start_umh = rpc_start_umh,
     .new_session = rpc_new_session,
     .close_nowait = rpc_close_nowait,
