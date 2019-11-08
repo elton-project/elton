@@ -762,7 +762,7 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
   }
 
   GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, data));
-  NS_DEBUG(ns, "received a struct")
+  NS_DEBUG(ns, "received a struct");
 
 error_dequeue:
   if (raw)
