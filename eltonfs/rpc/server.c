@@ -181,25 +181,24 @@ static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
 
 static u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
 
-static int rpc_sock_read_packet(struct socket *sock, char *buff, size_t size,
-                                ssize_t *offset) {
+static int rpc_sock_read_packet(struct socket *sock, char *buff, size_t size) {
   int error;
   size_t payload_size;
+  ssize_t offset;
 
   BUG_ON(size < ELTON_RPC_PACKET_HEADER_SIZE);
-  BUG_ON(offset < 0);
-  BUG_ON(offset > size);
 
   GOTO_IF(error_read_header,
-          READ_SOCK_ALL(sock, buff, ELTON_RPC_PACKET_HEADER_SIZE, offset));
-  GOTO_IF(error_size,
-          elton_rpc_get_raw_packet_size(buff, offset, &payload_size));
+          READ_SOCK_ALL(sock, buff, ELTON_RPC_PACKET_HEADER_SIZE, &offset));
+  GOTO_IF(error_size, elton_rpc_get_raw_packet_size(buff, 0, &payload_size));
 
-  if (size < *offset + payload_size) {
+  BUG_ON(offset < ELTON_RPC_PACKET_HEADER_SIZE);
+  if (size < payload_size) {
     error = -ELTON_XDR_NEED_MORE_MEM;
     goto error_size;
   }
-  GOTO_IF(error_read_body, READ_SOCK_ALL(sock, buff, size, offset));
+
+  GOTO_IF(error_read_body, READ_SOCK_ALL(sock, buff, size, &offset));
   return 0;
 
 error_read_body:
