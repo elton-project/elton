@@ -509,6 +509,8 @@ static int rpc_listen(struct elton_rpc_server *s) {
   GOTO_IF(error_sock, rpc_sock_set_file(s->sock, SOCK_PROTO_NAME(s->sock)));
   GOTO_IF(error_sock, s->sock->ops->bind(s->sock, (struct sockaddr *)&addr,
                                          sizeof(struct sockaddr_un)));
+  // Correct socket file mode.  We can safely change the mode of socket file
+  // because it is not listened yet.
   GOTO_IF(error_sock, rpc_sock_chmod(s->socket_path, 0600));
   GOTO_IF(error_sock, s->sock->ops->listen(s->sock, LISTEN_LENGTH));
   RPC_DEBUG("listened UNIX Domain Socket");
