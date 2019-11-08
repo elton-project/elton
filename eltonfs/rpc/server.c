@@ -193,27 +193,37 @@ static int rpc_session_worker(void *_s) {
   // Start handshake.
   {
     // Receiving setup1.
-    char buff[50];
+    const int buffer_size = PAGE_SIZE;
+    char *buff;
     struct raw_packet raw = {
         .struct_id = ELTON_RPC_SETUP1_ID,
-        .data = buff,
+        .data = NULL,
     };
     ssize_t n;
     loff_t readed = 0;
 
+    buff = vmalloc(buffer_size);
+    if (buff == NULL) {
+      error = -ENOMEM;
+      goto error_setup1;
+    }
+    raw.data = buff;
+
     SESSION_DEBUG(s, "waiting setup1 ...");
     do {
-      BUG_ON(readed >= sizeof(buff));
+      BUG_ON(readed >= buffer_size);
 
-      n = READ_SOCK(s->sock, buff, sizeof(buff), &readed);
+      n = READ_SOCK(s->sock, buff, buffer_size, &readed);
       if (n < 0) {
         error = n;
         SESSION_ERR(s, "failed handshake on setup1 stage: read error %d",
                     error);
+        vfree(buff);
         goto error_setup1;
       }
     } while (elton_rpc_decode_packet(&raw, (void **)&setup1));
     SESSION_DEBUG(s, "received setup1 from client");
+    vfree(buff);
   }
 
   SESSION_DEBUG(s, "validating setup1");
