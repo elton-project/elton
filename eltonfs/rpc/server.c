@@ -289,7 +289,6 @@ static int rpc_session_worker(void *_s) {
     SESSION_DEBUG(s, "waiting setup1 ...");
     GOTO_IF(error_setup1,
             rpc_sock_read_packet(s->sock, &raw, (void **)&setup1));
-    SESSION_ERR(s, "failed handshake on setup1 stage: read error %d");
     SESSION_DEBUG(s, "received setup1 from client");
   }
 
