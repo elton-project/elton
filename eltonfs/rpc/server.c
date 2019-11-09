@@ -336,108 +336,48 @@ static int rpc_session_worker(void *_s) {
   SESSION_INFO(s, "established connection");
 
   // Receive data from client until socket is closed.
-  {
+  for (;;) {
     struct raw_packet *raw = NULL;
-    char *buff;
-    size_t buff_size = PAGE_SIZE;
-    loff_t readed = 0;
-    size_t need_size;
-    size_t consumed_size;
     u64 nsid_hash;
     struct elton_rpc_ns *ns = NULL;
 
-    BUILD_BUG_ON(sizeof(struct raw_packet) > PAGE_SIZE);
+    GOTO_IF(error_recv, rpc_sock_read_raw_packet(s->sock, &raw));
+    SESSION_DEBUG(s, "received a packet: struct_id=%llu, flags=%d, size=%zu",
+                  raw->struct_id, raw->flags, raw->size);
 
-    buff = vmalloc(buff_size);
-    if (buff == NULL) {
-      error = -ENOMEM;
-      SESSION_ERR(s, "failed to allocate %zu bytes for read buffer", buff_size);
-      goto error_alloc_buffer;
+    // Qneueue raw packet.
+    spin_lock(&s->server->nss_table_lock);
+    nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
+    ns = GET_NS_BY_HASH(s->server, nsid_hash);
+    if (ns) {
+      // Enqueue it.
+      elton_rpc_enqueue(&ns->q, raw);
+    } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
+      // Create session and enqueue it.
+      ns = (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns),
+                                          GFP_KERNEL);
+      if (ns == NULL) {
+        error = -ENOMEM;
+        SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
+        goto error_enqueue;
+      }
+      elton_rpc_ns_init(ns, s, raw->session_id, false);
+      SESSION_DEBUG(s, "created new session by umh");
+      ADD_NS(ns);
+      ns = NULL;
     }
 
-    for (;;) {
-      int n = READ_SOCK(s->sock, buff, sizeof(buff), &readed);
-      if (n < 0) {
-        error = n;
-        SESSION_ERR(s, "read error %d", error);
-        goto error_read_sock;
-      }
+  error_enqueue:
+    spin_unlock(&s->server->nss_table_lock);
+    if (raw)
+      raw->free(raw);
+    raw = NULL;
 
-      error = elton_rpc_get_raw_packet_size(buff, buff_size, &need_size);
-      if (error == -ELTON_XDR_NEED_MORE_MEM)
-        // Need more bytes to calculate the raw packet size.
-        continue;
-      GOTO_IF(error_get_size, error); // Unexpected error.
-
-      if (buff_size < need_size) {
-        // Insufficient buffer size.  Increase buffer size.
-        size_t new_size = round_up(need_size, PAGE_SIZE);
-        char *new_buff = vmalloc(new_size);
-        if (new_buff == NULL) {
-          error = -ENOMEM;
-          SESSION_ERR(s, "failed to allocate %zu bytes for read buffer",
-                      new_size);
-          goto error_alloc_buffer;
-        }
-        memcpy(new_buff, buff, buff_size);
-        vfree(buff);
-        buff = new_buff;
-        buff_size = new_size;
-        continue;
-      }
-      if (readed < need_size)
-        // Need more bytes to decode raw packet.
-        continue;
-
-      // Enough data was read to decode the raw packet.  Try to decode it.
-      GOTO_IF(error_decode,
-              elton_rpc_build_raw_packet(&raw, buff, readed, &consumed_size));
-      memmove(buff, buff + consumed_size, readed - consumed_size);
-      readed -= consumed_size;
-
-      // Qneueue raw packet.
-      spin_lock(&s->server->nss_table_lock);
-      nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
-      ns = GET_NS_BY_HASH(s->server, nsid_hash);
-      SESSION_DEBUG(s, "received a packet: struct_id=%llu, flags=%d, size=%zu",
-                    raw->struct_id, raw->flags, raw->size);
-      if (ns) {
-        // Enqueue it.
-        elton_rpc_enqueue(&ns->q, raw);
-      } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
-        // Create session and enqueue it.
-        ns = (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns),
-                                            GFP_KERNEL);
-        if (ns == NULL) {
-          error = -ENOMEM;
-          SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
-          goto error_enqueue;
-        }
-        elton_rpc_ns_init(ns, s, raw->session_id, false);
-        SESSION_DEBUG(s, "created new session by umh");
-        ADD_NS(ns);
-        ns = NULL;
-      }
-
-    error_enqueue:
-      spin_unlock(&s->server->nss_table_lock);
-      if (raw)
-        raw->free(raw);
-      raw = NULL;
-
-      if (error)
-        break;
+    if (error) {
+      goto error_recv;
     }
-
-  error_decode:
-  error_get_size:
-  error_read_sock:
-  error_alloc_buffer:
-    SESSION_INFO(s, "stopping receiver");
-    if (buff)
-      vfree(buff);
-    goto error_recv;
   }
+
 error_recv:
 error_setup1:
   SESSION_INFO(s, "stopping session worker");
