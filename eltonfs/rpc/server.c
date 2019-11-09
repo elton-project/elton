@@ -220,7 +220,7 @@ static int rpc_sock_read_raw_packet(struct socket *sock,
   char buff_header[ELTON_RPC_PACKET_HEADER_SIZE];
   size_t payload_size;
   ssize_t offset = 0;
-  char buff = NULL;
+  char *buff = NULL;
   size_t buff_size;
   size_t consumed_size;
 
