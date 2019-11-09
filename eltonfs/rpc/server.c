@@ -216,11 +216,11 @@ static int rpc_sock_read_packet(struct socket *sock, struct raw_packet *in,
 }
 static int rpc_sock_read_raw_packet(struct socket *sock,
                                     struct raw_packet **out) {
-  int error;
+  int error = 0;
   char buff_header[ELTON_RPC_PACKET_HEADER_SIZE];
   size_t payload_size;
   ssize_t offset = 0;
-  char buff;
+  char buff = NULL;
   size_t buff_size;
   size_t consumed_size;
 
