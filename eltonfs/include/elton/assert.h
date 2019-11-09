@@ -26,8 +26,8 @@ extern volatile bool __assertion_failed;
   ({                                                                           \
     typeof(expr) error = expr;                                                 \
     if (error) {                                                               \
-      ERR("Occurred an error %d on %s (%s:%d)", error, __func__, __FILE__,     \
-          __LINE__);                                                           \
+      ERR("Occurred an error %d on %s (%s:%d)", (int)error, __func__,          \
+          __FILE__, __LINE__);                                                 \
     }                                                                          \
     error;                                                                     \
   })
