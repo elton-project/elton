@@ -55,7 +55,7 @@
   })
 #define READ_SOCK_ALL(sock, buff, size, offset)                                \
   ({                                                                           \
-    ssize_t result;                                                            \
+    ssize_t result = 0;                                                        \
     while (*offset < size) {                                                   \
       result = READ_SOCK((sock), (buff), (size), (offset));                    \
       if (result < 0)                                                          \
