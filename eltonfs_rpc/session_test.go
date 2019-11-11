@@ -28,7 +28,7 @@ func newClientSession() (server *fakeConn, s ClientSession, closer func()) {
 		defer wg.Done()
 		// Send response (Setup2) to client.
 		enc := NewXDREncoder(utils.WrapMustWriter(server))
-		enc.Struct(&Setup2{
+		enc.RawPacket(0, 0, &Setup2{
 			Error:      0,
 			Reason:     "",
 			ServerName: "eltonfs",
@@ -38,7 +38,7 @@ func newClientSession() (server *fakeConn, s ClientSession, closer func()) {
 		defer wg.Done()
 		// Read request (Setup1) from client.
 		dec := NewXDRDecoder(utils.WrapMustReader(server))
-		dec.Struct(&Setup1{})
+		dec.RawPacket()
 	}()
 
 	s = NewClientSession(client)
@@ -63,7 +63,7 @@ func TestClientS_Setup(t *testing.T) {
 			defer wg.Done()
 			// Send data to client.
 			enc := NewXDREncoder(utils.WrapMustWriter(server))
-			enc.Struct(&Setup2{
+			enc.RawPacket(0, 0, &Setup2{
 				Error:      0,
 				Reason:     "",
 				ServerName: "eltonfs",
@@ -74,7 +74,7 @@ func TestClientS_Setup(t *testing.T) {
 			// Prepare expected setup request (Setup1)
 			expected := func() []byte {
 				req := &bytes.Buffer{}
-				NewXDREncoder(utils.WrapMustWriter(req)).Struct(&Setup1{
+				NewXDREncoder(utils.WrapMustWriter(req)).RawPacket(0, 0, &Setup1{
 					ClientName: "eltonfs-helper",
 				})
 				return req.Bytes()
@@ -106,12 +106,23 @@ func TestClientS_Setup(t *testing.T) {
 			defer wg.Done()
 			// Send data to client.
 			server.Write([]byte("invalid response"))
+			server.Close()
 		}()
 		go func() {
 			defer wg.Done()
-			// Read data from client.
-			dec := NewXDRDecoder(utils.WrapMustReader(server))
-			dec.Struct(&Setup1{})
+			// Prepare expected setup request (Setup1)
+			expected := func() []byte {
+				req := &bytes.Buffer{}
+				NewXDREncoder(utils.WrapMustWriter(req)).RawPacket(0, 0, &Setup1{
+					ClientName: "eltonfs-helper",
+				})
+				return req.Bytes()
+			}()
+			// Read data from client and check setup request (Setup1).
+			assert.Equal(t,
+				expected,
+				server.MustReadAll(),
+			)
 		}()
 
 		s := NewClientSession(client)
