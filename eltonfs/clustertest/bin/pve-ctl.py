@@ -134,6 +134,12 @@ class Node(typing.NamedTuple):
 class Pool(typing.NamedTuple):
     name: str
 
+    def list(self) -> typing.Generator['VM', None, None]:
+        for item in p.pools(self.name).get()['members']:
+            if item['type'] != 'qemu':
+                continue
+            yield VM(node=item['node'], vmid=item['vmid'])
+
 
 class VM(typing.NamedTuple):
     node: str
@@ -327,7 +333,7 @@ class TemplateDistributor(typing.NamedTuple):
     def remove_all(self):
         while True:
             tasks = []
-            for vm in VM.list():
+            for vm in self.pool.list():
                 match = False
                 for line in vm.config.get('description', '').splitlines():
                     if line.strip() == self._vm_property_in_description:
