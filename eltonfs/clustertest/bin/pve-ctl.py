@@ -248,6 +248,7 @@ class TemplateBuilder(typing.NamedTuple):
     pool: Pool
     base: VM
     script_name: pathlib.Path
+    template_name: str
     output: VM
 
     def remove(self):
@@ -260,7 +261,7 @@ class TemplateBuilder(typing.NamedTuple):
     def build(self):
         self.base.clone(
             newid=self.output.vmid,
-            name=self.base.config['name'] + '-ltp',
+            name=self.template_name,
             pool=self.pool.name,
             full=1,
         ).wait()
@@ -408,7 +409,7 @@ base = VM('elton-pve1', 9000)
 out = VM('elton-pve1', 9100)
 pool = Pool('clustertest')
 builder = TemplateBuilder(base=base, script_name=pathlib.Path('./eltonfs/clustertest/node-setup.sh'),
-                          output=out, pool=pool)
+                          output=out, pool=pool, template_name='template-ubuntu-19.04-ltp')
 dist = TemplateDistributor(template=base, disk_image=out, pool=pool)
 
 dist.remove_all()
