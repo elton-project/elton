@@ -279,7 +279,7 @@ class TemplateBuilder(typing.NamedTuple):
         }
         self.output.start().wait()
         wait_for(lambda: self._is_ready(self.output))
-        self._run_script(self.output, SETUP_SCRIPT_FILE)
+        self._run_script(self.output, self.script_name)
         wait_for(lambda: not self.output.is_running())
 
     def _set_storage(self, vm: VM):
@@ -309,8 +309,8 @@ class TemplateBuilder(typing.NamedTuple):
         except subprocess.CalledProcessError:
             return False
 
-    def _run_script(self, vm: VM, script_path: str):
-        with open(script_path, 'rb')as stdin:
+    def _run_script(self, vm: VM, script_path: pathlib.Path):
+        with script_path.open('rb') as stdin:
             subprocess.run(
                 [*vm.unsafe_ssh_command, 'bash'],
                 stdin=stdin,
@@ -408,7 +408,7 @@ class TemplateDistributor(typing.NamedTuple):
 base = VM('elton-pve1', 9000)
 out = VM('elton-pve1', 9100)
 pool = Pool('clustertest')
-builder = TemplateBuilder(base=base, script_name=pathlib.Path('./eltonfs/clustertest/node-setup.sh'),
+builder = TemplateBuilder(base=base, script_name=pathlib.Path(SETUP_SCRIPT_FILE),
                           output=out, pool=pool, template_name='template-ubuntu-19.04-ltp')
 dist = TemplateDistributor(template=base, disk_image=out, pool=pool)
 
