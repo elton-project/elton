@@ -106,6 +106,7 @@ extern volatile bool __assertion_failed;
           #expr, __func__, __FILE__, __LINE__, expected, actual);              \
       SET_ASSERTION_FAILED();                                                  \
     }                                                                          \
+    fail;                                                                      \
   })
 // 条件式が想定外の数値を返した場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
@@ -119,6 +120,7 @@ extern volatile bool __assertion_failed;
           #expr, __func__, __FILE__, __LINE__, expected, actual);              \
       SET_ASSERTION_FAILED();                                                  \
     }                                                                          \
+    fail;                                                                      \
   })
 // 条件式が想定外のサイズを返した場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
@@ -132,6 +134,7 @@ extern volatile bool __assertion_failed;
           #expr, __func__, __FILE__, __LINE__, expected, actual);              \
       SET_ASSERTION_FAILED();                                                  \
     }                                                                          \
+    fail;                                                                      \
   })
 // 2つのchar*型の配列の内容が一致しない場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
