@@ -2,6 +2,7 @@
 package eltonfs_rpc
 
 import (
+	"bytes"
 	"encoding/binary"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
@@ -24,6 +25,7 @@ type XDREncoder interface {
 	Slice(s interface{})
 	Map(m interface{})
 	Struct(s interface{})
+	RawPacket(nsid uint64, flags PacketFlag, data interface{})
 	Auto(v interface{})
 }
 
@@ -36,6 +38,7 @@ type XDRDecoder interface {
 	Slice(emptySlice interface{}) (slice interface{})
 	Map(emptyMapping interface{}) (mapping interface{})
 	Struct(emptyStruct interface{}) (aStruct interface{})
+	RawPacket() *rawPacket
 }
 
 func NewXDREncoder(writer utils.MustWriter) XDREncoder {
@@ -159,6 +162,20 @@ func (e *binEncoder) Struct(s interface{}) {
 		e.Uint8(fieldID)
 		e.Auto(fields[fieldID].Interface())
 	}
+}
+func (e *binEncoder) RawPacket(nsid uint64, flags PacketFlag, data interface{}) {
+	sid := parseXDRStructIDTag(reflect.TypeOf(data))
+
+	buf := &bytes.Buffer{}
+	enc := NewXDREncoder(utils.WrapMustWriter(buf))
+	enc.Struct(data)
+	size := uint64(buf.Len())
+
+	e.Uint64(size)
+	e.Uint64(nsid)
+	e.Uint8(uint8(flags))
+	e.Uint64(sid)
+	e.w.MustWriteAll(buf.Bytes())
 }
 func (e *binEncoder) Auto(v interface{}) {
 	switch vv := v.(type) {
@@ -321,6 +338,18 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 		return vp.Interface()
 	}
 	return v.Interface()
+}
+func (d *binDecoder) RawPacket() *rawPacket {
+	p := &rawPacket{
+		size:  d.Uint64(),
+		nsid:  d.Uint64(),
+		flags: PacketFlag(d.Uint8()),
+		sid:   d.Uint64(),
+		data:  nil,
+	}
+	p.data = make([]byte, p.size)
+	d.r.MustReadAll(p.data)
+	return p
 }
 func (d *binDecoder) auto(t reflect.Type) reflect.Value {
 	var v interface{}

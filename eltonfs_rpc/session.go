@@ -7,7 +7,6 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
 	"net"
-	"reflect"
 	"sync"
 )
 
@@ -117,10 +116,15 @@ type rawPacket struct {
 
 func (s *clientS) Setup() error {
 	return HandlePanic(func() error {
-		s.Enc.Struct(&Setup1{
+		s.Enc.RawPacket(0, 0, &Setup1{
 			ClientName: "eltonfs-helper",
 		})
-		s2 := s.Dec.Struct(&Setup2{}).(*Setup2)
+
+		raw, data := s.recvPacketDirect(&Setup2{})
+		if raw.flags != 0 {
+			return xerrors.Errorf("received an invalid packet: flags should 0, but %d", raw.flags)
+		}
+		s2 := data.(*Setup2)
 		if s2.Error != 0 {
 			return xerrors.Errorf(
 				"%d - %s: %s",
@@ -187,22 +191,10 @@ func (s *clientS) Close() error {
 }
 func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) error {
 	err := HandlePanic(func() error {
-		sid := parseXDRStructIDTag(reflect.TypeOf(data))
-
 		buf := &bytes.Buffer{}
 		enc := NewXDREncoder(utils.WrapMustWriter(buf))
-		enc.Struct(data)
-		size := uint64(buf.Len())
-
-		buf2 := &bytes.Buffer{}
-		enc = NewXDREncoder(utils.WrapMustWriter(buf2))
-		enc.Uint64(size)
-		enc.Uint64(nsid)
-		enc.Uint8(uint8(flags))
-		enc.Uint64(sid)
-		buf2.Write(buf.Bytes())
-
-		s.sendQ <- buf2.Bytes()
+		enc.RawPacket(nsid, flags, data)
+		s.sendQ <- buf.Bytes()
 		return nil
 	})
 	if err != nil {
@@ -229,6 +221,16 @@ func (s *clientS) recvPacket(nsid uint64, empty interface{}) (data interface{}, 
 	data = dec.Struct(empty)
 	return data, p.flags, nil
 }
+func (s *clientS) recvPacketDirect(empty interface{}) (p *rawPacket, data interface{}) {
+	p = s.Dec.RawPacket()
+
+	// Decode
+	buf := utils.WrapMustReader(bytes.NewBuffer(p.data))
+	dec := NewXDRDecoder(buf)
+	data = dec.Struct(empty)
+
+	return p, data
+}
 func (s *clientS) recvWorker() {
 	go func() {
 		<-s.closed
@@ -237,15 +239,7 @@ func (s *clientS) recvWorker() {
 
 	err := HandlePanic(func() error {
 		for {
-			p := &rawPacket{
-				size:  s.Dec.Uint64(),
-				nsid:  s.Dec.Uint64(),
-				flags: PacketFlag(s.Dec.Uint8()),
-				sid:   s.Dec.Uint64(),
-				data:  nil,
-			}
-			p.data = make([]byte, p.size)
-			s.R.MustReadAll(p.data)
+			p := s.Dec.RawPacket()
 
 			if p.nsid > nsidMaxValue {
 				err := xerrors.Errorf("NSID is out-of-range")
