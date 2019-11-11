@@ -131,6 +131,10 @@ class Node(typing.NamedTuple):
         raise ValueError('not found node')
 
 
+class Pool(typing.NamedTuple):
+    name: str
+
+
 class VM(typing.NamedTuple):
     node: str
     vmid: int
@@ -235,6 +239,7 @@ class VM(typing.NamedTuple):
 
 
 class TemplateBuilder(typing.NamedTuple):
+    pool: Pool
     base: VM
     script_name: pathlib.Path
     output: VM
@@ -250,7 +255,7 @@ class TemplateBuilder(typing.NamedTuple):
         self.base.clone(
             newid=self.output.vmid,
             name=self.base.config['name'] + '-ltp',
-            pool='clustertest',
+            pool=self.pool.name,
             full=1,
         ).wait()
         self.output.config = {'protection': 0}
@@ -313,6 +318,7 @@ class TemplateBuilder(typing.NamedTuple):
 
 
 class TemplateDistributor(typing.NamedTuple):
+    pool: Pool
     # VM Template
     template: VM
     # VM for disk image template.
@@ -359,7 +365,7 @@ class TemplateDistributor(typing.NamedTuple):
             self.template.clone(vm.vmid,
                                 name=f'{target_name}-{node.name}',
                                 description=f'{target_desc}\n{self._vm_property_in_description}',
-                                pool='clustertest',
+                                pool=self.pool.name,
                                 full=1,
                                 storage=STORAGE).wait()
 
@@ -394,9 +400,10 @@ class TemplateDistributor(typing.NamedTuple):
 
 base = VM('elton-pve1', 9000)
 out = VM('elton-pve1', 9100)
+pool = Pool('clustertest')
 builder = TemplateBuilder(base=base, script_name=pathlib.Path('./eltonfs/clustertest/node-setup.sh'),
-                          output=out)
-dist = TemplateDistributor(template=base, disk_image=out)
+                          output=out, pool=pool)
+dist = TemplateDistributor(template=base, disk_image=out, pool=pool)
 
 dist.remove_all()
 builder.remove()
