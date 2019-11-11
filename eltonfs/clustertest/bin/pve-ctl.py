@@ -366,7 +366,7 @@ class TemplateDistributor(typing.NamedTuple):
 
         # Copy target disk image to shared storage.
         ip = Node(name=self.disk_image.node).ip
-        RemoteCommand(ip=ip, cmd=['rm', SHARED_IMAGE]).execute()
+        RemoteCommand(ip=ip, cmd=['rm', '-f', SHARED_IMAGE]).execute()
         RemoteCommand(ip=ip, cmd=['cp', self._disk_path, SHARED_IMAGE]).execute()
 
         vms = []
