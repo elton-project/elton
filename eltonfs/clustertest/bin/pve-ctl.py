@@ -377,7 +377,7 @@ class TemplateDistributor(typing.NamedTuple):
                                 storage=STORAGE).wait()
 
             # Unset cloud-init drive to prevent fail of VM migration with local storage.
-            cloned_vm.config = {'ide0': 'none'}
+            cloned_vm.config = {'ide2': 'none'}
             if vm.node != cloned_vm.node:
                 cloned_vm.migrate(node).wait()
             RemoteCommand(ip=node.ip,
@@ -385,7 +385,7 @@ class TemplateDistributor(typing.NamedTuple):
                           ).execute()
             vm.config = {
                 'scsi0': f'{STORAGE}:{vm.vmid}/vm-{vm.vmid}-disk-0.qcow2,{STORAGE_OPT}',
-                'ide0': f'{STORAGE}:cloudinit',
+                'ide2': f'{STORAGE}:cloudinit',
                 'protection': '0',
             }
             vms.append(vm)
