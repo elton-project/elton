@@ -289,7 +289,8 @@ class TemplateBuilder(typing.NamedTuple):
     def _set_storage(self, vm: VM):
         ip = Node(name=vm.node).ip
         # Download latest image.
-        RemoteCommand(ip=ip, cmd=['wget', UBUNTU_IMAGE_URL, '-O', UBUNTU_IMAGE_PATH, '-N']).execute()
+        RemoteCommand(ip=ip, cmd=['rm', '-f', UBUNTU_IMAGE_PATH, ]).execute()
+        RemoteCommand(ip=ip, cmd=['wget', UBUNTU_IMAGE_URL, '-O', UBUNTU_IMAGE_PATH]).execute()
 
         # Set dist to the VM.
         RemoteCommand(ip=ip, cmd=['qm', 'importdisk', str(vm.vmid), UBUNTU_IMAGE_PATH, STORAGE, '--format', 'qcow2']
