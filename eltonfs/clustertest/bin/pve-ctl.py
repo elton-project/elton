@@ -8,6 +8,8 @@ import tempfile
 import re
 import logging
 import contextlib
+import threading
+import concurrent.futures as futures
 import proxmoxer
 
 # Gateway address
@@ -360,17 +362,11 @@ class TemplateDistributor(typing.NamedTuple):
                     t.wait()
             # Some tasks may be failed.  Should retry until tasks is empty.
 
-    def distribute(self):
+    def _distribute_node(self, sem: threading.Semaphore, node: Node) -> VM:
         target_name = self.disk_image.config['name']
         target_desc = self.disk_image.config.get('description', '')
 
-        # Copy target disk image to shared storage.
-        ip = Node(name=self.disk_image.node).ip
-        RemoteCommand(ip=ip, cmd=['rm', '-f', SHARED_IMAGE]).execute()
-        RemoteCommand(ip=ip, cmd=['cp', self._disk_path, SHARED_IMAGE]).execute()
-
-        vms = []
-        for node in Node.list():
+        with sem:
             vm = VM(node=node.name, vmid=VM.next_id())
             cloned_vm = VM(node=self.template.node, vmid=vm.vmid)
             self.template.clone(vm.vmid,
@@ -384,17 +380,38 @@ class TemplateDistributor(typing.NamedTuple):
             cloned_vm.config = {'ide2': 'none'}
             if vm.node != cloned_vm.node:
                 cloned_vm.migrate(node).wait()
-            RemoteCommand(ip=node.ip,
-                          cmd=['qm', 'importdisk', str(vm.vmid), SHARED_IMAGE, STORAGE, '--format', 'qcow2']
-                          ).execute()
-            vm.config = {
-                'scsi0': f'{STORAGE}:{vm.vmid}/vm-{vm.vmid}-disk-0.qcow2,{STORAGE_OPT}',
-                'ide2': f'{STORAGE}:cloudinit',
-                'protection': '0',
-            }
-            vms.append(vm)
 
-        for vm in vms:
+        RemoteCommand(ip=node.ip,
+                      cmd=['qm', 'importdisk', str(vm.vmid), SHARED_IMAGE, STORAGE, '--format', 'qcow2']
+                      ).execute()
+
+        # WORKAROUND: Wait for few seconds to prevent fail an below task.
+        # If load is high, below task may raise the connection aborted error.
+        time.sleep(5)
+
+        vm.config = {
+            'scsi0': f'{STORAGE}:{vm.vmid}/vm-{vm.vmid}-disk-0.qcow2,{STORAGE_OPT}',
+            'ide2': f'{STORAGE}:cloudinit',
+            'protection': '0',
+        }
+        return vm
+
+    def distribute(self):
+        # Copy target disk image to shared storage.
+        ip = Node(name=self.disk_image.node).ip
+        RemoteCommand(ip=ip, cmd=['rm', '-f', SHARED_IMAGE]).execute()
+        RemoteCommand(ip=ip, cmd=['cp', self._disk_path, SHARED_IMAGE]).execute()
+
+        tasks = []
+        sem = threading.Semaphore(value=1)
+
+        with futures.ThreadPoolExecutor(max_workers=3) as e:
+            for node in Node.list():
+                future = e.submit(self._distribute_node, sem, node)
+                tasks.append(future)
+
+        for t in tasks:
+            vm: VM = t.result()
             vm.set_template()
             # templateは非同期APIだが、完了したことを検出できないため、待機処理はしない。
             # 作成したVMを即座に利用すると失敗する可能性があるので、後続の処理ではsleepするべき。
