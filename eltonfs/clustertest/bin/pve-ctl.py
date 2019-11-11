@@ -415,7 +415,15 @@ builder = TemplateBuilder(base=base, script_name=pathlib.Path(SETUP_SCRIPT_FILE)
                           output=out, pool=pool, template_name='template-ubuntu-19.04-ltp')
 dist = TemplateDistributor(template=base, disk_image=out, pool=pool)
 
-dist.remove_all()
-builder.remove()
-builder.build()
-dist.distribute()
+try:
+    dist.remove_all()
+    builder.remove()
+    builder.build()
+    dist.distribute()
+except subprocess.CalledProcessError as cp:
+    if cp.output is not None:
+        print('----- Stdout -----')
+        print(cp.output)
+        print('----- Stderr -----')
+        print(cp.stderr)
+    raise
