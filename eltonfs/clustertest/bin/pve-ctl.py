@@ -277,6 +277,10 @@ class TemplateBuilder(typing.NamedTuple):
             'cores': VCPUS,
             'vcpus': VCPUS,
         }
+        # WORKAROUND: cloud-initのディスクがコピーされないバグを回避するための処置。
+        self.output.config = {'ide2': 'none'}
+        self.output.config = {'ide2': 'ssd:cloudinit'}
+
         self.output.start().wait()
         wait_for(lambda: self._is_ready(self.output))
         self._run_script(self.output, self.script_name)
