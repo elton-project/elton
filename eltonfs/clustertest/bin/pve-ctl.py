@@ -38,7 +38,7 @@ SHARED_IMAGE = '/mnt/pve/nas/vm_image.qcow2'
 
 p = proxmoxer.ProxmoxAPI(
     'elton-pve.internal.t-lab.cs.teu.ac.jp',
-    user='root@pam',
+    user=os.environ.get('PROXMOX_USER'),
     password=os.environ.get('PROXMOX_PW'),
     verify_ssl=False,
 )
