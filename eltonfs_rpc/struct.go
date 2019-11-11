@@ -24,3 +24,5 @@ type Setup2 struct {
 type Ping struct {
 	XXX_XDR_ID struct{} `xdrid:"3"`
 }
+
+const MaxStructID = 3

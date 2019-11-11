@@ -15,6 +15,7 @@ import (
 const XDRTag = "xdr"
 const XDRStructIDField = "XXX_XDR_ID"
 const XDRStructIDTag = "xdrid"
+const MaxAllowedPacketSize = 128 * (1 << 20) // 128 MiB
 
 type XDREncoder interface {
 	Uint8(n uint8)
@@ -347,6 +348,19 @@ func (d *binDecoder) RawPacket() *rawPacket {
 		sid:   d.Uint64(),
 		data:  nil,
 	}
+	if p.size > MaxAllowedPacketSize {
+		err := xerrors.Errorf("packet too large: limit=%d receivedPacket=%d", MaxAllowedPacketSize, p.size)
+		panic(err)
+	}
+	if p.flags&3 == 3 {
+		err := xerrors.Errorf("create/close session flags are exclusive. but both flags are specified")
+		panic(err)
+	}
+	if p.sid > MaxStructID {
+		err := xerrors.Errorf("invalid struct id: %d", p.sid)
+		panic(err)
+	}
+
 	p.data = make([]byte, p.size)
 	d.r.MustReadAll(p.data)
 	return p
