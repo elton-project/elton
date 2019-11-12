@@ -40,7 +40,8 @@ struct raw_packet {
 
 // Encode the struct and generate raw_packet.
 // The out variable sets new pointer to raw_packet.
-int elton_rpc_encode_packet(struct packet *in, struct raw_packet **out);
+int elton_rpc_encode_packet(struct packet *in, struct raw_packet **out,
+                            u64 session_id, u8 flags);
 // Decode raw_apcket.
 // This out variables sets new pointer to the struct.
 int elton_rpc_decode_packet(struct raw_packet *in, void **out);

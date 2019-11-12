@@ -342,7 +342,7 @@ static int rpc_session_worker(void *_s) {
 
     // Encode data.
     SESSION_DEBUG(s, "preparing setup2 ...");
-    GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw));
+    GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw, 0, 0));
     BUG_ON(raw == NULL);
     BUG_ON(raw->data == NULL);
     // Send data to client.
@@ -708,10 +708,7 @@ static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
       .data = data,
   };
 
-  GOTO_IF(error, elton_rpc_encode_packet(&pkt, &raw));
-  raw->session_id = ns->nsid;
-  raw->flags = flags;
-
+  GOTO_IF(error, elton_rpc_encode_packet(&pkt, &raw, ns->nsid, flags));
   GOTO_IF(error_write, rpc_sock_write_raw_packet(ns->session->sock, raw));
   NS_DEBUG(ns, "sent a struct: struct_id=%d, flags=%d", struct_id, flags);
 
