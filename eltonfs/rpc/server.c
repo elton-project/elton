@@ -218,6 +218,7 @@ static int rpc_sock_read_raw_packet(struct socket *sock,
 
   GOTO_IF(error_header, READ_SOCK_ALL(sock, buff_header,
                                       ELTON_RPC_PACKET_HEADER_SIZE, &offset));
+  BUG_ON(ELTON_RPC_PACKET_HEADER_SIZE != offset);
   GOTO_IF(error_header,
           elton_rpc_get_raw_packet_size(buff_header, offset, &payload_size));
 
