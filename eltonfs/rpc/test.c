@@ -38,7 +38,7 @@ void test_encode_packet(void) {
   };
 
   // Valid data.
-  ASSERT_NO_ERROR(elton_rpc_encode_packet(&p1, &out));
+  ASSERT_NO_ERROR(elton_rpc_encode_packet(&p1, &out, 0, 0));
   out->free(out);
   // Invalid data.
   // MUST panic while encoding.
