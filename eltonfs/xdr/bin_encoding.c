@@ -19,7 +19,7 @@ int __check_encoder_status(struct xdr_encoder *enc) {
     int err = __check_encoder_status(enc);                                     \
     if (err) {                                                                 \
       enc->error = err;                                                        \
-      return err;                                                              \
+      RETURN_IF(err);                                                          \
     }                                                                          \
   } while (0)
 
@@ -33,7 +33,7 @@ int __check_decoder_status(struct xdr_decoder *dec) {
     int err = __check_decoder_status(dec);                                     \
     if (err) {                                                                 \
       dec->error = err;                                                        \
-      return err;                                                              \
+      RETURN_IF(err);                                                          \
     }                                                                          \
   } while (0)
 
@@ -41,7 +41,7 @@ int __check_decoder_status(struct xdr_decoder *dec) {
   do {                                                                         \
     if (xdr->pos + (size) > xdr->len) {                                        \
       xdr->error = -ELTON_XDR_NEED_MORE_MEM;                                   \
-      return -ELTON_XDR_NEED_MORE_MEM;                                         \
+      RETURN_IF(-ELTON_XDR_NEED_MORE_MEM);                                     \
     }                                                                          \
   } while (0)
 
@@ -49,7 +49,7 @@ int __check_decoder_status(struct xdr_decoder *dec) {
   do {                                                                         \
     if (xdr->buffer != NULL && xdr->pos + (size) > xdr->len) {                 \
       xdr->error = -ELTON_XDR_NOMEM;                                           \
-      return -ELTON_XDR_NOMEM;                                                 \
+      RETURN_IF(-ELTON_XDR_NOMEM);                                             \
     }                                                                          \
   } while (0)
 
@@ -71,6 +71,7 @@ int bin_decoder_init(struct xdr_decoder *dec, char *buff, size_t len) {
 }
 
 static int enc_u8(struct xdr_encoder *enc, u8 val) {
+  int error;
   CHECK_ENCODER_STATUS(enc);
   CHECK_WRITE_SIZE(enc, 1);
   if (enc->buffer)
@@ -79,6 +80,7 @@ static int enc_u8(struct xdr_encoder *enc, u8 val) {
   return 0;
 }
 static int enc_u64(struct xdr_encoder *enc, u64 val) {
+  int error;
   CHECK_ENCODER_STATUS(enc);
   CHECK_WRITE_SIZE(enc, 8);
   if (enc->buffer) {
@@ -96,10 +98,11 @@ static int enc_u64(struct xdr_encoder *enc, u64 val) {
   return 0;
 }
 static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
+  int error;
   CHECK_ENCODER_STATUS(enc);
   CHECK_WRITE_SIZE(enc, 8 + len);
   // Write length.
-  enc_u64(enc, len);
+  RETURN_IF(enc_u64(enc, len));
   // Write body.
   if (enc->buffer)
     memcpy(enc->buffer + enc->pos, bytes, len);
@@ -108,6 +111,7 @@ static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
 }
 
 static int dec_u8(struct xdr_decoder *dec, u8 *val) {
+  int error;
   CHECK_DECODER_STATUS(dec);
   CHECK_READ_SIZE(dec, 1);
   if (val)
@@ -116,6 +120,7 @@ static int dec_u8(struct xdr_decoder *dec, u8 *val) {
   return 0;
 }
 static int dec_u64(struct xdr_decoder *dec, u64 *val) {
+  int error;
   CHECK_DECODER_STATUS(dec);
   CHECK_READ_SIZE(dec, 8);
   if (val) {
@@ -134,15 +139,13 @@ static int dec_u64(struct xdr_decoder *dec, u64 *val) {
   return 0;
 }
 static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
+  int error;
   u64 size;
-  int err;
-  err = dec_u64(dec, &size);
-  if (err < 0)
-    return err;
 
+  RETURN_IF(dec_u64(dec, &size));
   if (bytes != NULL && *len < size) {
     dec->error = -ELTON_XDR_NOMEM;
-    return -ELTON_XDR_NOMEM;
+    RETURN_IF(-ELTON_XDR_NOMEM);
   }
 
   CHECK_DECODER_STATUS(dec);

@@ -204,10 +204,8 @@ static int __rpc_sock_read_packet(struct socket *sock, char *buff,
   GOTO_IF(error_size,
           elton_rpc_get_raw_packet_size(buff, offset, &payload_size));
 
-  if (size < payload_size) {
-    error = -ELTON_XDR_NEED_MORE_MEM;
-    goto error_size;
-  }
+  if (size < payload_size)
+    GOTO_IF(error_size, -ELTON_XDR_NEED_MORE_MEM);
 
   GOTO_IF(error_read_body, READ_SOCK_ALL(sock, buff, payload_size, &offset));
   return 0;
@@ -241,10 +239,9 @@ static int rpc_sock_read_raw_packet(struct socket *sock,
 
   buff_size = ELTON_RPC_PACKET_HEADER_SIZE + payload_size;
   buff = vmalloc(buff_size);
-  if (buff == NULL) {
-    error = -ENOMEM;
-    goto error_alloc_buff;
-  }
+  if (buff == NULL)
+    GOTO_IF(error_alloc_buff, -ENOMEM);
+
   memcpy(buff, buff_header, offset);
 
   GOTO_IF(error_body, READ_SOCK_ALL(sock, buff, buff_size, &offset));
@@ -303,10 +300,8 @@ static int rpc_session_worker(void *_s) {
   const size_t buff_size = ELTON_RPC_MAX_RAW_PACKET_SIZE;
 
   buff = vmalloc(buff_size);
-  if (buff == NULL) {
-    error = -ENOMEM;
-    goto error_buff_alloc;
-  }
+  if (buff == NULL)
+    GOTO_IF(error_buff_alloc, -ENOMEM);
 
   // Start handshake.
   {
@@ -376,9 +371,8 @@ static int rpc_session_worker(void *_s) {
       ns = (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns),
                                           GFP_KERNEL);
       if (ns == NULL) {
-        error = -ENOMEM;
         SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
-        goto error_enqueue;
+        GOTO_IF(error_enqueue, -ENOMEM);
       }
       elton_rpc_ns_init(ns, s, raw->session_id, false);
       SESSION_DEBUG(s, "created new session by umh");
@@ -414,15 +408,13 @@ int rpc_sock_set_file(struct socket *newsock, char *name) {
   struct file *newfile;
 
   newfd = get_unused_fd_flags(0);
-  if (newfd < 0) {
-    error = newfd;
-    goto error_newfd;
-  }
+  if (newfd < 0)
+    GOTO_IF(error_newfd, newfd);
+
   newfile = sock_alloc_file(newsock, 0, name);
-  if (IS_ERR(newfile)) {
-    error = PTR_ERR(newfile);
-    goto error_alloc_file;
-  }
+  if (IS_ERR(newfile))
+    GOTO_IF(error_alloc_file, PTR_ERR(newfile));
+
   fd_install(newfd, newfile);
   return 0;
 
@@ -493,9 +485,8 @@ static int rpc_master_worker(void *_srv) {
 
     s = kmalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
     if (s == NULL) {
-      error = -ENOMEM;
       RPC_ERR("master: failed to allocate elton_rpc_session");
-      goto error_accept;
+      GOTO_IF(error_accept, -ENOMEM);
     }
     elton_rpc_session_init(s, srv, session_id, newsock);
 
@@ -503,9 +494,8 @@ static int rpc_master_worker(void *_srv) {
     task = (struct task_struct *)kthread_run(rpc_session_worker, s,
                                              "elton-rpc [%d]", session_id);
     if (IS_ERR(task)) {
-      error = PTR_ERR(task);
       RPC_ERR("master: kthread_run returns an error %d", error);
-      goto error_kthread;
+      GOTO_IF(error_kthread, PTR_ERR(task));
     }
     mutex_lock(&s->task_lock);
     s->task = task;
@@ -540,9 +530,8 @@ static int rpc_start_worker(struct elton_rpc_server *s) {
   // Start master worker.
   task = kthread_run(rpc_master_worker, s, "elton-rpc [master]");
   if (IS_ERR(task)) {
-    error = PTR_ERR(task);
     RPC_ERR("kthread_run returns an error %d", error);
-    goto error;
+    GOTO_IF(error, PTR_ERR(task));
   }
   RPC_INFO("started master worker");
   mutex_lock(&s->task_lock);
@@ -571,13 +560,14 @@ static int rpc_start_umh(struct elton_rpc_server *s) {
   };
 
   // todo: register subprocess_info to server.
+
   error = call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
   if (error) {
     RPC_ERR("failed to start UMH with error %d", error);
-    return error;
+    RETURN_IF(error);
   }
   RPC_INFO("start " ELTONFS_HELPER);
-  return error;
+  return 0;
 }
 
 // Get new nsid.
@@ -629,6 +619,7 @@ static u64 get_nsid_hash(struct elton_rpc_ns *ns) {
 
 static int rpc_new_session(struct elton_rpc_server *srv,
                            struct elton_rpc_ns *ns) {
+  int error;
   struct elton_rpc_session *s = NULL;
   u64 nsid;
   u64 hash;
@@ -639,7 +630,7 @@ static int rpc_new_session(struct elton_rpc_server *srv,
   if (s == NULL)
     // Session not found.  Elton needs at least one session to create nested
     // session.
-    return -EINVAL;
+    RETURN_IF(-EINVAL);
 
   // Find the unused nsid.
   do {
@@ -714,8 +705,7 @@ static int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
   spin_lock(&ns->lock);
   if (!ns->sendable) {
     // Can not send data because it is closed.
-    error = -ELTON_RPC_ALREADY_CLOSED;
-    goto error_precondition;
+    GOTO_IF(error_precondition, -ELTON_RPC_ALREADY_CLOSED);
   }
   if (!ns->established)
     flags |= ELTON_SESSION_FLAG_CREATE;
@@ -731,12 +721,15 @@ static int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
 error_precondition:
   spin_unlock(&ns->lock);
   mutex_unlock(&ns->session->sock_write_lock);
-  return error;
+
+  RETURN_IF(error);
+  return 0;
 }
 
-static int ns_send_error(struct elton_rpc_ns *ns,
-                         struct elton_rpc_error *error) {
-  return ns_send_struct(ns, ELTON_RPC_ERROR_ID, error);
+static int ns_send_error(struct elton_rpc_ns *ns, struct elton_rpc_error *e) {
+  int error;
+  RETURN_IF(ns_send_struct(ns, ELTON_RPC_ERROR_ID, e));
+  return 0;
 }
 
 static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
@@ -757,10 +750,9 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
 
   if (raw->struct_id != struct_id) {
     // Unexpected struct.
-    error = -ELTON_RPC_DIFF_TYPE;
     NS_ERR(ns, "unexpected struct is received: expected=%llu, actual=%llu",
            struct_id, raw->struct_id);
-    goto error_dequeue;
+    GOTO_IF(error_dequeue, -ELTON_RPC_DIFF_TYPE);
   }
 
   GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, data));
@@ -783,16 +775,17 @@ static int ns_close(struct elton_rpc_ns *ns) {
     goto out;
   if (!ns->sendable) {
     // Already closed?
-    error = -ELTON_RPC_ALREADY_CLOSED;
-    goto out;
+    GOTO_IF(out, -ELTON_RPC_ALREADY_CLOSED);
   }
   spin_unlock(&ns->lock);
 
   error = ns_send_packet_without_lock(ns, ELTON_RPC_PACKET_FLAG_CLOSE,
                                       ELTON_RPC_PING_ID, &ping);
+  CHECK_ERROR(error);
 
   spin_lock(&ns->lock);
   ns->sendable = false;
+
 out:
   spin_unlock(&ns->lock);
   mutex_unlock(&ns->session->sock_write_lock);

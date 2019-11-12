@@ -37,10 +37,8 @@
        * First time: calculate the required buffer size.                       \
        * Second time: encode data to buffer. */                                \
       encode_process;                                                          \
-      if (enc.error) {                                                         \
-        error = enc.error;                                                     \
-        goto error;                                                            \
-      }                                                                        \
+      if (enc.error)                                                           \
+        GOTO_IF(error, enc.error);                                             \
                                                                                \
       /* Break the loop when second time. */                                   \
       if (enc.buffer)                                                          \
@@ -49,10 +47,8 @@
       /* Initialize raw_packet. */                                             \
       size = enc.pos;                                                          \
       raw = (struct raw_packet *)vmalloc(sizeof(struct raw_packet) + size);    \
-      if (raw == NULL) {                                                       \
-        error = -ENOMEM;                                                       \
-        goto error;                                                            \
-      }                                                                        \
+      if (raw == NULL)                                                         \
+        GOTO_IF(error, -ENOMEM);                                               \
       raw->size = size;                                                        \
       raw->struct_id = in->struct_id;                                          \
       raw->free = free_raw_packet;                                             \
@@ -92,25 +88,19 @@
     /* Calculate additional space of struct_type. */                           \
     GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
     size = additional_space;                                                   \
-    if (dec.error) {                                                           \
-      error = dec.error;                                                       \
-      goto error;                                                              \
-    }                                                                          \
+    if (dec.error)                                                             \
+      GOTO_IF(error, dec.error);                                               \
                                                                                \
     /* Allocate memory of strct_type. */                                       \
     s = (struct_type *)kmalloc(sizeof(struct_type) + size, GFP_KERNEL);        \
-    if (s == NULL) {                                                           \
-      error = -ENOMEM;                                                         \
-      goto error;                                                              \
-    }                                                                          \
+    if (s == NULL)                                                             \
+      GOTO_IF(error, -ENOMEM);                                                 \
                                                                                \
     /* Decode it. */                                                           \
     GOTO_IF(error_s, default_decoder_init(&dec, in->data, in->size));          \
     decode_process;                                                            \
-    if (dec.error) {                                                           \
-      error = dec.error;                                                       \
-      goto error_s;                                                            \
-    }                                                                          \
+    if (dec.error)                                                             \
+      GOTO_IF(error_s, dec.error);                                             \
     goto finish;                                                               \
                                                                                \
   error_s:                                                                     \
@@ -319,8 +309,7 @@ int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff, size_t len,
   raw = (struct raw_packet *)kmalloc(sizeof(struct raw_packet) + data_size,
                                      GFP_KERNEL);
   if (raw == NULL) {
-    error = -ENOMEM;
-    goto error;
+    GOTO_IF(error, -ENOMEM);
   }
   raw->size = data_size;
   GOTO_IF(error, dec.dec_op->u64(&dec, &raw->session_id));
@@ -328,8 +317,7 @@ int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff, size_t len,
   GOTO_IF(error, dec.dec_op->u64(&dec, &raw->struct_id));
 
   if (len < dec.pos + data_size) {
-    error = -ELTON_XDR_NEED_MORE_MEM;
-    goto error;
+    GOTO_IF(error, -ELTON_XDR_NEED_MORE_MEM);
   }
   raw->data = &raw->__embeded_buffer;
   memcpy(raw->data, buff + dec.pos, data_size);

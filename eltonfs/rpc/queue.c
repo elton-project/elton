@@ -21,8 +21,7 @@ int elton_rpc_enqueue(struct elton_rpc_queue *q, struct raw_packet *in) {
   entry = (struct elton_rpc_queue_entry *)kmalloc(
       sizeof(struct elton_rpc_queue_entry), GFP_KERNEL);
   if (entry == NULL) {
-    error = -ENOMEM;
-    goto error;
+    GOTO_IF(error, -ENOMEM);
   }
   entry->raw = in;
 
