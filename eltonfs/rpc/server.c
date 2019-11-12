@@ -198,6 +198,8 @@ static int rpc_sock_read_packet(struct socket *sock, u64 struct_id,
   struct raw_packet *raw = NULL;
 
   GOTO_IF(error_read, rpc_sock_read_raw_packet(sock, &raw));
+  if (raw->struct_id != struct_id)
+    GOTO_IF(error_decode, -ELTON_RPC_DIFF_TYPE);
   GOTO_IF(error_decode, elton_rpc_decode_packet(raw, out));
 
 error_decode:
