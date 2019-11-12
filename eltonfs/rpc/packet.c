@@ -47,7 +47,7 @@
         goto error;                                                            \
       }                                                                        \
       raw->size = size;                                                        \
-      raw->struct_id = ELTON_RPC_SETUP1_ID;                                    \
+      raw->struct_id = in->struct_id;                                          \
       raw->free = free_raw_packet;                                             \
       raw->data = &raw->__embeded_buffer;                                      \
                                                                                \
