@@ -34,28 +34,25 @@ extern volatile bool __assertion_failed;
   })
 // エラーなら指定したラベルにジャンプする。
 #define GOTO_IF(label, expr)                                                   \
-  ({                                                                           \
+  do {                                                                         \
     error = CHECK_ERROR(expr);                                                 \
     if (error)                                                                 \
       goto label;                                                              \
-    error;                                                                     \
-  })
+  } while (0)
 // エラーならreturnする。関数に戻り値がない場合、RETURN_VOID_IF()を使う。
 #define RETURN_IF(expr)                                                        \
-  ({                                                                           \
+  do {                                                                         \
     error = CHECK_ERROR(expr);                                                 \
     if (error)                                                                 \
       return error;                                                            \
-    error;                                                                     \
-  })
+  } while (0)
 // エラーならreturnする。戻り値が無い関数用。
 #define RETURN_VOID_IF(expr)                                                   \
-  ({                                                                           \
+  do {                                                                         \
     error = CHECK_ERROR(expr);                                                 \
     if (error)                                                                 \
       return;                                                                  \
-    error;                                                                     \
-  })
+  } while (0)
 // ポインタがNULLの場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
 #define ASSERT_NOT_NULL(expr)                                                  \
