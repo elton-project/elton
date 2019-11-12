@@ -337,25 +337,17 @@ static int rpc_session_worker(void *_s) {
         .data = &setup2,
     };
     struct raw_packet *raw = NULL;
+
     ssize_t n;
     loff_t wrote = 0;
 
-    // Encode data.
     SESSION_DEBUG(s, "preparing setup2 ...");
     GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw, 0, 0));
     BUG_ON(raw == NULL);
     BUG_ON(raw->data == NULL);
-    // Send data to client.
+
     SESSION_DEBUG(s, "sending setup2 ...");
-    while (wrote < raw->size) {
-      n = WRITE_SOCK(s->sock, raw->data, raw->size, &wrote);
-      if (n < 0) {
-        error = n;
-        SESSION_ERR(s, "failed handshake on setup2 stage: write error %d",
-                    error);
-        goto error_setup2;
-      }
-    }
+    GOTO_IF(error_setup2, rpc_sock_write_raw_packet(s->sock, raw));
     SESSION_DEBUG(s, "sent setup2");
 
   error_setup2:
