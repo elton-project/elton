@@ -35,22 +35,22 @@ extern volatile bool __assertion_failed;
 // エラーなら指定したラベルにジャンプする。
 #define GOTO_IF(label, expr)                                                   \
   do {                                                                         \
-    error = CHECK_ERROR(expr);                                                 \
-    if (error)                                                                 \
+    error = (expr);                                                            \
+    if (CHECK_ERROR(error))                                                    \
       goto label;                                                              \
   } while (0)
 // エラーならreturnする。関数に戻り値がない場合、RETURN_VOID_IF()を使う。
 #define RETURN_IF(expr)                                                        \
   do {                                                                         \
-    error = CHECK_ERROR(expr);                                                 \
-    if (error)                                                                 \
+    error = (expr);                                                            \
+    if (CHECK_ERROR(error))                                                    \
       return error;                                                            \
   } while (0)
 // エラーならreturnする。戻り値が無い関数用。
 #define RETURN_VOID_IF(expr)                                                   \
   do {                                                                         \
-    error = CHECK_ERROR(expr);                                                 \
-    if (error)                                                                 \
+    error = (expr);                                                            \
+    if (CHECK_ERROR(error))                                                    \
       return;                                                                  \
   } while (0)
 // ポインタがNULLの場合、WARNINGを表示してtrueを返す。
