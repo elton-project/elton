@@ -289,10 +289,14 @@ static int __init fs_module_init(void) {
   DEBUG("Loading the module ...");
 
 #ifdef ELTONFS_UNIT_TEST
+  INFO("Running unit test cases");
   test_xdr();
   test_rpc();
-  if (IS_ASSERTION_FAILED())
+  if (IS_ASSERTION_FAILED()) {
+    ERR("Failed to some unit test cases");
     return 1;
+  }
+  INFO("Finished all test cases without error");
 #endif // ELTONFS_UNIT_TEST
 
   // Register filesystem.
