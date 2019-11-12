@@ -189,39 +189,24 @@ static void elton_rpc_ns_init(struct elton_rpc_ns *ns,
                               bool is_client);
 
 static u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
+static int rpc_sock_read_raw_packet(struct socket *sock,
+                                    struct raw_packet **out);
 
-static int __rpc_sock_read_packet(struct socket *sock, char *buff,
-                                  size_t size) {
-  int error;
-  size_t payload_size;
-  ssize_t offset = 0;
+static int rpc_sock_read_packet(struct socket *sock, u64 struct_id,
+                                void **out) {
+  int error = 0;
+  struct raw_packet *raw = NULL;
 
-  BUG_ON(size < ELTON_RPC_PACKET_HEADER_SIZE);
+  GOTO_IF(error_read, rpc_sock_read_raw_packet(sock, &raw));
+  GOTO_IF(error_decode, elton_rpc_decode_packet(raw, out));
 
-  GOTO_IF(error_read_header,
-          READ_SOCK_ALL(sock, buff, ELTON_RPC_PACKET_HEADER_SIZE, &offset));
-  BUG_ON(offset < ELTON_RPC_PACKET_HEADER_SIZE);
-  GOTO_IF(error_size,
-          elton_rpc_get_raw_packet_size(buff, offset, &payload_size));
-
-  if (size < payload_size)
-    GOTO_IF(error_size, -ELTON_XDR_NEED_MORE_MEM);
-
-  GOTO_IF(error_read_body, READ_SOCK_ALL(sock, buff, payload_size, &offset));
-  return 0;
-
-error_read_body:
-error_size:
-error_read_header:
+error_decode:
+  if (raw)
+    raw->free(raw);
+error_read:
   return error;
 }
-static int rpc_sock_read_packet(struct socket *sock, struct raw_packet *in,
-                                void **out) {
-  int error;
-  RETURN_IF(__rpc_sock_read_packet(sock, in->data, in->size));
-  RETURN_IF(elton_rpc_decode_packet(in, out));
-  return 0;
-}
+
 static int rpc_sock_read_raw_packet(struct socket *sock,
                                     struct raw_packet **out) {
   int error = 0;
@@ -295,25 +280,13 @@ static int rpc_session_worker(void *_s) {
   int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
   struct elton_rpc_setup1 *setup1;
-  char *buff;
-  const size_t buff_size = ELTON_RPC_MAX_RAW_PACKET_SIZE;
-
-  buff = vmalloc(buff_size);
-  if (buff == NULL)
-    GOTO_IF(error_buff_alloc, -ENOMEM);
 
   // Start handshake.
   {
     // Receiving setup1.
-    struct raw_packet raw = {
-        .size = buff_size,
-        .struct_id = ELTON_RPC_SETUP1_ID,
-        .data = buff,
-    };
-
     SESSION_DEBUG(s, "waiting setup1 ...");
-    GOTO_IF(error_setup1,
-            rpc_sock_read_packet(s->sock, &raw, (void **)&setup1));
+    GOTO_IF(error_setup1, rpc_sock_read_packet(s->sock, ELTON_RPC_SETUP1_ID,
+                                               (void **)&setup1));
     SESSION_DEBUG(s, "received setup1 from client");
   }
 
@@ -397,7 +370,6 @@ error_setup1:
   s->sock = NULL;
   // Unregister from s->server->ss_table.
   DELETE_SESSION(s);
-error_buff_alloc:
   return error;
 }
 
