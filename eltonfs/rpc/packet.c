@@ -321,6 +321,7 @@ int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff,
   }
   raw->data = &raw->__embeded_buffer;
   memcpy(raw->data, buff + dec.pos, data_size);
+  raw->free = free_raw_packet;
 
   *out = raw;
   return 0;
