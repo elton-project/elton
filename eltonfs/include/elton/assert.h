@@ -71,7 +71,7 @@ extern volatile bool __assertion_failed;
 #define ASSERT_NO_ERROR(expr)                                                  \
   ({                                                                           \
     typeof(expr) error = expr;                                                 \
-    bool fail = error;                                                         \
+    bool fail = error < 0;                                                     \
     if (fail) {                                                                \
       ERR("ASSERT: %s returns an error %d (%s %s:%d)", #expr, error, __func__, \
           __FILE__, __LINE__);                                                 \
