@@ -1,6 +1,6 @@
 #include <elton/assert.h>
 #include <elton/compiler_attributes.h>
-#include <elton/rpc/error.h>
+#include <elton/error.h>
 #include <elton/rpc/packet.h>
 #include <elton/rpc/queue.h>
 #include <elton/rpc/server.h>

@@ -1,6 +1,6 @@
 #include <elton/assert.h>
+#include <elton/error.h>
 #include <elton/xdr/bin_encoding.h>
-#include <elton/xdr/error.h>
 #include <elton/xdr/interface.h>
 #include <linux/string.h>
 

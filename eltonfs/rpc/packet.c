@@ -1,7 +1,7 @@
 #include <elton/assert.h>
+#include <elton/error.h>
 #include <elton/rpc/packet.h>
 #include <elton/rpc/struct.h>
-#include <elton/xdr/error.h>
 #include <elton/xdr/interface.h>
 #include <linux/bug.h>
 #include <linux/vmalloc.h>
