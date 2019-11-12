@@ -81,6 +81,16 @@
       *(offset) += result;                                                     \
     result;                                                                    \
   })
+#define WRITE_SOCK_ALL(sock, buff, size, offset)                               \
+  ({                                                                           \
+    ssize_t result = 0;                                                        \
+    while (*offset < size) {                                                   \
+      result = WRITE_SOCK((sock), (buff), (size), (offset));                   \
+      if (result < 0)                                                          \
+        break;                                                                 \
+    }                                                                          \
+    result;                                                                    \
+  })
 #define SOCK_PROTO_NAME(sock) (sock)->sk->sk_prot_creator->name
 
 // Get an entry from hashtable.  If entry is not found, returns NULL.
@@ -249,6 +259,27 @@ error_body:
 error_alloc_buff:
 error_header:
   return error;
+}
+static int rpc_sock_write_raw_packet(struct socket *sock,
+                                     struct raw_packet *raw) {
+  int error;
+  size_t offset;
+  struct xdr_encoder enc;
+  char buff_header[ELTON_RPC_PACKET_HEADER_SIZE];
+
+  RETURN_IF(default_encoder_init(&enc, buff_header, sizeof(buff_header)));
+  enc.enc_op->u64(&enc, raw->size);
+  enc.enc_op->u64(&enc, raw->session_id);
+  enc.enc_op->u8(&enc, raw->flags);
+  enc.enc_op->u64(&enc, raw->struct_id);
+  RETURN_IF(enc.error);
+
+  offset = 0;
+  RETURN_IF(WRITE_SOCK_ALL(sock, buff_header, sizeof(buff_header), &offset));
+
+  offset = 0;
+  RETURN_IF(WRITE_SOCK_ALL(sock, raw->data, raw->size, &offset));
+  return 0;
 }
 
 // Handle an accepted session and start handshake process with client.
@@ -676,35 +707,12 @@ static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
       .struct_id = struct_id,
       .data = data,
   };
-  struct xdr_encoder enc;
-  char buff[25];
-  loff_t offset;
-  ssize_t n;
 
   GOTO_IF(error, elton_rpc_encode_packet(&pkt, &raw));
   raw->session_id = ns->nsid;
   raw->flags = flags;
 
-  GOTO_IF(error_encode, default_encoder_init(&enc, buff, sizeof(buff)));
-  enc.enc_op->u64(&enc, raw->size);
-  enc.enc_op->u64(&enc, raw->session_id);
-  enc.enc_op->u8(&enc, raw->flags);
-  enc.enc_op->u64(&enc, raw->struct_id);
-  if (enc.error) {
-    error = enc.error;
-    NS_ERR(ns, "failed to encode with error code %d", error);
-    goto error_encode;
-  }
-
-  offset = 0;
-  while (offset < sizeof(buff)) {
-    n = WRITE_SOCK(ns->session->sock, buff, sizeof(buff), &offset);
-    if (n < 0) {
-      error = n;
-      NS_ERR(ns, "write error %d", error);
-      goto error_write;
-    }
-  }
+  GOTO_IF(error_write, rpc_sock_write_raw_packet(ns->session->sock, raw));
   NS_DEBUG(ns, "sent a struct: struct_id=%d, flags=%d", struct_id, flags);
 
 error_write:
