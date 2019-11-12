@@ -273,14 +273,11 @@ static int lookup(u64 struct_id, const struct entry **entry) {
 
 int elton_rpc_encode_packet(struct packet *in, struct raw_packet **out,
                             u64 session_id, u8 flags) {
+  int error;
   const struct entry *entry;
-  int error = lookup(in->struct_id, &entry);
-  if (error)
-    return error;
 
-  error = entry->encode(in, out);
-  if (error)
-    return error;
+  RETURN_IF(lookup(in->struct_id, &entry));
+  RETURN_IF(entry->encode(in, out));
 
   BUG_ON(*out == NULL);
   (*out)->session_id = session_id;
@@ -289,12 +286,12 @@ int elton_rpc_encode_packet(struct packet *in, struct raw_packet **out,
 }
 
 int elton_rpc_decode_packet(struct raw_packet *in, void **out) {
+  int error;
   const struct entry *entry;
-  int error = lookup(in->struct_id, &entry);
-  if (error)
-    return error;
 
-  return entry->decode(in, out);
+  RETURN_IF(lookup(in->struct_id, &entry));
+  RETURN_IF(entry->decode(in, out));
+  return 0;
 }
 
 void elton_rpc_free_decoded_data(void *data) { kfree(data); }
