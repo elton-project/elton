@@ -338,9 +338,6 @@ static int rpc_session_worker(void *_s) {
     };
     struct raw_packet *raw = NULL;
 
-    ssize_t n;
-    loff_t wrote = 0;
-
     SESSION_DEBUG(s, "preparing setup2 ...");
     GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw, 0, 0));
     BUG_ON(raw == NULL);
