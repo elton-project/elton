@@ -200,7 +200,7 @@ static int __rpc_sock_read_packet(struct socket *sock, char *buff,
     goto error_size;
   }
 
-  GOTO_IF(error_read_body, READ_SOCK_ALL(sock, buff, size, &offset));
+  GOTO_IF(error_read_body, READ_SOCK_ALL(sock, buff, payload_size, &offset));
   return 0;
 
 error_read_body:
