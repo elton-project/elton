@@ -191,9 +191,10 @@ static int __rpc_sock_read_packet(struct socket *sock, char *buff,
 
   GOTO_IF(error_read_header,
           READ_SOCK_ALL(sock, buff, ELTON_RPC_PACKET_HEADER_SIZE, &offset));
-  GOTO_IF(error_size, elton_rpc_get_raw_packet_size(buff, 0, &payload_size));
-
   BUG_ON(offset < ELTON_RPC_PACKET_HEADER_SIZE);
+  GOTO_IF(error_size,
+          elton_rpc_get_raw_packet_size(buff, offset, &payload_size));
+
   if (size < payload_size) {
     error = -ELTON_XDR_NEED_MORE_MEM;
     goto error_size;
