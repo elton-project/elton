@@ -6,10 +6,17 @@
 #include <linux/bug.h>
 #include <linux/vmalloc.h>
 
-// struct_id:      Struct ID.
-// struct_type:    Type name of the target struct.
-// in:             Variable name of struct packet.
-// encode_process: Statements or block that encodes a struct.
+// Encodes packet and returns a pointer to raw_packet.
+//
+// Arguments:
+//   struct_id:      Struct ID.
+//   struct_type:    Type name of the target struct.
+//   in:             Variable name of struct packet.
+//   encode_process: Statements or block that encodes a struct.
+//
+// Returns: struct raw_packet *
+//   The session_id and flags field ARE NOT initialized.  MUST set these fields
+//   on callee.
 #define ENCODE(struct_id_, struct_type, in, encode_process)                    \
   ({                                                                           \
     struct_type *s;                                                            \
