@@ -75,6 +75,7 @@ extern volatile bool __assertion_failed;
     if (fail) {                                                                \
       ERR("ASSERT: %s returns an error %d (%s %s:%d)", #expr, error, __func__, \
           __FILE__, __LINE__);                                                 \
+      SET_ASSERTION_FAILED();                                                  \
     }                                                                          \
     fail;                                                                      \
   })
