@@ -306,8 +306,7 @@ int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff,
   RETURN_IF(default_decoder_init(&dec, buff, len));
   RETURN_IF(dec.dec_op->u64(&dec, &data_size));
 
-  raw = (struct raw_packet *)kmalloc(sizeof(struct raw_packet) + data_size,
-                                     GFP_KERNEL);
+  raw = (struct raw_packet *)vmalloc(sizeof(struct raw_packet) + data_size);
   if (raw == NULL) {
     GOTO_IF(error, -ENOMEM);
   }
