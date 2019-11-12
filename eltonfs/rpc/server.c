@@ -247,7 +247,6 @@ static int rpc_sock_read_raw_packet(struct socket *sock,
   GOTO_IF(error_body, READ_SOCK_ALL(sock, buff, buff_size, &offset));
   GOTO_IF(error_body,
           elton_rpc_build_raw_packet(out, buff, buff_size, &consumed_size));
-  return 0;
 
 error_body:
   if (buff)
