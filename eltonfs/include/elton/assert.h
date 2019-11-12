@@ -24,12 +24,13 @@ extern volatile bool __assertion_failed;
 // また、エラー発生時にログを残す。
 #define CHECK_ERROR(expr)                                                      \
   ({                                                                           \
-    typeof(expr) error = expr;                                                 \
-    if (error) {                                                               \
-      ERR("Occurred an error %d on %s (%s:%d)", (int)error, __func__,          \
+    typeof(expr) result = expr;                                                \
+    bool is_error = result < 0;                                                \
+    if (is_error) {                                                            \
+      ERR("Occurred an error %d on %s (%s:%d)", (int)result, __func__,         \
           __FILE__, __LINE__);                                                 \
     }                                                                          \
-    error;                                                                     \
+    is_error;                                                                  \
   })
 // エラーなら指定したラベルにジャンプする。
 #define GOTO_IF(label, expr)                                                   \
