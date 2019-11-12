@@ -716,7 +716,6 @@ static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
   NS_DEBUG(ns, "sent a struct: struct_id=%d, flags=%d", struct_id, flags);
 
 error_write:
-error_encode:
   raw->free(raw);
 error:
   return error;
