@@ -296,8 +296,8 @@ int elton_rpc_get_raw_packet_size(char *buff, size_t len, size_t *packet_size) {
   return 0;
 }
 
-int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff, size_t len,
-                               size_t *consumed) {
+int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff,
+                               size_t len) {
   int error = 0;
   struct xdr_decoder dec;
   struct raw_packet *raw = NULL;

@@ -215,7 +215,6 @@ static int rpc_sock_read_raw_packet(struct socket *sock,
   ssize_t offset = 0;
   char *buff = NULL;
   size_t buff_size;
-  size_t consumed_size;
 
   GOTO_IF(error_header, READ_SOCK_ALL(sock, buff_header,
                                       ELTON_RPC_PACKET_HEADER_SIZE, &offset));
@@ -230,8 +229,7 @@ static int rpc_sock_read_raw_packet(struct socket *sock,
   memcpy(buff, buff_header, offset);
 
   GOTO_IF(error_body, READ_SOCK_ALL(sock, buff, buff_size, &offset));
-  GOTO_IF(error_body,
-          elton_rpc_build_raw_packet(out, buff, buff_size, &consumed_size));
+  GOTO_IF(error_body, elton_rpc_build_raw_packet(out, buff, buff_size));
 
 error_body:
   if (buff)
