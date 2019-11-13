@@ -362,7 +362,7 @@ static int rpc_session_worker(void *_s) {
     struct raw_packet *raw = NULL;
 
     GOTO_IF(error_recv, rpc_sock_read_raw_packet(s->sock, &raw));
-    SESSION_DEBUG(s, "received a packet: struct_id=%llu, flags=%d, size=%zu",
+    SESSION_DEBUG(s, "received a packet: struct_id=%llu, flags=%hhu, size=%zu",
                   raw->struct_id, raw->flags, raw->size);
     GOTO_IF(error_enqueue, rpc_session_enqueue_raw_packet(s, raw));
     continue;
