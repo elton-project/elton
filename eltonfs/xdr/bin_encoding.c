@@ -175,6 +175,8 @@ static int init_struct_encoder(struct xdr_encoder *enc,
   struct_enc->encoded = 0;
   struct_enc->last_field_id = 0;
   struct_enc->op = &struct_encoder_op;
+
+  enc->enc_op->u8(enc, fields);
   return 0;
 }
 static int init_struct_decoder(struct xdr_decoder *dec,
