@@ -34,8 +34,8 @@ struct elton_rpc_ping {};
 
 #define ELTON_RPC_ERROR_ID 4
 struct elton_rpc_error {
-  u64 error_id;
-  char *reason;
+  u64 error_id; // FieldID=1
+  char *reason; // FieldID=2
 
   // Embeds strings at the tail of this struct.
   char __embeded_buffer;
