@@ -319,7 +319,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
         (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns), GFP_KERNEL);
     if (ns == NULL) {
       SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
-      GOTO_IF(error_enqueue, -ENOMEM);
+      GOTO_IF(out_unlock, -ENOMEM);
     }
     elton_rpc_ns_init(ns, s, raw->session_id, false);
     SESSION_DEBUG(s, "created new session by umh");
@@ -327,7 +327,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     ns = NULL;
   }
 
-error_enqueue:
+out_unlock:
   spin_unlock(&s->server->nss_table_lock);
   return error;
 }
