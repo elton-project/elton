@@ -341,8 +341,9 @@ class TemplateDistributor(typing.NamedTuple):
         while True:
             tasks = []
             for vm in self.pool.list():
-                if vm.is_stopped():
-                    vm.config = {'protection': 0}
+                if vm.is_protected:
+                    continue
+                elif vm.is_stopped():
                     tasks.append(vm.remove())
                 else:
                     tasks.append(vm.stop())
