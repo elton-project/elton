@@ -120,30 +120,34 @@ struct entry {
 };
 
 static int setup1_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, {
-    enc.enc_op->bytes(&enc, s->client_name, strlen(s->client_name));
-    enc.enc_op->u64(&enc, s->version_major);
-    enc.enc_op->u64(&enc, s->version_minor);
-    enc.enc_op->u64(&enc, s->version_revision);
-  });
+  ERR("setup1_encode is not implemented");
+  BUG();
   return 0;
 }
 static int setup1_decode(struct raw_packet *in, void **out) {
-  size_t str_size;
-  *out = DECODE(ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, ({
-                  dec.dec_op->bytes(&dec, NULL, &str_size);
-                  str_size + 1;
-                }),
-                {
-                  // Initialize setup1.
-                  s->client_name = &s->__embeded_buffer;
-                  // Decodes.
-                  dec.dec_op->bytes(&dec, s->client_name, &str_size);
-                  s->client_name[str_size] = '\0';
-                  dec.dec_op->u64(&dec, &s->version_major);
-                  dec.dec_op->u64(&dec, &s->version_minor);
-                  dec.dec_op->u64(&dec, &s->version_revision);
-                });
+  size_t str_size = 0;
+  struct xdr_struct_decoder sd;
+  *out = DECODE(
+      ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, ({
+        do {
+          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+          BREAK_IF(sd.op->bytes(&sd, 1, NULL, &str_size)); // Field 1
+        } while (0);
+        str_size + 1;
+      }),
+      ({
+        do {
+          // Initialize setup1.
+          s->client_name = &s->__embeded_buffer;
+          // Decodes.
+          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+          BREAK_IF(sd.op->bytes(&sd, 1, s->client_name, &str_size)); // Field 1
+          s->client_name[str_size] = '\0';
+          sd.op->u64(&sd, 2, &s->version_major);    // Field 2
+          sd.op->u64(&sd, 3, &s->version_minor);    // Field 3
+          sd.op->u64(&sd, 4, &s->version_revision); // Field 4
+        } while (0);
+      }));
   return 0;
 }
 const static struct entry setup1_entry = {

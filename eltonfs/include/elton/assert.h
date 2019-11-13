@@ -39,6 +39,12 @@ extern volatile bool __assertion_failed;
     if (CHECK_ERROR(error))                                                    \
       goto label;                                                              \
   } while (0)
+#define BREAK_IF(expr)                                                         \
+  ({                                                                           \
+    error = (expr);                                                            \
+    if (CHECK_ERROR(error))                                                    \
+      break;                                                                   \
+  })
 // エラーならreturnする。関数に戻り値がない場合、RETURN_VOID_IF()を使う。
 #define RETURN_IF(expr)                                                        \
   do {                                                                         \
