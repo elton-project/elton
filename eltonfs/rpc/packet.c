@@ -122,6 +122,7 @@ struct entry {
 static int setup1_encode(struct packet *in, struct raw_packet **out) {
   ERR("setup1_encode is not implemented");
   BUG();
+  // Unreachable
   return 0;
 }
 static int setup1_decode(struct raw_packet *in, void **out) {
