@@ -122,6 +122,9 @@ class Node(typing.NamedTuple):
     @staticmethod
     def list() -> typing.Generator['Node', None, None]:
         for node in p.nodes.get():
+            if node['status'] != 'online':
+                # This node is not available.
+                continue
             yield Node(name=node['node'])
 
     @property
@@ -149,9 +152,9 @@ class VM(typing.NamedTuple):
 
     @staticmethod
     def list() -> typing.Generator['VM', None, None]:
-        for node in p.nodes.get():
-            for vm in p.nodes(node['node']).qemu.get():
-                yield VM(node['node'], int(vm['vmid']))
+        for node in Node.list():
+            for vm in p.nodes(node.name).qemu.get():
+                yield VM(node.name, int(vm['vmid']))
 
     @staticmethod
     def remove_vms() -> typing.List[Task]:
