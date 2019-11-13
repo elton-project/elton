@@ -147,6 +147,7 @@ static int setup1_decode(struct raw_packet *in, void **out) {
           BREAK_IF(sd.op->u64(&sd, 2, &s->version_major));    // Field 2
           BREAK_IF(sd.op->u64(&sd, 3, &s->version_minor));    // Field 3
           BREAK_IF(sd.op->u64(&sd, 4, &s->version_revision)); // Field 4
+          BREAK_IF(sd.op->close(&sd));
         } while (0);
       }));
   return 0;
@@ -170,6 +171,7 @@ static int setup2_encode(struct packet *in, struct raw_packet **out) {
                  BREAK_IF(se.op->u64(&se, 4, s->version_major));    // Field 4
                  BREAK_IF(se.op->u64(&se, 5, s->version_minor));    // Field 5
                  BREAK_IF(se.op->u64(&se, 6, s->version_revision)); // Field 6
+                 BREAK_IF(se.op->close(&se));
                } while (0);
              }));
   return 0;
