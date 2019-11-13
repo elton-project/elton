@@ -432,8 +432,8 @@ static void test_encode_struct(void) {
     if (ASSERT_NO_ERROR(enc.enc_op->struct_(&enc, &se, 2)))
       return;
     ASSERT_NO_ERROR(se.op->u64(&se, 2, val64));
-    ASSERT_EQUAL_ERROR(ELTON_XDR_INVALID_FIELD_ORDER, se.op->u8(&se, 1, val8));
-    ASSERT_EQUAL_ERROR(ELTON_XDR_INVALID_FIELD_ORDER, se.op->u8(&se, 2, val8));
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_INVALID_FIELD_ORDER, se.op->u8(&se, 1, val8));
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_INVALID_FIELD_ORDER, se.op->u8(&se, 2, val8));
   }
 
   // Test for error handling of not enough fields are written.
@@ -443,7 +443,7 @@ static void test_encode_struct(void) {
     if (ASSERT_NO_ERROR(enc.enc_op->struct_(&enc, &se, 2)))
       return;
     ASSERT_NO_ERROR(se.op->u8(&se, 1, val8));
-    ASSERT_EQUAL_ERROR(ELTON_XDR_NOT_ENOUGH_FIELDS, se.op->close(&se));
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_NOT_ENOUGH_FIELDS, se.op->close(&se));
   }
 
   // Test for error handling of too many fields.
@@ -453,7 +453,7 @@ static void test_encode_struct(void) {
     return;
   ASSERT_NO_ERROR(se.op->u8(&se, 1, val8));
   ASSERT_NO_ERROR(se.op->u8(&se, 2, val8));
-  ASSERT_EQUAL_ERROR(ELTON_XDR_TOO_MANY_FIELDS, se.op->u64(&se, 3, val64));
+  ASSERT_EQUAL_ERROR(-ELTON_XDR_TOO_MANY_FIELDS, se.op->u64(&se, 3, val64));
 }
 static void test_decode_struct(void) {
   struct xdr_decoder dec;
@@ -504,7 +504,8 @@ static void test_decode_struct(void) {
     if (ASSERT_NO_ERROR(dec.dec_op->struct_(&dec, &sd)))
       return;
     ASSERT_NO_ERROR(sd.op->u8(&sd, 3, &val8));
-    ASSERT_EQUAL_ERROR(ELTON_XDR_INVALID_FIELD_ORDER, sd.op->u8(&sd, 1, &val8));
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_INVALID_FIELD_ORDER,
+                       sd.op->u8(&sd, 1, &val8));
   }
 
   // Test for error handling of not enough fields are readed.
@@ -519,7 +520,7 @@ static void test_decode_struct(void) {
     if (ASSERT_NO_ERROR(dec.dec_op->struct_(&dec, &sd)))
       return;
     ASSERT_NO_ERROR(sd.op->u8(&sd, 1, &val8));
-    ASSERT_EQUAL_ERROR(ELTON_XDR_NOT_ENOUGH_FIELDS, sd.op->close(&sd));
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_NOT_ENOUGH_FIELDS, sd.op->close(&sd));
   }
 
   // Test for error handling of too many fields are readed.
@@ -533,7 +534,7 @@ static void test_decode_struct(void) {
     if (ASSERT_NO_ERROR(dec.dec_op->struct_(&dec, &sd)))
       return;
     ASSERT_NO_ERROR(sd.op->u8(&sd, 1, &val8));
-    ASSERT_EQUAL_ERROR(ELTON_XDR_TOO_MANY_FIELDS, sd.op->u8(&sd, 2, &val8));
+    ASSERT_EQUAL_ERROR(-ELTON_XDR_TOO_MANY_FIELDS, sd.op->u8(&sd, 2, &val8));
   }
 }
 
