@@ -233,6 +233,17 @@ static int senc_check(struct xdr_struct_encoder *senc, u8 field_id) {
   senc->last_field_id = field_id;
   return 0;
 }
+#define SDEC_BODY(decode_process)                                              \
+  do {                                                                         \
+    int error;                                                                 \
+    GOTO_IF(error, sdec_check(sdec, field_id));                                \
+    GOTO_IF(error, decode_process);                                            \
+    return 0;                                                                  \
+                                                                               \
+  error:                                                                       \
+    sdec->dec->error = error;                                                  \
+    return error;                                                              \
+  } while (0)
 static int sdec_check(struct xdr_struct_decoder *sdec, u8 expected_field_id) {
   int error;
   u8 actual_field_id;
@@ -258,17 +269,23 @@ static int sdec_check(struct xdr_struct_decoder *sdec, u8 expected_field_id) {
 static int senc_u8(struct xdr_struct_encoder *senc, u8 field_id, u8 val) {
   SENC_BODY(senc->enc->enc_op->u8(senc->enc, val));
 }
-static int sdec_u8(struct xdr_struct_decoder *dec, u8 field_id, u8 *val);
+static int sdec_u8(struct xdr_struct_decoder *sdec, u8 field_id, u8 *val) {
+  SDEC_BODY(sdec->dec->dec_op->u8(sdec->dec, val));
+}
 static int senc_u64(struct xdr_struct_encoder *senc, u8 field_id, u64 val) {
   SENC_BODY(senc->enc->enc_op->u64(senc->enc, val));
 }
-static int sdec_u64(struct xdr_struct_decoder *dec, u8 field_id, u64 *val);
+static int sdec_u64(struct xdr_struct_decoder *sdec, u8 field_id, u64 *val) {
+  SDEC_BODY(sdec->dec->dec_op->u64(sdec->dec, val));
+}
 static int senc_bytes(struct xdr_struct_encoder *senc, u8 field_id, char *bytes,
                       size_t len) {
   SENC_BODY(senc->enc->enc_op->bytes(senc->enc, bytes, len));
 }
-static int sdec_bytes(struct xdr_struct_decoder *dec, u8 field_id, char *bytes,
-                      size_t *len);
+static int sdec_bytes(struct xdr_struct_decoder *sdec, u8 field_id, char *bytes,
+                      size_t *len) {
+  SDEC_BODY(sdec->dec->dec_op->bytes(sdec->dec, bytes, len));
+}
 static int senc_close(struct xdr_struct_encoder *senc);
 static int sdec_close(struct xdr_struct_decoder *dec);
 
