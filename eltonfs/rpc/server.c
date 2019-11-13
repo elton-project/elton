@@ -312,7 +312,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
   ns = GET_NS_BY_HASH(s->server, nsid_hash);
   if (ns) {
     // Enqueue it.
-    elton_rpc_enqueue(&ns->q, raw);
+    GOTO_IF(out_unlock, elton_rpc_enqueue(&ns->q, raw));
   } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
     // Create session and enqueue it.
     ns =
