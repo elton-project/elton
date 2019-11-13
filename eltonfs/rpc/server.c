@@ -325,6 +325,12 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     SESSION_DEBUG(s, "created new session by umh");
     ADD_NS(ns);
     ns = NULL;
+  } else {
+    ERR("ns not found: nsid=%llu, flags=%hhu, struct_id=%llu", raw->session_id,
+        raw->flags, raw->struct_id);
+    BUG();
+    // Unreachable
+    return -ENOTRECOVERABLE;
   }
 
 out_unlock:
