@@ -157,39 +157,27 @@ const static struct entry setup1_entry = {
 };
 
 static int setup2_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, {
-    enc.enc_op->u64(&enc, s->error);
-    enc.enc_op->bytes(&enc, s->reason, strlen(s->reason));
-    enc.enc_op->bytes(&enc, s->server_name, strlen(s->server_name));
-    enc.enc_op->u64(&enc, s->version_major);
-    enc.enc_op->u64(&enc, s->version_minor);
-    enc.enc_op->u64(&enc, s->version_revision);
-  });
+  struct xdr_struct_encoder se;
+  *out =
+      ENCODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, ({
+               do {
+                 BREAK_IF(enc.enc_op->struct_(&enc, &se, 6));
+                 BREAK_IF(se.op->u64(&se, 1, s->error)); // Field 1
+                 BREAK_IF(se.op->bytes(&se, 2, s->reason,
+                                       strlen(s->reason))); // Field 2
+                 BREAK_IF(se.op->bytes(&se, 3, s->server_name,
+                                       strlen(s->server_name)));    // Field 3
+                 BREAK_IF(se.op->u64(&se, 4, s->version_major));    // Field 4
+                 BREAK_IF(se.op->u64(&se, 5, s->version_minor));    // Field 5
+                 BREAK_IF(se.op->u64(&se, 6, s->version_revision)); // Field 6
+               } while (0);
+             }));
   return 0;
 }
 static int setup2_decode(struct raw_packet *in, void **out) {
-  size_t reason_size, name_size;
-  *out = DECODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, ({
-                  u64 dummy;
-                  dec.dec_op->u64(&dec, &dummy); // Skip FieldID1.
-                  dec.dec_op->bytes(&dec, NULL, &reason_size);
-                  dec.dec_op->bytes(&dec, NULL, &name_size);
-                  reason_size + 1 + name_size + 1;
-                }),
-                {
-                  // initialize setup2.
-                  s->reason = &s->__embeded_buffer;
-                  s->server_name = s->reason + reason_size + 1;
-                  // Decodes.
-                  dec.dec_op->u64(&dec, &s->error);
-                  dec.dec_op->bytes(&dec, s->reason, &reason_size);
-                  s->reason[reason_size] = '\0';
-                  dec.dec_op->bytes(&dec, s->server_name, &name_size);
-                  s->server_name[name_size] = '\0';
-                  dec.dec_op->u64(&dec, &s->version_major);
-                  dec.dec_op->u64(&dec, &s->version_minor);
-                  dec.dec_op->u64(&dec, &s->version_revision);
-                });
+  ERR("setup2_decode is not implemented");
+  BUG();
+  // Unreachable
   return 0;
 }
 const static struct entry setup2_entry = {
