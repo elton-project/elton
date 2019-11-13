@@ -286,9 +286,17 @@ class TemplateBuilder(typing.NamedTuple):
         self.output.config = {'ide2': 'none'}
         self.output.config = {'ide2': 'ssd:cloudinit'}
 
+        # Update packages and apply it by reboot.
+        self.output.start().wait()
+        wait_for(lambda: self._is_ready(self.output))
+        self._poweroff(self.output)
+        wait_for(lambda: not self.output.is_running())
+
+        # Run setup script.
         self.output.start().wait()
         wait_for(lambda: self._is_ready(self.output))
         self._run_script(self.output, self.script_name)
+        self._poweroff(self.output)
         wait_for(lambda: not self.output.is_running())
 
     def _set_storage(self, vm: VM):
@@ -324,6 +332,8 @@ class TemplateBuilder(typing.NamedTuple):
                 [*vm.unsafe_ssh_command, 'bash'],
                 stdin=stdin,
             ).check_returncode()
+
+    def _poweroff(self, vm: VM):
         try:
             subprocess.run(
                 [*vm.unsafe_ssh_command, 'poweroff'],
