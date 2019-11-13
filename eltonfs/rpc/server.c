@@ -299,6 +299,38 @@ error_setup2:
     raw->free(raw);
   return error;
 }
+// Qneueue raw packet to ns->queue.
+static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
+                                          struct raw_packet *raw) {
+  int error = 0;
+  u64 nsid_hash;
+  struct elton_rpc_ns *ns = NULL;
+  BUG_ON(raw == NULL);
+
+  spin_lock(&s->server->nss_table_lock);
+  nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
+  ns = GET_NS_BY_HASH(s->server, nsid_hash);
+  if (ns) {
+    // Enqueue it.
+    elton_rpc_enqueue(&ns->q, raw);
+  } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
+    // Create session and enqueue it.
+    ns =
+        (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns), GFP_KERNEL);
+    if (ns == NULL) {
+      SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
+      GOTO_IF(error_enqueue, -ENOMEM);
+    }
+    elton_rpc_ns_init(ns, s, raw->session_id, false);
+    SESSION_DEBUG(s, "created new session by umh");
+    ADD_NS(ns);
+    ns = NULL;
+  }
+
+error_enqueue:
+  spin_unlock(&s->server->nss_table_lock);
+  return error;
+}
 
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
@@ -328,43 +360,18 @@ static int rpc_session_worker(void *_s) {
   // Receive data from client until socket is closed.
   for (;;) {
     struct raw_packet *raw = NULL;
-    u64 nsid_hash;
-    struct elton_rpc_ns *ns = NULL;
 
     GOTO_IF(error_recv, rpc_sock_read_raw_packet(s->sock, &raw));
     SESSION_DEBUG(s, "received a packet: struct_id=%llu, flags=%d, size=%zu",
                   raw->struct_id, raw->flags, raw->size);
-
-    // Qneueue raw packet.
-    spin_lock(&s->server->nss_table_lock);
-    nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
-    ns = GET_NS_BY_HASH(s->server, nsid_hash);
-    if (ns) {
-      // Enqueue it.
-      elton_rpc_enqueue(&ns->q, raw);
-    } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
-      // Create session and enqueue it.
-      ns = (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns),
-                                          GFP_KERNEL);
-      if (ns == NULL) {
-        SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
-        GOTO_IF(error_enqueue, -ENOMEM);
-      }
-      elton_rpc_ns_init(ns, s, raw->session_id, false);
-      SESSION_DEBUG(s, "created new session by umh");
-      ADD_NS(ns);
-      ns = NULL;
-    }
+    GOTO_IF(error_enqueue, rpc_session_enqueue_raw_packet(s, raw));
+    continue;
 
   error_enqueue:
-    spin_unlock(&s->server->nss_table_lock);
     if (raw)
       raw->free(raw);
     raw = NULL;
-
-    if (error) {
-      goto error_recv;
-    }
+    goto error_recv;
   }
 
 error_recv:
