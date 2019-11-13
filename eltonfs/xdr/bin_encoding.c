@@ -600,11 +600,11 @@ static void test_decode_struct(void) {
     ASSERT_EQUAL_INT(64, val64);
     bytes_size = sizeof(bytes_buff);
     ASSERT_NO_ERROR(sd.op->bytes(&sd, 3, bytes_buff, &bytes_size));
-    ASSERT_EQUAL_SIZE_T(5, bytes_size);
+    ASSERT_EQUAL_SIZE_T((size_t)5, bytes_size);
     ASSERT_EQUAL_BYTES("hello", bytes_buff, 5);
     ASSERT_NO_ERROR(sd.op->close(&sd));
     ASSERT_NO_ERROR(dec.error);
-    ASSERT_EQUAL_INT(sizeof(buff), dec.pos);
+    ASSERT_EQUAL_SIZE_T(sizeof(buff), dec.pos);
   }
 
   // Test for error handling of invalid field order.
