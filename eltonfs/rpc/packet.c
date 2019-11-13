@@ -188,13 +188,23 @@ const static struct entry setup2_entry = {
 };
 
 static int ping_encode(struct packet *in, struct raw_packet **out) {
-  *out =
-      ENCODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, {/* Do nothing. */});
+  struct xdr_struct_encoder se;
+  *out = ENCODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, ({
+                  do {
+                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 0));
+                    BREAK_IF(se.op->close(&se));
+                  } while (0);
+                }));
   return 0;
 }
 static int ping_decode(struct raw_packet *in, void **out) {
-  *out = DECODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, 0,
-                {/* Do nothing. */});
+  struct xdr_struct_decoder sd;
+  *out = DECODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, 0, ({
+                  do {
+                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+                    BREAK_IF(sd.op->close(&sd));
+                  } while (0);
+                }));
   return 0;
 }
 const static struct entry ping_entry = {
