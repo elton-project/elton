@@ -294,7 +294,7 @@ static int __init fs_module_init(void) {
   test_rpc();
   if (IS_ASSERTION_FAILED()) {
     ERR("Failed to some unit test cases");
-    return 1;
+    GOTO_IF(out, -ENOTRECOVERABLE);
   }
   INFO("Finished all test cases without error");
 #endif // ELTONFS_UNIT_TEST
