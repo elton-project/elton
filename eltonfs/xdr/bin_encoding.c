@@ -205,11 +205,11 @@ static struct xdr_decoder_operations bin_decoder_op = {
     .struct_ = init_struct_decoder,
 };
 
-#define SENC_BODY(decode_process)                                              \
+#define SENC_BODY(encode_process)                                              \
   do {                                                                         \
     int error;                                                                 \
     GOTO_IF(error, senc_check(senc, field_id));                                \
-    GOTO_IF(error, (decode_process));                                          \
+    GOTO_IF(error, (encode_process));                                          \
     return 0;                                                                  \
                                                                                \
   error:                                                                       \
