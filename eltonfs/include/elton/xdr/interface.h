@@ -51,7 +51,8 @@ struct xdr_encoder_operations {
   // Encode bytes.
   int (*bytes)(struct xdr_encoder *enc, char *bytes, size_t len);
   // Encode struct.
-  struct xdr_struct_encoder *(*struct_)(struct xdr_encoder *enc);
+  int (*struct_)(struct xdr_encoder *enc,
+                 struct xdr_struct_encoder *struct_enc);
 };
 struct xdr_decoder_operations {
   // Deocde an unsigned 8bit integer.  If val is NULL, discard encoded data.
@@ -62,19 +63,22 @@ struct xdr_decoder_operations {
   // the discard encoded data.
   int (*bytes)(struct xdr_decoder *dec, char *bytes, size_t *len);
   // Decode struct.
-  struct xdr_struct_decoder *(*struct_)(struct xdr_decoder *dec);
+  int (*struct_)(struct xdr_decoder *dec,
+                 struct xdr_struct_decoder *struct_dec);
 };
 struct xdr_struct_encoder_operations {
   int (*u8)(struct xdr_struct_encoder *dec, u8 field_id, u8 *val);
-  int (*u64)(struct xdr_struct_encoder *dec, u64 field_id, u64 *val);
+  int (*u64)(struct xdr_struct_encoder *dec, u8 field_id, u64 *val);
   int (*bytes)(struct xdr_struct_encoder *dec, char *field_id, char *bytes,
                size_t *len);
+  int (*close)(struct xdr_struct_encoder *dec);
 };
 struct xdr_struct_decoder_operations {
   int (*u8)(struct xdr_struct_decoder *dec, u8 field_id, u8 *val);
-  int (*u64)(struct xdr_struct_decoder *dec, u64 field_id, u64 *val);
+  int (*u64)(struct xdr_struct_decoder *dec, u8 field_id, u64 *val);
   int (*bytes)(struct xdr_struct_decoder *dec, char *field_id, char *bytes,
                size_t *len);
+  int (*close)(struct xdr_struct_decoder *dec)
 };
 
 // Initialize default encoder.
