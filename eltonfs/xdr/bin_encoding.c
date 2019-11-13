@@ -286,8 +286,28 @@ static int sdec_bytes(struct xdr_struct_decoder *sdec, u8 field_id, char *bytes,
                       size_t *len) {
   SDEC_BODY(sdec->dec->dec_op->bytes(sdec->dec, bytes, len));
 }
-static int senc_close(struct xdr_struct_encoder *senc);
-static int sdec_close(struct xdr_struct_decoder *dec);
+static int senc_close(struct xdr_struct_encoder *senc) {
+  int error;
+  if (senc->encoded < senc->fields)
+    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
+  BUG_ON(senc->encoded != senc->fields);
+  return senc->enc->error;
+
+error:
+  senc->enc->error = error;
+  return error;
+}
+static int sdec_close(struct xdr_struct_decoder *sdec) {
+  int error;
+  if (sdec->decoded < sdec->fields)
+    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
+  BUG_ON(sdec->decoded != sdec->fields);
+  return sdec->dec->error;
+
+error:
+  sdec->dec->error = error;
+  return error;
+}
 
 static struct xdr_struct_encoder_operations struct_encoder_op = {
     .u8 = senc_u8,
