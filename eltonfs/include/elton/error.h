@@ -16,11 +16,11 @@
 // Decodes the field that it is not exist.
 #define ELTON_XDR_NOT_FOUND_FIELD 2005
 // Skipped decoding some fields.
-#define ELTON_XDR_SKIP_FIELDS
+#define ELTON_XDR_SKIP_FIELDS 2006
 // Encoded/decoded fields are not enough.  Encoder/decoder is requiring more
 // fields.
-#define ELTON_XDR_NOT_ENOUGH_FIELDS 2006
+#define ELTON_XDR_NOT_ENOUGH_FIELDS 2007
 // Encode/decode too many fields.
-#define ELTON_XDR_TOO_MANY_FIELDS 2007
+#define ELTON_XDR_TOO_MANY_FIELDS 2008
 
 #endif // _ELTON_ERROR_H
