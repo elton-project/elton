@@ -159,17 +159,57 @@ static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
   return 0;
 }
 
+static struct xdr_struct_encoder_operations struct_encoder_op;
+static struct xdr_struct_decoder_operations struct_decoder_op;
+
+static int init_struct_encoder(struct xdr_encoder *enc,
+                               struct xdr_struct_encoder *struct_enc,
+                               u8 fields) {
+  int error;
+  BUG_ON(enc == NULL);
+  BUG_ON(struct_enc == NULL);
+  RETURN_IF(enc->error);
+
+  struct_enc->enc = enc;
+  struct_enc->fields = fields;
+  struct_enc->encoded = 0;
+  struct_enc->last_field_id = 0;
+  struct_enc->op = &struct_encoder_op;
+  return 0;
+}
+static int init_struct_decoder(struct xdr_decoder *dec,
+                               struct xdr_struct_decoder *struct_dec) {
+  int error;
+  BUG_ON(dec == NULL);
+  BUG_ON(struct_dec == NULL);
+  RETURN_IF(dec->error);
+
+  struct_dec->dec = dec;
+  RETURN_IF(dec->dec_op->u8(dec, &struct_dec->fields));
+  struct_dec->decoded = 0;
+  struct_dec->last_field_id = 0;
+  struct_dec->op = &struct_decoder_op;
+  return 0;
+}
+
 static struct xdr_encoder_operations bin_encoder_op = {
     .u8 = enc_u8,
     .u64 = enc_u64,
     .bytes = enc_bytes,
-    .struct_ = NULL, // TODO
+    .struct_ = init_struct_encoder,
 };
 static struct xdr_decoder_operations bin_decoder_op = {
     .u8 = dec_u8,
     .u64 = dec_u64,
     .bytes = dec_bytes,
-    .struct_ = NULL, // TODO
+    .struct_ = init_struct_decoder,
+};
+
+static struct xdr_struct_encoder_operations struct_encoder_op = {
+    // todo
+};
+static struct xdr_struct_decoder_operations struct_decoder_op = {
+    // todo
 };
 
 #ifdef ELTONFS_UNIT_TEST
