@@ -607,7 +607,7 @@ static void test_decode_struct(void) {
     ASSERT_EQUAL_BYTES("hello", bytes_buff, 5);
     ASSERT_NO_ERROR(sd.op->close(&sd));
     ASSERT_NO_ERROR(dec.error);
-    ASSERT_EQUAL_INT(0, dec.pos); // todo
+    ASSERT_EQUAL_INT(sizeof(buff), dec.pos);
   }
 
   // Test for error handling of invalid field order.
