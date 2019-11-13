@@ -205,11 +205,63 @@ static struct xdr_decoder_operations bin_decoder_op = {
     .struct_ = init_struct_decoder,
 };
 
+#define SENC_BODY(decode_process)                                              \
+  do {                                                                         \
+    int error;                                                                 \
+    GOTO_IF(error, senc_check(senc, field_id));                                \
+    GOTO_IF(error, (decode_process));                                          \
+    return 0;                                                                  \
+                                                                               \
+  error:                                                                       \
+    senc->enc->error = error;                                                  \
+    return error;                                                              \
+  } while (0)
+static int senc_check(struct xdr_struct_encoder *senc, u8 field_id) {
+  int error;
+  u8 field_id;
+
+  BUG_ON(senc->fields > senc->encoded);
+  RETURN_IF(senc->enc->error);
+
+  if (senc->fields == senc->encoded)
+    RETURN_IF(-ELTON_XDR_TOO_MANY_FIELDS);
+
+  // Read the FieldID.
+  RETURN_IF(senc->enc->enc_op->u8(senc->enc, &field_id));
+  if (field_id <= senc->last_field_id)
+    RETURN_IF(-ELTON_XDR_INVALID_FIELD_ORDER);
+
+  senc->encoded++;
+  return 0;
+}
+static int senc_u8(struct xdr_struct_encoder *senc, u8 field_id, u8 val) {
+  SENC_BODY(senc->enc->enc_op->u8(senc->enc, val));
+}
+static int sdec_u8(struct xdr_struct_decoder *dec, u8 field_id, u8 *val);
+static int senc_u64(struct xdr_struct_encoder *senc, u8 field_id, u64 val) {
+  SENC_BODY(senc->enc->enc_op->u64(senc->enc, val));
+}
+static int sdec_u64(struct xdr_struct_decoder *dec, u8 field_id, u64 *val);
+static int senc_bytes(struct xdr_struct_encoder *senc, u8 field_id, char *bytes,
+                      size_t len) {
+  SENC_BODY(senc->enc->enc_op->bytes(senc->enc, bytes, len));
+}
+static int sdec_bytes(struct xdr_struct_decoder *dec, u8 field_id, char *bytes,
+                      size_t *len);
+static int senc_close(struct xdr_struct_encoder *senc);
+static int sdec_close(struct xdr_struct_decoder *dec);
+
 static struct xdr_struct_encoder_operations struct_encoder_op = {
-    // todo
+    .u8 = senc_u8,
+    .u64 = senc_u64,
+    .bytes = senc_bytes,
+    .close = senc_close,
 };
 static struct xdr_struct_decoder_operations struct_decoder_op = {
-    // todo
+    .u8 = sdec_u8,
+    .u64 = sdec_u64,
+    .bytes = sdec_bytes,
+    .close = sdec_close,
 };
 
 #ifdef ELTONFS_UNIT_TEST
