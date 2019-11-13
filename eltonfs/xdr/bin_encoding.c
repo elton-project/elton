@@ -353,6 +353,149 @@ static void test_decode_bytes(void) {
   ASSERT_NO_ERROR(dec.dec_op->bytes(&dec, NULL, &read_size));
   ASSERT_EQUAL_SIZE_T(strlen(expected2), read_size);
 }
+static void test_encode_struct(void) {
+  char buff[100];
+  struct xdr_encoder enc;
+  struct xdr_struct_encoder se;
+  u8 val8 = 8;
+  u64 val64 = 64;
+
+  // Test for normal case.
+  {
+    char expected[] = {
+        3,                          // Number of fields.
+        1, 8,                       // Field 1
+        2, 0, 0, 0, 0, 0, 0, 0, 64, // Field 2
+
+        // Field 3
+        3,                       // Field ID
+        0, 0, 0, 0, 0, 0, 0, 5,  // Length of bytes.
+        'h', 'e', 'l', 'l', 'o', // Body of bytes.
+    };
+    if (ASSERT_NO_ERROR(default_encoder_init(&enc, buff, sizeof(buff))))
+      return;
+    if (ASSERT_NO_ERROR(enc.enc_op->struct_(&enc, &se, 3)))
+      return;
+    ASSERT_NO_ERROR(se.op->u8(&se, 1, val8));
+    ASSERT_NO_ERROR(se.op->u64(&se, 2, val64));
+    ASSERT_NO_ERROR(se.op->bytes(&se, 3, "hello", 5));
+    ASSERT_NO_ERROR(se.op->close(&se));
+    ASSERT_NO_ERROR(enc.error);
+    ASSERT_EQUAL_SIZE_T(sizeof(expected), enc.pos);
+    ASSERT_EQUAL_BYTES(expected, buff, enc.pos);
+  }
+
+  // Test for error handling of invalid field order.
+  {
+    if (ASSERT_NO_ERROR(default_encoder_init(&enc, buff, sizeof(buff))))
+      return;
+    if (ASSERT_NO_ERROR(enc.enc_op->struct_(&enc, &se, 2)))
+      return;
+    ASSERT_NO_ERROR(se.op->u64(&se, 2, val64));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_INVALID_FIELD_ORDER, se.op->u8(&se, 1, val8));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_INVALID_FIELD_ORDER, se.op->u8(&se, 2, val8));
+  }
+
+  // Test for error handling of not enough fields are written.
+  {
+    if (ASSERT_NO_ERROR(default_encoder_init(&enc, buff, sizeof(buff))))
+      return;
+    if (ASSERT_NO_ERROR(enc.enc_op->struct_(&enc, &se, 2)))
+      return;
+    ASSERT_NO_ERROR(se.op->u8(&se, 1, val8));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_NOT_ENOUGH_FIELDS, se.op->close(&se));
+  }
+
+  // Test for error handling of too many fields.
+  if (ASSERT_NO_ERROR(default_encoder_init(&enc, buff, sizeof(buff))))
+    return;
+  if (ASSERT_NO_ERROR(enc.enc_op->struct_(&enc, &se, 2)))
+    return;
+  ASSERT_NO_ERROR(se.op->u8(&se, 1, val8));
+  ASSERT_NO_ERROR(se.op->u8(&se, 2, val8));
+  ASSERT_EQUAL_ERROR(ELTON_XDR_TOO_MANY_FIELDS, se.op->u64(&se, 3, val64));
+}
+static void test_decode_struct(void) {
+  struct xdr_decoder dec;
+  struct xdr_struct_decoder sd;
+  u8 val8;
+  u64 val64;
+
+  // Test for normal case.
+  {
+    char buff[] = {
+        3,                          // Number of fields.
+        1, 8,                       // Field 1
+        2, 0, 0, 0, 0, 0, 0, 0, 64, // Field 2
+
+        // Field 3
+        3,                       // Field ID
+        0, 0, 0, 0, 0, 0, 0, 5,  // Length of bytes.
+        'h', 'e', 'l', 'l', 'o', // Body of bytes.
+    };
+    char bytes_buff[10];
+    size_t bytes_size;
+    if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, sizeof(buff))))
+      return;
+    if (ASSERT_NO_ERROR(dec.dec_op->struct_(&dec, &sd)))
+      return;
+    ASSERT_NO_ERROR(sd.op->u8(&sd, 1, &val8));
+    ASSERT_EQUAL_INT(8, val8);
+    ASSERT_NO_ERROR(sd.op->u64(&sd, 2, &val64));
+    ASSERT_EQUAL_INT(64, val64);
+    bytes_size = sizeof(bytes_buff);
+    ASSERT_NO_ERROR(sd.op->bytes(&sd, 3, bytes_buff, &bytes_size));
+    ASSERT_EQUAL_SIZE_T(5, bytes_size);
+    ASSERT_EQUAL_BYTES("hello", bytes_buff, 5);
+    ASSERT_NO_ERROR(sd.op->close(&sd));
+    ASSERT_NO_ERROR(dec.error);
+    ASSERT_EQUAL_INT(0, dec.pos); // todo
+  }
+
+  // Test for error handling of invalid field order.
+  {
+    char buff[] = {
+        2,    // Number of fields
+        3, 8, // Field 3
+        4, 1, // Field 4
+    };
+    if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, sizeof(buff))))
+      return;
+    if (ASSERT_NO_ERROR(dec.dec_op->struct_(&dec, &sd)))
+      return;
+    ASSERT_NO_ERROR(sd.op->u8(&sd, 3, &val8));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_INVALID_FIELD_ORDER, sd.op->u8(&sd, 1, &val8));
+  }
+
+  // Test for error handling of not enough fields are readed.
+  {
+    char buff[] = {
+        2,    // Number of fields
+        1, 8, // Field 1
+        2, 4, // Field 2
+    };
+    if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, sizeof(buff))))
+      return;
+    if (ASSERT_NO_ERROR(dec.dec_op->struct_(&dec, &sd)))
+      return;
+    ASSERT_NO_ERROR(sd.op->u8(&sd, 1, &val8));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_NOT_ENOUGH_FIELDS, sd.op->close(&sd));
+  }
+
+  // Test for error handling of too many fields are readed.
+  {
+    char buff[] = {
+        1,    // Number of fields
+        1, 8, // Field 1
+    };
+    if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, sizeof(buff))))
+      return;
+    if (ASSERT_NO_ERROR(dec.dec_op->struct_(&dec, &sd)))
+      return;
+    ASSERT_NO_ERROR(sd.op->u8(&sd, 1, &val8));
+    ASSERT_EQUAL_ERROR(ELTON_XDR_TOO_MANY_FIELDS, sd.op->u8(&sd, 2, &val8));
+  }
+}
 
 void test_xdr_bin(void) {
   test_encode_u8();
@@ -361,6 +504,8 @@ void test_xdr_bin(void) {
   test_decode_u64();
   test_encode_bytes();
   test_decode_bytes();
+  test_encode_struct();
+  test_decode_struct();
 }
 
 #endif // ELTONFS_UNIT_TEST
