@@ -357,9 +357,14 @@ class TemplateDistributor(typing.NamedTuple):
                 # All VMs are deleted.
                 return
 
+            fail_all = True
             for t in tasks:
                 with contextlib.suppress(TaskFailed):
                     t.wait()
+                    fail_all = False
+
+            if fail_all:
+                raise TaskFailed('failed to remove_all()')
             # Some tasks may be failed.  Should retry until tasks is empty.
 
     def _distribute_node(self, sem: threading.Semaphore, node: Node) -> VM:
