@@ -221,8 +221,10 @@ static struct xdr_decoder_operations bin_decoder_op = {
 static int senc_check(struct xdr_struct_encoder *senc, u8 field_id) {
   int error;
 
-  BUG_ON(senc->fields < senc->encoded);
-  BUG_ON(senc->last_field_id >= field_id);
+  if (senc->fields < senc->encoded)
+    RETURN_IF(-ELTON_XDR_TOO_MANY_FIELDS);
+  if (senc->last_field_id >= field_id)
+    RETURN_IF(-ELTON_XDR_INVALID_FIELD_ORDER);
   RETURN_IF(senc->enc->error);
 
   if (senc->fields == senc->encoded)
@@ -250,8 +252,10 @@ static int sdec_check(struct xdr_struct_decoder *sdec, u8 expected_field_id) {
   int error;
   u8 actual_field_id;
 
-  BUG_ON(sdec->fields < sdec->decoded);
-  BUG_ON(sdec->last_field_id >= expected_field_id);
+  if (sdec->fields < sdec->decoded)
+    RETURN_IF(-ELTON_XDR_TOO_MANY_FIELDS);
+  if (sdec->last_field_id >= expected_field_id)
+    RETURN_IF(-ELTON_XDR_INVALID_FIELD_ORDER);
   RETURN_IF(sdec->dec->error);
 
   // Read the FieldID.
@@ -292,7 +296,8 @@ static int senc_close(struct xdr_struct_encoder *senc) {
   int error;
   if (senc->encoded < senc->fields)
     GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
-  BUG_ON(senc->encoded != senc->fields);
+  if (senc->encoded != senc->fields)
+    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
   return senc->enc->error;
 
 error:
@@ -303,7 +308,8 @@ static int sdec_close(struct xdr_struct_decoder *sdec) {
   int error;
   if (sdec->decoded < sdec->fields)
     GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
-  BUG_ON(sdec->decoded != sdec->fields);
+  if (sdec->decoded != sdec->fields)
+    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
   return sdec->dec->error;
 
 error:
