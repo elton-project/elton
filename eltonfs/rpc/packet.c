@@ -144,9 +144,9 @@ static int setup1_decode(struct raw_packet *in, void **out) {
           BREAK_IF(dec.dec_op->struct_(&dec, &sd));
           BREAK_IF(sd.op->bytes(&sd, 1, s->client_name, &str_size)); // Field 1
           s->client_name[str_size] = '\0';
-          sd.op->u64(&sd, 2, &s->version_major);    // Field 2
-          sd.op->u64(&sd, 3, &s->version_minor);    // Field 3
-          sd.op->u64(&sd, 4, &s->version_revision); // Field 4
+          BREAK_IF(sd.op->u64(&sd, 2, &s->version_major));    // Field 2
+          BREAK_IF(sd.op->u64(&sd, 3, &s->version_minor));    // Field 3
+          BREAK_IF(sd.op->u64(&sd, 4, &s->version_revision)); // Field 4
         } while (0);
       }));
   return 0;
