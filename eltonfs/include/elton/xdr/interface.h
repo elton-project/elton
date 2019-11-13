@@ -51,8 +51,8 @@ struct xdr_encoder_operations {
   // Encode bytes.
   int (*bytes)(struct xdr_encoder *enc, char *bytes, size_t len);
   // Encode struct.
-  int (*struct_)(struct xdr_encoder *enc,
-                 struct xdr_struct_encoder *struct_enc);
+  int (*struct_)(struct xdr_encoder *enc, struct xdr_struct_encoder *struct_enc,
+                 u8 fields);
 };
 struct xdr_decoder_operations {
   // Deocde an unsigned 8bit integer.  If val is NULL, discard encoded data.
