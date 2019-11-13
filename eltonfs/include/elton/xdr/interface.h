@@ -30,16 +30,21 @@ struct xdr_struct_encoder {
   struct xdr_encoder *enc;
   // Number of fields.
   u8 fields;
-  // Last field ID.
-  u8 field_id;
+  // Number of encoded fields.
+  u8 encoded;
+  // Last encoded field ID.
+  u8 last_field_id;
   struct xdr_struct_encoder_operations *op;
 };
 struct xdr_struct_decoder {
   struct xdr_decoder *dec;
   // Number of fields.
   u8 fields;
-  // Last field ID.
-  u8 field_id;
+  // Number of decoded fields.
+  u8 decoded;
+  // Last decoded field ID.
+  // It only using to validate input data.
+  u8 last_field_id;
   struct xdr_struct_decoder_operations *op;
 };
 
