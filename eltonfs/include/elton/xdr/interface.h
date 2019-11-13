@@ -83,7 +83,7 @@ struct xdr_struct_decoder_operations {
   int (*u64)(struct xdr_struct_decoder *dec, u8 field_id, u64 *val);
   int (*bytes)(struct xdr_struct_decoder *dec, u8 field_id, char *bytes,
                size_t *len);
-  int (*close)(struct xdr_struct_decoder *dec)
+  int (*close)(struct xdr_struct_decoder *dec);
 };
 
 // Initialize default encoder.
