@@ -163,11 +163,13 @@ static struct xdr_encoder_operations bin_encoder_op = {
     .u8 = enc_u8,
     .u64 = enc_u64,
     .bytes = enc_bytes,
+    .struct_ = NULL, // TODO
 };
 static struct xdr_decoder_operations bin_decoder_op = {
     .u8 = dec_u8,
     .u64 = dec_u64,
     .bytes = dec_bytes,
+    .struct_ = NULL, // TODO
 };
 
 #ifdef ELTONFS_UNIT_TEST
