@@ -72,11 +72,11 @@ struct xdr_decoder_operations {
                  struct xdr_struct_decoder *struct_dec);
 };
 struct xdr_struct_encoder_operations {
-  int (*u8)(struct xdr_struct_encoder *dec, u8 field_id, u8 val);
-  int (*u64)(struct xdr_struct_encoder *dec, u8 field_id, u64 val);
-  int (*bytes)(struct xdr_struct_encoder *dec, u8 field_id, char *bytes,
+  int (*u8)(struct xdr_struct_encoder *enc, u8 field_id, u8 val);
+  int (*u64)(struct xdr_struct_encoder *enc, u8 field_id, u64 val);
+  int (*bytes)(struct xdr_struct_encoder *enc, u8 field_id, char *bytes,
                size_t len);
-  int (*close)(struct xdr_struct_encoder *dec);
+  int (*close)(struct xdr_struct_encoder *enc);
 };
 struct xdr_struct_decoder_operations {
   int (*u8)(struct xdr_struct_decoder *dec, u8 field_id, u8 *val);
