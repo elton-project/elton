@@ -263,6 +263,43 @@ static int rpc_sock_write_raw_packet(struct socket *sock,
   return 0;
 }
 
+// Receive setup1 packet from client and validate it.
+static int rpc_session_setup1(struct elton_rpc_session *s,
+                              struct elton_rpc_setup1 **setup1) {
+  int error;
+  SESSION_DEBUG(s, "waiting setup1 ...");
+  RETURN_IF(
+      rpc_sock_read_packet(s->sock, ELTON_RPC_SETUP1_ID, (void **)&setup1));
+  SESSION_DEBUG(s, "received setup1 from client");
+
+  SESSION_DEBUG(s, "validating setup1");
+  // todo: check setup1.
+  return 0;
+}
+// Send setup1 packet to client.
+static int rpc_session_setup2(struct elton_rpc_session *s) {
+  int error = 0;
+  struct packet pk = {
+      .struct_id = ELTON_RPC_SETUP2_ID,
+      .data = &setup2,
+  };
+  struct raw_packet *raw = NULL;
+
+  SESSION_DEBUG(s, "preparing setup2 ...");
+  GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw, 0, 0));
+  BUG_ON(raw == NULL);
+  BUG_ON(raw->data == NULL);
+
+  SESSION_DEBUG(s, "sending setup2 ...");
+  GOTO_IF(error_setup2, rpc_sock_write_raw_packet(s->sock, raw));
+  SESSION_DEBUG(s, "sent setup2");
+
+error_setup2:
+  if (raw)
+    raw->free(raw);
+  return error;
+}
+
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
 //   * Register it to available session list.
@@ -280,47 +317,13 @@ static int rpc_sock_write_raw_packet(struct socket *sock,
 static int rpc_session_worker(void *_s) {
   int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
-  struct elton_rpc_setup1 *setup1;
+  struct elton_rpc_setup1 *setup1 = NULL;
 
-  // Start handshake.
-  {
-    // Receiving setup1.
-    SESSION_DEBUG(s, "waiting setup1 ...");
-    GOTO_IF(error_setup1, rpc_sock_read_packet(s->sock, ELTON_RPC_SETUP1_ID,
-                                               (void **)&setup1));
-    SESSION_DEBUG(s, "received setup1 from client");
-  }
+  GOTO_IF(error_setup1, rpc_session_setup1(s, &setup1));
+  GOTO_IF(error_setup2, rpc_session_setup2(s));
 
-  SESSION_DEBUG(s, "validating setup1");
-  // todo: check setup1.
-  SESSION_INFO(s, "connected from %s",
+  SESSION_INFO(s, "established connection (client=%s)",
                setup1->client_name ? setup1->client_name : "no-name client");
-  elton_rpc_free_decoded_data(setup1);
-
-  // Sending setup2.
-  {
-    struct packet pk = {
-        .struct_id = ELTON_RPC_SETUP2_ID,
-        .data = &setup2,
-    };
-    struct raw_packet *raw = NULL;
-
-    SESSION_DEBUG(s, "preparing setup2 ...");
-    GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw, 0, 0));
-    BUG_ON(raw == NULL);
-    BUG_ON(raw->data == NULL);
-
-    SESSION_DEBUG(s, "sending setup2 ...");
-    GOTO_IF(error_setup2, rpc_sock_write_raw_packet(s->sock, raw));
-    SESSION_DEBUG(s, "sent setup2");
-
-  error_setup2:
-    if (raw)
-      raw->free(raw);
-    if (error)
-      goto error_setup1;
-  }
-  SESSION_INFO(s, "established connection");
 
   // Receive data from client until socket is closed.
   for (;;) {
@@ -365,6 +368,9 @@ static int rpc_session_worker(void *_s) {
   }
 
 error_recv:
+error_setup2:
+  if (setup1)
+    elton_rpc_free_decoded_data(setup1);
 error_setup1:
   SESSION_INFO(s, "stopping session worker");
   kfree(s->sock);
