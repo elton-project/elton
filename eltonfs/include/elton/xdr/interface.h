@@ -35,7 +35,7 @@ struct xdr_struct_encoder {
   struct xdr_struct_encoder_operations *op;
 };
 struct xdr_struct_decoder {
-  struct xdr_deocder *dec;
+  struct xdr_decoder *dec;
   // Number of fields.
   u8 fields;
   // Last field ID.
