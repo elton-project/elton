@@ -269,7 +269,7 @@ static int rpc_session_setup1(struct elton_rpc_session *s,
   int error;
   SESSION_DEBUG(s, "waiting setup1 ...");
   RETURN_IF(
-      rpc_sock_read_packet(s->sock, ELTON_RPC_SETUP1_ID, (void **)&setup1));
+      rpc_sock_read_packet(s->sock, ELTON_RPC_SETUP1_ID, (void **)setup1));
   SESSION_DEBUG(s, "received setup1 from client");
 
   SESSION_DEBUG(s, "validating setup1");
