@@ -221,14 +221,11 @@ static struct xdr_decoder_operations bin_decoder_op = {
 static int senc_check(struct xdr_struct_encoder *senc, u8 field_id) {
   int error;
 
-  if (senc->fields < senc->encoded)
+  if (senc->fields <= senc->encoded)
     RETURN_IF(-ELTON_XDR_TOO_MANY_FIELDS);
   if (senc->last_field_id >= field_id)
     RETURN_IF(-ELTON_XDR_INVALID_FIELD_ORDER);
   RETURN_IF(senc->enc->error);
-
-  if (senc->fields == senc->encoded)
-    RETURN_IF(-ELTON_XDR_TOO_MANY_FIELDS);
 
   // Write the FieldID.
   RETURN_IF(senc->enc->enc_op->u8(senc->enc, field_id));
@@ -252,7 +249,7 @@ static int sdec_check(struct xdr_struct_decoder *sdec, u8 expected_field_id) {
   int error;
   u8 actual_field_id;
 
-  if (sdec->fields < sdec->decoded)
+  if (sdec->fields <= sdec->decoded)
     RETURN_IF(-ELTON_XDR_TOO_MANY_FIELDS);
   if (sdec->last_field_id >= expected_field_id)
     RETURN_IF(-ELTON_XDR_INVALID_FIELD_ORDER);
