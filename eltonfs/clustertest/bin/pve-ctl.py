@@ -341,17 +341,11 @@ class TemplateDistributor(typing.NamedTuple):
         while True:
             tasks = []
             for vm in self.pool.list():
-                match = False
-                for line in vm.config.get('description', '').splitlines():
-                    if line.strip() == self._vm_property_in_description:
-                        match = True
-                        break
-                if match:
-                    if vm.is_stopped():
-                        vm.config = {'protection': 0}
-                        tasks.append(vm.remove())
-                    else:
-                        tasks.append(vm.stop())
+                if vm.is_stopped():
+                    vm.config = {'protection': 0}
+                    tasks.append(vm.remove())
+                else:
+                    tasks.append(vm.stop())
 
             if len(tasks) == 0:
                 # All VMs are deleted.
