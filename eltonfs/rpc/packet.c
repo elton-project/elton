@@ -213,28 +213,43 @@ const static struct entry ping_entry = {
 };
 
 static int error_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, {
-    enc.enc_op->u64(&enc, s->error_id);
-    enc.enc_op->bytes(&enc, s->reason, strlen(s->reason));
-  });
+  struct xdr_struct_encoder se;
+  *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, ({
+                  do {
+                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
+                    BREAK_IF(se.op->u64(&se, 1, s->error_id)); // Field 1
+                    BREAK_IF(se.op->bytes(&se, 2, s->reason,
+                                          strlen(s->reason))); // Field 2
+                    BREAK_IF(se.op->close(&se));
+                  } while (0);
+                }));
   return 0;
 }
 static int error_decode(struct raw_packet *in, void **out) {
-  size_t reason_size;
-  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, ({
-                  u64 dummy;
-                  dec.dec_op->u64(&dec, &dummy);
-                  dec.dec_op->bytes(&dec, NULL, &reason_size);
-                  reason_size + 1;
-                }),
-                {
-                  // Initialize error.
-                  s->reason = &s->__embeded_buffer;
+  struct xdr_struct_decoder sd;
+  size_t reason_size = 0;
+  *out = DECODE(
+      ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, ({
+        do {
+          u64 dummy;
+          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+          BREAK_IF(sd.op->u64(&sd, 1, &dummy));
+          BREAK_IF(sd.op->bytes(&sd, 2, NULL, &reason_size));
+        } while (0);
+        reason_size + 1;
+      }),
+      ({
+        do {
+          // Initialize error.
+          s->reason = &s->__embeded_buffer;
 
-                  dec.dec_op->u64(&dec, &s->error_id);
-                  dec.dec_op->bytes(&dec, s->reason, &reason_size);
-                  s->reason[reason_size] = '\0';
-                });
+          // Decode
+          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+          BREAK_IF(sd.op->u64(&sd, 1, &s->error_id));              // Field 1
+          BREAK_IF(sd.op->bytes(&sd, 2, s->reason, &reason_size)); // Field 2
+          s->reason[reason_size] = '\0';
+        } while (0);
+      }));
   return 0;
 }
 const static struct entry error_entry = {
