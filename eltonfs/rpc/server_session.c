@@ -100,6 +100,29 @@ out_unlock:
   return error;
 }
 
+int rpc_session_pinger(void *_s) {
+  int error = 0;
+  struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
+  struct elton_rpc_ping ping = {};
+  struct elton_rpc_ns ns;
+  struct elton_rpc_ping *recved_ping;
+
+  GOTO_IF(error_ns, s->server->ops->new_session(s->server, &ns));
+  while (ns.ops->is_sendable(&ns)) {
+    GOTO_IF(error_send, ns.ops->send_struct(&ns, ELTON_RPC_PING_ID, &ping));
+    GOTO_IF(error_recv,
+            ns.ops->recv_struct(&ns, ELTON_RPC_PING_ID, (void **)&recved_ping));
+    DEBUG("sent ping packet");
+    msleep_interruptible(1000);
+  }
+
+error_recv:
+error_send:
+  RETURN_IF(ns.ops->close(&ns));
+error_ns:
+  return error;
+}
+
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
 //   * Register it to available session list.
@@ -118,12 +141,17 @@ int rpc_session_worker(void *_s) {
   int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
   struct elton_rpc_setup1 *setup1 = NULL;
+  struct task_struct *pinger = NULL;
 
   GOTO_IF(error_setup1, rpc_session_setup1(s, &setup1));
   GOTO_IF(error_setup2, rpc_session_setup2(s));
 
   INFO("established connection (client=%s)",
        setup1->client_name ? setup1->client_name : "no-name client");
+
+  // Start health check worker.
+  pinger = (struct task_struct *)kthread_run(rpc_session_pinger, s,
+                                             "elton-ping [%d]", s->sid);
 
   // Receive data from client until socket is closed.
   for (;;) {
@@ -143,6 +171,8 @@ int rpc_session_worker(void *_s) {
   }
 
 error_recv:
+  // TODO: Notify pinger that the session is going to stop.
+  // TODO: Wait for pinger thread.
 error_setup2:
   if (setup1)
     elton_rpc_free_decoded_data(setup1);
