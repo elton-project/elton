@@ -26,6 +26,10 @@
     while (*offset < size) {                                                   \
       result = READ_SOCK((sock), (buff), (size), (offset));                    \
       if (result < 0)                                                          \
+        /* Error */                                                            \
+        break;                                                                 \
+      if (result == 0)                                                         \
+        /* Reached to EOF */                                                   \
         break;                                                                 \
     }                                                                          \
     result;                                                                    \
