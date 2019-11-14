@@ -59,6 +59,10 @@
       result = WRITE_SOCK((sock), (buff), (size), (offset));                   \
       if (result < 0)                                                          \
         break;                                                                 \
+      if (result == 0) {                                                       \
+        ERR("write_iter() returned zero.");                                    \
+        break;                                                                 \
+      }                                                                        \
     }                                                                          \
     result;                                                                    \
   })
