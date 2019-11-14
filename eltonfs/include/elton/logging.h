@@ -21,6 +21,9 @@
 //  * ERR(format, ...)
 //    Print log message using printk().
 
+#ifndef _ELTON_LOGGING_H
+#define _ELTON_LOGGING_H
+
 #include <linux/printk.h>
 
 #define ELTON_LOG_PREFIX
@@ -33,3 +36,5 @@
 #define DEBUG(fmt, ...) _PRINTLNK(KERN_DEBUG, fmt, ##__VA_ARGS__)
 #define INFO(fmt, ...) _PRINTLNK(KERN_INFO, fmt, ##__VA_ARGS__)
 #define ERR(fmt, ...) _PRINTLNK(KERN_ERR, fmt, ##__VA_ARGS__)
+
+#endif // _ELTON_LOGGING_H
