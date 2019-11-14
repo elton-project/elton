@@ -9,10 +9,14 @@
 //    a comma.
 //
 //  Usage:
-//    #undef ELTON_LOG_PREFIX
-//    #undef ELTON_LOG_PREFIX_ARGS
+//    /* Define macros before include the <elton/logging.h> */
 //    #define ELTON_LOG_PREFIX "session[id=%d]: "
 //    #define ELTON_LOG_PREFIX_ARGS ,session->id
+//
+//    #include <header/files.h>
+//    void foo() {
+//      INFO("called foo()");
+//    }
 //
 //
 // Macros:
@@ -26,8 +30,12 @@
 
 #include <linux/printk.h>
 
+#ifndef ELTON_LOG_PREFIX
 #define ELTON_LOG_PREFIX
+#endif
+#ifndef ELTON_LOG_PREFIX_ARGS
 #define ELTON_LOG_PREFIX_ARGS
+#endif
 
 #define _PRINTLNK(level, fmt, ...)                                             \
   (printk(level MODULE_NAME ": " ELTON_LOG_PREFIX fmt                          \
