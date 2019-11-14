@@ -143,7 +143,7 @@ extern volatile bool __assertion_failed;
   })
 // 2つのchar*型の配列の内容が一致しない場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
-// 表示内容は、
+// 一致しなかった場合、2つの配列の内容を比較がしやすいようにダンプする。
 #define ASSERT_EQUAL_BYTES(expected, actual, size)                             \
   ({                                                                           \
     int i, result = memcmp(expected, actual, size);                            \
