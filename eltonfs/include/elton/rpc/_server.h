@@ -11,23 +11,6 @@
 #include <linux/un.h>
 #include <net/sock.h>
 
-#ifdef ELTON_RPC_DEBUG
-#define RPC_DEBUG(fmt, ...) DEBUG(fmt, ##__VA_ARGS__)
-#define SESSION_DEBUG(session, fmt, ...) DEBUG(fmt, ##__VA_ARGS__)
-#define NS_DEBUG(ns, fmt, ...) DEBUG(fmt, ##__VA_ARGS__)
-#else
-#define RPC_DEBUG(fmt, ...)
-#define SESSION_DEBUG(session, fmt, ...)
-#define NS_DEBUG(ns, fmt, ...)
-#endif
-
-#define RPC_INFO(fmt, ...) INFO(fmt, ##__VA_ARGS__)
-#define SESSION_INFO(session, fmt, ...) INFO(fmt, ##__VA_ARGS__)
-#define NS_INFO(ns, fmt, ...) INFO(fmt, ##__VA_ARGS__)
-#define RPC_ERR(fmt, ...) ERR(fmt, ##__VA_ARGS__)
-#define SESSION_ERR(session, fmt, ...) ERR(fmt, ##__VA_ARGS__)
-#define NS_ERR(ns, fmt, ...) ERR(fmt, ##__VA_ARGS__)
-
 #define LISTEN_LENGTH 4
 #define SOCK_PROTO_NAME(sock) (sock)->sk->sk_prot_creator->name
 

@@ -28,12 +28,12 @@ void elton_rpc_session_init(struct elton_rpc_session *s,
 static int rpc_session_setup1(struct elton_rpc_session *s,
                               struct elton_rpc_setup1 **setup1) {
   int error;
-  SESSION_DEBUG(s, "waiting setup1 ...");
+  DEBUG("waiting setup1 ...");
   RETURN_IF(
       rpc_sock_read_packet(s->sock, ELTON_RPC_SETUP1_ID, (void **)setup1));
-  SESSION_DEBUG(s, "received setup1 from client");
+  DEBUG("received setup1 from client");
 
-  SESSION_DEBUG(s, "validating setup1");
+  DEBUG("validating setup1");
   // todo: check setup1.
   return 0;
 }
@@ -46,14 +46,14 @@ static int rpc_session_setup2(struct elton_rpc_session *s) {
   };
   struct raw_packet *raw = NULL;
 
-  SESSION_DEBUG(s, "preparing setup2 ...");
+  DEBUG("preparing setup2 ...");
   GOTO_IF(error_setup2, elton_rpc_encode_packet(&pk, &raw, 0, 0));
   BUG_ON(raw == NULL);
   BUG_ON(raw->data == NULL);
 
-  SESSION_DEBUG(s, "sending setup2 ...");
+  DEBUG("sending setup2 ...");
   GOTO_IF(error_setup2, rpc_sock_write_raw_packet(s->sock, raw));
-  SESSION_DEBUG(s, "sent setup2");
+  DEBUG("sent setup2");
 
 error_setup2:
   if (raw)
@@ -80,11 +80,11 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     ns =
         (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns), GFP_KERNEL);
     if (ns == NULL) {
-      SESSION_ERR(s, "failed to allocate elton_rpc_ns object");
+      ERR("failed to allocate elton_rpc_ns object");
       GOTO_IF(out_unlock, -ENOMEM);
     }
     elton_rpc_ns_init(ns, s, raw->session_id, false);
-    SESSION_DEBUG(s, "created new session by umh");
+    DEBUG("created new session by umh");
     ADD_NS(ns);
     ns = NULL;
   } else {
@@ -122,16 +122,16 @@ int rpc_session_worker(void *_s) {
   GOTO_IF(error_setup1, rpc_session_setup1(s, &setup1));
   GOTO_IF(error_setup2, rpc_session_setup2(s));
 
-  SESSION_INFO(s, "established connection (client=%s)",
-               setup1->client_name ? setup1->client_name : "no-name client");
+  INFO("established connection (client=%s)",
+       setup1->client_name ? setup1->client_name : "no-name client");
 
   // Receive data from client until socket is closed.
   for (;;) {
     struct raw_packet *raw = NULL;
 
     GOTO_IF(error_recv, rpc_sock_read_raw_packet(s->sock, &raw));
-    SESSION_DEBUG(s, "received a packet: struct_id=%llu, flags=%hhu, size=%zu",
-                  raw->struct_id, raw->flags, raw->size);
+    DEBUG("received a packet: struct_id=%llu, flags=%hhu, size=%zu",
+          raw->struct_id, raw->flags, raw->size);
     GOTO_IF(error_enqueue, rpc_session_enqueue_raw_packet(s, raw));
     continue;
 
@@ -147,7 +147,7 @@ error_setup2:
   if (setup1)
     elton_rpc_free_decoded_data(setup1);
 error_setup1:
-  SESSION_INFO(s, "stopping session worker");
+  INFO("stopping session worker");
   kfree(s->sock);
   s->sock = NULL;
   // Unregister from s->server->ss_table.

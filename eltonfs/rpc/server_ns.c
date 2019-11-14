@@ -62,7 +62,7 @@ static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
 
   GOTO_IF(error, elton_rpc_encode_packet(&pkt, &raw, ns->nsid, flags));
   GOTO_IF(error_write, rpc_sock_write_raw_packet(ns->session->sock, raw));
-  NS_DEBUG(ns, "sent a struct: struct_id=%d, flags=%d", struct_id, flags);
+  DEBUG("sent a struct: struct_id=%d, flags=%d", struct_id, flags);
 
 error_write:
   raw->free(raw);
@@ -109,7 +109,7 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
   int error = 0;
   struct raw_packet *raw = NULL;
 
-  NS_DEBUG(ns, "waiting a struct to be received");
+  DEBUG("waiting a struct to be received");
   elton_rpc_dequeue(&ns->q, &raw);
 
   if (raw->flags & ELTON_SESSION_FLAG_CLOSE) {
@@ -118,18 +118,18 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
     spin_lock(&ns->lock);
     ns->receivable = false;
     spin_unlock(&ns->lock);
-    NS_DEBUG(ns, "receivable=false");
+    DEBUG("receivable=false");
   }
 
   if (raw->struct_id != struct_id) {
     // Unexpected struct.
-    NS_ERR(ns, "unexpected struct is received: expected=%llu, actual=%llu",
-           struct_id, raw->struct_id);
+    ERR("unexpected struct is received: expected=%llu, actual=%llu", struct_id,
+        raw->struct_id);
     GOTO_IF(error_dequeue, -ELTON_RPC_DIFF_TYPE);
   }
 
   GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, data));
-  NS_DEBUG(ns, "received a struct");
+  DEBUG("received a struct");
 
 error_dequeue:
   if (raw)

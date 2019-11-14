@@ -66,7 +66,7 @@ static int rpc_master_worker(void *_srv) {
   // TODO: Change socket file mode. We can safely change the mode of socket file
   // at this time because it is not listened yet.
   GOTO_IF(error_sock, srv->sock->ops->listen(srv->sock, LISTEN_LENGTH));
-  RPC_DEBUG("listened UNIX Domain Socket");
+  DEBUG("listened UNIX Domain Socket");
 
   for (session_id = 1;; session_id++) {
     struct elton_rpc_session *s = NULL;
@@ -85,7 +85,7 @@ static int rpc_master_worker(void *_srv) {
 
     s = kmalloc(sizeof(struct elton_rpc_session), GFP_KERNEL);
     if (s == NULL) {
-      RPC_ERR("master: failed to allocate elton_rpc_session");
+      ERR("master: failed to allocate elton_rpc_session");
       GOTO_IF(error_accept, -ENOMEM);
     }
     elton_rpc_session_init(s, srv, session_id, newsock);
@@ -94,7 +94,7 @@ static int rpc_master_worker(void *_srv) {
     task = (struct task_struct *)kthread_run(rpc_session_worker, s,
                                              "elton-rpc [%d]", session_id);
     if (IS_ERR(task)) {
-      RPC_ERR("master: kthread_run returns an error %d", error);
+      ERR("master: kthread_run returns an error %d", error);
       GOTO_IF(error_kthread, PTR_ERR(task));
     }
     mutex_lock(&s->task_lock);
@@ -118,7 +118,7 @@ static int rpc_master_worker(void *_srv) {
 error_sock:
   sock_release(srv->sock);
 error:
-  RPC_ERR("master: stopped");
+  ERR("master: stopped");
   return error;
 }
 
@@ -130,10 +130,10 @@ static int rpc_start_worker(struct elton_rpc_server *s) {
   // Start master worker.
   task = kthread_run(rpc_master_worker, s, "elton-rpc [master]");
   if (IS_ERR(task)) {
-    RPC_ERR("kthread_run returns an error %d", error);
+    ERR("kthread_run returns an error %d", error);
     GOTO_IF(error, PTR_ERR(task));
   }
-  RPC_INFO("started master worker");
+  INFO("started master worker");
   mutex_lock(&s->task_lock);
   s->task = task;
   mutex_unlock(&s->task_lock);
@@ -163,10 +163,10 @@ static int rpc_start_umh(struct elton_rpc_server *s) {
 
   error = call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
   if (error) {
-    RPC_ERR("failed to start UMH with error %d", error);
+    ERR("failed to start UMH with error %d", error);
     RETURN_IF(error);
   }
-  RPC_INFO("start " ELTONFS_HELPER);
+  INFO("start " ELTONFS_HELPER);
   return 0;
 }
 
