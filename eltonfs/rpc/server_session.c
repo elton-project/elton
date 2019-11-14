@@ -18,6 +18,7 @@ void elton_rpc_session_init(struct elton_rpc_session *s,
   s->server = server;
   s->sid = sid;
   s->sock = sock;
+  mutex_init(&s->sock_write_lock);
   s->sock_wb = NULL;
   s->sock_wb_size = 0;
   s->task = NULL;
