@@ -347,6 +347,6 @@ int elton_rpc_build_raw_packet(struct raw_packet **out, char *buff,
 
 error:
   if (raw)
-    kfree(raw);
+    free_raw_packet(raw);
   return error;
 }
