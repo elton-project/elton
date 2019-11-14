@@ -1,3 +1,5 @@
+#define ELTON_LOG_PREFIX "[rpc/packet] "
+
 #include <elton/assert.h>
 #include <elton/error.h>
 #include <elton/rpc/packet.h>

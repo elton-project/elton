@@ -1,3 +1,5 @@
+#define ELTON_LOG_PREFIX "[rpc/test] "
+
 #include <elton/assert.h>
 #include <elton/compiler_attributes.h>
 #include <elton/error.h>

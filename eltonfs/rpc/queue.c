@@ -1,3 +1,5 @@
+#define ELTON_LOG_PREFIX "[rpc/queue] "
+
 #include <elton/assert.h>
 #include <elton/rpc/queue.h>
 #include <linux/sched.h>

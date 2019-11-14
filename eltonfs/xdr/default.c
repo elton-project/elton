@@ -1,3 +1,5 @@
+#define ELTON_LOG_PREFIX "[xdr/default] "
+
 #include <elton/assert.h>
 #include <elton/xdr/bin_encoding.h>
 #include <elton/xdr/interface.h>
