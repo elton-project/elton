@@ -1,7 +1,7 @@
 // Logging Macros
 // ==============
 //
-// Constant Variables for Customize Logging Message:
+// Macros for Customize Logging Message:
 //  * ELTON_LOG_PREFIX
 //    A string literal of format string.
 //  * ELTON_LOG_PREFIX_ARGS
@@ -19,7 +19,7 @@
 //    }
 //
 //
-// Macros:
+// Macros for Printing Log Messages:
 //  * DEBUG(format, ...)
 //  * INFO(format, ...)
 //  * ERR(format, ...)
