@@ -43,8 +43,8 @@
 #define _ELTON_ASSERT_H
 
 #include <elton/elton.h>
+#include <elton/logging.h>
 #include <linux/bug.h>
-#include <linux/printk.h>
 
 #define lengthof(array) (sizeof(array) / sizeof((array)[0]))
 // Break compile if array size is not match.
@@ -54,12 +54,6 @@
 // ASSERT_*()マクロが失敗したとき、trueに設定される。
 // デフォルト値はfalse。
 extern volatile bool __assertion_failed;
-
-#define _PRINTLNK(level, fmt, ...)                                             \
-  (printk(level MODULE_NAME ": " fmt "\n", ##__VA_ARGS__))
-#define DEBUG(fmt, ...) _PRINTLNK(KERN_DEBUG, fmt, ##__VA_ARGS__)
-#define INFO(fmt, ...) _PRINTLNK(KERN_INFO, fmt, ##__VA_ARGS__)
-#define ERR(fmt, ...) _PRINTLNK(KERN_ERR, fmt, ##__VA_ARGS__)
 
 // エラーならtrueを返す。
 // また、エラー発生時にログを残す。
