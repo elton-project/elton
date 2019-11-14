@@ -6,6 +6,8 @@
 #define ELTON_RPC_ALREADY_CLOSED 1003
 // Actual struct_id does not match the expected struct_id.
 #define ELTON_RPC_DIFF_TYPE 1004
+// Reached to EOF.
+#define ELTON_RPC_EOF 1005
 
 #define ELTON_XDR_INVAL 2001
 #define ELTON_XDR_NOMEM 2002

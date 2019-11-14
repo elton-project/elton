@@ -30,7 +30,7 @@
         break;                                                                 \
       if (result == 0)                                                         \
         /* Reached to EOF */                                                   \
-        break;                                                                 \
+        return -ELTON_RPC_EOF;                                                 \
     }                                                                          \
     result;                                                                    \
   })
