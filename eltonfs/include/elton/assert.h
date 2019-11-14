@@ -1,3 +1,44 @@
+// Assertion Macros
+// ================
+//
+// Assertion Macros at Build Time:
+//  * BUILD_BUG_ON(condition)
+//  * BUILD_ASSERT_EQUAL_ARRAY_SIZE(expected_size, arrary)
+//    Check expected_size and elements of array.  If a check fail, breaks
+//    compile by occurs a compile error.
+//
+//  Usage:
+//    char buff[BUFFER_SIZE];
+//    BUILD_ASSERT_EQUAL_ARRAY_SIZE(10, buff);
+//
+//
+// Assertion Macros at Run time:
+//  * ASSERT_NOT_NULL(expr)
+//  * ASSERT_NO_ERROR(expr)
+//  * ASSERT_EQUAL_ERROR(expected, expr)
+//  * ASSERT_EQUAL_INT(expected, expr)
+//  * ASSERT_EQUAL_LL(expected, expr)
+//  * ASSERT_EQUAL_SIZE_T(expected, expr)
+//  * ASSERT_EQUAL_BYTES(expected, actual, size)
+//    Above macros checks the expected result and expr.  If check filed, returns
+//    true.
+//  * IS_ASSERTION_FAILED()
+//    Returns true if failed at least one or more assertions.
+//
+//  Usage:
+//    void test_case_a() {
+//      if(ASSERT_NOT_NULL(do_something()))
+//        return;        // Assertion failed. Break test case immediately.
+//      do_something();
+//      return;
+//    }
+//
+//    void run_test_cases() {
+//      test_case_a();
+//      if(IS_ASSERTION_FAILED())
+//        ERR("failed tests");
+//    }
+
 #ifndef _ELTON_ASSERT_H
 #define _ELTON_ASSERT_H
 
