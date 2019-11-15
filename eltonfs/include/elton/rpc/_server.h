@@ -98,8 +98,8 @@ int rpc_sock_write_raw_packet(struct socket *sock, struct raw_packet *raw);
   } while (0)
 // Get elton_rpc_ns by hash value of nsid.
 // MUST acquire the server->nss_table_lock before call it.
-inline struct elton_rpc_ns *GET_NS_NOLOCK(struct elton_rpc_session *s,
-                                          u64 nsid) {
+static inline struct elton_rpc_ns *GET_NS_NOLOCK(struct elton_rpc_session *s,
+                                                 u64 nsid) {
   struct elton_rpc_ns *ns = NULL;
   u64 hash = get_nsid_hash_by_values(s->sid, nsid);
   bool found = false;
@@ -115,7 +115,8 @@ inline struct elton_rpc_ns *GET_NS_NOLOCK(struct elton_rpc_session *s,
 }
 // Get elton_rpc_ns by hash value of nsid.
 // MUST NOT call when acquired the server->nss_table_lock.
-inline struct elton_rpc_ns *GET_NS(struct elton_rpc_session *s, u64 nsid) {
+static inline struct elton_rpc_ns *GET_NS(struct elton_rpc_session *s,
+                                          u64 nsid) {
   struct elton_rpc_ns *ns;
   spin_lock(&s->server->nss_table_lock);
   ns = GET_NS_NOLOCK(s, nsid);
