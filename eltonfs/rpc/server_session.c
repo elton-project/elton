@@ -89,8 +89,8 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     ADD_NS_NOLOCK(ns);
     ns = NULL;
   } else {
-    ERR("ns not found: nsid=%llu, flags=%hhu, struct_id=%llu", raw->session_id,
-        raw->flags, raw->struct_id);
+    ERR("ns not found: ns=%p, nsid=%llu, flags=%hhu, struct_id=%llu", ns,
+        raw->session_id, raw->flags, raw->struct_id);
     BUG();
     // Unreachable
     return -ENOTRECOVERABLE;
