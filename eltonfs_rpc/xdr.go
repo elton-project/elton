@@ -345,7 +345,7 @@ func (d *binDecoder) RawPacket() *rawPacket {
 		size:  d.Uint64(),
 		nsid:  d.Uint64(),
 		flags: PacketFlag(d.Uint8()),
-		sid:   d.Uint64(),
+		sid:   StructID(d.Uint64()),
 		data:  nil,
 	}
 	if p.size > MaxAllowedPacketSize {

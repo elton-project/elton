@@ -10,6 +10,7 @@ import (
 	"sync"
 )
 
+type StructID uint64
 type PacketFlag uint8
 
 const (
@@ -63,6 +64,7 @@ type ClientNS interface {
 func NewClientSession(conn net.Conn) ClientSession {
 	w := utils.WrapMustWriter(conn)
 	r := utils.WrapMustReader(conn)
+
 	return &clientS{
 		Conn: conn,
 		R:    r,
@@ -110,7 +112,7 @@ type rawPacket struct {
 	size  uint64
 	nsid  uint64
 	flags PacketFlag
-	sid   uint64
+	sid   StructID
 	data  []byte
 }
 
