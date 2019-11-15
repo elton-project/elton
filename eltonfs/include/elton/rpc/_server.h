@@ -14,6 +14,20 @@
 #define LISTEN_LENGTH 4
 #define SOCK_PROTO_NAME(sock) (sock)->sk->sk_prot_creator->name
 
+void elton_rpc_session_init(struct elton_rpc_session *s,
+                            struct elton_rpc_server *server, u8 sid,
+                            struct socket *sock);
+int rpc_session_worker(void *_s);
+void elton_rpc_ns_init(struct elton_rpc_ns *ns, struct elton_rpc_session *s,
+                       u64 nsid, bool is_client);
+u64 get_nsid(void);
+u64 get_nsid_hash(struct elton_rpc_ns *ns);
+u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
+
+int rpc_sock_read_packet(struct socket *sock, u64 struct_id, void **out);
+int rpc_sock_read_raw_packet(struct socket *sock, struct raw_packet **out);
+int rpc_sock_write_raw_packet(struct socket *sock, struct raw_packet *raw);
+
 // Get an entry from hashtable.  If entry is not found, returns NULL.
 //
 // Arguments:
@@ -108,17 +122,3 @@ inline struct elton_rpc_ns *GET_NS(struct elton_rpc_session *s, u64 nsid) {
   spin_unlock(&s->server->nss_table_lock);
   return ns;
 }
-
-void elton_rpc_session_init(struct elton_rpc_session *s,
-                            struct elton_rpc_server *server, u8 sid,
-                            struct socket *sock);
-int rpc_session_worker(void *_s);
-void elton_rpc_ns_init(struct elton_rpc_ns *ns, struct elton_rpc_session *s,
-                       u64 nsid, bool is_client);
-u64 get_nsid(void);
-u64 get_nsid_hash(struct elton_rpc_ns *ns);
-u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
-
-int rpc_sock_read_packet(struct socket *sock, u64 struct_id, void **out);
-int rpc_sock_read_raw_packet(struct socket *sock, struct raw_packet **out);
-int rpc_sock_write_raw_packet(struct socket *sock, struct raw_packet *raw);
