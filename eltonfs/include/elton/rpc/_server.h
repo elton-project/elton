@@ -70,7 +70,10 @@
 // Add nested session to server.
 // MUST acquire the server->nss_table_lock before call it.
 #define ADD_NS_NOLOCK(ns)                                                      \
-  hash_add((ns)->session->server->nss_table, &(ns)->_hash, (ns)->nsid)
+  do {                                                                         \
+    u64 hash = get_nsid_hash(ns);                                              \
+    hash_add((ns)->session->server->nss_table, &(ns)->_hash, hash);            \
+  } while (0)
 // Add nested session to server.
 // MUST NOT call when acquired the server->nss_table_lock.
 #define ADD_NS(ns)                                                             \
