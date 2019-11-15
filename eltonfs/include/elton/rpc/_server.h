@@ -79,6 +79,8 @@
     ADD_NS_NOLOCK(ns);                                                         \
     spin_unlock(&(ns)->session->server->nss_table_lock);                       \
   } while (0)
+// Get elton_rpc_ns by hash value of nsid.
+// MUST NOT call when acquired the server->nss_table_lock.
 #define GET_NS_BY_HASH(server, hash)                                           \
   ({                                                                           \
     struct elton_rpc_ns *entry;                                                \
