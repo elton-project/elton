@@ -26,6 +26,7 @@ int elton_rpc_enqueue(struct elton_rpc_queue *q, struct raw_packet *in) {
     GOTO_IF(error, -ENOMEM);
   }
   entry->raw = in;
+  INIT_LIST_HEAD(&entry->list_head);
 
   spin_lock(&q->lock);
   // Add entry to FIFO queue.
