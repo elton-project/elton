@@ -6,6 +6,20 @@
 #include <linux/slab.h>
 
 static void elton_rpc_free(struct raw_packet *packet) { packet->free(packet); }
+static inline struct elton_rpc_queue_entry *
+queue_entry_init(struct raw_packet *raw) {
+  struct elton_rpc_queue_entry *entry = (struct elton_rpc_queue_entry *)kmalloc(
+      sizeof(struct elton_rpc_queue_entry), GFP_KERNEL);
+  if (entry == NULL)
+    return NULL;
+
+  INIT_LIST_HEAD(&entry->list_head);
+  entry->raw = raw;
+  return entry;
+}
+static void inline queue_entry_free(struct elton_rpc_queue_entry *entry) {
+  kfree(entry);
+}
 
 int elton_rpc_queue_init(struct elton_rpc_queue *q) {
   spin_lock_init(&q->lock);
@@ -15,18 +29,15 @@ int elton_rpc_queue_init(struct elton_rpc_queue *q) {
   return 0;
 }
 
-int elton_rpc_enqueue(struct elton_rpc_queue *q, struct raw_packet *in) {
+int elton_rpc_enqueue(struct elton_rpc_queue *q, struct raw_packet *raw) {
   int error = 0;
   struct elton_rpc_queue_entry *entry;
 
   // Allocate memory and initialize entry.
-  entry = (struct elton_rpc_queue_entry *)kmalloc(
-      sizeof(struct elton_rpc_queue_entry), GFP_KERNEL);
+  entry = queue_entry_init(raw);
   if (entry == NULL) {
     GOTO_IF(error, -ENOMEM);
   }
-  entry->raw = in;
-  INIT_LIST_HEAD(&entry->list_head);
 
   spin_lock(&q->lock);
   // Add entry to FIFO queue.
@@ -59,7 +70,7 @@ int elton_rpc_dequeue(struct elton_rpc_queue *q, struct raw_packet **out) {
   spin_unlock(&q->lock);
 
   *out = q->entry->raw;
-  kfree(q->entry);
+  queue_entry_free(q->entry);
   return 0;
 
 error_unlock:
