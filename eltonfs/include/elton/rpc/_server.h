@@ -26,7 +26,7 @@
   ({                                                                           \
     type *obj = NULL;                                                          \
     hash_for_each_possible((hashtable), obj, member, (key)) {                  \
-      if (obj->key_member == key)                                              \
+      if (obj->key_member == (key))                                            \
         break;                                                                 \
     }                                                                          \
     obj;                                                                       \
