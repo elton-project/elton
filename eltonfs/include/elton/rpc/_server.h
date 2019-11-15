@@ -84,19 +84,30 @@
   } while (0)
 // Get elton_rpc_ns by hash value of nsid.
 // MUST acquire the server->nss_table_lock before call it.
-#define GET_NS_BY_HASH_NOLOCK(server, hash)                                    \
-  HASH_GET((server)->nss_table, struct elton_rpc_ns, _hash, nsid, hash)
+inline struct elton_rpc_ns *GET_NS_NOLOCK(struct elton_rpc_session *s,
+                                          u64 nsid) {
+  struct elton_rpc_ns *ns = NULL;
+  u64 hash = get_nsid_hash_by_values(s->sid, nsid);
+  bool found = false;
+  hash_for_each_possible(s->server->nss_table, ns, _hash, hash) {
+    if (ns->nsid == nsid && ns->session == s) {
+      found = true;
+      break;
+    }
+  }
+  if (!found)
+    ns = NULL;
+  return ns;
+}
 // Get elton_rpc_ns by hash value of nsid.
 // MUST NOT call when acquired the server->nss_table_lock.
-#define GET_NS_BY_HASH(server, hash)                                           \
-  ({                                                                           \
-    struct elton_rpc_ns *entry;                                                \
-    spin_lock(&(server)->nss_table_lock);                                      \
-    entry =                                                                    \
-        HASH_GET((server)->nss_table, struct elton_rpc_ns, _hash, nsid, hash); \
-    spin_unlock(&(server)->nss_table_lock);                                    \
-    entry;                                                                     \
-  })
+inline struct elton_rpc_ns *GET_NS(struct elton_rpc_session *s, u64 nsid) {
+  struct elton_rpc_ns *ns;
+  spin_lock(&s->server->nss_table_lock);
+  ns = GET_NS_NOLOCK(s, nsid);
+  spin_unlock(&s->server->nss_table_lock);
+  return ns;
+}
 
 void elton_rpc_session_init(struct elton_rpc_session *s,
                             struct elton_rpc_server *server, u8 sid,

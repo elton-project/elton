@@ -175,7 +175,6 @@ static int rpc_new_session(struct elton_rpc_server *srv,
   int error;
   struct elton_rpc_session *s = NULL;
   u64 nsid;
-  u64 hash;
   bool found;
 
   // Select a session.
@@ -188,8 +187,7 @@ static int rpc_new_session(struct elton_rpc_server *srv,
   // Find the unused nsid.
   do {
     nsid = get_nsid();
-    hash = get_nsid_hash(ns);
-    found = GET_NS_BY_HASH(srv, hash) != NULL;
+    found = GET_NS(s, nsid) != NULL;
   } while (found);
   // Initialize and register ns.
   elton_rpc_ns_init(ns, s, nsid, true);
