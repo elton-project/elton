@@ -66,13 +66,11 @@ error_setup2:
 static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
                                           struct raw_packet *raw) {
   int error = 0;
-  u64 nsid_hash;
   struct elton_rpc_ns *ns = NULL;
   BUG_ON(raw == NULL);
 
   spin_lock(&s->server->nss_table_lock);
-  nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
-  ns = GET_NS_NOLOCK(s, nsid_hash);
+  ns = GET_NS_NOLOCK(s, raw->session_id);
   if (ns) {
     // Enqueue it.
     GOTO_IF(out_unlock, elton_rpc_enqueue(&ns->q, raw));
