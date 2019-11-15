@@ -253,8 +253,9 @@ func (s *clientS) recvWorker() {
 
 			s.recvQLock.RLock()
 			ch := s.recvQ[p.nsid]
+			s.recvQLock.RUnlock()
+
 			if ch == nil {
-				s.recvQLock.RUnlock()
 				if p.flags|CreateSessionFlag == 0 {
 					err := xerrors.Errorf("not found channel: nsid=%d", p.nsid)
 					panic(err)
@@ -273,12 +274,12 @@ func (s *clientS) recvWorker() {
 				// Start handler.
 				go s.Handle(ns, p.sid, p.flags)
 			}
+
 			select {
 			case ch <- p:
 			case <-s.closed:
 				return nil
 			}
-			s.recvQLock.RUnlock()
 		}
 	})
 	// TODO
