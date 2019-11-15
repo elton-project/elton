@@ -68,11 +68,15 @@
     spin_unlock(&(server)->ss_table_lock);                                     \
   } while (0)
 // Add nested session to server.
+// MUST acquire the server->nss_table_lock before call it.
+#define ADD_NS_NOLOCK(ns)                                                      \
+  hash_add((ns)->session->server->nss_table, &(ns)->_hash, (ns)->nsid)
+// Add nested session to server.
 // MUST NOT call when acquired the server->nss_table_lock.
 #define ADD_NS(ns)                                                             \
   do {                                                                         \
     spin_lock(&(ns)->session->server->nss_table_lock);                         \
-    hash_add((ns)->session->server->nss_table, &(ns)->_hash, (ns)->nsid);      \
+    ADD_NS_NOLOCK(ns);                                                         \
     spin_unlock(&(ns)->session->server->nss_table_lock);                       \
   } while (0)
 #define GET_NS_BY_HASH(server, hash)                                           \

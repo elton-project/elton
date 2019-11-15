@@ -86,7 +86,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     }
     elton_rpc_ns_init(ns, s, raw->session_id, false);
     DEBUG("created new session by umh");
-    ADD_NS(ns);
+    ADD_NS_NOLOCK(ns);
     ns = NULL;
   } else {
     ERR("ns not found: nsid=%llu, flags=%hhu, struct_id=%llu", raw->session_id,
