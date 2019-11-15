@@ -66,11 +66,12 @@ func NewClientSession(conn net.Conn) ClientSession {
 	r := utils.WrapMustReader(conn)
 
 	return &clientS{
-		Conn: conn,
-		R:    r,
-		W:    w,
-		Enc:  NewXDREncoder(w),
-		Dec:  NewXDRDecoder(r),
+		Conn:   conn,
+		R:      r,
+		W:      w,
+		Enc:    NewXDREncoder(w),
+		Dec:    NewXDRDecoder(r),
+		Handle: defaultHandler,
 	}
 }
 
