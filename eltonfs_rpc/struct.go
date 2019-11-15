@@ -1,6 +1,7 @@
 package eltonfs_rpc
 
-//StructID=1
+const Setup1StructID = 1
+
 type Setup1 struct {
 	XXX_XDR_ID      struct{} `xdrid:"1"`
 	ClientName      string   `xdr:"1"`
@@ -9,7 +10,8 @@ type Setup1 struct {
 	VersionRevision uint64   `xdr:"4"`
 }
 
-//StructID=2
+const Setup2StructID = 2
+
 type Setup2 struct {
 	XXX_XDR_ID      struct{} `xdrid:"2"`
 	Error           uint64   `xdr:"1"`
@@ -20,7 +22,8 @@ type Setup2 struct {
 	VersionRevision uint64   `xdr:"6"`
 }
 
-//StructID=3
+const PingStructID = 3
+
 type Ping struct {
 	XXX_XDR_ID struct{} `xdrid:"3"`
 }
