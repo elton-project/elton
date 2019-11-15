@@ -5,6 +5,8 @@
 #include <linux/spinlock.h>
 #include <linux/wait.h>
 
+struct elton_rpc_queue_entry;
+
 // Queue for the received packets.
 struct elton_rpc_queue {
   // Global lock in the queue.
@@ -13,8 +15,7 @@ struct elton_rpc_queue {
   // Wait queue for the process waiting to receive packets.
   struct wait_queue_head wq;
   // FIFO queue of received packets.
-  // If queue is empty, the entry should be NULL.
-  struct elton_rpc_queue_entry *entry;
+  struct list_head queue;
   // NOTE: Unused field.
   //
   // Free the allocated memory of raw_packet.
