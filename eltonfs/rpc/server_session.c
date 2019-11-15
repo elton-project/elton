@@ -72,7 +72,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
 
   spin_lock(&s->server->nss_table_lock);
   nsid_hash = get_nsid_hash_by_values(s->sid, raw->session_id);
-  ns = GET_NS_BY_HASH(s->server, nsid_hash);
+  ns = GET_NS_BY_HASH_NOLOCK(s->server, nsid_hash);
   if (ns) {
     // Enqueue it.
     GOTO_IF(out_unlock, elton_rpc_enqueue(&ns->q, raw));

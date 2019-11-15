@@ -80,6 +80,10 @@
     spin_unlock(&(ns)->session->server->nss_table_lock);                       \
   } while (0)
 // Get elton_rpc_ns by hash value of nsid.
+// MUST acquire the server->nss_table_lock before call it.
+#define GET_NS_BY_HASH_NOLOCK(server, hash)                                    \
+  HASH_GET((server)->nss_table, struct elton_rpc_ns, _hash, nsid, hash)
+// Get elton_rpc_ns by hash value of nsid.
 // MUST NOT call when acquired the server->nss_table_lock.
 #define GET_NS_BY_HASH(server, hash)                                           \
   ({                                                                           \
