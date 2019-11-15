@@ -76,11 +76,12 @@ func NewClientSession(conn net.Conn) ClientSession {
 
 type NSID uint64
 type clientS struct {
-	Conn net.Conn
-	R    utils.MustReader
-	W    utils.MustWriter
-	Enc  XDREncoder
-	Dec  XDRDecoder
+	Conn   net.Conn
+	R      utils.MustReader
+	W      utils.MustWriter
+	Enc    XDREncoder
+	Dec    XDRDecoder
+	Handle RpcHandler
 
 	setupOK bool
 	// closed is closed when clientS.Close() called.  The purpose is notify workers of server termination event.
@@ -257,14 +258,19 @@ func (s *clientS) recvWorker() {
 					err := xerrors.Errorf("not found channel: nsid=%d", p.nsid)
 					panic(err)
 				}
+
 				// New nested session was created by server.
 				ns := newClientNS(s, p.nsid, false)
 				s.nssLock.Lock()
 				s.nss[ns.nsid] = ns
 				s.nssLock.Unlock()
 				s.recvQLock.Lock()
-				s.recvQ[ns.nsid] = make(chan *rawPacket, RecvQueueSize)
+				ch = make(chan *rawPacket, RecvQueueSize)
+				s.recvQ[ns.nsid] = ch
 				s.recvQLock.Unlock()
+
+				// Start handler.
+				go s.Handle(ns, p.sid, p.flags)
 			}
 			select {
 			case ch <- p:
