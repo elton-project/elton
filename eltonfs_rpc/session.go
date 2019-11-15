@@ -74,6 +74,7 @@ func NewClientSession(conn net.Conn) ClientSession {
 	}
 }
 
+type NSID uint64
 type clientS struct {
 	Conn net.Conn
 	R    utils.MustReader
@@ -95,8 +96,8 @@ type clientS struct {
 	// Nested Sessions
 	// Key: nested session IDs
 	// Value: *clientNS
-	nss      map[uint64]*clientNS
-	lastNSID uint64
+	nss      map[NSID]*clientNS
+	lastNSID NSID
 	nssLock  sync.RWMutex
 
 	// Queue for packets waiting to be sent.
@@ -104,13 +105,13 @@ type clientS struct {
 	sendQ chan []byte
 	// Queue for packets waiting to be received.
 	// A lock must be acquired before access to the recvQ.
-	recvQ     map[uint64]chan *rawPacket
+	recvQ     map[NSID]chan *rawPacket
 	recvQLock sync.RWMutex
 }
 
 type rawPacket struct {
 	size  uint64
-	nsid  uint64
+	nsid  NSID
 	flags PacketFlag
 	sid   StructID
 	data  []byte
@@ -140,8 +141,8 @@ func (s *clientS) Setup() error {
 		// Start workers.
 		s.closed = make(chan struct{})
 		s.sendQ = make(chan []byte, SendQueueSize)
-		s.recvQ = map[uint64]chan *rawPacket{}
-		s.nss = map[uint64]*clientNS{}
+		s.recvQ = map[NSID]chan *rawPacket{}
+		s.nss = map[NSID]*clientNS{}
 		go s.recvWorker()
 		go s.sendWorker()
 		return nil
@@ -191,7 +192,7 @@ func (s *clientS) Close() error {
 	// TODO: wait for workers.
 	return nil
 }
-func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) error {
+func (s *clientS) sendPacket(nsid NSID, flags PacketFlag, data interface{}) error {
 	err := HandlePanic(func() error {
 		buf := &bytes.Buffer{}
 		enc := NewXDREncoder(utils.WrapMustWriter(buf))
@@ -204,7 +205,7 @@ func (s *clientS) sendPacket(nsid uint64, flags PacketFlag, data interface{}) er
 	}
 	return nil
 }
-func (s *clientS) recvPacket(nsid uint64, empty interface{}) (data interface{}, flags PacketFlag, err error) {
+func (s *clientS) recvPacket(nsid NSID, empty interface{}) (data interface{}, flags PacketFlag, err error) {
 	s.recvQLock.RLock()
 	defer s.recvQLock.RUnlock()
 
@@ -294,7 +295,7 @@ func (s *clientS) sendWorker() {
 
 // newClientNS initializes clientNS struct.
 // If nested session created by opponent, isClient must be false.  Otherwise isClient must be true.
-func newClientNS(s *clientS, nsid uint64, isClient bool) *clientNS {
+func newClientNS(s *clientS, nsid NSID, isClient bool) *clientNS {
 	ns := &clientNS{
 		S:    s,
 		nsid: nsid,
@@ -312,7 +313,7 @@ func newClientNS(s *clientS, nsid uint64, isClient bool) *clientNS {
 type clientNS struct {
 	S *clientS
 
-	nsid        uint64
+	nsid        NSID
 	established bool
 	sendable    bool
 	receivable  bool

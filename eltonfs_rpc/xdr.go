@@ -26,7 +26,7 @@ type XDREncoder interface {
 	Slice(s interface{})
 	Map(m interface{})
 	Struct(s interface{})
-	RawPacket(nsid uint64, flags PacketFlag, data interface{})
+	RawPacket(nsid NSID, flags PacketFlag, data interface{})
 	Auto(v interface{})
 }
 
@@ -164,7 +164,7 @@ func (e *binEncoder) Struct(s interface{}) {
 		e.Auto(fields[fieldID].Interface())
 	}
 }
-func (e *binEncoder) RawPacket(nsid uint64, flags PacketFlag, data interface{}) {
+func (e *binEncoder) RawPacket(nsid NSID, flags PacketFlag, data interface{}) {
 	sid := parseXDRStructIDTag(reflect.TypeOf(data))
 
 	buf := &bytes.Buffer{}
@@ -173,7 +173,7 @@ func (e *binEncoder) RawPacket(nsid uint64, flags PacketFlag, data interface{}) 
 	size := uint64(buf.Len())
 
 	e.Uint64(size)
-	e.Uint64(nsid)
+	e.Uint64(uint64(nsid))
 	e.Uint8(uint8(flags))
 	e.Uint64(sid)
 	e.w.MustWriteAll(buf.Bytes())
@@ -343,7 +343,7 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 func (d *binDecoder) RawPacket() *rawPacket {
 	p := &rawPacket{
 		size:  d.Uint64(),
-		nsid:  d.Uint64(),
+		nsid:  NSID(d.Uint64()),
 		flags: PacketFlag(d.Uint8()),
 		sid:   StructID(d.Uint64()),
 		data:  nil,
