@@ -38,11 +38,13 @@ func (id ErrorID) String() string {
 	return msg
 }
 
+const SessionErrorStructID = 4
+
 // SessionError represents an error in the session or nested sessions.
-//StructID=4
 type SessionError struct {
-	ErrorID ErrorID `xdr:"1"`
-	Reason  string  `xdr:"2"`
+	XXX_XDR_ID struct{} `xdrid:"4"`
+	ErrorID    ErrorID  `xdr:"1"`
+	Reason     string   `xdr:"2"`
 }
 
 func (e *SessionError) Error() string {
