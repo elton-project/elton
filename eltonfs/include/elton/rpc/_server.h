@@ -21,7 +21,7 @@
 //   type: the type name of entry.
 //   member: the name of the hlist_node.
 //   key_member: the field name that the hash key is stored.
-//   key:
+//   key: actual key.
 #define HASH_GET(hashtable, type, member, key_member, key)                     \
   ({                                                                           \
     type *obj = NULL;                                                          \
