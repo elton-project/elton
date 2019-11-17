@@ -106,18 +106,21 @@ int rpc_session_pinger(void *_s) {
   struct elton_rpc_ns ns;
   struct elton_rpc_ping *recved_ping;
 
-  GOTO_IF(error_ns, s->server->ops->new_session(s->server, &ns));
-  while (ns.ops->is_sendable(&ns)) {
+  while (true) {
+    GOTO_IF(error_ns, s->server->ops->new_session(s->server, &ns));
     GOTO_IF(error_send, ns.ops->send_struct(&ns, ELTON_RPC_PING_ID, &ping));
     GOTO_IF(error_recv,
             ns.ops->recv_struct(&ns, ELTON_RPC_PING_ID, (void **)&recved_ping));
-    DEBUG("sent ping packet");
+    // TODO: memory leaks when close() failed.
+    GOTO_IF(error_close, ns.ops->close(&ns));
+    DEBUG("ping OK");
     msleep_interruptible(1000);
   }
 
 error_recv:
 error_send:
   RETURN_IF(ns.ops->close(&ns));
+error_close:
 error_ns:
   return error;
 }
