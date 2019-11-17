@@ -87,7 +87,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     ADD_NS_NOLOCK(ns);
     ns = NULL;
   } else {
-    ERR("ns not found: s=%p, ns=%p, raw=%p, nsid=%llu, flags=%hhu, "
+    ERR("ns not found: s=%px, ns=%px, raw=%px, nsid=%llu, flags=%hhu, "
         "struct_id=%llu",
         s, ns, raw, raw->session_id, raw->flags, raw->struct_id);
     BUG();
