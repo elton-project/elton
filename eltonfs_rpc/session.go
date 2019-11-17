@@ -23,6 +23,8 @@ const (
 const (
 	MinNSID       = 1
 	MaxNSID       = (1 << 32) - 1
+	MinServerNSID = 1
+	MaxServerNSID = (1 << 31) - 1
 	MinClientNSID = 1 << 31
 	MaxClientNSID = (1 << 32) - 1
 )
@@ -201,7 +203,7 @@ func (s *clientS) Close() error {
 	// TODO: wait for workers.
 	return nil
 }
-func (s *clientS) validateNSID(nsid NSID, flags PacketFlag) error {
+func (s *clientS) validateSendPacket(nsid NSID, flags PacketFlag) error {
 	if !(MinNSID <= nsid && nsid <= MaxNSID) {
 		return xerrors.Errorf("invalid nsid: nsid=%d, flags=%d", nsid, flags)
 	}
@@ -210,9 +212,18 @@ func (s *clientS) validateNSID(nsid NSID, flags PacketFlag) error {
 	}
 	return nil
 }
+func (s *clientS) validateRecvedPacket(nsid NSID, flags PacketFlag) error {
+	if !(MinNSID <= nsid && nsid <= MaxNSID) {
+		return xerrors.Errorf("invalid nsid: nsid=%d, flags=%d", nsid, flags)
+	}
+	if flags&CreateSessionFlag != 0 && !(MinServerNSID <= nsid && nsid <= MaxServerNSID) {
+		return xerrors.Errorf("invalid nsid: nsid=%d, flags=%d", nsid, flags)
+	}
+	return nil
+}
 func (s *clientS) sendPacket(nsid NSID, flags PacketFlag, data interface{}) error {
 	err := HandlePanic(func() error {
-		if err := s.validateNSID(nsid, flags); err != nil {
+		if err := s.validateSendPacket(nsid, flags); err != nil {
 			panic(err)
 		}
 
@@ -265,9 +276,7 @@ func (s *clientS) recvWorker() {
 	err := HandlePanic(func() error {
 		for {
 			p := s.Dec.RawPacket()
-
-			if p.nsid > nsidMaxValue {
-				err := xerrors.Errorf("NSID is out-of-range")
+			if err := s.validateRecvedPacket(p.nsid, p.flags); err != nil {
 				panic(err)
 			}
 

@@ -126,6 +126,19 @@ error_ns:
   return error;
 }
 
+bool validate_received_packet(struct raw_packet *raw) {
+  if (!(ELTON_RPC_MIN_NSID <= raw->session_id &&
+        raw->session_id <= ELTON_RPC_MAX_NSID)) {
+    return false;
+  }
+  if (raw->flags & ELTON_SESSION_FLAG_CREATE &&
+      !(ELTON_RPC_MIN_CLIENT_NSID <= raw->session_id &&
+        raw->session_id <= ELTON_RPC_MAX_CLIENT_NSID)) {
+    return false;
+  }
+  return true;
+}
+
 // Handle an accepted session and start handshake process with client.
 // If handshake is compleated, execute following tasks:
 //   * Register it to available session list.
@@ -161,6 +174,11 @@ int rpc_session_worker(void *_s) {
     struct raw_packet *raw = NULL;
 
     GOTO_IF(error_recv, rpc_sock_read_raw_packet(s->sock, &raw));
+    if (!validate_received_packet(raw)) {
+      ERR("invalid nsid: s=%px, raw=%px, nsid=%llu", s, raw, raw->session_id);
+      BUG();
+    }
+
     DEBUG("received a packet: struct_id=%llu, flags=%hhu, size=%zu",
           raw->struct_id, raw->flags, raw->size);
     GOTO_IF(error_enqueue, rpc_session_enqueue_raw_packet(s, raw));

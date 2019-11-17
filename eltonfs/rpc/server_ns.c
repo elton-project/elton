@@ -50,6 +50,19 @@ u64 get_nsid_hash(struct elton_rpc_ns *ns) {
   return get_nsid_hash_by_values(ns->session->sid, ns->nsid);
 }
 
+bool validate_send_packet(struct raw_packet *raw) {
+  if (!(ELTON_RPC_MIN_NSID <= raw->session_id &&
+        raw->session_id <= ELTON_RPC_MAX_NSID)) {
+    return false;
+  }
+  if (raw->flags & ELTON_SESSION_FLAG_CREATE &&
+      !(ELTON_RPC_MIN_SERVER_NSID <= raw->session_id &&
+        raw->session_id <= ELTON_RPC_MAX_SERVER_NSID)) {
+    return false;
+  }
+  return true;
+}
+
 // Send a packet.  MUST acquire sock_write_lock and ns->lock before call it.
 static int ns_send_packet_without_lock(struct elton_rpc_ns *ns, int flags,
                                        int struct_id, void *data) {
