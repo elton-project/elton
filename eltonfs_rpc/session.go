@@ -21,6 +21,13 @@ const (
 )
 
 const (
+	MinNSID       = 1
+	MaxNSID       = (1 << 32) - 1
+	MinClientNSID = 1 << 31
+	MaxClientNSID = (1 << 32) - 1
+)
+
+const (
 	SendQueueSize = 64
 	RecvQueueSize = 16
 )
@@ -194,8 +201,21 @@ func (s *clientS) Close() error {
 	// TODO: wait for workers.
 	return nil
 }
+func (s *clientS) validateNSID(nsid NSID, flags PacketFlag) error {
+	if !(MinNSID <= nsid && nsid <= MaxNSID) {
+		return xerrors.Errorf("invalid nsid: nsid=%d, flags=%d", nsid, flags)
+	}
+	if flags&CreateSessionFlag != 0 && !(MinClientNSID <= nsid && nsid <= MaxClientNSID) {
+		return xerrors.Errorf("invalid nsid: nsid=%d, flags=%d", nsid, flags)
+	}
+	return nil
+}
 func (s *clientS) sendPacket(nsid NSID, flags PacketFlag, data interface{}) error {
 	err := HandlePanic(func() error {
+		if err := s.validateNSID(nsid, flags); err != nil {
+			panic(err)
+		}
+
 		buf := &bytes.Buffer{}
 		enc := NewXDREncoder(utils.WrapMustWriter(buf))
 		enc.RawPacket(nsid, flags, data)
