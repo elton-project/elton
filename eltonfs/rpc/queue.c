@@ -40,7 +40,7 @@ int elton_rpc_enqueue(struct elton_rpc_queue *q, struct raw_packet *raw) {
 
   spin_lock(&q->lock);
   // Add entry to FIFO queue.
-  list_add_tail(&q->queue, &entry->list_head);
+  list_add_tail(&entry->list_head, &q->queue);
   // Wake up a task.
   wake_up(&q->wq);
   spin_unlock(&q->lock);
