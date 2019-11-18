@@ -53,6 +53,8 @@ int new_ns_handler_args(struct new_ns_handler_args **args,
   out->struct_id = struct_id;
   out->flags = flags;
   out->free = free_args;
+
+  *args = out;
   return 0;
 
 error:
