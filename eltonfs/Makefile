@@ -19,6 +19,7 @@ elton-y += rpc/test.o \
 	rpc/packet.o \
 	rpc/queue.o \
 	rpc/server.o \
+	rpc/server_handler.o \
 	rpc/server_io.o \
 	rpc/server_session.o \
 	rpc/server_ns.o

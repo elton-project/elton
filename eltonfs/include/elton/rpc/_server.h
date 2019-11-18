@@ -24,6 +24,16 @@ u64 get_nsid(void);
 u64 get_nsid_hash(struct elton_rpc_ns *ns);
 u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
 
+// Handler for nested session created by UMH.
+int elton_rpc_new_ns_handler(void *_args);
+// Argument for elton_rpc_new_ns_handler().
+struct new_ns_handler_args {
+  struct elton_rpc_ns *ns;
+  u64 struct_id;
+  u8 flags;
+  void (*free)(void *args);
+};
+
 int rpc_sock_read_packet(struct socket *sock, u64 struct_id, void **out);
 int rpc_sock_read_raw_packet(struct socket *sock, struct raw_packet **out);
 int rpc_sock_write_raw_packet(struct socket *sock, struct raw_packet *raw);
