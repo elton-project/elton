@@ -45,4 +45,25 @@
 #define INFO(fmt, ...) _PRINTLNK(KERN_INFO, fmt, ##__VA_ARGS__)
 #define ERR(fmt, ...) _PRINTLNK(KERN_ERR, fmt, ##__VA_ARGS__)
 
+#define __DEBUG_BYTES_WIDTH 16
+#define __DEBUG_BYTES_BUFF_LEN (__DEBUG_BYTES_WIDTH * 3 + 1)
+#define DEBUG_BYTES(name, array, length)                                       \
+  do {                                                                         \
+    char buff[__DEBUG_BYTES_BUFF_LEN];                                         \
+    bool loop = true;                                                          \
+    size_t x, y;                                                               \
+    DEBUG("%s  length=%zu", name, (length));                                   \
+    for (y = 0; loop; y++) {                                                   \
+      buff[0] = 0;                                                             \
+      for (x = 0; x < __DEBUG_BYTES_WIDTH; x++) {                              \
+        size_t i = y * __DEBUG_BYTES_WIDTH + x;                                \
+        loop = i < (length);                                                   \
+        if (!loop)                                                             \
+          break;                                                               \
+        snprintf(buff + x * 3, 4, "%02x ", (u8)((array)[i]));                  \
+      }                                                                        \
+      DEBUG("%s[%zu]: %s", (name), (y * __DEBUG_BYTES_WIDTH), buff);           \
+    }                                                                          \
+  } while (0)
+
 #endif // _ELTON_LOGGING_H
