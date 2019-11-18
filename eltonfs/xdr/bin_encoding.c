@@ -409,11 +409,13 @@ static void test_encode_u64(void) {
 }
 static void test_decode_u64(void) {
   struct xdr_decoder dec;
-  char buff[20] = {
-      1,   2,   3,   4,   5,    6,    7, 8, 0xa, 0xb,
-      0xc, 0xd, 0xe, 0xf, 0x1f, 0x2f, 1, 2, 3,   4,
+  char buff[] = {
+      1,   2,   3,   4,   5,   6,   7,    8,    // First value
+      0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0x1f, 0x2f, // Second value
+      0,   0,   0,   0,   0,   0,   0,    128,  // Third value
+      1,   2,   3,   4,                         // Padding
   };
-  size_t len = 20;
+  const size_t len = sizeof(buff);
   u64 val = 0;
 
   if (ASSERT_NO_ERROR(default_decoder_init(&dec, buff, len)))
@@ -423,6 +425,8 @@ static void test_decode_u64(void) {
   ASSERT_EQUAL_LL(0x0102030405060708LL, val);
   ASSERT_NO_ERROR(dec.dec_op->u64(&dec, &val));
   ASSERT_EQUAL_LL(0x0a0b0c0d0e0f1f2fLL, val);
+  ASSERT_NO_ERROR(dec.dec_op->u64(&dec, &val));
+  ASSERT_EQUAL_LL(128LL, val);
   ASSERT_EQUAL_ERROR(-ELTON_XDR_NEED_MORE_MEM, dec.dec_op->u64(&dec, &val));
 
   // Test for discard mode.
