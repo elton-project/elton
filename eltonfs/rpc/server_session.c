@@ -75,6 +75,10 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     // Enqueue it.
     GOTO_IF(out_unlock, elton_rpc_enqueue(&ns->q, raw));
   } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
+    struct new_ns_handler_args *handler_args;
+    struct task_struct *handler_task;
+
+    // TODO: fix memory leak bug.
     // Create session and enqueue it.
     ns =
         (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns), GFP_KERNEL);
@@ -83,8 +87,18 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
       GOTO_IF(out_unlock, -ENOMEM);
     }
     elton_rpc_ns_init(ns, s, raw->session_id, false);
+
+    GOTO_IF(out_unlock,
+            new_ns_handler_args(&handler_args, ns, raw->struct_id, raw->flags));
+    handler_task = kthread_create(elton_rpc_new_ns_handler, handler_args,
+                                  "elton-rpc [%llu]", ns->nsid);
+    if (IS_ERR(handler_task))
+      GOTO_IF(out_unlock, PTR_ERR(handler_task));
+    ns->handler_task = handler_task;
+
     DEBUG("created new session by umh");
     ADD_NS_NOLOCK(ns);
+    wake_up_process(ns->handler_task);
     ns = NULL;
   } else {
     ERR("ns not found: s=%px, ns=%px, raw=%px, nsid=%llu, flags=%hhu, "

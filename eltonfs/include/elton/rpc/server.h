@@ -75,6 +75,9 @@ struct elton_rpc_ns {
   // Queue for received packets.
   // The nested session reads the packet from it.
   struct elton_rpc_queue q;
+  // For ns worker thread.
+  // If ns created by UMH, this field MUST NOT NULL.  Otherwise, MUST be NULL.
+  struct task_struct *handler_task;
 
   // MUST acquire a lock before accessing to these fields.
   struct spinlock lock;

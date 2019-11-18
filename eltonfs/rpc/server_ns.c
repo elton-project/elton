@@ -208,6 +208,7 @@ void elton_rpc_ns_init(struct elton_rpc_ns *ns, struct elton_rpc_session *s,
   ns->session = s;
   ns->nsid = nsid;
   elton_rpc_queue_init(&ns->q);
+  ns->handler_task = NULL;
   spin_lock_init(&ns->lock);
   if (is_client) {
     // client

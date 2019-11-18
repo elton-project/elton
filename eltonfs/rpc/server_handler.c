@@ -19,17 +19,42 @@ error_recv:
 }
 
 int elton_rpc_new_ns_handler(void *_args) {
-  int error;
+  int error = 0;
   struct new_ns_handler_args *args = (struct new_ns_handler_args *)_args;
   struct elton_rpc_ns *ns = args->ns;
 
   switch (args->struct_id) {
   case ELTON_RPC_PING_ID:
-    RETURN_IF(ping_handler(ns));
+    BREAK_IF(ping_handler(ns));
     break;
   default:
     ERR("not supported type: args=%px, sid=%llu", args, args->struct_id);
     BUG();
     // Unreachable.
   }
+
+  args->free(args);
+  return 0;
+}
+
+static void free_args(struct new_ns_handler_args *args) { kfree(args); }
+
+int new_ns_handler_args(struct new_ns_handler_args **args,
+                        struct elton_rpc_ns *ns, u64 struct_id, u8 flags) {
+  int error = 0;
+  struct new_ns_handler_args *out;
+  out = (struct new_ns_handler_args *)kmalloc(sizeof(*out), GFP_KERNEL);
+  if (out == NULL) {
+    ERR("failed to allocate new_ns_handler_args object");
+    GOTO_IF(error, -ENOMEM);
+  }
+
+  out->ns = ns;
+  out->struct_id = struct_id;
+  out->flags = flags;
+  out->free = free_args;
+  return 0;
+
+error:
+  return error;
 }

@@ -31,8 +31,10 @@ struct new_ns_handler_args {
   struct elton_rpc_ns *ns;
   u64 struct_id;
   u8 flags;
-  void (*free)(void *args);
+  void (*free)(struct new_ns_handler_args *args);
 };
+int new_ns_handler_args(struct new_ns_handler_args **args,
+                        struct elton_rpc_ns *ns, u64 struct_id, u8 flags);
 
 int rpc_sock_read_packet(struct socket *sock, u64 struct_id, void **out);
 int rpc_sock_read_raw_packet(struct socket *sock, struct raw_packet **out);
