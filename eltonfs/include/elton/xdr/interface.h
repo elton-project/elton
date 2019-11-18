@@ -6,7 +6,7 @@
 struct xdr_encoder {
   // Buffer to write encoded data.  If NULL, the encoder only count required
   // memory size for encoding it.
-  char *buffer;
+  u8 *buffer;
   // Next write position in buffer.
   size_t pos;
   // Size of buffer.  Should be zero if buffer is NULL.
@@ -17,7 +17,7 @@ struct xdr_encoder {
 };
 struct xdr_decoder {
   // Buffer to read encoded data.  This field MUST NOT NULL.
-  char *buffer;
+  u8 *buffer;
   // Next read position in buffer.
   size_t pos;
   // Size of buffer.
