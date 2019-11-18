@@ -49,20 +49,20 @@
 #define __DEBUG_BYTES_BUFF_LEN (__DEBUG_BYTES_WIDTH * 3 + 1)
 #define DEBUG_BYTES(name, array, length)                                       \
   do {                                                                         \
-    char buff[__DEBUG_BYTES_BUFF_LEN];                                         \
+    char __log_buff[__DEBUG_BYTES_BUFF_LEN];                                   \
     bool loop = true;                                                          \
     size_t x, y;                                                               \
     DEBUG("%s  length=%zu", name, (length));                                   \
     for (y = 0; loop; y++) {                                                   \
-      buff[0] = 0;                                                             \
+      __log_buff[0] = 0;                                                       \
       for (x = 0; x < __DEBUG_BYTES_WIDTH; x++) {                              \
         size_t i = y * __DEBUG_BYTES_WIDTH + x;                                \
         loop = i < (length);                                                   \
         if (!loop)                                                             \
           break;                                                               \
-        snprintf(buff + x * 3, 4, "%02x ", (u8)((array)[i]));                  \
+        snprintf(__log_buff + x * 3, 4, "%02x ", (u8)((array)[i]));            \
       }                                                                        \
-      DEBUG("%s[%zu]: %s", (name), (y * __DEBUG_BYTES_WIDTH), buff);           \
+      DEBUG("%s[%zu]: %s", (name), (y * __DEBUG_BYTES_WIDTH), __log_buff);     \
     }                                                                          \
   } while (0)
 
