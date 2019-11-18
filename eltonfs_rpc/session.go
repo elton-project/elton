@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
+	"log"
 	"net"
 	"sync"
+	"time"
 )
 
 type StructID uint64
@@ -156,6 +158,7 @@ func (s *clientS) Setup() error {
 		s.nss = map[NSID]*clientNS{}
 		go s.recvWorker()
 		go s.sendWorker()
+		go s.pinger()
 		return nil
 	})
 }
@@ -328,6 +331,33 @@ func (s *clientS) sendWorker() {
 	})
 	// TODO
 	_ = err
+}
+func (s *clientS) pinger() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	// TODO: detect connection error and close session.
+	for {
+		select {
+		case <-ticker.C:
+			ns, err := s.New()
+			if err != nil {
+				panic(xerrors.Errorf("pinger: creating new ns: %w", err))
+			}
+			if err := ns.Send(&Ping{}); err != nil {
+				panic(xerrors.Errorf("pinger: sending ping: %w", err))
+			}
+			if _, err := ns.Recv(&Ping{}); err != nil {
+				panic(xerrors.Errorf("pinger: receiving ping: %w", err))
+			}
+			if err := ns.Close(); err != nil {
+				panic(xerrors.Errorf("pinger: closing ns: %w", err))
+			}
+			log.Println("ping OK")
+		case <-s.closed:
+			return
+		}
+	}
 }
 
 // newClientNS initializes clientNS struct.
