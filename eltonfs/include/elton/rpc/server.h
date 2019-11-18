@@ -20,7 +20,7 @@
 
 #define ELTON_SESSION_FLAG_CREATE 1
 #define ELTON_SESSION_FLAG_CLOSE 2
-#define ELTON_SESSION_FLAG_ERROR 3
+#define ELTON_SESSION_FLAG_ERROR 4
 
 struct elton_rpc_server {
   // Path to UNIX domain socket.
