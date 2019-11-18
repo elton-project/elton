@@ -16,8 +16,7 @@ type StructID uint64
 type PacketFlag uint8
 
 const (
-	_ PacketFlag = 1 << iota // ignore first value (0) by assigning to blank identifier
-	CreateSessionFlag
+	CreateSessionFlag PacketFlag = 1 << iota
 	CloseSessionFlag
 	ErrorSessionFlag
 )
