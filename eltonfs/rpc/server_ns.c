@@ -173,7 +173,7 @@ static int ns_close(struct elton_rpc_ns *ns) {
   spin_lock(&ns->lock);
   ns->sendable = false;
 
-  should_release_memory = ns->receivable;
+  should_release_memory = !ns->receivable;
 
 out:
   spin_unlock(&ns->lock);
