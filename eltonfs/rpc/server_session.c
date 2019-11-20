@@ -63,6 +63,20 @@ error_setup2:
 }
 
 static void free_ns(struct elton_rpc_ns *ns) { kfree(ns); }
+static int alloc_ns(struct elton_rpc_ns **ns, struct elton_rpc_session *s,
+                    u64 nsid, bool is_client) {
+  int error;
+  struct elton_rpc_ns *out;
+
+  out = (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns), GFP_KERNEL);
+  if (out == NULL) {
+    ERR("failed to allocate elton_rpc_ns object");
+    RETURN_IF(-ENOMEM);
+  }
+  elton_rpc_ns_init(out, s, nsid, false, free_ns);
+  *ns = out;
+  return 0;
+}
 
 // Qneueue raw packet to ns->queue.
 static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
@@ -81,13 +95,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     struct task_struct *handler_task;
 
     // Create session.
-    ns =
-        (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns), GFP_KERNEL);
-    if (ns == NULL) {
-      ERR("failed to allocate elton_rpc_ns object");
-      GOTO_IF(out_unlock, -ENOMEM);
-    }
-    elton_rpc_ns_init(ns, s, raw->session_id, false, free_ns);
+    GOTO_IF(out_unlock, alloc_ns(&ns, s, raw->session_id, false));
 
     GOTO_IF(out_unlock,
             new_ns_handler_args(&handler_args, ns, raw->struct_id, raw->flags));
