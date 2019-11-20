@@ -19,7 +19,8 @@ void elton_rpc_session_init(struct elton_rpc_session *s,
                             struct socket *sock);
 int rpc_session_worker(void *_s);
 void elton_rpc_ns_init(struct elton_rpc_ns *ns, struct elton_rpc_session *s,
-                       u64 nsid, bool is_client);
+                       u64 nsid, bool is_client,
+                       void (*free)(struct elton_rpc_ns *));
 u64 get_nsid(void);
 u64 get_nsid_hash(struct elton_rpc_ns *ns);
 u64 get_nsid_hash_by_values(u8 session_id, u64 nsid);
@@ -134,4 +135,17 @@ static inline struct elton_rpc_ns *GET_NS(struct elton_rpc_session *s,
   ns = GET_NS_NOLOCK(s, nsid);
   spin_unlock(&s->server->nss_table_lock);
   return ns;
+}
+static inline void DELETE_NS(struct elton_rpc_ns *ns) {
+  struct elton_rpc_server *srv = ns->session->server;
+
+  spin_lock(&srv->nss_table_lock);
+  // Remove ns from nss_table.
+  hash_del(&ns->_hash);
+
+  if (ns->free) {
+    // Release memory.
+    ns->free(ns);
+  }
+  spin_unlock(&srv->nss_table_lock);
 }

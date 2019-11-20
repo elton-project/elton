@@ -78,6 +78,11 @@ struct elton_rpc_ns {
   // For ns worker thread.
   // If ns created by UMH, this field MUST NOT NULL.  Otherwise, MUST be NULL.
   struct task_struct *handler_task;
+  // Release memory of this object.
+  // If connection closed from both direction, release the ns object.  If the ns
+  // object allocate with kmalloc()/vmalloc(), should consider use it to prevent
+  // resource leaks.
+  void (*free)(struct elton_rpc_ns *ns);
 
   // MUST acquire a lock before accessing to these fields.
   struct spinlock lock;
@@ -94,7 +99,8 @@ struct elton_rpc_operations {
   // Start UMH (User Mode Helper) process.
   int (*start_umh)(struct elton_rpc_server *);
   // Create new nested session.
-  int (*new_session)(struct elton_rpc_server *, struct elton_rpc_ns *);
+  int (*new_session)(struct elton_rpc_server *, struct elton_rpc_ns *,
+                     void (*free)(struct elton_rpc_ns *));
   // Request to shutdown the server.
   void (*close_nowait)(struct elton_rpc_server *);
   // Shutdown server and wait it.

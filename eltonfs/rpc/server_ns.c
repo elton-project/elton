@@ -153,6 +153,7 @@ error_dequeue:
 static int ns_close(struct elton_rpc_ns *ns) {
   int error = 0;
   struct elton_rpc_ping ping;
+  bool should_release_memory = false;
 
   mutex_lock(&ns->session->sock_write_lock);
   spin_lock(&ns->lock);
@@ -172,9 +173,14 @@ static int ns_close(struct elton_rpc_ns *ns) {
   spin_lock(&ns->lock);
   ns->sendable = false;
 
+  should_release_memory = ns->receivable;
+
 out:
   spin_unlock(&ns->lock);
   mutex_unlock(&ns->session->sock_write_lock);
+
+  if (should_release_memory)
+    DELETE_NS(ns);
   return error;
 }
 
@@ -204,11 +210,13 @@ static struct elton_rpc_ns_operations ns_op = {
 };
 
 void elton_rpc_ns_init(struct elton_rpc_ns *ns, struct elton_rpc_session *s,
-                       u64 nsid, bool is_client) {
+                       u64 nsid, bool is_client,
+                       void (*free)(struct elton_rpc_ns *)) {
   ns->session = s;
   ns->nsid = nsid;
   elton_rpc_queue_init(&ns->q);
   ns->handler_task = NULL;
+  ns->free = free;
   spin_lock_init(&ns->lock);
   if (is_client) {
     // client

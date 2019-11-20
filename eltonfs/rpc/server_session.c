@@ -62,6 +62,8 @@ error_setup2:
   return error;
 }
 
+static void free_ns(struct elton_rpc_ns *ns) { kfree(ns); }
+
 // Qneueue raw packet to ns->queue.
 static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
                                           struct raw_packet *raw) {
@@ -78,7 +80,6 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     struct new_ns_handler_args *handler_args;
     struct task_struct *handler_task;
 
-    // TODO: fix memory leak bug.
     // Create session.
     ns =
         (struct elton_rpc_ns *)kmalloc(sizeof(struct elton_rpc_ns), GFP_KERNEL);
@@ -86,7 +87,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
       ERR("failed to allocate elton_rpc_ns object");
       GOTO_IF(out_unlock, -ENOMEM);
     }
-    elton_rpc_ns_init(ns, s, raw->session_id, false);
+    elton_rpc_ns_init(ns, s, raw->session_id, false, free_ns);
 
     GOTO_IF(out_unlock,
             new_ns_handler_args(&handler_args, ns, raw->struct_id, raw->flags));
@@ -126,7 +127,8 @@ int rpc_session_pinger(void *_s) {
   struct elton_rpc_ping *recved_ping;
 
   while (true) {
-    GOTO_IF(error_ns, s->server->ops->new_session(s->server, &ns));
+    // nsはスタック領域に確保しているので、メモリ解放は不要。
+    GOTO_IF(error_ns, s->server->ops->new_session(s->server, &ns, NULL));
     GOTO_IF(error_send, ns.ops->send_struct(&ns, ELTON_RPC_PING_ID, &ping));
     GOTO_IF(error_recv,
             ns.ops->recv_struct(&ns, ELTON_RPC_PING_ID, (void **)&recved_ping));

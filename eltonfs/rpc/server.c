@@ -171,7 +171,8 @@ static int rpc_start_umh(struct elton_rpc_server *s) {
 }
 
 static int rpc_new_session(struct elton_rpc_server *srv,
-                           struct elton_rpc_ns *ns) {
+                           struct elton_rpc_ns *ns,
+                           void (*free)(struct elton_rpc_ns *)) {
   int error;
   struct elton_rpc_session *s = NULL;
   u64 nsid;
@@ -190,7 +191,7 @@ static int rpc_new_session(struct elton_rpc_server *srv,
     found = GET_NS(s, nsid) != NULL;
   } while (found);
   // Initialize and register ns.
-  elton_rpc_ns_init(ns, s, nsid, true);
+  elton_rpc_ns_init(ns, s, nsid, true, free);
   ADD_NS(ns);
   return 0;
 }
