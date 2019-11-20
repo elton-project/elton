@@ -97,6 +97,7 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
     // Create session.
     GOTO_IF(out_unlock, alloc_ns(&ns, s, raw->session_id, false));
 
+    // Start handler.
     GOTO_IF(out_unlock,
             new_ns_handler_args(&handler_args, ns, raw->struct_id, raw->flags));
     handler_task = kthread_create(elton_rpc_new_ns_handler, handler_args,
