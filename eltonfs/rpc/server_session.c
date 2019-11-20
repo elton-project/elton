@@ -141,7 +141,6 @@ int rpc_session_pinger(void *_s) {
     GOTO_IF(error_send, ns.ops->send_struct(&ns, ELTON_RPC_PING_ID, &ping));
     GOTO_IF(error_recv,
             ns.ops->recv_struct(&ns, ELTON_RPC_PING_ID, (void **)&recved_ping));
-    // TODO: memory leaks when close() failed.
     GOTO_IF(error_close, ns.ops->close(&ns));
     DEBUG("ping OK");
     msleep_interruptible(1000);
