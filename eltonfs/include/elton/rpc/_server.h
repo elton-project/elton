@@ -136,16 +136,18 @@ static inline struct elton_rpc_ns *GET_NS(struct elton_rpc_session *s,
   spin_unlock(&s->server->nss_table_lock);
   return ns;
 }
+static inline void DELETE_NS_NOLOCK(struct elton_rpc_ns *ns) {
+  // Remove ns from nss_table.
+  hash_del(&ns->_hash);
+
+  if (ns->free)
+    // Release memory.
+    ns->free(ns);
+}
 static inline void DELETE_NS(struct elton_rpc_ns *ns) {
   struct elton_rpc_server *srv = ns->session->server;
 
   spin_lock(&srv->nss_table_lock);
-  // Remove ns from nss_table.
-  hash_del(&ns->_hash);
-
-  if (ns->free) {
-    // Release memory.
-    ns->free(ns);
-  }
+  DELETE_NS_NOLOCK(ns);
   spin_unlock(&srv->nss_table_lock);
 }

@@ -88,8 +88,25 @@ static int rpc_session_enqueue_raw_packet(struct elton_rpc_session *s,
   spin_lock(&s->server->nss_table_lock);
   ns = GET_NS_NOLOCK(s, raw->session_id);
   if (ns) {
-    // Enqueue it.
-    GOTO_IF(out_unlock, elton_rpc_enqueue(&ns->q, raw));
+    bool should_release_memory = true;
+
+    spin_lock(&ns->lock);
+    should_release_memory = ns->established && ns->receivable &&
+                            !ns->sendable &&
+                            (raw->flags & ELTON_SESSION_FLAG_CLOSE);
+    spin_unlock(&ns->lock);
+
+    if (should_release_memory)
+      // Closed from both direction.
+      //
+      // 1. Closed from kmod.  Send a packet with close flags.
+      // 2. Closed from UMH.  Send a packet with close flags and release memory.
+      // 3. Receive a packet with close flags from UMH.  Should release memory.
+      //      ↓↓↓
+      DELETE_NS_NOLOCK(ns);
+    else
+      // Enqueue it.
+      GOTO_IF(out_unlock, elton_rpc_enqueue(&ns->q, raw));
   } else if (raw->flags & ELTON_SESSION_FLAG_CREATE) {
     struct new_ns_handler_args *handler_args;
     struct task_struct *handler_task;
