@@ -240,7 +240,7 @@ func (s *clientS) sendPacket(nsid NSID, flags PacketFlag, data interface{}) erro
 	}
 	return nil
 }
-func (s *clientS) recvPacket(nsid NSID, empty interface{}) (data interface{}, flags PacketFlag, err error) {
+func (s *clientS) recvRawPacket(nsid NSID) *rawPacket {
 	s.recvQLock.RLock()
 	defer s.recvQLock.RUnlock()
 
@@ -251,7 +251,10 @@ func (s *clientS) recvPacket(nsid NSID, empty interface{}) (data interface{}, fl
 	}
 
 	// Receive a packet.
-	p := <-ch
+	return <-ch
+}
+func (s *clientS) recvPacket(nsid NSID, empty interface{}) (data interface{}, flags PacketFlag, err error) {
+	p := s.recvRawPacket(nsid)
 
 	// Decode it.
 	buf := utils.WrapMustReader(bytes.NewBuffer(p.data))
@@ -358,6 +361,11 @@ func (s *clientS) pinger() {
 		}
 	}
 }
+func (s *clientS) unregisterNS(nsid NSID) {
+	s.nssLock.Lock()
+	delete(s.nss, nsid)
+	s.nssLock.Unlock()
+}
 
 // newClientNS initializes clientNS struct.
 // If nested session created by opponent, isClient must be false.  Otherwise isClient must be true.
@@ -425,15 +433,54 @@ func (ns *clientNS) Recv(empty interface{}) (interface{}, error) {
 func (ns *clientNS) CloseWithError(se SessionError) error { return ns.closeWith(se, ErrorSessionFlag) }
 func (ns *clientNS) Close() error                         { return ns.closeWith(&Ping{}, 0) }
 func (ns *clientNS) closeWith(v interface{}, flags PacketFlag) error {
+	var err error
 	if !ns.established {
 		return xerrors.Errorf("the nested session (NSID=%d) is not established", ns.nsid)
 	}
 	if !ns.sendable {
 		return xerrors.Errorf("the nested session (NSID=%d) is already closed", ns.nsid)
 	}
-
-	err := ns.S.sendPacket(ns.nsid, CloseSessionFlag|flags, v)
 	ns.sendable = false
+
+	if !ns.receivable {
+		// Closed from both direction.
+		//
+		// 1. Closed from kmod.  Send a packet with close flags.
+		// 2. Closed from UMH.  Send a packet with close flags and release memory.
+		//       ↓↓↓
+		err = ns.S.sendPacket(ns.nsid, CloseSessionFlag|flags, v)
+		ns.S.unregisterNS(ns.nsid)
+		// 3. Kmod receives a packet with close flags.  Should release memory.
+	} else {
+		// Closed from UMH.  Wait for close ns from kmod.
+		//
+		// 1. Closed from UMH.  Send a packet with close flags.
+		// 2. Closed from kmod.  Send a packet with close flags and release memory.
+		// 3. Receive a packet with close flags from kmod.  Should release memory.
+		//      ↓↓↓
+
+		// Wait for receive a packet with close flags.
+		for {
+			p := ns.S.recvRawPacket(ns.nsid)
+			closed := p.flags&CloseSessionFlag != 0
+			isPing := p.sid == PingStructID
+
+			if !closed {
+				log.Printf("receive a packet after closed: nsid=%d, struct_id=%d", p.nsid, p.sid)
+			}
+			if closed && isPing {
+				log.Printf("nested session closed with unexpected struct type: nsid=%d, struct_id=%d", p.nsid, p.sid)
+			}
+
+			if closed {
+				break
+			}
+		}
+
+		// Received a closed packet.  Should unregister the ns.
+		ns.S.unregisterNS(ns.nsid)
+	}
+
 	return err
 }
 func (ns *clientNS) IsSendable() bool {

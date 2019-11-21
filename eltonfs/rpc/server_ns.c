@@ -155,41 +155,75 @@ error_dequeue:
 static int ns_close(struct elton_rpc_ns *ns) {
   int error = 0;
   struct elton_rpc_ping ping;
-  bool should_release_memory = false;
+  bool receivable = false;
+  struct elton_rpc_session *s = ns->session;
 
-  mutex_lock(&ns->session->sock_write_lock);
+  mutex_lock(&s->sock_write_lock);
   spin_lock(&ns->lock);
   if (!ns->established)
     // This session is not established. Does not need to send a close packet.
     goto out;
-  if (!ns->sendable) {
+  if (!ns->sendable)
     // Already closed?
     GOTO_IF(out, -ELTON_RPC_ALREADY_CLOSED);
-  }
-  spin_unlock(&ns->lock);
-
-  error = ns_send_packet_without_lock(ns, ELTON_RPC_PACKET_FLAG_CLOSE,
-                                      ELTON_RPC_PING_ID, &ping);
-  CHECK_ERROR(error);
-
-  spin_lock(&ns->lock);
   ns->sendable = false;
-  // Already closed from UMH.
-  should_release_memory = !ns->receivable;
 
-out:
-  spin_unlock(&ns->lock);
-  mutex_unlock(&ns->session->sock_write_lock);
-
-  if (should_release_memory) {
+  if (!ns->receivable) {
     // Closed from both direction.
     //
     // 1. Closed from UMH.  Send a packet with close flags.
     // 2. Closed from kmod.  Send a packet with close flags and release memory.
     //      ↓↓↓
+    GOTO_IF(out, ns_send_packet_without_lock(ns, ELTON_RPC_PACKET_FLAG_CLOSE,
+                                             ELTON_RPC_PING_ID, &ping));
+    spin_unlock(&ns->lock);
     DELETE_NS(ns);
     // 3. UMH receives a packet with close flags.  Should release memory.
+    goto out_without_ns_unlock;
+  } else {
+    // Closed from kmod.  Wait for close ns from UMH.
+    //
+    // 1. Closed from kmod.  Send a packet with close flags.
+    // 2. Closed from UMH.  Send a packet with close flags and release memory.
+    // 3. Receive a packet with close flags from UMH.  Should release memory.
+    //      ↓↓↓
+    spin_unlock(&ns->lock);
+    // Wait for receive a packet with close flags.
+    do {
+      bool closed, is_ping;
+      struct raw_packet *raw = NULL;
+
+      CHECK_ERROR(elton_rpc_dequeue(&ns->q, &raw));
+      BUG_ON(raw == NULL);
+
+      closed = raw->flags & ELTON_SESSION_FLAG_CLOSE;
+      is_ping = raw->struct_id == ELTON_RPC_PING_ID;
+
+      WARN(!closed,
+           "receive a packet after closed: ns=%px, nsid=%llu, struct_id=%llu",
+           ns, ns->nsid, raw->struct_id);
+      WARN(closed && is_ping,
+           "nested session closed with unexpected struct type: ns=%px, "
+           "nsid=%llu, struct_id=%llu",
+           ns, ns->nsid, raw->struct_id);
+
+      raw->free(raw);
+      if (closed)
+        break;
+    } while (1);
+
+    // Received a closed packet.  Should release memory.
+    DELETE_NS(ns);
+    goto out_without_ns_unlock;
   }
+
+  // Unreachable.
+  BUG();
+
+out:
+  spin_unlock(&ns->lock);
+out_without_ns_unlock:
+  mutex_unlock(&s->sock_write_lock);
   return error;
 }
 
