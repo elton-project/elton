@@ -187,6 +187,10 @@ static int ns_close(struct elton_rpc_ns *ns) {
     // 2. Closed from UMH.  Send a packet with close flags and release memory.
     // 3. Receive a packet with close flags from UMH.  Should release memory.
     //      ↓↓↓
+
+    // Send a packet with close flags.
+    GOTO_IF(out, ns_send_packet_without_lock(ns, ELTON_RPC_PACKET_FLAG_CLOSE,
+                                             ELTON_RPC_PING_ID, &ping));
     spin_unlock(&ns->lock);
     // Wait for receive a packet with close flags.
     do {

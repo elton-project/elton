@@ -459,6 +459,9 @@ func (ns *clientNS) closeWith(v interface{}, flags PacketFlag) error {
 		// 3. Receive a packet with close flags from kmod.  Should release memory.
 		//      ↓↓↓
 
+		// Send a packet with close flags.
+		err = ns.S.sendPacket(ns.nsid, CloseSessionFlag|flags, v)
+
 		// Wait for receive a packet with close flags.
 		for {
 			p := ns.S.recvRawPacket(ns.nsid)
