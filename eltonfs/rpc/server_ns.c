@@ -155,7 +155,6 @@ error_dequeue:
 static int ns_close(struct elton_rpc_ns *ns) {
   int error = 0;
   struct elton_rpc_ping ping;
-  bool receivable = false;
   struct elton_rpc_session *s = ns->session;
 
   mutex_lock(&s->sock_write_lock);
