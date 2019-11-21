@@ -471,7 +471,7 @@ func (ns *clientNS) closeWith(v interface{}, flags PacketFlag) error {
 			if !closed {
 				log.Printf("receive a packet after closed: nsid=%d, struct_id=%d", p.nsid, p.sid)
 			}
-			if closed && isPing {
+			if closed && !isPing {
 				log.Printf("nested session closed with unexpected struct type: nsid=%d, struct_id=%d", p.nsid, p.sid)
 			}
 

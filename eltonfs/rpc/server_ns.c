@@ -205,7 +205,7 @@ static int ns_close(struct elton_rpc_ns *ns) {
       WARN(!closed,
            "receive a packet after closed: ns=%px, nsid=%llu, struct_id=%llu",
            ns, ns->nsid, raw->struct_id);
-      WARN(closed && is_ping,
+      WARN(closed && !is_ping,
            "nested session closed with unexpected struct type: ns=%px, "
            "nsid=%llu, struct_id=%llu",
            ns, ns->nsid, raw->struct_id);
