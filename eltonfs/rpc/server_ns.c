@@ -102,8 +102,10 @@ static int ns_send_struct(struct elton_rpc_ns *ns, int struct_id, void *data) {
   error = ns_send_packet_without_lock(ns, flags, struct_id, data);
 
   spin_lock(&ns->lock);
-  if (!error)
+  if (!error) {
     ns->established = true;
+    ns->receivable = true;
+  }
 error_precondition:
   spin_unlock(&ns->lock);
   mutex_unlock(&ns->session->sock_write_lock);
