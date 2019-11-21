@@ -57,6 +57,7 @@ done
 
 # Change mirror server.
 sed -i 's@//archive.ubuntu.com/@//jp.archive.ubuntu.com/@' /etc/apt/sources.list
+sed -i 's@^\(\s\+\(primary\|security\):\) http://.*\.ubuntu\.com/ubuntu/\?$@\1 http://jp.archive.ubuntu.com/ubuntu@' /etc/cloud/cloud.cfg
 apt update
 apt upgrade -y
 
