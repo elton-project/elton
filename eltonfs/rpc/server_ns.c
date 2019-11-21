@@ -181,8 +181,15 @@ out:
   spin_unlock(&ns->lock);
   mutex_unlock(&ns->session->sock_write_lock);
 
-  if (should_release_memory)
+  if (should_release_memory) {
+    // Closed from both direction.
+    //
+    // 1. Closed from UMH.  Send a packet with close flags.
+    // 2. Closed from kmod.  Send a packet with close flags and release memory.
+    //      ↓↓↓
     DELETE_NS(ns);
+    // 3. UMH receives a packet with close flags.  Should release memory.
+  }
   return error;
 }
 
