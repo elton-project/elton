@@ -116,7 +116,8 @@ type clientS struct {
 	// Elements are serialized packets.
 	sendQ chan []byte
 	// Queue for packets waiting to be received.
-	// A lock must be acquired before access to the recvQ.
+	// A lock must be acquired before access to the recvQ.  And should release the lock before receive data from channel
+	// to prevent dead-lock.
 	recvQ     map[NSID]chan *rawPacket
 	recvQLock sync.RWMutex
 }
@@ -242,9 +243,9 @@ func (s *clientS) sendPacket(nsid NSID, flags PacketFlag, data interface{}) erro
 }
 func (s *clientS) recvRawPacket(nsid NSID) *rawPacket {
 	s.recvQLock.RLock()
-	defer s.recvQLock.RUnlock()
-
 	ch := s.recvQ[nsid]
+	s.recvQLock.RUnlock()
+
 	if ch == nil {
 		err := xerrors.Errorf("not found channel: nsid=%d", nsid)
 		panic(err)
