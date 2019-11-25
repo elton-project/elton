@@ -36,7 +36,8 @@ specs:
             type: remote-shell
             commands:
               - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
-              - 'cd elton && make build install'
+              - 'cd elton && make -j4 build'
+              - 'cd elton && make install'
               - 'cd elton/eltonfs && make insmod'
           main:
             type: remote-shell
