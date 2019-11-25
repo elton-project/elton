@@ -216,7 +216,7 @@ static struct elton_rpc_operations rpc_ops = {
 
 int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
   if (socket_path == NULL)
-    socket_path = ELTON_UMH_SOCK;
+    socket_path = ELTONFS_HELPER_SOCK;
   server->socket_path = socket_path;
   server->sock = NULL;
   server->task = NULL;

@@ -7,7 +7,6 @@
 #include <linux/hashtable.h>
 #include <linux/types.h>
 
-#define ELTON_UMH_SOCK "/run/elton.sock"
 #define ELTON_SESSIONS_HASH_SIZE 3
 #define ELTON_NS_HASH_SIZE 12
 
