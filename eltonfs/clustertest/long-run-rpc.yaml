@@ -42,9 +42,9 @@ specs:
           main:
             type: remote-shell
             commands:
-              - 'eltonfs-helper --socket /run/elton.sock >/helper.log 2>&1 || :'
+              - 'nohup eltonfs-helper --socket /run/elton.sock >/helper.log 2>&1 &'
           after:
             type: remote-shell
             commands:
-              - 'journalctl || :'
-              - 'cat /helper.log || :'
+              - 'tail -f /dev/null'
+              # Check journal logs and /helper.log file.
