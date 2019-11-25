@@ -11,6 +11,7 @@ import contextlib
 import threading
 import concurrent.futures as futures
 import proxmoxer
+from typing import Optional, List
 
 # Gateway address
 GATEWAY = '192.168.189.1'
@@ -350,10 +351,13 @@ class TemplateDistributor(typing.NamedTuple):
     # VM for disk image template.
     disk_image: VM
 
-    def remove_all(self):
+    def remove_all(self, excludes: Optional[List[VM]] = None):
         while True:
             tasks = []
             for vm in self.pool.list():
+                if excludes and any(vm.vmid == v.vmid for v in excludes):
+                    # This VM is excluded.
+                    continue
                 if vm.is_protected:
                     continue
                 elif vm.is_stopped():
@@ -447,7 +451,7 @@ builder = TemplateBuilder(base=base, script_name=pathlib.Path(SETUP_SCRIPT_FILE)
 dist = TemplateDistributor(template=base, disk_image=out, pool=pool)
 
 try:
-    dist.remove_all()
+    dist.remove_all([base, out])
     builder.remove()
     builder.build()
     dist.distribute()
