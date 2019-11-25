@@ -38,13 +38,12 @@ specs:
               - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
               - 'cd elton && make -j4 build'
               - 'cd elton && make install'
-              - 'cd elton/eltonfs && make insmod'
           main:
             type: remote-shell
             commands:
-              - 'nohup eltonfs-helper --socket /run/elton.sock >/helper.log 2>&1 &'
+              - 'cd elton/eltonfs && make insmod'
           after:
             type: remote-shell
             commands:
               - 'tail -f /dev/null'
-              # Check journal logs and /helper.log file.
+              # Check journal logs.
