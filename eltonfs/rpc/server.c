@@ -236,6 +236,8 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
   server->sock = NULL;
   server->task = NULL;
   mutex_init(&server->task_lock);
+  server->umh_info = NULL;
+  mutex_init(&server->umh_info_lock);
   hash_init(server->ss_table);
   spin_lock_init(&server->ss_table_lock);
   hash_init(server->nss_table);
