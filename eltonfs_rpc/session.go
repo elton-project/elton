@@ -104,7 +104,8 @@ type clientS struct {
 	//	case <-s.closed:
 	//		return
 	//	}
-	closed chan struct{}
+	closed  <-chan struct{}
+	doClose func()
 	// Nested Sessions
 	// Key: nested session IDs
 	// Value: *clientNS
@@ -152,7 +153,9 @@ func (s *clientS) Setup() error {
 		s.setupOK = true
 
 		// Start workers.
-		s.closed = make(chan struct{})
+		ctx, cancel := context.WithCancel(context.Background())
+		s.closed = ctx.Done()
+		s.doClose = cancel
 		s.sendQ = make(chan []byte, SendQueueSize)
 		s.recvQ = map[NSID]chan *rawPacket{}
 		s.nss = map[NSID]*clientNS{}
@@ -200,8 +203,8 @@ func (s *clientS) Serve(ctx context.Context) error {
 	return s.Close()
 }
 func (s *clientS) Close() error {
-	if s.closed != nil {
-		close(s.closed)
+	if s.doClose != nil {
+		s.doClose()
 	}
 	// TODO: wait for workers.
 	return nil
