@@ -143,8 +143,9 @@ error:
   return error;
 }
 
-static int _rpc_start_umh(void *_) {
+static int _rpc_start_umh(void *_s) {
   int error;
+  struct elton_rpc_server *s = (struct elton_rpc_server *)_s;
   char *argv[] = {
       // Redirect stdin/stdout/stderr by shell.
       "/bin/sh",
@@ -164,9 +165,18 @@ static int _rpc_start_umh(void *_) {
       NULL,
   };
 
-  // todo: register subprocess_info to server.
+  struct subprocess_info *info;
+  info = call_usermodehelper_setup(argv[0], argv, envp, GFP_KERNEL, NULL, NULL,
+                                   NULL);
+  if (info == NULL)
+    RETURN_IF(-ENOMEM);
 
-  error = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
+  // Register subprocess_info to server.
+  mutex_lock(&s->umh_info_lock);
+  s->umh_info = info;
+  mutex_unlock(&s->umh_info_lock);
+
+  error = call_usermodehelper_exec(info, UMH_WAIT_EXEC);
   if (error) {
     ERR("failed to start UMH with error %d", error);
     RETURN_IF(error);
@@ -179,7 +189,7 @@ static int _rpc_start_umh(void *_) {
 static int rpc_start_umh(struct elton_rpc_server *s) {
   int error = 0;
   struct task_struct *task =
-      kthread_create(_rpc_start_umh, NULL, "elton-start-umh");
+      kthread_create(_rpc_start_umh, s, "elton-start-umh");
   if (IS_ERR(task)) {
     RETURN_IF(PTR_ERR(task));
   }

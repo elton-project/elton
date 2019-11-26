@@ -33,6 +33,8 @@ struct elton_rpc_server {
   // For start_umh thread.  It starts new process.
   struct task_struct *umh_task;
   struct mutex umh_task_lock;
+  struct subprocess_info *umh_info;
+  struct mutex umh_info_lock;
   // Hash table for sessions.  Please do not put many sessions to prevent
   // performance degradation.  We supposes that number of sessions is 1 to 3.
   //
