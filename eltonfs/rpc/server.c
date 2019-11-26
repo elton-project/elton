@@ -146,6 +146,12 @@ error:
 static int _rpc_start_umh(void *_) {
   int error;
   char *argv[] = {
+      // Redirect stdin/stdout/stderr by shell.
+      "/bin/sh",
+      "-c",
+      "exec </dev/null >\"$out\" 2>&1;  shift;  exec $@"
+      "@",
+      ELTONFS_HELPER_OUTPUT,
       ELTONFS_HELPER,
       "--socket",
       ELTONFS_HELPER_SOCK,
@@ -160,7 +166,7 @@ static int _rpc_start_umh(void *_) {
 
   // todo: register subprocess_info to server.
 
-  error = call_usermodehelper(ELTONFS_HELPER, argv, envp, UMH_WAIT_EXEC);
+  error = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
   if (error) {
     ERR("failed to start UMH with error %d", error);
     RETURN_IF(error);
