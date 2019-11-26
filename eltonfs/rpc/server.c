@@ -143,9 +143,10 @@ error:
   return error;
 }
 
-static int _rpc_start_umh(void *_s) {
-  int error;
-  struct elton_rpc_server *s = (struct elton_rpc_server *)_s;
+// Start UMH (User Mode Helper) in the background.
+static int rpc_start_umh(struct elton_rpc_server *s) {
+  int error = 0;
+  struct subprocess_info *info;
   char *argv[] = {
       // Redirect stdin/stdout/stderr by shell.
       "/bin/sh",
@@ -165,7 +166,6 @@ static int _rpc_start_umh(void *_s) {
       NULL,
   };
 
-  struct subprocess_info *info;
   info = call_usermodehelper_setup(argv[0], argv, envp, GFP_KERNEL, NULL, NULL,
                                    NULL);
   if (info == NULL)
@@ -182,23 +182,6 @@ static int _rpc_start_umh(void *_s) {
     RETURN_IF(error);
   }
   INFO("start " ELTONFS_HELPER);
-  return 0;
-}
-
-// Start UMH (User Mode Helper) in the background.
-static int rpc_start_umh(struct elton_rpc_server *s) {
-  int error = 0;
-  struct task_struct *task =
-      kthread_create(_rpc_start_umh, s, "elton-start-umh");
-  if (IS_ERR(task)) {
-    RETURN_IF(PTR_ERR(task));
-  }
-
-  mutex_lock(&s->umh_task_lock);
-  s->umh_task = task;
-  mutex_unlock(&s->umh_task_lock);
-
-  wake_up_process(task);
   return 0;
 }
 
