@@ -149,7 +149,7 @@ static int _rpc_start_umh(void *_) {
       // Redirect stdin/stdout/stderr by shell.
       "/bin/sh",
       "-c",
-      "exec </dev/null >\"$1\" 2>&1;  shift;  exec $@",
+      "exec </dev/null >>\"$1\" 2>&1;  shift;  exec $@",
       "@",
       ELTONFS_HELPER_OUTPUT,
       ELTONFS_HELPER,
