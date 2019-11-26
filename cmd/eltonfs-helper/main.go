@@ -1,13 +1,16 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 )
 
-func Main() int {
+func Main() (exitCode int) {
+	log.Println("starting eltonfs-helper")
+	defer log.Printf("stopping eltonfs-helper with exit-code(%d)", exitCode)
+
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 		return 1
 	}
 	return 0
