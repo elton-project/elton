@@ -289,6 +289,8 @@ int elton_rpc_encode_packet(struct packet *in, struct raw_packet **out,
   const struct entry *entry;
 
   RETURN_IF(lookup(in->struct_id, &entry));
+  BUG_ON(entry == NULL);
+  BUG_ON(entry->encode == NULL);
   RETURN_IF(entry->encode(in, out));
 
   BUG_ON(*out == NULL);
@@ -302,6 +304,8 @@ int elton_rpc_decode_packet(struct raw_packet *in, void **out) {
   const struct entry *entry;
 
   RETURN_IF(lookup(in->struct_id, &entry));
+  BUG_ON(entry == NULL);
+  BUG_ON(entry->decode == NULL);
   RETURN_IF(entry->decode(in, out));
   return 0;
 }
