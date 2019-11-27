@@ -1,4 +1,11 @@
+// See https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/wikis/elton2/eltonfsrpc
 package eltonfs_rpc
+
+import "time"
+
+type EltonObjectID string
+type CommitID string
+type TreeID string
 
 const Setup1StructID = 1
 
@@ -28,4 +35,127 @@ type Ping struct {
 	XXX_XDR_ID struct{} `xdrid:"3"`
 }
 
-const MaxStructID = 3
+const EltonObjectInfoID = 5
+
+type EltonObjectInfo struct {
+	XXX_XDR_ID struct{} `xdrid:"5"`
+	Id         string   `xdr:"1"`
+}
+
+const EltonObjectBodyID = 6
+
+type EltonObjectBody struct {
+	XXX_XDR_ID    struct{}  `xdrid:"6"`
+	Hash          []byte    `xdr:"1"`
+	HashAlgorithm string    `xdr:"2"`
+	CreatedAt     time.Time `xdr:"3"`
+	Size          uint64    `xdr:"4"`
+	Contents      []byte    `xdr:"5"`
+}
+
+const CommitInfoID = 7
+
+type CommitInfo struct {
+	XXX_XDR_ID    struct{}  `xdrid:"7"`
+	CreatedAt     time.Time `xdr:"1"`
+	LeftParentID  CommitID  `xdr:"2"`
+	RightParentID CommitID  `xdr:"3"`
+	TreeID        TreeID    `xdr:"4"`
+	Tree          TreeInfo  `xdr:"5"`
+}
+
+const TreeInfoID = 8
+
+type TreeInfo struct {
+	XXX_XDR_ID struct{}          `xdrid:"8"`
+	ID         CommitID          `xdr:"1"`
+	P2I        map[string]uint64 `xdr:"2"`
+	I2F        map[uint64]uint64 `xdr:"3"`
+	Files      []EltonFile       `xdr:"4"`
+}
+
+const GetObjectRequestID = 9
+
+type GetObjectRequest struct {
+	XXX_XDR_ID struct{}      `xdrid:"9"`
+	ID         EltonObjectID `xdr:"1"`
+	Offset     uint64        `xdr:"2"`
+}
+
+const GetObjectResponseID = 10
+
+type GetObjectResponse struct {
+	XXX_XDR_ID struct{}        `xdrid:"8"`
+	ID         EltonObjectID   `xdr:"1"`
+	Offset     uint64          `xdr:"2"`
+	Body       EltonObjectBody `xdr:"3"`
+}
+
+const CreateObjectRequestID = 11
+
+type CreateObjectRequest struct {
+	XXX_XDR_ID struct{}        `xdrid:"11"`
+	Body       EltonObjectBody `xdr:"1"`
+}
+
+const CreateObjectResponseID = 12
+
+type CreateObjectResponse struct {
+	XXX_XDR_ID struct{}      `xdrid:"12"`
+	ID         EltonObjectID `xdr:"1"`
+}
+
+const CreateCommitRequestID = 13
+
+type CreateCommitRequest struct {
+	XXX_XDR_ID struct{}   `xdrid:"13"`
+	Info       CommitInfo `xdr:"1"`
+}
+
+const CreateCommitResponseID = 14
+
+type CreateCommitResponse struct {
+	XXX_XDR_ID struct{} `xdrid:"14"`
+	ID         CommitID `xdr:"1"`
+}
+
+const NotifyLatestCommitID = 15
+
+type NotifyLatestCommit struct {
+	XXX_XDR_ID struct{} `xdrid:"15"`
+	ID         CommitID `xdr:"1"`
+}
+
+const GetCommitInfoRequestID = 16
+
+type GetCommitInfoRequest struct {
+	XXX_XDR_ID struct{} `xdrid:"16"`
+	ID         CommitID `xdr:"1"`
+}
+
+const GetCommitInfoResponseID = 17
+
+type GetCommitInfoResponse struct {
+	XXX_XDR_ID struct{}   `xdrid:"17"`
+	ID         CommitID   `xdr:"1"`
+	Info       CommitInfo `xdr:"2"`
+	Tree       TreeInfo   `xdr:"3"`
+}
+
+const EltonFileID = 18
+
+type EltonFile struct {
+	XXX_XDR_ID struct{}      `xdrid:"18"`
+	ObjectID   EltonObjectID `xdrid:"1"`
+	FileType   uint8         `xdrid:"2"`
+	Mode       uint64        `xdrid:"3"`
+	Owner      uint64        `xdrid:"4"`
+	Group      uint64        `xdrid:"5"`
+	Atime      time.Time     `xdrid:"6"`
+	Mtime      time.Time     `xdrid:"7"`
+	Ctime      time.Time     `xdrid:"8"`
+	Major      uint64        `xdrid:"9"`
+	Minor      uint64        `xdrid:"10"`
+}
+
+const MaxStructID = 17
