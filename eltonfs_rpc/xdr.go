@@ -82,6 +82,10 @@ func (e *binEncoder) Bytes(b []byte) {
 	e.Uint64(length)
 	e.w.MustWriteAll(b)
 }
+func (e *binEncoder) Timestamp(t time.Time) {
+	e.Uint64(uint64(t.Unix()))
+	e.Uint64(uint64(t.Nanosecond()))
+}
 func (e *binEncoder) Slice(s interface{}) {
 	kind := reflect.TypeOf(s).Kind()
 	if kind != reflect.Slice {
@@ -193,6 +197,8 @@ func (e *binEncoder) Auto(v interface{}) {
 		e.String(vv)
 	case []byte:
 		e.Bytes(vv)
+	case time.Time:
+		e.Timestamp(vv)
 	default:
 		kind := reflect.TypeOf(v).Kind()
 		switch kind {
@@ -237,6 +243,11 @@ func (d *binDecoder) Bytes() []byte {
 	b := make([]byte, length)
 	d.r.MustReadAll(b)
 	return b
+}
+func (d *binDecoder) Timestamp() time.Time {
+	sec := int64(d.Uint64())
+	nsec := int64(d.Uint64())
+	return time.Unix(sec, nsec).UTC()
 }
 func (d *binDecoder) Slice(emptySlice interface{}) interface{} {
 	t := reflect.TypeOf(emptySlice)
@@ -390,7 +401,11 @@ func (d *binDecoder) auto(t reflect.Type) reflect.Value {
 	case reflect.Map:
 		v = d.map_(t)
 	case reflect.Struct:
-		v = d.struct_(t)
+		if t == reflect.TypeOf(time.Time{}) {
+			v = d.Timestamp()
+		} else {
+			v = d.struct_(t)
+		}
 	case reflect.Ptr:
 		switch t.Elem().Kind() {
 		case reflect.Struct:

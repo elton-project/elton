@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"testing"
+	"time"
 )
 
 func newEnc() (*bytes.Buffer, XDREncoder) {
@@ -50,6 +51,18 @@ func TestBinEncoder_Bytes(t *testing.T) {
 	enc.Bytes([]byte("test"))
 
 	assert.Equal(t, []byte{0, 0, 0, 0, 0, 0, 0, 4, 't', 'e', 's', 't'}, buf.Bytes())
+}
+func TestBinEncoder_Timestamp(t *testing.T) {
+	timestamp := time.Unix(0x123456, 0x987654)
+	buf, enc := newEnc()
+	enc.Timestamp(timestamp)
+
+	assert.Equal(t, []byte{
+		// UNIX time (sec)
+		0, 0, 0, 0, 0, 0x12, 0x34, 0x56,
+		// Unix time (nano sec)
+		0, 0, 0, 0, 0, 0x98, 0x76, 0x54,
+	}, buf.Bytes())
 }
 func TestBinEncoder_Slice(t *testing.T) {
 	t.Run("nil slice", func(t *testing.T) {
@@ -332,6 +345,13 @@ func TestBinDecoder_Bytes(t *testing.T) {
 	dec := newDec(b1, b2)
 	assert.Equal(t, b1, dec.Bytes())
 	assert.Equal(t, b2, dec.Bytes())
+}
+func TestBinDecoder_Timestamp(t *testing.T) {
+	t1 := time.Unix(0x12345678, 0x987654).UTC()
+	t2 := time.Unix(0x1234567800000000, 0x12345678).UTC()
+	dec := newDec(t1, t2)
+	assert.Equal(t, t1, dec.Timestamp())
+	assert.Equal(t, t2, dec.Timestamp())
 }
 func TestBinDecoder_Slice(t *testing.T) {
 	s := []string{"foo", "bar"}
