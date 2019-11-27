@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"time"
 )
 
 const XDRTag = "xdr"
@@ -23,6 +24,7 @@ type XDREncoder interface {
 	Uint64(n uint64)
 	String(s string)
 	Bytes(b []byte)
+	Timestamp(t time.Time)
 	Slice(s interface{})
 	Map(m interface{})
 	Struct(s interface{})
@@ -36,6 +38,7 @@ type XDRDecoder interface {
 	Uint64() uint64
 	String() string
 	Bytes() []byte
+	Timestamp() time.Time
 	Slice(emptySlice interface{}) (slice interface{})
 	Map(emptyMapping interface{}) (mapping interface{})
 	Struct(emptyStruct interface{}) (aStruct interface{})
