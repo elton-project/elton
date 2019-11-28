@@ -20,9 +20,6 @@ func (id *VolumeID) Empty() bool {
 func (id *CommitID) Empty() bool {
 	return id.GetId().Empty() && id.GetNumber() == 0
 }
-func (id *TreeID) Empty() bool {
-	return id.GetId() == ""
-}
 
 func (t *Tree) FastValidate() error {
 	if t == nil {

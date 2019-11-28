@@ -56,12 +56,9 @@ message CommitInfo {
   google.protobuf.Timestamp createdAt = 1;
   CommitID leftParentID = 2;
   CommitID rightParentID = 4;
-  TreeID treeID = 3;
   Tree tree = 5;
 }
 
-// Identify the tree.
-message TreeID { string id = 1; }
 // Tree keeps encoded data of directory tree structure in the commit.
 message Tree {
   // Mapping from path to inode.
