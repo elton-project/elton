@@ -4,6 +4,7 @@ package eltonfs_rpc
 import (
 	"fmt"
 	"github.com/golang/protobuf/ptypes"
+	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
 	"strconv"
@@ -11,7 +12,34 @@ import (
 	"time"
 )
 
+func timestamp2time(ts *tspb.Timestamp) time.Time {
+	t, err := ptypes.Timestamp(ts)
+	if err != nil {
+		panic(xerrors.Errorf("convert timestamp: %w", err))
+	}
+	return t
+}
+
+func time2timestamp(t time.Time) *tspb.Timestamp {
+	ts, err := ptypes.TimestampProto(t)
+	if err != nil {
+		panic(xerrors.Errorf("convert time: %w", err))
+	}
+	return ts
+}
+
 type EltonObjectID string
+
+func (id EltonObjectID) ToGRPC() *elton_v2.ObjectKey {
+	return &elton_v2.ObjectKey{
+		Id: string(id),
+	}
+}
+
+func (EltonObjectID) FromGRPC(key *elton_v2.ObjectKey) EltonObjectID {
+	return EltonObjectID(key.GetId())
+}
+
 type CommitID string
 
 func (CommitID) FromGRPC(id *elton_v2.CommitID) CommitID {
@@ -26,7 +54,6 @@ func (id CommitID) ToGRPC() *elton_v2.CommitID {
 	}
 
 	return &elton_v2.CommitID{
-		// todo
 		Id: &elton_v2.VolumeID{
 			Id: components[0],
 		},
@@ -86,6 +113,16 @@ type EltonObjectBody struct {
 	Contents      []byte    `xdr:"5"`
 }
 
+func (EltonObjectBody) FromGRPC(body *elton_v2.ObjectBody) EltonObjectBody {
+	return EltonObjectBody{
+		Hash:          nil,         // todo: 含まれてない
+		HashAlgorithm: "",          // todo: 含まれてない
+		CreatedAt:     time.Time{}, // todo: 含まれてない
+		Size:          0,           // todo: 含まれてない
+		Contents:      body.GetContents(),
+	}
+}
+
 const CommitInfoStructID = 7
 
 type CommitInfo struct {
@@ -98,17 +135,23 @@ type CommitInfo struct {
 }
 
 func (CommitInfo) FromGRPC(i *elton_v2.CommitInfo) *CommitInfo {
-	var err error
 	info := &CommitInfo{}
-	info.CreatedAt, err = ptypes.Timestamp(i.GetCreatedAt())
-	if err != nil {
-		panic(xerrors.Errorf("convert timestamp: %w", err))
-	}
+	info.CreatedAt = timestamp2time(i.GetCreatedAt())
 	info.LeftParentID = CommitID("").FromGRPC(i.GetLeftParentID())
 	info.RightParentID = CommitID("").FromGRPC(i.GetRightParentID())
 	info.TreeID = TreeID("").FromGRPC(i.GetTreeID())
 	info.Tree = TreeInfo{}.FromGRPC(i.GetTree())
 	return info
+}
+
+func (info CommitInfo) ToGRPC() *elton_v2.CommitInfo {
+	return &elton_v2.CommitInfo{
+		CreatedAt:     time2timestamp(info.CreatedAt),
+		LeftParentID:  info.LeftParentID.ToGRPC(),
+		RightParentID: info.RightParentID.ToGRPC(),
+		TreeID:        nil, // todo: TreeID必要?
+		Tree:          info.Tree.ToGRPC(),
+	}
 }
 
 const TreeInfoStructID = 8
@@ -120,10 +163,25 @@ type TreeInfo struct {
 }
 
 func (TreeInfo) FromGRPC(t *elton_v2.Tree) *TreeInfo {
+	i2f := map[uint64]*EltonFile{}
+	for i, f := range t.I2F {
+		i2f[i] = EltonFile{}.FromGRPC(f)
+	}
 	tree := &TreeInfo{}
 	tree.P2I = t.GetP2I()
-	// todo: i2f
+	tree.I2F = i2f
 	return tree
+}
+
+func (info TreeInfo) ToGRPC() *elton_v2.Tree {
+	i2f := map[uint64]*elton_v2.File{}
+	for i, f := range info.I2F {
+		i2f[i] = f.ToGRPC()
+	}
+	return &elton_v2.Tree{
+		P2I: info.P2I,
+		I2F: i2f,
+	}
 }
 
 const GetObjectRequestStructID = 9
@@ -153,7 +211,9 @@ type GetObjectResponse struct {
 
 func (GetObjectResponse) FromGRPC(res *elton_v2.GetObjectResponse) *GetObjectResponse {
 	return &GetObjectResponse{
-		// todo
+		ID:     EltonObjectID("").FromGRPC(res.GetKey()),
+		Offset: 0, // todo: 要らない?
+		Body:   EltonObjectBody{}.FromGRPC(res.GetBody()),
 	}
 }
 
@@ -180,10 +240,9 @@ type CreateCommitRequest struct {
 
 func (req CreateCommitRequest) ToGRPC() *elton_v2.CommitRequest {
 	return &elton_v2.CommitRequest{
-		// todo
 		Info: req.Info.ToGRPC(),
 		Tree: nil, // todo: treeは要らない
-		Id:   nil,
+		Id:   nil, // todo: baseとなったcommit idが必要。
 	}
 }
 
@@ -192,6 +251,12 @@ const CreateCommitResponseStructID = 14
 type CreateCommitResponse struct {
 	XXX_XDR_ID struct{} `xdrid:"14"`
 	ID         CommitID `xdr:"1"`
+}
+
+func (CreateCommitResponse) FromGRPC(res *elton_v2.CommitResponse) *CreateCommitResponse {
+	return &CreateCommitResponse{
+		ID: CommitID("").FromGRPC(res.Id),
+	}
 }
 
 const NotifyLatestCommitStructID = 15
@@ -243,6 +308,29 @@ type EltonFile struct {
 	Ctime      time.Time     `xdrid:"8"`
 	Major      uint64        `xdrid:"9"`
 	Minor      uint64        `xdrid:"10"`
+}
+
+func (f EltonFile) ToGRPC() *elton_v2.File {
+	return &elton_v2.File{
+		ContentRef: &elton_v2.FileContentRef{
+			Key: f.ObjectID.ToGRPC(),
+		},
+		FileType: elton_v2.FileType(f.FileType),
+		Mode:     uint32(f.Mode),
+		Owner:    uint32(f.Owner),
+		Group:    uint32(f.Group),
+		Atime:    time2timestamp(f.Atime),
+		Mtime:    time2timestamp(f.Mtime),
+		Ctime:    time2timestamp(f.Ctime),
+		Major:    uint32(f.Major),
+		Minor:    uint32(f.Minor),
+	}
+}
+
+func (EltonFile) FromGRPC(f *elton_v2.File) *EltonFile {
+	return &EltonFile{
+		ObjectID: EltonObjectID("").FromGRPC(f.GetContentRef().GetKey()),
+	}
 }
 
 const MaxStructID = 17
