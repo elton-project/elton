@@ -1,7 +1,10 @@
 package eltonfs_rpc
 
 import (
+	"context"
+	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
+	"google.golang.org/grpc"
 	"log"
 )
 
@@ -57,11 +60,21 @@ func handlePing(ns ClientNS) {
 func handleGetCommitInfoRequest(ns ClientNS) {
 	rpcHandlerHelper(ns, &GetCommitInfoRequest{}, func(rawReq interface{}) (interface{}, error) {
 		req := rawReq.(*GetCommitInfoRequest)
+
+		cc, err := grpc.Dial("", nil) // todo: get meta server address
+		if err != nil {
+			return nil, xerrors.Errorf("dial: %w", err)
+		}
+		c := elton_v2.NewCommitServiceClient(cc)
+		res, err := c.GetCommit(context.Background(), req.ToGRPC())
+		if err != nil {
+			return nil, xerrors.Errorf("call api: %w", err)
+		}
+
 		// todo: get commit info from meta node.
 		return &GetCommitInfoResponse{
 			ID:   req.ID,
-			Info: CommitInfo{}, // todo
-			Tree: TreeInfo{},   // todo
+			Info: CommitInfo{}.FromGRPC(res.GetInfo()),
 		}, nil
 	})
 }
