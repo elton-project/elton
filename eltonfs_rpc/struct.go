@@ -35,14 +35,14 @@ type Ping struct {
 	XXX_XDR_ID struct{} `xdrid:"3"`
 }
 
-const EltonObjectInfoID = 5
+const EltonObjectInfoStructID = 5
 
 type EltonObjectInfo struct {
 	XXX_XDR_ID struct{} `xdrid:"5"`
 	Id         string   `xdr:"1"`
 }
 
-const EltonObjectBodyID = 6
+const EltonObjectBodyStructID = 6
 
 type EltonObjectBody struct {
 	XXX_XDR_ID    struct{}  `xdrid:"6"`
@@ -53,7 +53,7 @@ type EltonObjectBody struct {
 	Contents      []byte    `xdr:"5"`
 }
 
-const CommitInfoID = 7
+const CommitInfoStructID = 7
 
 type CommitInfo struct {
 	XXX_XDR_ID    struct{}  `xdrid:"7"`
@@ -64,7 +64,7 @@ type CommitInfo struct {
 	Tree          TreeInfo  `xdr:"5"`
 }
 
-const TreeInfoID = 8
+const TreeInfoStructID = 8
 
 type TreeInfo struct {
 	XXX_XDR_ID struct{}          `xdrid:"8"`
@@ -74,7 +74,7 @@ type TreeInfo struct {
 	Files      []EltonFile       `xdr:"4"`
 }
 
-const GetObjectRequestID = 9
+const GetObjectRequestStructID = 9
 
 type GetObjectRequest struct {
 	XXX_XDR_ID struct{}      `xdrid:"9"`
@@ -82,7 +82,7 @@ type GetObjectRequest struct {
 	Offset     uint64        `xdr:"2"`
 }
 
-const GetObjectResponseID = 10
+const GetObjectResponseStructID = 10
 
 type GetObjectResponse struct {
 	XXX_XDR_ID struct{}        `xdrid:"8"`
@@ -91,49 +91,49 @@ type GetObjectResponse struct {
 	Body       EltonObjectBody `xdr:"3"`
 }
 
-const CreateObjectRequestID = 11
+const CreateObjectRequestStructID = 11
 
 type CreateObjectRequest struct {
 	XXX_XDR_ID struct{}        `xdrid:"11"`
 	Body       EltonObjectBody `xdr:"1"`
 }
 
-const CreateObjectResponseID = 12
+const CreateObjectResponseStructID = 12
 
 type CreateObjectResponse struct {
 	XXX_XDR_ID struct{}      `xdrid:"12"`
 	ID         EltonObjectID `xdr:"1"`
 }
 
-const CreateCommitRequestID = 13
+const CreateCommitRequestStructID = 13
 
 type CreateCommitRequest struct {
 	XXX_XDR_ID struct{}   `xdrid:"13"`
 	Info       CommitInfo `xdr:"1"`
 }
 
-const CreateCommitResponseID = 14
+const CreateCommitResponseStructID = 14
 
 type CreateCommitResponse struct {
 	XXX_XDR_ID struct{} `xdrid:"14"`
 	ID         CommitID `xdr:"1"`
 }
 
-const NotifyLatestCommitID = 15
+const NotifyLatestCommitStructID = 15
 
 type NotifyLatestCommit struct {
 	XXX_XDR_ID struct{} `xdrid:"15"`
 	ID         CommitID `xdr:"1"`
 }
 
-const GetCommitInfoRequestID = 16
+const GetCommitInfoRequestStructID = 16
 
 type GetCommitInfoRequest struct {
 	XXX_XDR_ID struct{} `xdrid:"16"`
 	ID         CommitID `xdr:"1"`
 }
 
-const GetCommitInfoResponseID = 17
+const GetCommitInfoResponseStructID = 17
 
 type GetCommitInfoResponse struct {
 	XXX_XDR_ID struct{}   `xdrid:"17"`
@@ -142,7 +142,7 @@ type GetCommitInfoResponse struct {
 	Tree       TreeInfo   `xdr:"3"`
 }
 
-const EltonFileID = 18
+const EltonFileStructID = 18
 
 type EltonFile struct {
 	XXX_XDR_ID struct{}      `xdrid:"18"`
