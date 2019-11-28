@@ -114,17 +114,15 @@ func (CommitInfo) FromGRPC(i *elton_v2.CommitInfo) *CommitInfo {
 const TreeInfoStructID = 8
 
 type TreeInfo struct {
-	XXX_XDR_ID struct{}          `xdrid:"8"`
-	P2I        map[string]uint64 `xdr:"2"`
-	I2F        map[uint64]uint64 `xdr:"3"`
-	Files      []EltonFile       `xdr:"4"`
+	XXX_XDR_ID struct{}              `xdrid:"8"`
+	P2I        map[string]uint64     `xdr:"2"`
+	I2F        map[uint64]*EltonFile `xdr:"3"`
 }
 
 func (TreeInfo) FromGRPC(t *elton_v2.Tree) *TreeInfo {
 	tree := &TreeInfo{}
 	tree.P2I = t.GetP2I()
 	// todo: i2f
-	// todo: files
 	return tree
 }
 
