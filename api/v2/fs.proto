@@ -130,6 +130,6 @@ message GetCommitResponse {
 message CommitRequest {
   CommitInfo info = 3;
   Tree tree = 4;
-  VolumeID id = 5;
+  CommitID base_commit_id = 5;
 }
 message CommitResponse { CommitID id = 1; }

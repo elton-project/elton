@@ -236,13 +236,14 @@ const CreateCommitRequestStructID = 13
 type CreateCommitRequest struct {
 	XXX_XDR_ID struct{}   `xdrid:"13"`
 	Info       CommitInfo `xdr:"1"`
+	Base       CommitID   `xdr:"2"`
 }
 
 func (req CreateCommitRequest) ToGRPC() *elton_v2.CommitRequest {
 	return &elton_v2.CommitRequest{
-		Info: req.Info.ToGRPC(),
-		Tree: nil, // todo: treeは要らない
-		Id:   nil, // todo: baseとなったcommit idが必要。
+		Info:         req.Info.ToGRPC(),
+		Tree:         nil, // todo: treeは要らない
+		BaseCommitId: req.Base.ToGRPC(),
 	}
 }
 
