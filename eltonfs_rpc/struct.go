@@ -242,7 +242,6 @@ type CreateCommitRequest struct {
 func (req CreateCommitRequest) ToGRPC() *elton_v2.CommitRequest {
 	return &elton_v2.CommitRequest{
 		Info:         req.Info.ToGRPC(),
-		Tree:         nil, // todo: treeは要らない
 		BaseCommitId: req.Base.ToGRPC(),
 	}
 }
