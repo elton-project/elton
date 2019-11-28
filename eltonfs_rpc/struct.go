@@ -1,11 +1,44 @@
 // See https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/wikis/elton2/eltonfsrpc
 package eltonfs_rpc
 
-import "time"
+import (
+	"fmt"
+	"github.com/golang/protobuf/ptypes"
+	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	"golang.org/x/xerrors"
+	"strconv"
+	"strings"
+	"time"
+)
 
 type EltonObjectID string
 type CommitID string
+
+func (CommitID) FromGRPC(id *elton_v2.CommitID) CommitID {
+	return CommitID(fmt.Sprintf("%s:%d", id.GetId(), id.GetNumber()))
+}
+
+func (id CommitID) ToGRPC() *elton_v2.CommitID {
+	components := strings.SplitN(string(id), ":", 2)
+	n, err := strconv.ParseUint(components[1], 10, 64)
+	if err != nil {
+		panic(xerrors.Errorf("parse int: %w", err))
+	}
+
+	return &elton_v2.CommitID{
+		// todo
+		Id: &elton_v2.VolumeID{
+			Id: components[0],
+		},
+		Number: n,
+	}
+}
+
 type TreeID string
+
+func (TreeID) FromGRPC(id *elton_v2.TreeID) TreeID {
+	return TreeID(id.Id)
+}
 
 const Setup1StructID = 1
 
@@ -61,17 +94,39 @@ type CommitInfo struct {
 	LeftParentID  CommitID  `xdr:"2"`
 	RightParentID CommitID  `xdr:"3"`
 	TreeID        TreeID    `xdr:"4"`
-	Tree          TreeInfo  `xdr:"5"`
+	Tree          *TreeInfo `xdr:"5"`
+}
+
+func (CommitInfo) FromGRPC(i *elton_v2.CommitInfo) *CommitInfo {
+	var err error
+	info := &CommitInfo{}
+	info.CreatedAt, err = ptypes.Timestamp(i.GetCreatedAt())
+	if err != nil {
+		panic(xerrors.Errorf("convert timestamp: %w", err))
+	}
+	info.LeftParentID = CommitID("").FromGRPC(i.GetLeftParentID())
+	info.RightParentID = CommitID("").FromGRPC(i.GetRightParentID())
+	info.TreeID = TreeID("").FromGRPC(i.GetTreeID())
+	info.Tree = TreeInfo{}.FromGRPC(i.GetTree())
+	return info
 }
 
 const TreeInfoStructID = 8
 
 type TreeInfo struct {
 	XXX_XDR_ID struct{}          `xdrid:"8"`
-	ID         CommitID          `xdr:"1"`
+	ID         CommitID          `xdr:"1"` // これは不要
 	P2I        map[string]uint64 `xdr:"2"`
 	I2F        map[uint64]uint64 `xdr:"3"`
 	Files      []EltonFile       `xdr:"4"`
+}
+
+func (TreeInfo) FromGRPC(t *elton_v2.Tree) *TreeInfo {
+	tree := &TreeInfo{}
+	tree.P2I = t.GetP2I()
+	// todo: i2f
+	// todo: files
+	return tree
 }
 
 const GetObjectRequestStructID = 9
@@ -133,12 +188,25 @@ type GetCommitInfoRequest struct {
 	ID         CommitID `xdr:"1"`
 }
 
+func (req *GetCommitInfoRequest) ToGRPC() *elton_v2.GetCommitRequest {
+	return &elton_v2.GetCommitRequest{
+		Id: req.ID.ToGRPC(),
+	}
+}
+
 const GetCommitInfoResponseStructID = 17
 
 type GetCommitInfoResponse struct {
-	XXX_XDR_ID struct{}   `xdrid:"17"`
-	ID         CommitID   `xdr:"1"`
-	Info       CommitInfo `xdr:"2"`
+	XXX_XDR_ID struct{}    `xdrid:"17"`
+	ID         CommitID    `xdr:"1"`
+	Info       *CommitInfo `xdr:"2"`
+}
+
+func (GetCommitInfoResponse) FromGRPC(res *elton_v2.GetCommitResponse) *GetCommitInfoResponse {
+	return &GetCommitInfoResponse{
+		ID:   CommitID("").FromGRPC(res.GetId()),
+		Info: CommitInfo{}.FromGRPC(res.GetInfo()),
+	}
 }
 
 const EltonFileStructID = 18
