@@ -67,11 +67,9 @@ message Tree {
   // Mapping from path to inode.
   map<string, uint64> p2i = 1;
   // Mapping from inode to file object.
-  map<uint64, FileID> i2f = 2;
+  map<uint64, File> i2f = 2;
 }
 
-// Identify the file.
-message FileID { string id = 1; }
 // File presents the Linux inode.
 message File {
   // If file is regular or symlink, a valid reference is set to the contentRef.

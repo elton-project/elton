@@ -119,8 +119,8 @@ func createEmptyTree() *elton_v2.Tree {
 		P2I: map[string]uint64{
 			"/": 1,
 		},
-		I2F: map[uint64]*elton_v2.FileID{
-			1: {Id: "root"},
+		I2F: map[uint64]*elton_v2.File{
+			1: {},
 		},
 	}
 }
@@ -559,10 +559,10 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 						"/":     1,
 						"/file": 2,
 					},
-					I2F: map[uint64]*elton_v2.FileID{
-						1: {Id: "root"},
-						2: {Id: "file"},
-						3: {Id: "unreferenced-file"},
+					I2F: map[uint64]*elton_v2.File{
+						1: {},
+						2: {},
+						3: {},
 					},
 				},
 			})
@@ -584,8 +584,8 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 						"/":              1,
 						"/invalid-inode": 2,
 					},
-					I2F: map[uint64]*elton_v2.FileID{
-						1: {Id: "root"},
+					I2F: map[uint64]*elton_v2.File{
+						1: {},
 					},
 				},
 			})

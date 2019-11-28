@@ -33,7 +33,7 @@ func createTree() *Tree {
 		P2I: map[string]uint64{
 			"/": 1,
 		},
-		I2F: map[uint64]*FileID{
+		I2F: map[uint64]*File{
 			1: {},
 		},
 	}
@@ -281,10 +281,10 @@ func TestLocalCS_Get(t *testing.T) {
 					"/bin":         2,
 					"/bin/busybox": 3,
 				},
-				I2F: map[uint64]*FileID{
-					1: {Id: "root"},
-					2: {Id: "bin"},
-					3: {Id: "busybox"},
+				I2F: map[uint64]*File{
+					1: {},
+					2: {},
+					3: {},
 				},
 			})
 			if !assert.Nil(t, err) || !assert.NotNil(t, cid) {
@@ -567,9 +567,9 @@ func TestLocalCS_Tree(t *testing.T) {
 					"/":    1,
 					"/bin": 2,
 				},
-				I2F: map[uint64]*FileID{
-					1: {Id: "root"},
-					2: {Id: "bin"},
+				I2F: map[uint64]*File{
+					1: {},
+					2: {},
 				},
 			})
 			if !assert.NotNil(t, cid) || !assert.Nil(t, err) {
