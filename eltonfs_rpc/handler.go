@@ -20,15 +20,18 @@ func handlePing(ns ClientNS) {
 	_, err := ns.Recv(&Ping{})
 	if err != nil {
 		log.Println(xerrors.Errorf("handlePing: recv ping: %w", err))
+		return
 	}
 
 	if ns.IsSendable() {
 		if err := ns.Send(&Ping{}); err != nil {
 			log.Println(xerrors.Errorf("handlePing: send reply: %w", err))
+			return
 		}
 	}
 
 	if err := ns.Close(); err != nil {
 		log.Println(xerrors.Errorf("handlePing: close: %w", err))
+		return
 	}
 }
