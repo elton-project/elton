@@ -72,10 +72,8 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 		}
 
 		// todo: get commit info from meta node.
-		return &GetCommitInfoResponse{
-			ID:   req.ID,
-			Info: CommitInfo{}.FromGRPC(res.GetInfo()),
-		}, nil
+
+		return GetCommitInfoResponse{}.FromGRPC(res), nil
 	})
 }
 
