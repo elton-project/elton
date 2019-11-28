@@ -80,12 +80,19 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 func handleGetObjectRequest(ns ClientNS) {
 	rpcHandlerHelper(ns, &GetObjectRequest{}, func(rawReq interface{}) (interface{}, error) {
 		req := rawReq.(*GetObjectRequest)
-		// todo: get object from storage.
-		return &GetObjectResponse{
-			ID:     req.ID,            // todo
-			Offset: req.Offset,        // todo
-			Body:   EltonObjectBody{}, // todo
-		}, nil
+
+		// Get object from storage.
+		cc, err := grpc.Dial("", nil) // todo
+		if err != nil {
+			return nil, xerrors.Errorf("dial: %w", err)
+		}
+		c := elton_v2.NewStorageServiceClient(cc)
+		res, err := c.GetObject(context.Background(), req.ToGRPC())
+		if err != nil {
+			return nil, xerrors.Errorf("call api: %w", err)
+		}
+
+		return GetObjectResponse{}.FromGRPC(res), nil
 	})
 }
 

@@ -134,6 +134,14 @@ type GetObjectRequest struct {
 	Offset     uint64        `xdr:"2"`
 }
 
+func (req GetObjectRequest) ToGRPC() *elton_v2.GetObjectRequest {
+	return &elton_v2.GetObjectRequest{
+		Key:    req.ID.ToGRPC(),
+		Offset: req.Offset,
+		Size:   0, // todo: 追加のフィールドが必要
+	}
+}
+
 const GetObjectResponseStructID = 10
 
 type GetObjectResponse struct {
@@ -141,6 +149,12 @@ type GetObjectResponse struct {
 	ID         EltonObjectID   `xdr:"1"`
 	Offset     uint64          `xdr:"2"`
 	Body       EltonObjectBody `xdr:"3"`
+}
+
+func (GetObjectResponse) FromGRPC(res *elton_v2.GetObjectResponse) *GetObjectResponse {
+	return &GetObjectResponse{
+		// todo
+	}
 }
 
 const CreateObjectRequestStructID = 11
