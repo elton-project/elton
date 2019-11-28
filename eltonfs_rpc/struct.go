@@ -61,12 +61,6 @@ func (id CommitID) ToGRPC() *elton_v2.CommitID {
 	}
 }
 
-type TreeID string
-
-func (TreeID) FromGRPC(id *elton_v2.TreeID) TreeID {
-	return TreeID(id.Id)
-}
-
 const Setup1StructID = 1
 
 type Setup1 struct {
@@ -130,7 +124,6 @@ type CommitInfo struct {
 	CreatedAt     time.Time `xdr:"1"`
 	LeftParentID  CommitID  `xdr:"2"`
 	RightParentID CommitID  `xdr:"3"`
-	TreeID        TreeID    `xdr:"4"`
 	Tree          *TreeInfo `xdr:"5"`
 }
 
@@ -139,7 +132,6 @@ func (CommitInfo) FromGRPC(i *elton_v2.CommitInfo) *CommitInfo {
 	info.CreatedAt = timestamp2time(i.GetCreatedAt())
 	info.LeftParentID = CommitID("").FromGRPC(i.GetLeftParentID())
 	info.RightParentID = CommitID("").FromGRPC(i.GetRightParentID())
-	info.TreeID = TreeID("").FromGRPC(i.GetTreeID())
 	info.Tree = TreeInfo{}.FromGRPC(i.GetTree())
 	return info
 }
@@ -149,7 +141,6 @@ func (info CommitInfo) ToGRPC() *elton_v2.CommitInfo {
 		CreatedAt:     time2timestamp(info.CreatedAt),
 		LeftParentID:  info.LeftParentID.ToGRPC(),
 		RightParentID: info.RightParentID.ToGRPC(),
-		TreeID:        nil, // todo: TreeID必要?
 		Tree:          info.Tree.ToGRPC(),
 	}
 }
