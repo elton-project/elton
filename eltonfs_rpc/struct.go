@@ -115,7 +115,6 @@ const TreeInfoStructID = 8
 
 type TreeInfo struct {
 	XXX_XDR_ID struct{}          `xdrid:"8"`
-	ID         CommitID          `xdr:"1"` // これは不要
 	P2I        map[string]uint64 `xdr:"2"`
 	I2F        map[uint64]uint64 `xdr:"3"`
 	Files      []EltonFile       `xdr:"4"`
