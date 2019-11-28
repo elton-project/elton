@@ -178,6 +178,15 @@ type CreateCommitRequest struct {
 	Info       CommitInfo `xdr:"1"`
 }
 
+func (req CreateCommitRequest) ToGRPC() *elton_v2.CommitRequest {
+	return &elton_v2.CommitRequest{
+		// todo
+		Info: req.Info.ToGRPC(),
+		Tree: nil, // todo: treeは要らない
+		Id:   nil,
+	}
+}
+
 const CreateCommitResponseStructID = 14
 
 type CreateCommitResponse struct {

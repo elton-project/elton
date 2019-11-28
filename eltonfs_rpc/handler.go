@@ -98,10 +98,18 @@ func handleGetObjectRequest(ns ClientNS) {
 func handleCreateCommitRequest(ns ClientNS) {
 	rpcHandlerHelper(ns, &CreateCommitRequest{}, func(rawReq interface{}) (interface{}, error) {
 		req := rawReq.(*CreateCommitRequest)
-		_ = req
-		// todo: call commit api.
-		return &CreateCommitResponse{
-			ID: "", // todo
-		}, nil
+
+		// Send commit request.
+		cc, err := grpc.Dial("", nil) // todo
+		if err != nil {
+			return nil, xerrors.Errorf("dial: %w", err)
+		}
+		c := elton_v2.NewCommitServiceClient(cc)
+		res, err := c.Commit(context.Background(), req.ToGRPC())
+		if err != nil {
+			return nil, xerrors.Errorf("call api: %w", err)
+		}
+
+		return CreateCommitResponse{}.FromGRPC(res), nil
 	})
 }
