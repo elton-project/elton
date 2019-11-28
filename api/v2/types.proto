@@ -57,6 +57,7 @@ message CommitInfo {
   CommitID leftParentID = 2;
   CommitID rightParentID = 4;
   TreeID treeID = 3;
+  Tree tree = 5;
 }
 
 // Identify the tree.
