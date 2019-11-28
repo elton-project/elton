@@ -139,7 +139,6 @@ type GetCommitInfoResponse struct {
 	XXX_XDR_ID struct{}   `xdrid:"17"`
 	ID         CommitID   `xdr:"1"`
 	Info       CommitInfo `xdr:"2"`
-	Tree       TreeInfo   `xdr:"3"`
 }
 
 const EltonFileStructID = 18
