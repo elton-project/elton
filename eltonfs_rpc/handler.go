@@ -61,6 +61,7 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 	rpcHandlerHelper(ns, &GetCommitInfoRequest{}, func(rawReq interface{}) (interface{}, error) {
 		req := rawReq.(*GetCommitInfoRequest)
 
+		// Get commit info from meta node.
 		cc, err := grpc.Dial("", nil) // todo: get meta server address
 		if err != nil {
 			return nil, xerrors.Errorf("dial: %w", err)
@@ -70,8 +71,6 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
 		}
-
-		// todo: get commit info from meta node.
 
 		return GetCommitInfoResponse{}.FromGRPC(res), nil
 	})
