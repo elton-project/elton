@@ -119,8 +119,8 @@ func createEmptyTree() *elton_v2.Tree {
 		P2I: map[string]uint64{
 			"/": 1,
 		},
-		I2F: map[uint64]*elton_v2.FileID{
-			1: {Id: "root"},
+		I2F: map[uint64]*elton_v2.File{
+			1: {},
 		},
 	}
 }
@@ -373,8 +373,8 @@ func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
 				{
 					Info: &elton_v2.CommitInfo{
 						CreatedAt: ptypes.TimestampNow(),
+						Tree:      createEmptyTree(),
 					},
-					Tree: createEmptyTree(),
 				},
 			})
 			assert.NotNil(t, volume)
@@ -488,8 +488,8 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Id: volume,
 				Info: &elton_v2.CommitInfo{
 					CreatedAt: ptypes.TimestampNow(),
+					Tree:      createEmptyTree(),
 				},
-				Tree: createEmptyTree(),
 			})
 			assert.NoError(t, err)
 			assert.NotNil(t, res)
@@ -501,13 +501,13 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				{
 					Info: &elton_v2.CommitInfo{
 						CreatedAt: ptypes.TimestampNow(),
+						Tree:      createEmptyTree(),
 					},
-					Tree: createEmptyTree(),
 				}, {
 					Info: &elton_v2.CommitInfo{
 						CreatedAt: ptypes.TimestampNow(),
+						Tree:      createEmptyTree(),
 					},
-					Tree: createEmptyTree(),
 				},
 			})
 			assert.NotEmpty(t, volume)
@@ -522,8 +522,8 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Info: &elton_v2.CommitInfo{
 					LeftParentID:  nil,
 					RightParentID: &elton_v2.CommitID{Id: &elton_v2.VolumeID{Id: "foo"}, Number: 1},
+					Tree:          createEmptyTree(),
 				},
-				Tree: createEmptyTree(),
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Equal(t, "cross-volume commit: mismatch VolumeID and CommitInfo.RightParentID", status.Convert(err).Message())
@@ -538,8 +538,8 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Id: volume,
 				Info: &elton_v2.CommitInfo{
 					LeftParentID: &elton_v2.CommitID{Id: volume, Number: 1},
+					Tree:         createEmptyTree(),
 				},
-				Tree: createEmptyTree(),
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Contains(t, status.Convert(err).Message(), "invalid parent commit: ")
@@ -553,16 +553,16 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Id: &elton_v2.VolumeID{Id: "test-volume"},
 				Info: &elton_v2.CommitInfo{
 					CreatedAt: ptypes.TimestampNow(),
-				},
-				Tree: &elton_v2.Tree{
-					P2I: map[string]uint64{
-						"/":     1,
-						"/file": 2,
-					},
-					I2F: map[uint64]*elton_v2.FileID{
-						1: {Id: "root"},
-						2: {Id: "file"},
-						3: {Id: "unreferenced-file"},
+					Tree: &elton_v2.Tree{
+						P2I: map[string]uint64{
+							"/":     1,
+							"/file": 2,
+						},
+						I2F: map[uint64]*elton_v2.File{
+							1: {},
+							2: {},
+							3: {},
+						},
 					},
 				},
 			})
@@ -578,14 +578,14 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				Id: &elton_v2.VolumeID{Id: "test-volume"},
 				Info: &elton_v2.CommitInfo{
 					CreatedAt: ptypes.TimestampNow(),
-				},
-				Tree: &elton_v2.Tree{
-					P2I: map[string]uint64{
-						"/":              1,
-						"/invalid-inode": 2,
-					},
-					I2F: map[uint64]*elton_v2.FileID{
-						1: {Id: "root"},
+					Tree: &elton_v2.Tree{
+						P2I: map[string]uint64{
+							"/":              1,
+							"/invalid-inode": 2,
+						},
+						I2F: map[uint64]*elton_v2.File{
+							1: {},
+						},
 					},
 				},
 			})

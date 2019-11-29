@@ -53,6 +53,13 @@ service CommitService {
   // 一回のレスポンスで返す個数指定と、ページネーションの設定が行える。
   // 詳細な使い方は、引数とレスポンスのデータ型のコメントを参照。
   rpc ListCommits(ListCommitsRequest) returns (stream ListCommitsResponse);
+  // 指定したIDのコミットを取得する。
+  //
+  // Error:
+  // - InvalidArgument: If "id" parameter is null.
+  // - NotFound: If volume or commit is not found.
+  // - Internal
+  rpc GetCommit(GetCommitRequest) returns (GetCommitResponse);
   // コミットを作成する。
   //
   // Error:
@@ -116,9 +123,13 @@ message ListCommitsResponse {
 
   CommitID id = 2;
 }
+message GetCommitRequest { CommitID id = 1; }
+message GetCommitResponse {
+  CommitID id = 1;
+  CommitInfo info = 2;
+}
 message CommitRequest {
   CommitInfo info = 3;
-  Tree tree = 4;
   VolumeID id = 5;
 }
 message CommitResponse { CommitID id = 1; }

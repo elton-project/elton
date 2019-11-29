@@ -43,11 +43,6 @@ var localCommitBucket = []byte("commit")
 // - Value: CommitID
 var localLatestCommitBucket = []byte("latest-commit")
 
-// Tree bucket: It keeps Tree information.
-// - Key: TreeID
-// - Value: Tree (JSON encoded)
-var localTreeBucket = []byte("tree")
-
 // Node bucket: It keeps node information.
 // - Key: NodeID
 // - Value: Node (JSON encoded)
@@ -123,9 +118,6 @@ func (localEncoder) CommitID(id *CommitID) []byte {
 func (localEncoder) CommitInfo(info *CommitInfo) []byte {
 	return mustMarshall(info)
 }
-func (localEncoder) TreeID(id *TreeID) []byte {
-	return []byte(id.GetId())
-}
 func (localEncoder) Tree(tree *Tree) []byte {
 	return mustMarshall(tree)
 }
@@ -184,12 +176,6 @@ func (localDecoder) CommitInfo(data []byte) *CommitInfo {
 	mustUnmarshal(data, info)
 	return info
 }
-func (localDecoder) TreeID(data []byte) *TreeID {
-	if data == nil {
-		return nil
-	}
-	return &TreeID{Id: string(data)}
-}
 func (localDecoder) Tree(data []byte) *Tree {
 	if data == nil {
 		return nil
@@ -246,11 +232,6 @@ func (g localGenerator) CommitID(id *VolumeID) *CommitID {
 		Number: g.next(),
 	}
 }
-func (g localGenerator) TreeID() *TreeID {
-	return &TreeID{
-		Id: g.nextString(),
-	}
-}
 
 type localTxFn func(b *bbolt.Bucket) error
 type localDB struct {
@@ -300,10 +281,6 @@ func (s *localDB) createAllBuckets() error {
 			return xerrors.Errorf("latest commit bucket cannot create: %w", err)
 		}
 
-		if _, err := tx.CreateBucketIfNotExists(localTreeBucket); err != nil {
-			return xerrors.Errorf("tree bucket cannot create: %w", err)
-		}
-
 		if _, err := tx.CreateBucketIfNotExists(localNodeBucket); err != nil {
 			return xerrors.Errorf("node bucket cannot create: %w", err)
 		}
@@ -346,9 +323,6 @@ func (s *localDB) CommitView(callback localTxFn) error {
 }
 func (s *localDB) CommitUpdate(callback localTxFn) error {
 	return s.runTx(true, localCommitBucket, callback)
-}
-func (s *localDB) TreeView(callback localTxFn) error {
-	return s.runTx(false, localTreeBucket, callback)
 }
 func (s *localDB) MetaView(callback localTxFn) error {
 	return s.runTx(false, localMetaBucket, callback)
@@ -417,7 +391,6 @@ func (vs *localVS) Delete(id *VolumeID) error {
 		vnb := tx.Bucket(localVolumeNameBucket)
 		lcb := tx.Bucket(localLatestCommitBucket)
 		cb := tx.Bucket(localCommitBucket)
-		tb := tx.Bucket(localTreeBucket)
 
 		// Get volume info.
 		data := vb.Get(vs.Enc.VolumeID(id))
@@ -461,7 +434,6 @@ func (vs *localVS) Delete(id *VolumeID) error {
 				continue
 			}
 			commitInfo := vs.Dec.CommitInfo(data)
-			tree := commitInfo.GetTreeID()
 
 			// Enqueue next commits.
 			if !commitInfo.GetLeftParentID().Empty() {
@@ -473,13 +445,6 @@ func (vs *localVS) Delete(id *VolumeID) error {
 
 			// Delete a commit and tree.
 			if err := cb.Delete(vs.Enc.CommitID(commit)); err != nil {
-				return IErrDelete.Wrap(err)
-			}
-			if tree.Empty() {
-				log.Printf("[WARN] CommitInfo.Tree is empty: %s", commit)
-				continue
-			}
-			if err := tb.Delete(vs.Enc.TreeID(tree)); err != nil {
 				return IErrDelete.Wrap(err)
 			}
 		}
@@ -577,8 +542,7 @@ func (cs *localCS) Latest(vid *VolumeID) (latest *CommitID, err error) {
 }
 func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *CommitID, err error) {
 	newCID := cs.Gen.CommitID(vid)
-	tid := cs.Gen.TreeID()
-	info.TreeID = tid
+	info.Tree = tree
 
 	left := info.GetLeftParentID()
 	right := info.GetRightParentID()
@@ -645,13 +609,6 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 			return err
 		}
 
-		if err := tx.Bucket(localTreeBucket).Put(
-			cs.Enc.TreeID(tid),
-			cs.Enc.Tree(tree),
-		); err != nil {
-			return err
-		}
-
 		return tx.Bucket(localLatestCommitBucket).Put(
 			cs.Enc.VolumeID(vid),
 			cs.Enc.CommitID(newCID),
@@ -662,28 +619,13 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	}
 	return
 }
-func (cs *localCS) Tree(id *CommitID) (tid *TreeID, tree *Tree, err error) {
+func (cs *localCS) Tree(id *CommitID) (tree *Tree, err error) {
 	var ci *CommitInfo
 	ci, err = cs.Get(id)
 	if err != nil {
 		return
 	}
-	tree, err = cs.TreeByTreeID(ci.GetTreeID())
-	if err != nil {
-		return
-	}
-	tid = ci.GetTreeID()
-	return
-}
-func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
-	err = cs.DB.TreeView(func(b *bbolt.Bucket) error {
-		data := b.Get(cs.Enc.TreeID(id))
-		if len(data) > 0 {
-			tree = cs.Dec.Tree(data)
-			return nil
-		}
-		return ErrNotFoundTree.Wrap(fmt.Errorf("id=%s", id))
-	})
+	tree = ci.GetTree()
 	return
 }
 

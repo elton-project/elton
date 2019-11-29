@@ -33,7 +33,7 @@ func createTree() *Tree {
 		P2I: map[string]uint64{
 			"/": 1,
 		},
-		I2F: map[uint64]*FileID{
+		I2F: map[uint64]*File{
 			1: {},
 		},
 	}
@@ -272,19 +272,17 @@ func TestLocalCS_Get(t *testing.T) {
 			}
 
 			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt:    ptypes.TimestampNow(),
-				LeftParentID: nil,
-				TreeID:       nil,
+				CreatedAt: ptypes.TimestampNow(),
 			}, &Tree{
 				P2I: map[string]uint64{
 					"/":            1,
 					"/bin":         2,
 					"/bin/busybox": 3,
 				},
-				I2F: map[uint64]*FileID{
-					1: {Id: "root"},
-					2: {Id: "bin"},
-					3: {Id: "busybox"},
+				I2F: map[uint64]*File{
+					1: {},
+					2: {},
+					3: {},
 				},
 			})
 			if !assert.Nil(t, err) || !assert.NotNil(t, cid) {
@@ -340,9 +338,7 @@ func TestLocalCS_Exists(t *testing.T) {
 				return
 			}
 			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt:    ptypes.TimestampNow(),
-				LeftParentID: nil,
-				TreeID:       nil,
+				CreatedAt: ptypes.TimestampNow(),
 			}, createTree())
 			if !assert.NoError(t, err) {
 				return
@@ -538,13 +534,12 @@ func TestLocalCS_Tree(t *testing.T) {
 	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
 		withLocalDB(t, func(stores Stores) {
 			cs := stores.CommitStore()
-			tid, tree, err := cs.Tree(&CommitID{
+			tree, err := cs.Tree(&CommitID{
 				Id:     &VolumeID{Id: "not_found"},
 				Number: 0,
 			})
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), "not found commit: ")
-			assert.Nil(t, tid)
 			assert.Nil(t, tree)
 		})
 	})
@@ -567,33 +562,18 @@ func TestLocalCS_Tree(t *testing.T) {
 					"/":    1,
 					"/bin": 2,
 				},
-				I2F: map[uint64]*FileID{
-					1: {Id: "root"},
-					2: {Id: "bin"},
+				I2F: map[uint64]*File{
+					1: {},
+					2: {},
 				},
 			})
 			if !assert.NotNil(t, cid) || !assert.Nil(t, err) {
 				return
 			}
 
-			tid, tree, err := cs.Tree(cid)
+			tree, err := cs.Tree(cid)
 			assert.Nil(t, err)
-			assert.NotNil(t, tid)
 			assert.NotNil(t, tree)
-		})
-	})
-}
-
-func TestLocalCS_TreeByTreeID(t *testing.T) {
-	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
-		withLocalDB(t, func(stores Stores) {
-			cs := stores.CommitStore()
-			tree, err := cs.TreeByTreeID(&TreeID{
-				Id: "not_found",
-			})
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "not found tree: ")
-			assert.Nil(t, tree)
 		})
 	})
 }
