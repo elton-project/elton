@@ -299,7 +299,7 @@ static int elton_object_info_encode(struct packet *in,
                                     struct raw_packet **out) {
   *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_object_info, in, ({
                   do {
-                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
+                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 4));
                     BREAK_IF(se.op->bytes(&se, 1, s->hash, s->hash_length));
                     BREAK_IF(se.op->bytes(&se, 2, s->hash_algorithm,
                                           strlen(s->hash_algorithm)));
