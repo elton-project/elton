@@ -104,11 +104,13 @@ const EltonObjectBodyStructID = 6
 type EltonObjectBody struct {
 	XXX_XDR_ID struct{} `xdrid:"6"`
 	Contents   []byte   `xdr:"1"`
+	Offset     uint64   `xdr:"2"`
 }
 
 func (EltonObjectBody) FromGRPC(body *elton_v2.ObjectBody) EltonObjectBody {
 	return EltonObjectBody{
 		Contents: body.GetContents(),
+		Offset:   body.GetOffset(),
 	}
 }
 
