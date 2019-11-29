@@ -92,28 +92,23 @@ type Ping struct {
 const EltonObjectInfoStructID = 5
 
 type EltonObjectInfo struct {
-	XXX_XDR_ID struct{} `xdrid:"5"`
-	Id         string   `xdr:"1"`
+	XXX_XDR_ID    struct{}  `xdrid:"5"`
+	Hash          []byte    `xdr:"1"`
+	HashAlgorithm string    `xdr:"2"`
+	CreatedAt     time.Time `xdr:"3"`
+	Size          uint64    `xdr:"4"`
 }
 
 const EltonObjectBodyStructID = 6
 
 type EltonObjectBody struct {
-	XXX_XDR_ID    struct{}  `xdrid:"6"`
-	Hash          []byte    `xdr:"1"`
-	HashAlgorithm string    `xdr:"2"`
-	CreatedAt     time.Time `xdr:"3"`
-	Size          uint64    `xdr:"4"`
-	Contents      []byte    `xdr:"5"`
+	XXX_XDR_ID struct{} `xdrid:"6"`
+	Contents   []byte   `xdr:"1"`
 }
 
 func (EltonObjectBody) FromGRPC(body *elton_v2.ObjectBody) EltonObjectBody {
 	return EltonObjectBody{
-		Hash:          nil,         // todo: 含まれてない
-		HashAlgorithm: "",          // todo: 含まれてない
-		CreatedAt:     time.Time{}, // todo: 含まれてない
-		Size:          0,           // todo: 含まれてない
-		Contents:      body.GetContents(),
+		Contents: body.GetContents(),
 	}
 }
 
