@@ -43,11 +43,6 @@ var localCommitBucket = []byte("commit")
 // - Value: CommitID
 var localLatestCommitBucket = []byte("latest-commit")
 
-// Tree bucket: It keeps Tree information.
-// - Key: TreeID
-// - Value: Tree (JSON encoded)
-var localTreeBucket = []byte("tree")
-
 // Node bucket: It keeps node information.
 // - Key: NodeID
 // - Value: Node (JSON encoded)
@@ -300,10 +295,6 @@ func (s *localDB) createAllBuckets() error {
 			return xerrors.Errorf("latest commit bucket cannot create: %w", err)
 		}
 
-		if _, err := tx.CreateBucketIfNotExists(localTreeBucket); err != nil {
-			return xerrors.Errorf("tree bucket cannot create: %w", err)
-		}
-
 		if _, err := tx.CreateBucketIfNotExists(localNodeBucket); err != nil {
 			return xerrors.Errorf("node bucket cannot create: %w", err)
 		}
@@ -346,9 +337,6 @@ func (s *localDB) CommitView(callback localTxFn) error {
 }
 func (s *localDB) CommitUpdate(callback localTxFn) error {
 	return s.runTx(true, localCommitBucket, callback)
-}
-func (s *localDB) TreeView(callback localTxFn) error {
-	return s.runTx(false, localTreeBucket, callback)
 }
 func (s *localDB) MetaView(callback localTxFn) error {
 	return s.runTx(false, localMetaBucket, callback)
@@ -668,22 +656,7 @@ func (cs *localCS) Tree(id *CommitID) (tid *TreeID, tree *Tree, err error) {
 	if err != nil {
 		return
 	}
-	tree, err = cs.TreeByTreeID(ci.GetTreeID())
-	if err != nil {
-		return
-	}
-	tid = ci.GetTreeID()
-	return
-}
-func (cs *localCS) TreeByTreeID(id *TreeID) (tree *Tree, err error) {
-	err = cs.DB.TreeView(func(b *bbolt.Bucket) error {
-		data := b.Get(cs.Enc.TreeID(id))
-		if len(data) > 0 {
-			tree = cs.Dec.Tree(data)
-			return nil
-		}
-		return ErrNotFoundTree.Wrap(fmt.Errorf("id=%s", id))
-	})
+	tree = ci.GetTree()
 	return
 }
 

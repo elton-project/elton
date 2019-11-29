@@ -583,17 +583,3 @@ func TestLocalCS_Tree(t *testing.T) {
 		})
 	})
 }
-
-func TestLocalCS_TreeByTreeID(t *testing.T) {
-	t.Run("should_error_when_access_not_exists_tree", func(t *testing.T) {
-		withLocalDB(t, func(stores Stores) {
-			cs := stores.CommitStore()
-			tree, err := cs.TreeByTreeID(&TreeID{
-				Id: "not_found",
-			})
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "not found tree: ")
-			assert.Nil(t, tree)
-		})
-	})
-}
