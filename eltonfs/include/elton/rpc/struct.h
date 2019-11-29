@@ -63,4 +63,15 @@ struct elton_object_info {
   // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
+#define ELTON_OBJECT_BODY_ID 6
+struct elton_object_body {
+  size_t contents_length;
+  u8 *contents; // FieldID=1
+  u64 offset;   // FieldID=2
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #endif // _ELTON_RPC_STRUCT_H

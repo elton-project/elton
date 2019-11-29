@@ -349,6 +349,49 @@ const static struct entry elton_object_info_entry = {
     .decode = elton_object_info_decode,
 };
 
+static int elton_object_body_encode(struct packet *in,
+                                    struct raw_packet **out) {
+  *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_object_body, in, ({
+                  do {
+                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
+                    BREAK_IF(
+                        se.op->bytes(&se, 1, s->contents, s->contents_length));
+                    BREAK_IF(se.op->u64(&se, 2, s->offset));
+                    BREAK_IF(se.op->close(&se));
+                  } while (0);
+                }));
+  return 0;
+}
+static int elton_object_body_decode(struct raw_packet *in, void **out) {
+  size_t contents_length = 0;
+  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_object_body, in, ({
+                  do {
+                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+                    BREAK_IF(sd.op->bytes(&sd, 1, NULL, &contents_length));
+                  } while (0);
+                  contents_length;
+                }),
+                ({
+                  do {
+                    // Initialize error.
+                    s->contents = &s->__embeded_buffer;
+
+                    // Decode
+                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+                    s->contents_length = contents_length;
+                    BREAK_IF(
+                        sd.op->bytes(&sd, 1, s->contents, &s->contents_length));
+                    BREAK_IF(sd.op->u64(&sd, 2, &s->offset));
+                    BREAK_IF(sd.op->close(&sd));
+                  } while (0);
+                }));
+  return 0;
+}
+const static struct entry elton_object_body_entry = {
+    .encode = elton_object_body_encode,
+    .decode = elton_object_body_decode,
+};
+
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
     // StructID 0: invalid
@@ -363,8 +406,10 @@ const static struct entry *look_table[] = {
     &error_entry,
     // StructID 5: elton_object_info
     &elton_object_info_entry,
+    // StructID 6: elton_object_body
+    &elton_object_body_entry,
 };
-#define ELTON_MAX_STRUCT_ID 5
+#define ELTON_MAX_STRUCT_ID 6
 
 static int lookup(u64 struct_id, const struct entry **entry) {
   BUILD_ASSERT_EQUAL_ARRAY_SIZE(ELTON_MAX_STRUCT_ID + 1, look_table);
