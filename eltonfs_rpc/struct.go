@@ -61,6 +61,14 @@ func (id CommitID) ToGRPC() *elton_v2.CommitID {
 	}
 }
 
+type VolumeID string
+
+func (id VolumeID) ToGRC() *elton_v2.VolumeID {
+	return &elton_v2.VolumeID{
+		Id: string(id),
+	}
+}
+
 const Setup1StructID = 1
 
 type Setup1 struct {
@@ -223,13 +231,13 @@ const CreateCommitRequestStructID = 13
 type CreateCommitRequest struct {
 	XXX_XDR_ID struct{}   `xdrid:"13"`
 	Info       CommitInfo `xdr:"1"`
-	Base       CommitID   `xdr:"2"`
+	VID        VolumeID   `xdr:"2"`
 }
 
 func (req CreateCommitRequest) ToGRPC() *elton_v2.CommitRequest {
 	return &elton_v2.CommitRequest{
-		Info:         req.Info.ToGRPC(),
-		BaseCommitId: req.Base.ToGRPC(),
+		Info: req.Info.ToGRPC(),
+		Id:   req.VID.ToGRC(),
 	}
 }
 

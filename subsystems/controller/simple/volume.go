@@ -239,7 +239,7 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
 func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
-	if req.GetBaseCommitId() == nil {
+	if req.GetId() == nil {
 		return nil, status.Error(codes.InvalidArgument, "id should not nil")
 	}
 	if req.GetInfo() == nil {
@@ -250,7 +250,7 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 	}
 
 	cid, err := v.cs.Create(
-		req.GetBaseCommitId().GetId(),
+		req.GetId(),
 		req.GetInfo(),
 		req.GetInfo().GetTree(),
 	)

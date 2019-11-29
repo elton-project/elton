@@ -129,6 +129,6 @@ message GetCommitResponse {
 }
 message CommitRequest {
   CommitInfo info = 3;
-  CommitID base_commit_id = 5;
+  VolumeID id = 5;
 }
 message CommitResponse { CommitID id = 1; }
