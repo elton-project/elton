@@ -19,6 +19,7 @@
 // Encode Process:
 //   The encode_process can use following variables.
 //     - struct xdr_encoder enc
+//     - struct xdr_struct_encoder se
 //
 // Returns: struct raw_packet *
 //   The session_id and flags field ARE NOT initialized.  MUST set these fields
@@ -27,6 +28,7 @@
   ({                                                                           \
     struct_type *s;                                                            \
     struct xdr_encoder enc;                                                    \
+    struct xdr_struct_encoder se;                                              \
     struct raw_packet *raw = NULL;                                             \
     int error = 0;                                                             \
                                                                                \
@@ -87,6 +89,7 @@
 // Decode Process:
 //   The deocde_process can use following variables.
 //     - struct xdr_decoder dec
+//     - struct xdr_struct_decoder sd
 //     - struct_type *s
 //
 // Returns: struct_type *
@@ -95,6 +98,7 @@
 #define DECODE(struct_id_, struct_type, in, additional_space, decode_process)  \
   ({                                                                           \
     struct xdr_decoder dec;                                                    \
+    struct xdr_struct_decoder sd;                                              \
     size_t size;                                                               \
     struct_type *s;                                                            \
     int error = 0;                                                             \
@@ -152,7 +156,6 @@ static int not_implemented_decode(struct raw_packet *in, void **out) {
 
 static int setup1_decode(struct raw_packet *in, void **out) {
   size_t str_size = 0;
-  struct xdr_struct_decoder sd;
   *out = DECODE(
       ELTON_RPC_SETUP1_ID, struct elton_rpc_setup1, in, ({
         do {
@@ -183,7 +186,6 @@ const static struct entry setup1_entry = {
 };
 
 static int setup2_encode(struct packet *in, struct raw_packet **out) {
-  struct xdr_struct_encoder se;
   *out =
       ENCODE(ELTON_RPC_SETUP2_ID, struct elton_rpc_setup2, in, ({
                do {
@@ -207,7 +209,6 @@ const static struct entry setup2_entry = {
 };
 
 static int ping_encode(struct packet *in, struct raw_packet **out) {
-  struct xdr_struct_encoder se;
   *out = ENCODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, ({
                   do {
                     BREAK_IF(enc.enc_op->struct_(&enc, &se, 0));
@@ -217,7 +218,6 @@ static int ping_encode(struct packet *in, struct raw_packet **out) {
   return 0;
 }
 static int ping_decode(struct raw_packet *in, void **out) {
-  struct xdr_struct_decoder sd;
   *out = DECODE(ELTON_RPC_PING_ID, struct elton_rpc_ping, in, 0, ({
                   do {
                     BREAK_IF(dec.dec_op->struct_(&dec, &sd));
@@ -232,7 +232,6 @@ const static struct entry ping_entry = {
 };
 
 static int error_encode(struct packet *in, struct raw_packet **out) {
-  struct xdr_struct_encoder se;
   *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, ({
                   do {
                     BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
@@ -245,7 +244,6 @@ static int error_encode(struct packet *in, struct raw_packet **out) {
   return 0;
 }
 static int error_decode(struct raw_packet *in, void **out) {
-  struct xdr_struct_decoder sd;
   size_t reason_size = 0;
   *out = DECODE(
       ELTON_RPC_ERROR_ID, struct elton_rpc_error, in, ({
