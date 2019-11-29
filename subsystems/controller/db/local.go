@@ -633,13 +633,6 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 			return err
 		}
 
-		if err := tx.Bucket(localTreeBucket).Put(
-			cs.Enc.TreeID(tid),
-			cs.Enc.Tree(tree),
-		); err != nil {
-			return err
-		}
-
 		return tx.Bucket(localLatestCommitBucket).Put(
 			cs.Enc.VolumeID(vid),
 			cs.Enc.CommitID(newCID),
