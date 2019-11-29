@@ -44,11 +44,16 @@
        *                                                                       \
        * First time: calculate the required buffer size.                       \
        * Second time: encode data to buffer. */                                \
+      se.enc = NULL; /* Initialize sd.enc to check the se is used or not. */   \
       encode_process;                                                          \
       if (enc.error)                                                           \
         GOTO_IF(error, enc.error);                                             \
-      if (!se.op->is_closed(&se))                                              \
-        BUG(); /* Missing close the se. */                                     \
+      if (se.enc != NULL && !se.op->is_closed(&se)) {                          \
+        /* Encode_process used the se.  But se is not closed. */               \
+        ERR("ENCODE: 'se' is not closed.  Must check the logic in "            \
+            "encode_process.");                                                \
+        BUG();                                                                 \
+      }                                                                        \
                                                                                \
       /* Break the loop when second time. */                                   \
       if (enc.buffer)                                                          \
@@ -111,11 +116,16 @@
                                                                                \
     /* Calculate additional space of struct_type. */                           \
     GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
+    sd.dec = NULL; /* Initialize sd.dec to check the sd is used or not. */     \
     size = additional_space;                                                   \
     if (dec.error)                                                             \
       GOTO_IF(error, dec.error);                                               \
-    if (!sd.op->is_closed(&sd))                                                \
-      BUG(); /* Missing close the sd. */                                       \
+    if (sd.dec != NULL && !sd.op->is_closed(&sd)) {                            \
+      /* Additional_space used the sd.  But sd is not closed. */               \
+      ERR("DECODE: 'sd' is not closed.  Must check the logic in "              \
+          "additional_space.");                                                \
+      BUG();                                                                   \
+    }                                                                          \
                                                                                \
     /* Allocate memory of strct_type. */                                       \
     s = (struct_type *)kmalloc(sizeof(struct_type) + size, GFP_KERNEL);        \
@@ -124,9 +134,16 @@
                                                                                \
     /* Decode it. */                                                           \
     GOTO_IF(error_s, default_decoder_init(&dec, in->data, in->size));          \
+    sd.dec = NULL; /* Initialize sd.dec to check the sd is used or not. */     \
     decode_process;                                                            \
     if (dec.error)                                                             \
       GOTO_IF(error_s, dec.error);                                             \
+    if (sd.dec != NULL && !sd.op->is_closed(&sd)) {                            \
+      /* Decode_process used the sd.  But sd is not closed. */                 \
+      ERR("DECODE: 'sd' is not closed.  Must check the logic in "              \
+          "decode_process.");                                                  \
+      BUG();                                                                   \
+    }                                                                          \
     goto finish;                                                               \
                                                                                \
   error_s:                                                                     \
