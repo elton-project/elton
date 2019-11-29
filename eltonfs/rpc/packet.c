@@ -286,6 +286,7 @@ static int error_decode(struct raw_packet *in, void **out) {
           BREAK_IF(sd.op->u64(&sd, 1, &s->error_id));              // Field 1
           BREAK_IF(sd.op->bytes(&sd, 2, s->reason, &reason_size)); // Field 2
           s->reason[reason_size] = '\0';
+          BREAK_IF(sd.op->close(&sd));
         } while (0);
       }));
   return 0;
