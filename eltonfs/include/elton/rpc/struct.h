@@ -3,6 +3,14 @@
 
 #include <linux/types.h>
 
+struct timestamp {
+  // The elapsed time from UNIX epoch.  Represents in seconds.
+  u64 sec;
+  // Below the decimal point of elapsed time from UNIX epoch.  Represents in
+  // nanoseconds.
+  u64 nsec;
+};
+
 #define ELTON_RPC_SETUP1_ID 1
 struct elton_rpc_setup1 {
   char *client_name;    // FieldID=1

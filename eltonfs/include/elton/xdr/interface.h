@@ -1,6 +1,7 @@
 #ifndef _ELTON_XDR_INTERFACE_H
 #define _ELTON_XDR_INTERFACE_H
 
+#include <elton/rpc/struct.h>
 #include <linux/types.h>
 
 struct xdr_encoder {
@@ -59,6 +60,8 @@ struct xdr_encoder_operations {
   int (*u64)(struct xdr_encoder *enc, u64 val);
   // Encode bytes.
   int (*bytes)(struct xdr_encoder *enc, char *bytes, size_t len);
+  // Encode timestamp.
+  int (*timestamp)(struct xdr_encoder *enc, struct timestamp ts);
   // Encode struct.
   int (*struct_)(struct xdr_encoder *enc, struct xdr_struct_encoder *struct_enc,
                  u8 fields);
@@ -71,6 +74,8 @@ struct xdr_decoder_operations {
   // Decode bytes.  If bytes is NULL, only the byte length is stored to len and
   // the discard encoded data.
   int (*bytes)(struct xdr_decoder *dec, char *bytes, size_t *len);
+  // Decode timestamp.
+  int (*timestamp)(struct xdr_decoder *dec, struct timestamp *ts);
   // Decode struct.
   int (*struct_)(struct xdr_decoder *dec,
                  struct xdr_struct_decoder *struct_dec);
@@ -80,6 +85,8 @@ struct xdr_struct_encoder_operations {
   int (*u64)(struct xdr_struct_encoder *enc, u8 field_id, u64 val);
   int (*bytes)(struct xdr_struct_encoder *enc, u8 field_id, char *bytes,
                size_t len);
+  int (*timestamp)(struct xdr_struct_encoder *enc, u8 field_id,
+                   struct timestamp ts);
   int (*close)(struct xdr_struct_encoder *enc);
   bool (*is_closed)(struct xdr_struct_encoder *enc);
 };
@@ -88,6 +95,8 @@ struct xdr_struct_decoder_operations {
   int (*u64)(struct xdr_struct_decoder *dec, u8 field_id, u64 *val);
   int (*bytes)(struct xdr_struct_decoder *dec, u8 field_id, char *bytes,
                size_t *len);
+  int (*timestamp)(struct xdr_struct_decoder *dec, u8 field_id,
+                   struct timestamp *ts);
   int (*close)(struct xdr_struct_decoder *dec);
   bool (*is_closed)(struct xdr_struct_decoder *dec);
 };

@@ -111,6 +111,14 @@ static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
   enc->pos += len;
   return 0;
 }
+int enc_ts(struct xdr_encoder *enc, struct timestamp ts) {
+  int error;
+  CHECK_ENCODER_STATUS(enc);
+  CHECK_WRITE_SIZE(enc, 8 * 2);
+  RETURN_IF(enc_u64(enc, ts.sec));
+  RETURN_IF(enc_u64(enc, ts.nsec));
+  return 0;
+}
 
 static int dec_u8(struct xdr_decoder *dec, u8 *val) {
   int error;
@@ -160,6 +168,14 @@ static int dec_bytes(struct xdr_decoder *dec, char *bytes, size_t *len) {
   *len = size;
   return 0;
 }
+int dec_ts(struct xdr_decoder *dec, struct timestamp *ts) {
+  int error;
+  CHECK_DECODER_STATUS(dec);
+  CHECK_READ_SIZE(dec, 8 * 2);
+  RETURN_IF(dec_u64(dec, &ts->sec));
+  RETURN_IF(dec_u64(dec, &ts->nsec));
+  return 0;
+}
 
 static struct xdr_struct_encoder_operations struct_encoder_op;
 static struct xdr_struct_decoder_operations struct_decoder_op;
@@ -202,12 +218,14 @@ static struct xdr_encoder_operations bin_encoder_op = {
     .u8 = enc_u8,
     .u64 = enc_u64,
     .bytes = enc_bytes,
+    .timestamp = enc_ts,
     .struct_ = init_struct_encoder,
 };
 static struct xdr_decoder_operations bin_decoder_op = {
     .u8 = dec_u8,
     .u64 = dec_u64,
     .bytes = dec_bytes,
+    .timestamp = dec_ts,
     .struct_ = init_struct_decoder,
 };
 
@@ -311,6 +329,13 @@ error:
   senc->enc->error = error;
   return error;
 }
+int senc_ts(struct xdr_struct_encoder *senc, u8 field_id, struct timestamp ts) {
+  SENC_BODY(senc->enc->enc_op->timestamp(senc->enc, ts));
+}
+int sdec_ts(struct xdr_struct_decoder *sdec, u8 field_id,
+            struct timestamp *ts) {
+  SDEC_BODY(sdec->dec->dec_op->timestamp(sdec->dec, ts));
+}
 static int sdec_close(struct xdr_struct_decoder *sdec) {
   int error;
   if (sdec->closed)
@@ -332,6 +357,7 @@ static struct xdr_struct_encoder_operations struct_encoder_op = {
     .u8 = senc_u8,
     .u64 = senc_u64,
     .bytes = senc_bytes,
+    .timestamp = senc_ts,
     .close = senc_close,
     .is_closed = senc_is_closed,
 };
@@ -339,6 +365,7 @@ static struct xdr_struct_decoder_operations struct_decoder_op = {
     .u8 = sdec_u8,
     .u64 = sdec_u64,
     .bytes = sdec_bytes,
+    .timestamp = sdec_ts,
     .close = sdec_close,
     .is_closed = sdec_is_closed,
 };
