@@ -181,13 +181,14 @@ type GetObjectRequest struct {
 	XXX_XDR_ID struct{}      `xdrid:"9"`
 	ID         EltonObjectID `xdr:"1"`
 	Offset     uint64        `xdr:"2"`
+	Size       uint64        `xdr:"3"`
 }
 
 func (req GetObjectRequest) ToGRPC() *elton_v2.GetObjectRequest {
 	return &elton_v2.GetObjectRequest{
 		Key:    req.ID.ToGRPC(),
 		Offset: req.Offset,
-		Size:   0, // todo: 追加のフィールドが必要
+		Size:   req.Size,
 	}
 }
 
