@@ -330,12 +330,13 @@ static int elton_object_info_decode(struct raw_packet *in, void **out) {
 
                     // Decode
                     BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-                    sd.op->bytes(&sd, 1, s->hash, &hash_length);
-                    sd.op->bytes(&sd, 2, s->hash_algorithm, &algo_length);
+                    BREAK_IF(sd.op->bytes(&sd, 1, s->hash, &hash_length));
+                    BREAK_IF(
+                        sd.op->bytes(&sd, 2, s->hash_algorithm, &algo_length));
                     s->hash_algorithm[algo_length] = '\0';
-                    sd.op->timestamp(&sd, 3, &s->created_at);
-                    sd.op->u64(&sd, 4, &s->size);
-                    sd.op->close(&sd);
+                    BREAK_IF(sd.op->timestamp(&sd, 3, &s->created_at));
+                    BREAK_IF(sd.op->u64(&sd, 4, &s->size));
+                    BREAK_IF(sd.op->close(&sd));
                   } while (0);
                 }));
   return 0;
