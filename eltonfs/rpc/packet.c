@@ -47,6 +47,8 @@
       encode_process;                                                          \
       if (enc.error)                                                           \
         GOTO_IF(error, enc.error);                                             \
+      if (!se.op->is_closed(&se))                                              \
+        BUG(); /* Missing close the se. */                                     \
                                                                                \
       /* Break the loop when second time. */                                   \
       if (enc.buffer)                                                          \
@@ -112,6 +114,8 @@
     size = additional_space;                                                   \
     if (dec.error)                                                             \
       GOTO_IF(error, dec.error);                                               \
+    if (!sd.op->is_closed(&sd))                                                \
+      BUG(); /* Missing close the sd. */                                       \
                                                                                \
     /* Allocate memory of strct_type. */                                       \
     s = (struct_type *)kmalloc(sizeof(struct_type) + size, GFP_KERNEL);        \
