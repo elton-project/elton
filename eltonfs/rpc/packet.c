@@ -295,6 +295,56 @@ const static struct entry error_entry = {
     .decode = error_decode,
 };
 
+static int elton_object_info_encode(struct packet *in,
+                                    struct raw_packet **out) {
+  *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_object_info, in, ({
+                  do {
+                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
+                    BREAK_IF(se.op->bytes(&se, 1, s->hash, s->hash_length));
+                    BREAK_IF(se.op->bytes(&se, 2, s->hash_algorithm,
+                                          strlen(s->hash_algorithm)));
+                    BREAK_IF(se.op->timestamp(&se, 3, s->created_at));
+                    BREAK_IF(se.op->u64(&se, 4, s->size));
+                    BREAK_IF(se.op->close(&se));
+                  } while (0);
+                }));
+}
+static int elton_object_info_decode(struct raw_packet *in, void **out) {
+  size_t hash_length = 0;
+  size_t algo_length = 0;
+  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_object_info, in, ({
+                  do {
+                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+                    BREAK_IF(sd.op->bytes(&sd, 1, NULL, &hash_length));
+                    BREAK_IF(sd.op->bytes(&sd, 2, NULL, &algo_length));
+                  } while (0);
+                  // Increase buffer size to allocate NULL element at the end
+                  // of array.
+                  hash_length + algo_length + 1;
+                }),
+                ({
+                  do {
+                    // Initialize arrays.
+                    s->hash = &s->__embeded_buffer;
+                    s->hash_algorithm = &s->__embeded_buffer + hash_length;
+
+                    // Decode
+                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+                    sd.op->bytes(&sd, 1, s->hash, &hash_length);
+                    sd.op->bytes(&sd, 2, s->hash_algorithm, &algo_length);
+                    s->hash_algorithm[algo_length] = '\0';
+                    sd.op->timestamp(&sd, 3, &s->created_at);
+                    sd.op->u64(&sd, 4, &s->size);
+                    sd.op->close(&sd);
+                  } while (0);
+                }));
+  return 0;
+}
+const static struct entry elton_object_info_entry = {
+    .encode = elton_object_info_encode,
+    .decode = elton_object_info_decode,
+};
+
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
     // StructID 0: invalid
@@ -307,8 +357,10 @@ const static struct entry *look_table[] = {
     &ping_entry,
     // StructID 4: error
     &error_entry,
+    // StructID 5: elton_object_info
+    &elton_object_info_entry,
 };
-#define ELTON_MAX_STRUCT_ID 4
+#define ELTON_MAX_STRUCT_ID 5
 
 static int lookup(u64 struct_id, const struct entry **entry) {
   BUILD_ASSERT_EQUAL_ARRAY_SIZE(ELTON_MAX_STRUCT_ID + 1, look_table);

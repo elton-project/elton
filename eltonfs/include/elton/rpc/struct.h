@@ -50,4 +50,17 @@ struct elton_rpc_error {
   // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
+#define ELTON_OBJECT_INFO_ID 5
+struct elton_object_info {
+  size_t hash_length;
+  u8 *hash;                    // FieldID=1
+  char *hash_algorithm;        // FieldID=2
+  struct timestamp created_at; // FieldID=3
+  u64 size;                    // FieldID=4
+
+  // Embeds array and strings at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #endif // _ELTON_RPC_STRUCT_H
