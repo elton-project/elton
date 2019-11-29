@@ -238,6 +238,29 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 	}
 	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
+func (v *localVolumeServer) GetCommit(ctx context.Context, req *GetCommitRequest) (*GetCommitResponse, error) {
+	if req.GetId() == nil {
+		return nil, status.Error(codes.InvalidArgument, "id should not nil")
+	}
+
+	info, err := v.cs.Get(req.GetId())
+	if err != nil {
+		if errors.Is(err, controller_db.ErrNotFoundCommit) {
+			return nil, status.Error(codes.NotFound, "not found commit")
+		}
+		if errors.Is(err, &controller_db.InputError{}) {
+			log.Printf("[CRITICAL] Missing error handling: %+v", err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		log.Printf("[ERROR] %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &GetCommitResponse{
+		Id:   req.GetId(),
+		Info: info,
+	}, nil
+}
 func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
 	if req.GetId() == nil {
 		return nil, status.Error(codes.InvalidArgument, "id should not nil")

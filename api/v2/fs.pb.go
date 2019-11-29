@@ -1093,6 +1093,7 @@ type CommitServiceClient interface {
 	// 指定したIDのコミットを取得する。
 	//
 	// Error:
+	// - InvalidArgument: If "id" parameter is null.
 	// - NotFound: If volume or commit is not found.
 	// - Internal
 	GetCommit(ctx context.Context, in *GetCommitRequest, opts ...grpc.CallOption) (*GetCommitResponse, error)
@@ -1187,6 +1188,7 @@ type CommitServiceServer interface {
 	// 指定したIDのコミットを取得する。
 	//
 	// Error:
+	// - InvalidArgument: If "id" parameter is null.
 	// - NotFound: If volume or commit is not found.
 	// - Internal
 	GetCommit(context.Context, *GetCommitRequest) (*GetCommitResponse, error)

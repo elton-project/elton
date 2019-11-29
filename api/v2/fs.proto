@@ -56,6 +56,7 @@ service CommitService {
   // 指定したIDのコミットを取得する。
   //
   // Error:
+  // - InvalidArgument: If "id" parameter is null.
   // - NotFound: If volume or commit is not found.
   // - Internal
   rpc GetCommit(GetCommitRequest) returns (GetCommitResponse);
