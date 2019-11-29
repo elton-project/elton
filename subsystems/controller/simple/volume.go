@@ -239,20 +239,20 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
 func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*CommitResponse, error) {
-	if req.GetId() == nil {
+	if req.GetBaseCommitId() == nil {
 		return nil, status.Error(codes.InvalidArgument, "id should not nil")
 	}
 	if req.GetInfo() == nil {
 		return nil, status.Error(codes.InvalidArgument, "info should not nil")
 	}
-	if req.GetTree() == nil {
+	if req.GetInfo().GetTree() == nil {
 		return nil, status.Error(codes.InvalidArgument, "tree should not nil")
 	}
 
 	cid, err := v.cs.Create(
-		req.GetId(),
+		req.GetBaseCommitId().GetId(),
 		req.GetInfo(),
-		req.GetTree(),
+		req.GetInfo().GetTree(),
 	)
 	if err != nil {
 		if errors.Is(err, controller_db.ErrCrossVolumeCommit) ||
