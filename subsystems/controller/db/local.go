@@ -620,7 +620,7 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	}
 	return
 }
-func (cs *localCS) Tree(id *CommitID) (tid *TreeID, tree *Tree, err error) {
+func (cs *localCS) Tree(id *CommitID) (tree *Tree, err error) {
 	var ci *CommitInfo
 	ci, err = cs.Get(id)
 	if err != nil {
