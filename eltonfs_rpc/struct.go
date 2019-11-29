@@ -194,15 +194,13 @@ const GetObjectResponseStructID = 10
 type GetObjectResponse struct {
 	XXX_XDR_ID struct{}        `xdrid:"8"`
 	ID         EltonObjectID   `xdr:"1"`
-	Offset     uint64          `xdr:"2"`
 	Body       EltonObjectBody `xdr:"3"`
 }
 
 func (GetObjectResponse) FromGRPC(res *elton_v2.GetObjectResponse) *GetObjectResponse {
 	return &GetObjectResponse{
-		ID:     EltonObjectID("").FromGRPC(res.GetKey()),
-		Offset: 0, // todo: 要らない?
-		Body:   EltonObjectBody{}.FromGRPC(res.GetBody()),
+		ID:   EltonObjectID("").FromGRPC(res.GetKey()),
+		Body: EltonObjectBody{}.FromGRPC(res.GetBody()),
 	}
 }
 
