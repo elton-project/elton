@@ -309,6 +309,7 @@ static int elton_object_info_encode(struct packet *in,
                     BREAK_IF(se.op->close(&se));
                   } while (0);
                 }));
+  return 0;
 }
 static int elton_object_info_decode(struct raw_packet *in, void **out) {
   size_t hash_length = 0;
