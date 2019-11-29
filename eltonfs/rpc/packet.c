@@ -331,7 +331,8 @@ static int elton_object_info_decode(struct raw_packet *in, void **out) {
 
                     // Decode
                     BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-                    BREAK_IF(sd.op->bytes(&sd, 1, s->hash, &hash_length));
+                    s->hash_length = hash_length;
+                    BREAK_IF(sd.op->bytes(&sd, 1, s->hash, &s->hash_length));
                     BREAK_IF(
                         sd.op->bytes(&sd, 2, s->hash_algorithm, &algo_length));
                     s->hash_algorithm[algo_length] = '\0';
