@@ -542,6 +542,7 @@ func (cs *localCS) Latest(vid *VolumeID) (latest *CommitID, err error) {
 }
 func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *CommitID, err error) {
 	newCID := cs.Gen.CommitID(vid)
+	info.Tree = tree
 
 	left := info.GetLeftParentID()
 	right := info.GetRightParentID()
