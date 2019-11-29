@@ -405,7 +405,6 @@ func (vs *localVS) Delete(id *VolumeID) error {
 		vnb := tx.Bucket(localVolumeNameBucket)
 		lcb := tx.Bucket(localLatestCommitBucket)
 		cb := tx.Bucket(localCommitBucket)
-		tb := tx.Bucket(localTreeBucket)
 
 		// Get volume info.
 		data := vb.Get(vs.Enc.VolumeID(id))
@@ -449,7 +448,6 @@ func (vs *localVS) Delete(id *VolumeID) error {
 				continue
 			}
 			commitInfo := vs.Dec.CommitInfo(data)
-			tree := commitInfo.GetTreeID()
 
 			// Enqueue next commits.
 			if !commitInfo.GetLeftParentID().Empty() {
@@ -461,13 +459,6 @@ func (vs *localVS) Delete(id *VolumeID) error {
 
 			// Delete a commit and tree.
 			if err := cb.Delete(vs.Enc.CommitID(commit)); err != nil {
-				return IErrDelete.Wrap(err)
-			}
-			if tree.Empty() {
-				log.Printf("[WARN] CommitInfo.Tree is empty: %s", commit)
-				continue
-			}
-			if err := tb.Delete(vs.Enc.TreeID(tree)); err != nil {
 				return IErrDelete.Wrap(err)
 			}
 		}
