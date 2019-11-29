@@ -118,9 +118,6 @@ func (localEncoder) CommitID(id *CommitID) []byte {
 func (localEncoder) CommitInfo(info *CommitInfo) []byte {
 	return mustMarshall(info)
 }
-func (localEncoder) TreeID(id *TreeID) []byte {
-	return []byte(id.GetId())
-}
 func (localEncoder) Tree(tree *Tree) []byte {
 	return mustMarshall(tree)
 }
@@ -179,12 +176,6 @@ func (localDecoder) CommitInfo(data []byte) *CommitInfo {
 	mustUnmarshal(data, info)
 	return info
 }
-func (localDecoder) TreeID(data []byte) *TreeID {
-	if data == nil {
-		return nil
-	}
-	return &TreeID{Id: string(data)}
-}
 func (localDecoder) Tree(data []byte) *Tree {
 	if data == nil {
 		return nil
@@ -239,11 +230,6 @@ func (g localGenerator) CommitID(id *VolumeID) *CommitID {
 	return &CommitID{
 		Id:     id,
 		Number: g.next(),
-	}
-}
-func (g localGenerator) TreeID() *TreeID {
-	return &TreeID{
-		Id: g.nextString(),
 	}
 }
 
