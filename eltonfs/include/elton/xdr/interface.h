@@ -81,6 +81,7 @@ struct xdr_struct_encoder_operations {
   int (*bytes)(struct xdr_struct_encoder *enc, u8 field_id, char *bytes,
                size_t len);
   int (*close)(struct xdr_struct_encoder *enc);
+  bool (*is_closed)(struct xdr_struct_encoder *enc);
 };
 struct xdr_struct_decoder_operations {
   int (*u8)(struct xdr_struct_decoder *dec, u8 field_id, u8 *val);
@@ -88,6 +89,7 @@ struct xdr_struct_decoder_operations {
   int (*bytes)(struct xdr_struct_decoder *dec, u8 field_id, char *bytes,
                size_t *len);
   int (*close)(struct xdr_struct_decoder *dec);
+  bool (*is_closed)(struct xdr_struct_decoder *dec);
 };
 
 // Initialize default encoder.

@@ -325,18 +325,22 @@ error:
   sdec->dec->error = error;
   return error;
 }
+bool senc_is_closed(struct xdr_struct_encoder *enc) { return enc->closed; }
+bool sdec_is_closed(struct xdr_struct_decoder *dec) { return dec->closed; }
 
 static struct xdr_struct_encoder_operations struct_encoder_op = {
     .u8 = senc_u8,
     .u64 = senc_u64,
     .bytes = senc_bytes,
     .close = senc_close,
+    .is_closed = senc_is_closed,
 };
 static struct xdr_struct_decoder_operations struct_decoder_op = {
     .u8 = sdec_u8,
     .u64 = sdec_u64,
     .bytes = sdec_bytes,
     .close = sdec_close,
+    .is_closed = sdec_is_closed,
 };
 
 #ifdef ELTONFS_UNIT_TEST
