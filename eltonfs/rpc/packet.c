@@ -14,7 +14,11 @@
 //   struct_id:      Struct ID.
 //   struct_type:    Type name of the target struct.
 //   in:             Variable name of struct packet.
-//   encode_process: Statements or block that encodes a struct.
+//   encode_process: A statement or block that encodes a struct.
+//
+// Encode Process:
+//   The encode_process can use following variables.
+//     - struct xdr_encoder enc
 //
 // Returns: struct raw_packet *
 //   The session_id and flags field ARE NOT initialized.  MUST set these fields
@@ -71,11 +75,23 @@
     raw;                                                                       \
   })
 
-// struct_type:      Type name of the target struct.
-// in:               Variable name of struct raw_packet.
-// additional_space: The expression or statement expression to calculate
-//                   additional space of struct_type.
-// decode_process:   Statements or block that decodes a struct.
+// Decodes packet from raw_packet.
+//
+// Arguments:
+//   struct_type:      Type name of the target struct.
+//   in:               Variable name of struct raw_packet.
+//   additional_space: The expression or statement expression to calculate
+//                     additional space of struct_type.
+//   decode_process:   Statements or block that decodes a struct.
+//
+// Decode Process:
+//   The deocde_process can use following variables.
+//     - struct xdr_decoder dec
+//     - struct_type *s
+//
+// Returns: struct_type *
+//   Returns the pointer to the specified type.  Should release it after used
+//   with elton_rpc_free_decoded_data().
 #define DECODE(struct_id_, struct_type, in, additional_space, decode_process)  \
   ({                                                                           \
     struct xdr_decoder dec;                                                    \
