@@ -121,12 +121,19 @@ struct entry {
   int (*decode)(struct raw_packet *in, void **out);
 };
 
-static int setup1_encode(struct packet *in, struct raw_packet **out) {
-  ERR("setup1_encode is not implemented");
+static int not_implemented_encode(struct packet *in, struct raw_packet **out) {
+  ERR("not implemented encoder: struct_id=%d", in->struct_id);
   BUG();
-  // Unreachable
+  // Unreachable.
   return 0;
 }
+static int not_implemented_decode(struct raw_packet *in, void **out) {
+  ERR("not implemented decoder: struct_id=%llu", in->struct_id);
+  BUG();
+  // Unreachable.
+  return 0;
+}
+
 static int setup1_decode(struct raw_packet *in, void **out) {
   size_t str_size = 0;
   struct xdr_struct_decoder sd;
@@ -155,7 +162,7 @@ static int setup1_decode(struct raw_packet *in, void **out) {
   return 0;
 }
 const static struct entry setup1_entry = {
-    .encode = setup1_encode,
+    .encode = not_implemented_encode,
     .decode = setup1_decode,
 };
 
@@ -178,15 +185,9 @@ static int setup2_encode(struct packet *in, struct raw_packet **out) {
              }));
   return 0;
 }
-static int setup2_decode(struct raw_packet *in, void **out) {
-  ERR("setup2_decode is not implemented");
-  BUG();
-  // Unreachable
-  return 0;
-}
 const static struct entry setup2_entry = {
     .encode = setup2_encode,
-    .decode = setup2_decode,
+    .decode = not_implemented_decode,
 };
 
 static int ping_encode(struct packet *in, struct raw_packet **out) {
