@@ -34,6 +34,8 @@ struct xdr_struct_encoder {
   u8 encoded;
   // Last encoded field ID.
   u8 last_field_id;
+  // Flag indicating that the encoder is closed.
+  bool closed;
   struct xdr_struct_encoder_operations *op;
 };
 struct xdr_struct_decoder {
@@ -45,6 +47,8 @@ struct xdr_struct_decoder {
   // Last decoded field ID.
   // It only using to validate input data.
   u8 last_field_id;
+  // Flag indicating that the decoder is closed.
+  bool closed;
   struct xdr_struct_decoder_operations *op;
 };
 

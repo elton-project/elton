@@ -24,5 +24,7 @@
 #define ELTON_XDR_NOT_ENOUGH_FIELDS 2007
 // Encode/decode too many fields.
 #define ELTON_XDR_TOO_MANY_FIELDS 2008
+// Encoder/decoder is already closed.
+#define ELTON_XDR_CLOSED 2009
 
 #endif // _ELTON_ERROR_H
