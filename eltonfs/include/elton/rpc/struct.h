@@ -1,6 +1,7 @@
 #ifndef _ELTON_RPC_STRUCT_H
 #define _ELTON_RPC_STRUCT_H
 
+#include <elton/elton.h>
 #include <linux/types.h>
 
 struct timestamp {
@@ -9,6 +10,11 @@ struct timestamp {
   // Below the decimal point of elapsed time from UNIX epoch.  Represents in
   // nanoseconds.
   u64 nsec;
+};
+
+struct tree_info {
+  // Root node of directory tree.
+  struct eltonfs_inode *root;
 };
 
 #define ELTON_RPC_SETUP1_ID 1
@@ -68,6 +74,18 @@ struct elton_object_body {
   size_t contents_length;
   u8 *contents; // FieldID=1
   u64 offset;   // FieldID=2
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
+#define COMMIT_INFO_ID 7
+struct commit_info {
+  struct timestamp created_at; // FieldID=1
+  char *left_parent_id;        // FieldID=2
+  char *right_parent_id;       // FieldID=3
+  struct tree_info tree;       // FieldID=5
 
   // Embeds array at the tail of this struct.
   char __embeded_buffer;

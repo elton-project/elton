@@ -392,6 +392,56 @@ const static struct entry elton_object_body_entry = {
     .decode = elton_object_body_decode,
 };
 
+static int commit_info_encode(struct packet *in, struct raw_packet **out) {
+  *out = ENCODE(ELTON_RPC_ERROR_ID, struct commit_info, in, ({
+                  do {
+                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
+                    BREAK_IF(se.op->timestamp(&se, 1, s->created_at));
+                    BREAK_IF(se.op->bytes(&se, 2, s->left_parent_id,
+                                          strlen(s->left_parent_id)));
+                    BREAK_IF(se.op->bytes(&se, 3, s->right_parent_id,
+                                          strlen(s->right_parent_id)));
+                    // todo: encode the "tree" field.
+                    BREAK_IF(se.op->close(&se));
+                  } while (0);
+                }));
+  return 0;
+}
+static int commit_info_decode(struct raw_packet *in, void **out) {
+  size_t left_length = 0;
+  size_t right_length = 0;
+  *out = DECODE(
+      ELTON_RPC_ERROR_ID, struct commit_info, in, ({
+        do {
+          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+          BREAK_IF(sd.op->timestamp(&sd, 1, NULL));
+          BREAK_IF(sd.op->bytes(&sd, 2, NULL, &left_length));
+          BREAK_IF(sd.op->bytes(&sd, 3, NULL, &right_length));
+        } while (0);
+        left_length + right_length + 2;
+      }),
+      ({
+        do {
+          // Initialize error.
+          s->left_parent_id = &s->__embeded_buffer;
+          s->right_parent_id = &s->left_parent_id[left_length + 2];
+
+          // Decode
+          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+          BREAK_IF(sd.op->timestamp(&sd, 1, &s->created_at));
+          BREAK_IF(sd.op->bytes(&sd, 2, s->left_parent_id, &left_length));
+          BREAK_IF(sd.op->bytes(&sd, 3, s->right_parent_id, &right_length));
+          // todo: decode the "tree" field.
+          BREAK_IF(sd.op->close(&sd));
+        } while (0);
+      }));
+  return 0;
+}
+const static struct entry commit_info_entry = {
+    .encode = commit_info_encode,
+    .decode = commit_info_decode,
+};
+
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
     // StructID 0: invalid
@@ -408,8 +458,10 @@ const static struct entry *look_table[] = {
     &elton_object_info_entry,
     // StructID 6: elton_object_body
     &elton_object_body_entry,
+    // StructID 7: commit_info
+    &commit_info_entry,
 };
-#define ELTON_MAX_STRUCT_ID 6
+#define ELTON_MAX_STRUCT_ID 7
 
 static int lookup(u64 struct_id, const struct entry **entry) {
   BUILD_ASSERT_EQUAL_ARRAY_SIZE(ELTON_MAX_STRUCT_ID + 1, look_table);
