@@ -9,7 +9,7 @@
 static struct xdr_encoder_operations bin_encoder_op;
 static struct xdr_decoder_operations bin_decoder_op;
 
-static int __check_encoder_status(struct xdr_encoder *enc) {
+static inline int __check_encoder_status(struct xdr_encoder *enc) {
   if (!((enc->buffer == NULL && enc->len == 0) ||
         (enc->buffer != NULL && enc->pos <= enc->len)) ||
       enc->enc_op == NULL)
@@ -25,7 +25,7 @@ static int __check_encoder_status(struct xdr_encoder *enc) {
     }                                                                          \
   } while (0)
 
-static int __check_decoder_status(struct xdr_decoder *dec) {
+static inline int __check_decoder_status(struct xdr_decoder *dec) {
   if (dec->buffer == NULL || dec->len < dec->pos || dec->dec_op == NULL)
     return -ELTON_XDR_INVAL;
   return 0;
@@ -273,7 +273,7 @@ static struct xdr_decoder_operations bin_decoder_op = {
     senc->enc->error = error;                                                  \
     return error;                                                              \
   } while (0)
-static int senc_check(struct xdr_struct_encoder *senc, u8 field_id) {
+static inline int senc_check(struct xdr_struct_encoder *senc, u8 field_id) {
   int error;
 
   if (senc->closed)
@@ -302,7 +302,8 @@ static int senc_check(struct xdr_struct_encoder *senc, u8 field_id) {
     sdec->dec->error = error;                                                  \
     return error;                                                              \
   } while (0)
-static int sdec_check(struct xdr_struct_decoder *sdec, u8 expected_field_id) {
+static inline int sdec_check(struct xdr_struct_decoder *sdec,
+                             u8 expected_field_id) {
   int error;
   u8 actual_field_id;
 
@@ -418,7 +419,7 @@ static struct xdr_struct_decoder_operations struct_decoder_op = {
     .is_closed = sdec_is_closed,
 };
 
-static int menc_check(struct xdr_map_encoder *menc) {
+static inline int menc_check(struct xdr_map_encoder *menc) {
   int error;
   if (menc->closed)
     GOTO_IF(error, -ELTON_XDR_CLOSED);
@@ -431,7 +432,7 @@ error:
   menc->enc->error = error;
   return error;
 }
-static int mdec_check(struct xdr_map_decoder *mdec) {
+static inline int mdec_check(struct xdr_map_decoder *mdec) {
   int error;
   if (mdec->closed)
     GOTO_IF(error, -ELTON_XDR_CLOSED);
