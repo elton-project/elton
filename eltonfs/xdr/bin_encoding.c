@@ -348,20 +348,6 @@ static int sdec_bytes(struct xdr_struct_decoder *sdec, u8 field_id, char *bytes,
                       size_t *len) {
   SDEC_BODY(sdec->dec->dec_op->bytes(sdec->dec, bytes, len));
 }
-static int senc_close(struct xdr_struct_encoder *senc) {
-  int error;
-  if (senc->closed)
-    return senc->enc->error;
-  if (senc->encoded < senc->fields)
-    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
-  if (senc->encoded != senc->fields)
-    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
-  return senc->enc->error;
-
-error:
-  senc->enc->error = error;
-  return error;
-}
 int senc_ts(struct xdr_struct_encoder *senc, u8 field_id, struct timestamp ts) {
   SENC_BODY(senc->enc->enc_op->timestamp(senc->enc, ts));
 }
@@ -376,6 +362,20 @@ static int senc_map(struct xdr_struct_encoder *senc, u8 field_id,
 static int sdec_map(struct xdr_struct_decoder *sdec, u8 field_id,
                     struct xdr_map_decoder *map_dec) {
   SDEC_BODY(sdec->dec->dec_op->map(sdec->dec, map_dec));
+}
+static int senc_close(struct xdr_struct_encoder *senc) {
+  int error;
+  if (senc->closed)
+    return senc->enc->error;
+  if (senc->encoded < senc->fields)
+    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
+  if (senc->encoded != senc->fields)
+    GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
+  return senc->enc->error;
+
+error:
+  senc->enc->error = error;
+  return error;
 }
 static int sdec_close(struct xdr_struct_decoder *sdec) {
   int error;
