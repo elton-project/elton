@@ -413,14 +413,77 @@ static struct xdr_struct_decoder_operations struct_decoder_op = {
     .is_closed = sdec_is_closed,
 };
 
-// todo: impl
-int menc_encoded_kv(struct xdr_map_encoder *enc);
-int mdec_decoded_kv(struct xdr_map_decoder *enc);
-bool mdec_has_next_kv(struct xdr_map_decoder *enc);
-int menc_close(struct xdr_map_encoder *enc);
-int mdec_close(struct xdr_map_decoder *dec);
-bool menc_is_closed(struct xdr_map_encoder *enc);
-bool mdec_is_closed(struct xdr_map_decoder *dec);
+static int menc_check(struct xdr_map_encoder *menc) {
+  int error;
+  if (menc->closed)
+    GOTO_IF(error, -ELTON_XDR_CLOSED);
+  if (menc->elements <= menc->encoded)
+    GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
+  RETURN_IF(menc->enc->error);
+  return 0;
+
+error:
+  menc->enc->error = error;
+  return error;
+}
+static int mdec_check(struct xdr_map_decoder *mdec) {
+  int error;
+  if (mdec->closed)
+    GOTO_IF(error, -ELTON_XDR_CLOSED);
+  if (mdec->elements <= mdec->decoded)
+    GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
+  RETURN_IF(mdec->dec->error);
+  return 0;
+
+error:
+  mdec->dec->error = error;
+  return error;
+}
+static int menc_encoded_kv(struct xdr_map_encoder *menc) {
+  int error;
+  RETURN_IF(menc_check(menc));
+  menc->encoded++;
+  return 0;
+}
+static int mdec_decoded_kv(struct xdr_map_decoder *mdec) {
+  int error;
+  RETURN_IF(mdec_check(mdec));
+  mdec->decoded++;
+  return 0;
+}
+static bool mdec_has_next_kv(struct xdr_map_decoder *mdec) {
+  return mdec->decoded < mdec->elements;
+}
+static int menc_close(struct xdr_map_encoder *menc) {
+  int error;
+  if (menc->closed)
+    return menc->enc->error;
+  if (menc->elements <= menc->encoded)
+    GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
+  return menc->enc->error;
+
+error:
+  menc->enc->error = error;
+  return error;
+}
+static int mdec_close(struct xdr_map_decoder *mdec) {
+  int error;
+  if (mdec->closed)
+    return mdec->dec->error;
+  if (mdec->elements <= mdec->decoded)
+    GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
+  return mdec->dec->error;
+
+error:
+  mdec->dec->error = error;
+  return error;
+}
+static bool menc_is_closed(struct xdr_map_encoder *menc) {
+  return menc->closed;
+}
+static bool mdec_is_closed(struct xdr_map_decoder *mdec) {
+  return mdec->closed;
+}
 
 static struct xdr_map_encoder_operations map_encoder_op = {
     .encoded_kv = menc_encoded_kv,

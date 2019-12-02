@@ -22,9 +22,13 @@
 // Encoded/decoded fields are not enough.  Encoder/decoder is requiring more
 // fields.
 #define ELTON_XDR_NOT_ENOUGH_FIELDS 2007
-// Encode/decode too many fields.
+// Encode/decode too many fields.  This error will occur in struct
+// encoder/decoder.
 #define ELTON_XDR_TOO_MANY_FIELDS 2008
 // Encoder/decoder is already closed.
 #define ELTON_XDR_CLOSED 2009
+// Encode/decode too many elements of map. This error will occur in map
+// encoder/decoder.
+#define ELTON_XDR_TOO_MANY_ELEMENTS 2010
 
 #endif // _ELTON_ERROR_H
