@@ -214,12 +214,44 @@ static int init_struct_decoder(struct xdr_decoder *dec,
   return 0;
 }
 
+static struct xdr_map_encoder_operations map_encoder_op;
+static struct xdr_map_decoder_operations map_decoder_op;
+
+int init_map_encoder(struct xdr_encoder *enc, struct xdr_map_encoder *map_enc,
+                     u64 elements) {
+  int error;
+  BUG_ON(enc == NULL);
+  BUG_ON(map_enc == NULL);
+  RETURN_IF(enc->error);
+
+  map_enc->enc = enc;
+  map_enc->elements = elements;
+  map_enc->encoded = 0;
+  map_enc->closed = false;
+  map_enc->op = &map_encoder_op;
+  return 0;
+}
+int init_map_decoder(struct xdr_decoder *dec, struct xdr_map_decoder *map_dec) {
+  int error;
+  BUG_ON(dec == NULL);
+  BUG_ON(map_dec == NULL);
+  RETURN_IF(dec->error);
+
+  map_dec->dec = dec;
+  RETURN_IF(dec->dec_op->u64(dec, &map_dec->elements));
+  map_dec->decoded = 0;
+  map_dec->closed = false;
+  map_dec->op = &map_decoder_op;
+  return 0;
+}
+
 static struct xdr_encoder_operations bin_encoder_op = {
     .u8 = enc_u8,
     .u64 = enc_u64,
     .bytes = enc_bytes,
     .timestamp = enc_ts,
     .struct_ = init_struct_encoder,
+    .map = init_map_encoder,
 };
 static struct xdr_decoder_operations bin_decoder_op = {
     .u8 = dec_u8,
@@ -227,6 +259,7 @@ static struct xdr_decoder_operations bin_decoder_op = {
     .bytes = dec_bytes,
     .timestamp = dec_ts,
     .struct_ = init_struct_decoder,
+    .map = init_map_decoder,
 };
 
 #define SENC_BODY(encode_process)                                              \
@@ -336,6 +369,14 @@ int sdec_ts(struct xdr_struct_decoder *sdec, u8 field_id,
             struct timestamp *ts) {
   SDEC_BODY(sdec->dec->dec_op->timestamp(sdec->dec, ts));
 }
+static int senc_map(struct xdr_struct_encoder *senc, u8 field_id,
+                    struct xdr_map_encoder *map_enc, u64 elements) {
+  SENC_BODY(senc->enc->enc_op->map(senc->enc, map_enc, elements));
+}
+static int sdec_map(struct xdr_struct_decoder *sdec, u8 field_id,
+                    struct xdr_map_decoder *map_dec) {
+  SDEC_BODY(sdec->dec->dec_op->map(sdec->dec, map_dec));
+}
 static int sdec_close(struct xdr_struct_decoder *sdec) {
   int error;
   if (sdec->closed)
@@ -358,6 +399,7 @@ static struct xdr_struct_encoder_operations struct_encoder_op = {
     .u64 = senc_u64,
     .bytes = senc_bytes,
     .timestamp = senc_ts,
+    .map = senc_map,
     .close = senc_close,
     .is_closed = senc_is_closed,
 };
@@ -366,8 +408,46 @@ static struct xdr_struct_decoder_operations struct_decoder_op = {
     .u64 = sdec_u64,
     .bytes = sdec_bytes,
     .timestamp = sdec_ts,
+    .map = sdec_map,
     .close = sdec_close,
     .is_closed = sdec_is_closed,
+};
+
+// todo: impl
+int menc_u8(struct xdr_map_encoder *enc, u8 val);
+int mdec_u8(struct xdr_map_decoder *dec, u8 *val);
+int menc_u64(struct xdr_map_encoder *enc, u64 val);
+int mdec_u64(struct xdr_map_decoder *dec, u64 *val);
+int menc_bytes(struct xdr_map_encoder *enc, char *bytes, size_t len);
+int mdec_bytes(struct xdr_map_decoder *dec, char *bytes, size_t *len);
+int menc_timestamp(struct xdr_map_encoder *enc, struct timestamp ts);
+int mdec_timestamp(struct xdr_map_decoder *dec, struct timestamp *ts);
+int menc_struct_(struct xdr_map_encoder *enc,
+                 struct xdr_struct_encoder *struct_enc, u8 fields);
+int mdec_struct_(struct xdr_map_decoder *dec,
+                 struct xdr_struct_decoder *struct_dec);
+int menc_close(struct xdr_map_encoder *enc);
+int mdec_close(struct xdr_map_decoder *dec);
+bool menc_is_closed(struct xdr_map_encoder *enc);
+bool mdec_is_closed(struct xdr_map_decoder *dec);
+
+static struct xdr_map_encoder_operations map_encoder_op = {
+    .u8 = menc_u8,
+    .u64 = menc_u64,
+    .bytes = menc_bytes,
+    .timestamp = menc_timestamp,
+    .struct_ = menc_struct_,
+    .close = menc_close,
+    .is_closed = menc_is_closed,
+};
+static struct xdr_map_decoder_operations map_decoder_op = {
+    .u8 = mdec_u8,
+    .u64 = mdec_u64,
+    .bytes = mdec_bytes,
+    .timestamp = mdec_timestamp,
+    .struct_ = mdec_struct_,
+    .close = mdec_close,
+    .is_closed = mdec_is_closed,
 };
 
 #ifdef ELTONFS_UNIT_TEST

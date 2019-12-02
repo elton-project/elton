@@ -52,6 +52,26 @@ struct xdr_struct_decoder {
   bool closed;
   struct xdr_struct_decoder_operations *op;
 };
+struct xdr_map_encoder {
+  struct xdr_encoder *enc;
+  // Number of expected key/value pairs.
+  u64 elements;
+  // Number of encoded key/value pairs.
+  u64 encoded;
+  // Flag indicating that the decoder is closed.
+  bool closed;
+  struct xdr_map_encoder_operations *op;
+};
+struct xdr_map_decoder {
+  struct xdr_decoder *dec;
+  // Number of expected key/value pairs.
+  u64 elements;
+  // Number of decoded key/value pairs.
+  u64 decoded;
+  // Flag indicating that the decoder is closed.
+  bool closed;
+  struct xdr_map_decoder_operations *op;
+};
 
 struct xdr_encoder_operations {
   // Encode an unsigned 8bit integer.
@@ -65,6 +85,9 @@ struct xdr_encoder_operations {
   // Encode struct.
   int (*struct_)(struct xdr_encoder *enc, struct xdr_struct_encoder *struct_enc,
                  u8 fields);
+  // Encode map.
+  int (*map)(struct xdr_encoder *enc, struct xdr_map_encoder *map_enc,
+             u64 elements);
 };
 struct xdr_decoder_operations {
   // Deocde an unsigned 8bit integer.  If val is NULL, discard encoded data.
@@ -79,6 +102,8 @@ struct xdr_decoder_operations {
   // Decode struct.
   int (*struct_)(struct xdr_decoder *dec,
                  struct xdr_struct_decoder *struct_dec);
+  // Decode map.
+  int (*map)(struct xdr_decoder *dec, struct xdr_map_decoder *map_dec);
 };
 struct xdr_struct_encoder_operations {
   int (*u8)(struct xdr_struct_encoder *enc, u8 field_id, u8 val);
@@ -87,6 +112,8 @@ struct xdr_struct_encoder_operations {
                size_t len);
   int (*timestamp)(struct xdr_struct_encoder *enc, u8 field_id,
                    struct timestamp ts);
+  int (*map)(struct xdr_struct_encoder *enc, u8 field_id,
+             struct xdr_map_encoder *map_enc, u64 elements);
   int (*close)(struct xdr_struct_encoder *enc);
   bool (*is_closed)(struct xdr_struct_encoder *enc);
 };
@@ -97,8 +124,30 @@ struct xdr_struct_decoder_operations {
                size_t *len);
   int (*timestamp)(struct xdr_struct_decoder *dec, u8 field_id,
                    struct timestamp *ts);
+  int (*map)(struct xdr_struct_decoder *dec, u8 field_id,
+             struct xdr_map_decoder *map_dec);
   int (*close)(struct xdr_struct_decoder *dec);
   bool (*is_closed)(struct xdr_struct_decoder *dec);
+};
+struct xdr_map_encoder_operations {
+  int (*u8)(struct xdr_map_encoder *enc, u8 val);
+  int (*u64)(struct xdr_map_encoder *enc, u64 val);
+  int (*bytes)(struct xdr_map_encoder *enc, char *bytes, size_t len);
+  int (*timestamp)(struct xdr_map_encoder *enc, struct timestamp ts);
+  int (*struct_)(struct xdr_map_encoder *enc,
+                 struct xdr_struct_encoder *struct_enc, u8 fields);
+  int (*close)(struct xdr_map_encoder *enc);
+  bool (*is_closed)(struct xdr_map_encoder *enc);
+};
+struct xdr_map_decoder_operations {
+  int (*u8)(struct xdr_map_decoder *dec, u8 *val);
+  int (*u64)(struct xdr_map_decoder *dec, u64 *val);
+  int (*bytes)(struct xdr_map_decoder *dec, char *bytes, size_t *len);
+  int (*timestamp)(struct xdr_map_decoder *dec, struct timestamp *ts);
+  int (*struct_)(struct xdr_map_decoder *dec,
+                 struct xdr_struct_decoder *struct_dec);
+  int (*close)(struct xdr_map_decoder *dec);
+  bool (*is_closed)(struct xdr_map_decoder *dec);
 };
 
 // Initialize default encoder.
