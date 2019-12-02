@@ -832,6 +832,85 @@ static void test_decode_struct(void) {
     ASSERT_EQUAL_ERROR(-ELTON_XDR_TOO_MANY_FIELDS, sd.op->u8(&sd, 2, &val8));
   }
 }
+static void test_map_encoder(void) {
+  const char expected[] = {
+      1,                              // 1: key
+      0,   0,   0,   0,   0, 0, 0, 2, // 2: value
+      2,                              // 2: key
+      0,   0,   0,   0,   0, 0, 0, 4, // 2: value
+      3,                              // 3: key
+      0,   0,   0,   0,   0, 0, 0, 6, // 3: value
+      255, 255, 255, 255,             // Padding.  This area should not write by
+                                      // bin_encoder.
+  };
+  struct xdr_encoder enc;
+  struct xdr_map_encoder menc;
+  char actual[80];
+  int i;
+
+  BUILD_BUG_ON(sizeof(expected) > sizeof(actual));
+  memset(actual, 255, sizeof(actual));
+
+  if (ASSERT_NO_ERROR(default_encoder_init(&enc, actual, sizeof(actual))))
+    return;
+  if (ASSERT_NO_ERROR(enc.enc_op->map(&enc, &menc, 3)))
+    return;
+
+  for (i = 0; i < 3; i++) {
+    const u8 key = i;
+    const u64 value = i * 2;
+    if (ASSERT_NO_ERROR(enc.enc_op->u8(&enc, key)))
+      return;
+    if (ASSERT_NO_ERROR(enc.enc_op->u64(&enc, value)))
+      return;
+    if (ASSERT_NO_ERROR(menc.op->encoded_kv(&menc)))
+      return;
+  }
+
+  if (ASSERT_NO_ERROR(menc.op->close(&menc)))
+    return;
+
+  if (ASSERT_EQUAL_BYTES(expected, actual, sizeof(expected)))
+    return;
+}
+static void test_map_decoder(void) {
+  struct xdr_decoder dec;
+  struct xdr_map_decoder mdec;
+  char input[] = {
+      1,                              // 1: key
+      0,   0,   0,   0,   0, 0, 0, 2, // 2: value
+      2,                              // 2: key
+      0,   0,   0,   0,   0, 0, 0, 4, // 2: value
+      3,                              // 3: key
+      0,   0,   0,   0,   0, 0, 0, 6, // 3: value
+      255, 255, 255, 255,             // Padding.  This area should not write by
+                                      // bin_encoder.
+  };
+  int i;
+
+  if (ASSERT_NO_ERROR(default_decoder_init(&dec, input, sizeof(input))))
+    return;
+  if (ASSERT_NO_ERROR(dec.dec_op->map(&dec, &mdec)))
+    return;
+
+  for (i = 0; i < 3; i++) {
+    const u8 expected_key = i;
+    const u64 expected_value = i * 2;
+    u8 actual_key;
+    u64 actual_value;
+    if (ASSERT_NO_ERROR(dec.dec_op->u8(&dec, &actual_key)))
+      return;
+    if (ASSERT_EQUAL_INT(expected_key, actual_key))
+      return;
+    if (ASSERT_NO_ERROR(dec.dec_op->u64(&dec, &actual_value)))
+      return;
+    if (ASSERT_EQUAL_LL(expected_value, actual_value))
+      return;
+  }
+
+  if (ASSERT_NO_ERROR(mdec.op->close(&mdec)))
+    return;
+}
 
 void test_xdr_bin(void) {
   test_encode_u8();
@@ -842,6 +921,8 @@ void test_xdr_bin(void) {
   test_decode_bytes();
   test_encode_struct();
   test_decode_struct();
+  test_map_encoder();
+  test_map_decoder();
 }
 
 #endif // ELTONFS_UNIT_TEST
