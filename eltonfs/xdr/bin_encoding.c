@@ -9,7 +9,7 @@
 static struct xdr_encoder_operations bin_encoder_op;
 static struct xdr_decoder_operations bin_decoder_op;
 
-int __check_encoder_status(struct xdr_encoder *enc) {
+static int __check_encoder_status(struct xdr_encoder *enc) {
   if (!((enc->buffer == NULL && enc->len == 0) ||
         (enc->buffer != NULL && enc->pos <= enc->len)) ||
       enc->enc_op == NULL)
@@ -25,7 +25,7 @@ int __check_encoder_status(struct xdr_encoder *enc) {
     }                                                                          \
   } while (0)
 
-int __check_decoder_status(struct xdr_decoder *dec) {
+static int __check_decoder_status(struct xdr_decoder *dec) {
   if (dec->buffer == NULL || dec->len < dec->pos || dec->dec_op == NULL)
     return -ELTON_XDR_INVAL;
   return 0;
@@ -348,11 +348,12 @@ static int sdec_bytes(struct xdr_struct_decoder *sdec, u8 field_id, char *bytes,
                       size_t *len) {
   SDEC_BODY(sdec->dec->dec_op->bytes(sdec->dec, bytes, len));
 }
-int senc_ts(struct xdr_struct_encoder *senc, u8 field_id, struct timestamp ts) {
+static int senc_ts(struct xdr_struct_encoder *senc, u8 field_id,
+                   struct timestamp ts) {
   SENC_BODY(senc->enc->enc_op->timestamp(senc->enc, ts));
 }
-int sdec_ts(struct xdr_struct_decoder *sdec, u8 field_id,
-            struct timestamp *ts) {
+static int sdec_ts(struct xdr_struct_decoder *sdec, u8 field_id,
+                   struct timestamp *ts) {
   SDEC_BODY(sdec->dec->dec_op->timestamp(sdec->dec, ts));
 }
 static int senc_map(struct xdr_struct_encoder *senc, u8 field_id,
@@ -391,8 +392,12 @@ error:
   sdec->dec->error = error;
   return error;
 }
-bool senc_is_closed(struct xdr_struct_encoder *enc) { return enc->closed; }
-bool sdec_is_closed(struct xdr_struct_decoder *dec) { return dec->closed; }
+static bool senc_is_closed(struct xdr_struct_encoder *enc) {
+  return enc->closed;
+}
+static bool sdec_is_closed(struct xdr_struct_decoder *dec) {
+  return dec->closed;
+}
 
 static struct xdr_struct_encoder_operations struct_encoder_op = {
     .u8 = senc_u8,
