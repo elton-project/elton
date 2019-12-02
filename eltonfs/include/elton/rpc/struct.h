@@ -12,10 +12,7 @@ struct timestamp {
   u64 nsec;
 };
 
-struct tree_info {
-  // Root node of directory tree.
-  struct eltonfs_inode *root;
-};
+struct tree_info;
 
 #define ELTON_RPC_SETUP1_ID 1
 struct elton_rpc_setup1 {
@@ -85,11 +82,21 @@ struct commit_info {
   struct timestamp created_at; // FieldID=1
   char *left_parent_id;        // FieldID=2
   char *right_parent_id;       // FieldID=3
-  struct tree_info tree;       // FieldID=5
+  struct tree_info *tree;      // FieldID=5
 
   // Embeds array at the tail of this struct.
   char __embeded_buffer;
   // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
+#define TREE_INFO_ID 8
+struct tree_info {
+  // Root node of directory tree.
+  struct eltonfs_inode *root;
+
+  // Note: Original tree_info structure has two fields.  In kernel module, it is
+  // difficult to built hash maps.  So we directly encode/decode to/from
+  // internal representation.
 };
 
 #endif // _ELTON_RPC_STRUCT_H
