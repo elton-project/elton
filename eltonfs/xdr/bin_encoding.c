@@ -414,38 +414,22 @@ static struct xdr_struct_decoder_operations struct_decoder_op = {
 };
 
 // todo: impl
-int menc_u8(struct xdr_map_encoder *enc, u8 val);
-int mdec_u8(struct xdr_map_decoder *dec, u8 *val);
-int menc_u64(struct xdr_map_encoder *enc, u64 val);
-int mdec_u64(struct xdr_map_decoder *dec, u64 *val);
-int menc_bytes(struct xdr_map_encoder *enc, char *bytes, size_t len);
-int mdec_bytes(struct xdr_map_decoder *dec, char *bytes, size_t *len);
-int menc_timestamp(struct xdr_map_encoder *enc, struct timestamp ts);
-int mdec_timestamp(struct xdr_map_decoder *dec, struct timestamp *ts);
-int menc_struct_(struct xdr_map_encoder *enc,
-                 struct xdr_struct_encoder *struct_enc, u8 fields);
-int mdec_struct_(struct xdr_map_decoder *dec,
-                 struct xdr_struct_decoder *struct_dec);
+int menc_encoded_kv(struct xdr_map_encoder *enc);
+int mdec_decoded_kv(struct xdr_map_decoder *enc);
+bool mdec_has_next_kv(struct xdr_map_decoder *enc);
 int menc_close(struct xdr_map_encoder *enc);
 int mdec_close(struct xdr_map_decoder *dec);
 bool menc_is_closed(struct xdr_map_encoder *enc);
 bool mdec_is_closed(struct xdr_map_decoder *dec);
 
 static struct xdr_map_encoder_operations map_encoder_op = {
-    .u8 = menc_u8,
-    .u64 = menc_u64,
-    .bytes = menc_bytes,
-    .timestamp = menc_timestamp,
-    .struct_ = menc_struct_,
+    .encoded_kv = menc_encoded_kv,
     .close = menc_close,
     .is_closed = menc_is_closed,
 };
 static struct xdr_map_decoder_operations map_decoder_op = {
-    .u8 = mdec_u8,
-    .u64 = mdec_u64,
-    .bytes = mdec_bytes,
-    .timestamp = mdec_timestamp,
-    .struct_ = mdec_struct_,
+    .decoded_kv = mdec_decoded_kv,
+    .has_next_kv = mdec_has_next_kv,
     .close = mdec_close,
     .is_closed = mdec_is_closed,
 };

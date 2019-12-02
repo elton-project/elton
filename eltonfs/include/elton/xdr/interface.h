@@ -130,22 +130,13 @@ struct xdr_struct_decoder_operations {
   bool (*is_closed)(struct xdr_struct_decoder *dec);
 };
 struct xdr_map_encoder_operations {
-  int (*u8)(struct xdr_map_encoder *enc, u8 val);
-  int (*u64)(struct xdr_map_encoder *enc, u64 val);
-  int (*bytes)(struct xdr_map_encoder *enc, char *bytes, size_t len);
-  int (*timestamp)(struct xdr_map_encoder *enc, struct timestamp ts);
-  int (*struct_)(struct xdr_map_encoder *enc,
-                 struct xdr_struct_encoder *struct_enc, u8 fields);
+  int (*encoded_kv)(struct xdr_map_encoder *enc);
   int (*close)(struct xdr_map_encoder *enc);
   bool (*is_closed)(struct xdr_map_encoder *enc);
 };
 struct xdr_map_decoder_operations {
-  int (*u8)(struct xdr_map_decoder *dec, u8 *val);
-  int (*u64)(struct xdr_map_decoder *dec, u64 *val);
-  int (*bytes)(struct xdr_map_decoder *dec, char *bytes, size_t *len);
-  int (*timestamp)(struct xdr_map_decoder *dec, struct timestamp *ts);
-  int (*struct_)(struct xdr_map_decoder *dec,
-                 struct xdr_struct_decoder *struct_dec);
+  int (*decoded_kv)(struct xdr_map_decoder *enc);
+  bool (*has_next_kv)(struct xdr_map_decoder *enc);
   int (*close)(struct xdr_map_decoder *dec);
   bool (*is_closed)(struct xdr_map_decoder *dec);
 };
