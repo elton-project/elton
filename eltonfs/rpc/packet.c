@@ -537,6 +537,62 @@ const static struct entry tree_info_entry = {
     .decode = tree_info_decode,
 };
 
+static int elton_file_encode(struct packet *in, struct raw_packet **out) {
+  *out = ENCODE(
+      ELTON_RPC_ERROR_ID, struct elton_file, in, ({
+        do {
+          BREAK_IF(enc.enc_op->struct_(&enc, &se, 10));
+          BREAK_IF(se.op->bytes(&se, 1, s->object_id, strlen(s->object_id)));
+          BREAK_IF(se.op->u8(&se, 2, s->file_type));
+          BREAK_IF(se.op->u64(&se, 3, s->mode));
+          BREAK_IF(se.op->u64(&se, 4, s->owner));
+          BREAK_IF(se.op->u64(&se, 5, s->group));
+          BREAK_IF(se.op->timestamp(&se, 6, s->atime));
+          BREAK_IF(se.op->timestamp(&se, 7, s->mtime));
+          BREAK_IF(se.op->timestamp(&se, 8, s->ctime));
+          BREAK_IF(se.op->u64(&se, 9, s->major));
+          BREAK_IF(se.op->u64(&se, 10, s->minor));
+          BREAK_IF(se.op->close(&se));
+        } while (0);
+      }));
+  return 0;
+}
+static int elton_file_decode(struct raw_packet *in, void **out) {
+  size_t id_length = 0;
+  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_file, in, ({
+                  do {
+                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+                    BREAK_IF(sd.op->bytes(&sd, 1, NULL, &id_length));
+                  } while (0);
+                  id_length + 1;
+                }),
+                ({
+                  do {
+                    // Initialize error.
+                    s->object_id = &s->__embeded_buffer;
+
+                    // Decode
+                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
+                    BREAK_IF(sd.op->bytes(&sd, 1, s->object_id, &id_length));
+                    BREAK_IF(sd.op->u8(&sd, 2, &s->file_type));
+                    BREAK_IF(sd.op->u64(&sd, 3, &s->mode));
+                    BREAK_IF(sd.op->u64(&sd, 4, &s->owner));
+                    BREAK_IF(sd.op->u64(&sd, 5, &s->group));
+                    BREAK_IF(sd.op->timestamp(&sd, 6, &s->atime));
+                    BREAK_IF(sd.op->timestamp(&sd, 7, &s->mtime));
+                    BREAK_IF(sd.op->timestamp(&sd, 8, &s->ctime));
+                    BREAK_IF(sd.op->u64(&sd, 9, &s->major));
+                    BREAK_IF(sd.op->u64(&sd, 10, &s->minor));
+                    BREAK_IF(sd.op->close(&sd));
+                  } while (0);
+                }));
+  return 0;
+}
+const static struct entry elton_file_entry = {
+    .encode = elton_file_encode,
+    .decode = elton_file_decode,
+};
+
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
     // StructID 0: invalid
@@ -557,8 +613,28 @@ const static struct entry *look_table[] = {
     &commit_info_entry,
     // StructID 8: tree_info
     &tree_info_entry,
+    // 9: todo
+    NULL,
+    // 10: todo
+    NULL,
+    // 11: todo
+    NULL,
+    // 12: todo
+    NULL,
+    // 13: todo
+    NULL,
+    // 14: todo
+    NULL,
+    // 15: todo
+    NULL,
+    // 16: todo
+    NULL,
+    // 17: todo
+    NULL,
+    // StructID 18: elton_file
+    &elton_file_entry,
 };
-#define ELTON_MAX_STRUCT_ID 8
+#define ELTON_MAX_STRUCT_ID 18
 
 static int lookup(u64 struct_id, const struct entry **entry) {
   BUILD_ASSERT_EQUAL_ARRAY_SIZE(ELTON_MAX_STRUCT_ID + 1, look_table);

@@ -99,4 +99,30 @@ struct tree_info {
   // internal representation.
 };
 
+#define ELTON_FILE_ID 18
+struct elton_file {
+  char *object_id; // FieldID=1
+  // List of File Types:
+  //   0: Regular
+  //   1: Directory
+  //   2: SymbolicLink
+  //   3: FIFO
+  //   4: CharacterDevice
+  //   5: BlockDevice
+  //   6: Socket
+  u8 file_type;           // FieldID=2
+  u64 mode;               // FieldID=3
+  u64 owner;              // FieldID=4
+  u64 group;              // FieldID=5
+  struct timestamp atime; // FieldID=6
+  struct timestamp mtime; // FieldID=7
+  struct timestamp ctime; // FieldID=8
+  u64 major;              // FieldID=9
+  u64 minor;              // FieldID=10
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #endif // _ELTON_RPC_STRUCT_H
