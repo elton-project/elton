@@ -30,8 +30,43 @@ struct eltonfs_info {
 #endif
 };
 
+struct eltonfs_dir_entry {
+  char *file;
+  struct inode *inode;
+};
+
 struct eltonfs_inode {
   struct inode vfs_inode;
+
+  spinlock_t lock;
+  union {
+    struct {
+      // Remote object ID.
+      // This ID must assigned by elton-storage.  If this inode created by this
+      // node and it is not committed, object_id must NULL.
+      const char *object_id;
+      // Local object ID.
+      // This ID must only use this node.
+      const char *local_cache_id;
+      // Inode of the cache file.
+      struct inode *cache_inode;
+    } file;
+
+    struct {
+      // List of entries contained in this directory.
+      // TODO: store directory entries to persistent storage.
+      struct eltonfs_dir_entry *dir_entries;
+    } dir;
+
+    struct {
+      // Remote object ID.
+      // See eltonfs_inode.file.object_id for detail.
+      const char *object_id;
+      // Redirect path.
+      // If redirect_to is NULL, try to get an object from elton-storage.
+      const char *redirect_to;
+    } symlink;
+  };
 
 #ifdef ELTONFS_XATTRS
   struct simple_xattrs xattrs;
