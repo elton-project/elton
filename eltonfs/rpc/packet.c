@@ -1,3 +1,28 @@
+// This file implements encoders and decoders for the eltonfs-rpc.
+//
+// How to add new encoder and decoder.
+//   1. Define a struct and constant value (macro) in elton/struct.h
+//   2. Define helper functions of encoder and decoder using macros.
+//
+//      DECODER_DATA(elton_file) { ... };
+//      IMPL_ENCODER(elton_file) {
+//          int error;
+//          ...
+//          return 0;
+//      }
+//      IMPL_DECODER_PREPARE(elton_file) {
+//          int error;
+//          ...
+//          return 0;
+//      }
+//      IMPL_DECODER_BODY(elton_file) {
+//          int error;
+//          ...
+//          return 0;
+//      }
+//      DEFINE_ENCDEC(elton_file, ELTON_FILE_ID);
+//
+//   3. Register XXX_entry to look_table.
 #define ELTON_LOG_PREFIX "[rpc/packet] "
 
 #include <elton/assert.h>
@@ -155,6 +180,46 @@
   finish:                                                                      \
     s;                                                                         \
   })
+
+#define IMPL_ENCODER(type_name)                                                \
+  static inline int __##type_name##_encode(struct xdr_encoder *enc,            \
+                                           struct xdr_struct_encoder *se,      \
+                                           struct type_name *s)
+#define __DEFINE_ENCODER(type_name, struct_id)                                 \
+  static int type_name##_encode(struct packet *in, struct raw_packet **out) {  \
+    *out = ENCODE(struct_id, struct type_name, in,                             \
+                  error = __##type_name##_encode(&enc, &se, s));               \
+    return 0;                                                                  \
+  }
+#define CALL_ENCODER(type_name) __##type_name##_encode(enc, se, s)
+#define DECODER_DATA(type_name) struct __##type_name##_decoder_data
+#define IMPL_DECODER_PREPARE(type_name)                                        \
+  static inline int __##type_name##_decode_pre(                                \
+      struct xdr_decoder *dec, struct xdr_struct_decoder *sd,                  \
+      struct type_name *s, size_t *size, DECODER_DATA(type_name) * data)
+#define IMPL_DECODER_BODY(type_name)                                           \
+  static inline int __##type_name##_decode_body(                               \
+      struct xdr_decoder *dec, struct xdr_struct_decoder *sd,                  \
+      struct type_name *s, DECODER_DATA(type_name) * data)
+#define __DEFINE_DECODER(type_name, struct_id)                                 \
+  static int type_name##_decode(struct raw_packet *in, void **out) {           \
+    DECODER_DATA(type_name) data = {};                                         \
+    *out = DECODE(struct_id, struct type_name, in, ({                          \
+                    size_t size = 0;                                           \
+                    error = __##type_name##_decode_pre(&dec, &sd, s, &size,    \
+                                                       &data);                 \
+                    size;                                                      \
+                  }),                                                          \
+                  error = __##type_name##_decode_body(&dec, &sd, s, &data));   \
+    return 0;                                                                  \
+  }
+#define DEFINE_ENCDEC(type_name, struct_id)                                    \
+  __DEFINE_ENCODER(type_name, struct_id);                                      \
+  __DEFINE_DECODER(type_name, struct_id);                                      \
+  const static struct entry type_name##_entry = {                              \
+      .encode = type_name##_encode,                                            \
+      .decode = type_name##_decode,                                            \
+  }
 
 void free_raw_packet(struct raw_packet *packet) { vfree(packet); }
 
