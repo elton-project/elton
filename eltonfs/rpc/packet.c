@@ -20,6 +20,7 @@
 //   The encode_process can use following variables.
 //     - struct xdr_encoder enc
 //     - struct xdr_struct_encoder se
+//     - struct_type *s
 //
 // Returns: struct raw_packet *
 //   The session_id and flags field ARE NOT initialized.  MUST set these fields
