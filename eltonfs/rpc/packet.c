@@ -26,6 +26,7 @@
 #define ELTON_LOG_PREFIX "[rpc/packet] "
 
 #include <elton/assert.h>
+#include <elton/compiler_attributes.h>
 #include <elton/error.h>
 #include <elton/rpc/packet.h>
 #include <elton/rpc/struct.h>
@@ -182,12 +183,14 @@
   })
 
 // todo: これらの関数の出力を、いい感じにキャストするマクロを作成
+typedef int (*prepare_fn)(struct xdr_decoder *dec,
+                          struct xdr_struct_decoder *sd, size_t *size,
+                          void *data);
+typedef int (*decode_fn)(struct xdr_decoder *dec, struct xdr_struct_decoder *sd,
+                         struct raw_packet *in, void *data);
 static inline int __DECODE_WITH(struct xdr_decoder *dec, struct raw_packet *in,
                                 void **out, size_t struct_size, void *data,
-                                int calc_size(size_t *size, void *data),
-                                int decode(struct xdr_decoder *dec,
-                                           struct xdr_struct_decoder *sd,
-                                           struct raw_packet *in, void *data)) {
+                                prepare_fn calc_size, decode_fn decode) {
   int error;
   struct xdr_struct_decoder _sd;
   struct xdr_struct_decoder *sd = &_sd;
@@ -199,7 +202,7 @@ static inline int __DECODE_WITH(struct xdr_decoder *dec, struct raw_packet *in,
   memcpy(&dec_backup, dec, sizeof(*dec));
 
   sd->dec = NULL; // Initialize sd->dec to check the sd is used or not.
-  RETURN_IF(calc_size(&additional_size, data));
+  RETURN_IF(calc_size(dec, sd, &additional_size, data));
   RETURN_IF(dec->error);
   if (sd->dec != NULL && !sd->op->is_closed(sd)) {
     // Additional_space used the sd.  But sd is not closed.
@@ -232,11 +235,9 @@ error:
   kfree(s);
   return error;
 }
-static inline int
-__DECODE(u64 struct_id, struct raw_packet *in, void **out, size_t struct_size,
-         void *data, int calc_size(size_t *size, void *data),
-         int decode(struct xdr_decoder *dec, struct xdr_struct_decoder *sd,
-                    struct raw_packet *in, void *data)) {
+static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
+                           size_t struct_size, void *data, prepare_fn calc_size,
+                           decode_fn decode) {
   int error;
   struct xdr_decoder dec;
 
@@ -263,27 +264,36 @@ __DECODE(u64 struct_id, struct raw_packet *in, void **out, size_t struct_size,
 #define DECODER_DATA(type_name) struct __##type_name##_decoder_data
 #define IMPL_DECODER_PREPARE(type_name)                                        \
   static inline int __##type_name##_decode_pre(                                \
-      struct xdr_decoder *dec, struct xdr_struct_decoder *sd,                  \
-      struct type_name *s, size_t *size, DECODER_DATA(type_name) * data)
+      struct xdr_decoder *dec, struct xdr_struct_decoder *sd, size_t *size,    \
+      DECODER_DATA(type_name) * data)
 #define IMPL_DECODER_BODY(type_name)                                           \
   static inline int __##type_name##_decode_body(                               \
       struct xdr_decoder *dec, struct xdr_struct_decoder *sd,                  \
       struct type_name *s, DECODER_DATA(type_name) * data)
 #define __DEFINE_DECODER(type_name, struct_id)                                 \
   static int type_name##_decode(struct raw_packet *in, void **out) {           \
+    int error;                                                                 \
     DECODER_DATA(type_name) data = {};                                         \
-    *out = DECODE(struct_id, struct type_name, in, ({                          \
-                    size_t size = 0;                                           \
-                    error = __##type_name##_decode_pre(&dec, &sd, s, &size,    \
-                                                       &data);                 \
-                    size;                                                      \
-                  }),                                                          \
-                  error = __##type_name##_decode_body(&dec, &sd, s, &data));   \
+    RETURN_IF(__DECODE(struct_id, in, out, sizeof(struct type_name), &data,    \
+                       (void *)__##type_name##_decode_pre,                     \
+                       (void *)__##type_name##_decode_body));                  \
+    return 0;                                                                  \
+  }
+#define __DEFINE_DECODER_WITH(type_name, struct_id)                            \
+  __unused static int type_name##_decode_with(struct xdr_decoder *dec,         \
+                                              void **out) {                    \
+    int error;                                                                 \
+    DECODER_DATA(type_name) data = {};                                         \
+    /* TODO: raw_packet要らない? */                                        \
+    RETURN_IF(__DECODE_WITH(dec, NULL, out, sizeof(struct type_name), &data,   \
+                            (void *)__##type_name##_decode_pre,                \
+                            (void *)__##type_name##_decode_body));             \
     return 0;                                                                  \
   }
 #define DEFINE_ENCDEC(type_name, struct_id)                                    \
   __DEFINE_ENCODER(type_name, struct_id);                                      \
   __DEFINE_DECODER(type_name, struct_id);                                      \
+  __DEFINE_DECODER_WITH(type_name, struct_id);                                 \
   const static struct entry type_name##_entry = {                              \
       .encode = type_name##_encode,                                            \
       .decode = type_name##_decode,                                            \
