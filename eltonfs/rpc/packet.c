@@ -181,6 +181,74 @@
     s;                                                                         \
   })
 
+// todo: これらの関数の出力を、いい感じにキャストするマクロを作成
+static inline int __DECODE_WITH(struct xdr_decoder *dec, struct raw_packet *in,
+                                void **out, size_t struct_size, void *data,
+                                int calc_size(size_t *size, void *data),
+                                int decode(struct xdr_decoder *dec,
+                                           struct xdr_struct_decoder *sd,
+                                           struct raw_packet *in, void *data)) {
+  int error;
+  struct xdr_struct_decoder _sd;
+  struct xdr_struct_decoder *sd = &_sd;
+  size_t additional_size;
+  void *s;
+  struct xdr_decoder dec_backup;
+
+  // Backup decoder status.
+  memcpy(&dec_backup, dec, sizeof(*dec));
+
+  sd->dec = NULL; // Initialize sd->dec to check the sd is used or not.
+  RETURN_IF(calc_size(&additional_size, data));
+  RETURN_IF(dec->error);
+  if (sd->dec != NULL && !sd->op->is_closed(sd)) {
+    // Additional_space used the sd.  But sd is not closed.
+    ERR("DECODE: 'sd' is not closed.  Must check the logic in "
+        "additional_space.");
+    BUG();
+  }
+
+  // Allocate memory of strct_type.
+  s = kmalloc(struct_size + additional_size, GFP_KERNEL);
+  if (s == NULL)
+    RETURN_IF(-ENOMEM);
+
+  // Restore decoder status.
+  memcpy(dec, &dec_backup, sizeof(*dec));
+
+  sd->dec = NULL; // Initialize sd->dec to check the sd is used or not.
+  GOTO_IF(error, decode(dec, sd, in, data));
+  GOTO_IF(error, dec->error);
+  if (sd->dec != NULL && !sd->op->is_closed(sd)) {
+    /* Decode_process used the sd.  But sd is not closed. */
+    ERR("DECODE: 'sd' is not closed.  Must check the logic in "
+        "decode_process.");
+    BUG();
+  }
+  *out = s;
+  return 0;
+
+error:
+  kfree(s);
+  return error;
+}
+static inline int
+__DECODE(u64 struct_id, struct raw_packet *in, void **out, size_t struct_size,
+         void *data, int calc_size(size_t *size, void *data),
+         int decode(struct xdr_decoder *dec, struct xdr_struct_decoder *sd,
+                    struct raw_packet *in, void *data)) {
+  int error;
+  struct xdr_decoder dec;
+
+  BUG_ON(in == NULL);
+  BUG_ON(in->struct_id != struct_id);
+  BUG_ON(in->data == NULL);
+
+  RETURN_IF(default_decoder_init(&dec, in->data, in->size));
+  RETURN_IF(__DECODE_WITH(&dec, in, out, struct_size, data, calc_size, decode));
+  return 0;
+}
+
 #define IMPL_ENCODER(type_name)                                                \
   static inline int __##type_name##_encode(struct xdr_encoder *enc,            \
                                            struct xdr_struct_encoder *se,      \
