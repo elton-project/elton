@@ -603,61 +603,51 @@ const static struct entry tree_info_entry = {
     .decode = tree_info_decode,
 };
 
-static int elton_file_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(
-      ELTON_RPC_ERROR_ID, struct elton_file, in, ({
-        do {
-          BREAK_IF(enc.enc_op->struct_(&enc, &se, 10));
-          BREAK_IF(se.op->bytes(&se, 1, s->object_id, strlen(s->object_id)));
-          BREAK_IF(se.op->u8(&se, 2, s->file_type));
-          BREAK_IF(se.op->u64(&se, 3, s->mode));
-          BREAK_IF(se.op->u64(&se, 4, s->owner));
-          BREAK_IF(se.op->u64(&se, 5, s->group));
-          BREAK_IF(se.op->timestamp(&se, 6, s->atime));
-          BREAK_IF(se.op->timestamp(&se, 7, s->mtime));
-          BREAK_IF(se.op->timestamp(&se, 8, s->ctime));
-          BREAK_IF(se.op->u64(&se, 9, s->major));
-          BREAK_IF(se.op->u64(&se, 10, s->minor));
-          BREAK_IF(se.op->close(&se));
-        } while (0);
-      }));
+DECODER_DATA(elton_file) { size_t id_length; };
+IMPL_ENCODER(elton_file) {
+  int error;
+  RETURN_IF(enc->enc_op->struct_(enc, se, 10));
+  RETURN_IF(se->op->bytes(se, 1, s->object_id, strlen(s->object_id)));
+  RETURN_IF(se->op->u8(se, 2, s->file_type));
+  RETURN_IF(se->op->u64(se, 3, s->mode));
+  RETURN_IF(se->op->u64(se, 4, s->owner));
+  RETURN_IF(se->op->u64(se, 5, s->group));
+  RETURN_IF(se->op->timestamp(se, 6, s->atime));
+  RETURN_IF(se->op->timestamp(se, 7, s->mtime));
+  RETURN_IF(se->op->timestamp(se, 8, s->ctime));
+  RETURN_IF(se->op->u64(se, 9, s->major));
+  RETURN_IF(se->op->u64(se, 10, s->minor));
+  RETURN_IF(se->op->close(se));
   return 0;
 }
-static int elton_file_decode(struct raw_packet *in, void **out) {
-  size_t id_length = 0;
-  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_file, in, ({
-                  do {
-                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-                    BREAK_IF(sd.op->bytes(&sd, 1, NULL, &id_length));
-                  } while (0);
-                  id_length + 1;
-                }),
-                ({
-                  do {
-                    // Initialize error.
-                    s->object_id = &s->__embeded_buffer;
+IMPL_DECODER_PREPARE(elton_file) {
+  int error;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
+  *size = data->id_length + 1;
+  return 0;
+}
+IMPL_DECODER_BODY(elton_file) {
+  int error;
+  // Initialize fields.
+  s->object_id = &s->__embeded_buffer;
 
-                    // Decode
-                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-                    BREAK_IF(sd.op->bytes(&sd, 1, s->object_id, &id_length));
-                    BREAK_IF(sd.op->u8(&sd, 2, &s->file_type));
-                    BREAK_IF(sd.op->u64(&sd, 3, &s->mode));
-                    BREAK_IF(sd.op->u64(&sd, 4, &s->owner));
-                    BREAK_IF(sd.op->u64(&sd, 5, &s->group));
-                    BREAK_IF(sd.op->timestamp(&sd, 6, &s->atime));
-                    BREAK_IF(sd.op->timestamp(&sd, 7, &s->mtime));
-                    BREAK_IF(sd.op->timestamp(&sd, 8, &s->ctime));
-                    BREAK_IF(sd.op->u64(&sd, 9, &s->major));
-                    BREAK_IF(sd.op->u64(&sd, 10, &s->minor));
-                    BREAK_IF(sd.op->close(&sd));
-                  } while (0);
-                }));
+  // Decode
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, s->object_id, &data->id_length));
+  RETURN_IF(sd->op->u8(sd, 2, &s->file_type));
+  RETURN_IF(sd->op->u64(sd, 3, &s->mode));
+  RETURN_IF(sd->op->u64(sd, 4, &s->owner));
+  RETURN_IF(sd->op->u64(sd, 5, &s->group));
+  RETURN_IF(sd->op->timestamp(sd, 6, &s->atime));
+  RETURN_IF(sd->op->timestamp(sd, 7, &s->mtime));
+  RETURN_IF(sd->op->timestamp(sd, 8, &s->ctime));
+  RETURN_IF(sd->op->u64(sd, 9, &s->major));
+  RETURN_IF(sd->op->u64(sd, 10, &s->minor));
+  RETURN_IF(sd->op->close(sd));
   return 0;
 }
-const static struct entry elton_file_entry = {
-    .encode = elton_file_encode,
-    .decode = elton_file_decode,
-};
+DEFINE_ENCDEC(elton_file, ELTON_FILE_ID);
 
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
