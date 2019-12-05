@@ -575,7 +575,7 @@ static int commit_info_decode(struct raw_packet *in, void **out) {
           BREAK_IF(sd.op->timestamp(&sd, 1, &s->created_at));
           BREAK_IF(sd.op->bytes(&sd, 2, s->left_parent_id, &left_length));
           BREAK_IF(sd.op->bytes(&sd, 3, s->right_parent_id, &right_length));
-          // todo: notify sd to decoding a field by external decoder.
+          BREAK_IF(sd.op->external_decoder(&sd, 5));
           CALL_DECODER(tree_info, &dec, &tree);
           BREAK_IF(sd.op->close(&sd));
         } while (0);
