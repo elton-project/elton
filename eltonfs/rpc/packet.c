@@ -180,8 +180,8 @@ typedef int (*prepare_fn)(struct xdr_decoder *dec,
                           void *data);
 typedef int (*decode_fn)(struct xdr_decoder *dec, struct xdr_struct_decoder *sd,
                          struct raw_packet *in, void *data);
-static inline int __DECODE_WITH(struct xdr_decoder *dec, struct raw_packet *in,
-                                void **out, size_t struct_size, void *data,
+static inline int __DECODE_WITH(struct xdr_decoder *dec, void **out,
+                                size_t struct_size, void *data,
                                 prepare_fn calc_size, decode_fn decode) {
   int error;
   struct xdr_struct_decoder _sd;
@@ -231,7 +231,7 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
   BUG_ON(in->data == NULL);
 
   RETURN_IF(default_decoder_init(&dec, in->data, in->size));
-  RETURN_IF(__DECODE_WITH(&dec, in, out, struct_size, data, calc_size, decode));
+  RETURN_IF(__DECODE_WITH(&dec, out, struct_size, data, calc_size, decode));
   return 0;
 }
 
@@ -275,8 +275,7 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
   __DECLARE_DECODER_WITH(type_name) {                                          \
     int error;                                                                 \
     DECODER_DATA(type_name) data = {};                                         \
-    /* TODO: raw_packet要らない? */                                        \
-    RETURN_IF(__DECODE_WITH(dec, NULL, out, sizeof(struct type_name), &data,   \
+    RETURN_IF(__DECODE_WITH(dec, out, sizeof(struct type_name), &data,         \
                             (void *)__##type_name##_decode_pre,                \
                             (void *)__##type_name##_decode_body));             \
     return 0;                                                                  \
