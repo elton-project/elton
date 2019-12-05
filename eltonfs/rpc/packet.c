@@ -456,7 +456,7 @@ const static struct entry error_entry = {
 
 static int elton_object_info_encode(struct packet *in,
                                     struct raw_packet **out) {
-  *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_object_info, in, ({
+  *out = ENCODE(ELTON_OBJECT_INFO_ID, struct elton_object_info, in, ({
                   do {
                     BREAK_IF(enc.enc_op->struct_(&enc, &se, 4));
                     BREAK_IF(se.op->bytes(&se, 1, s->hash, s->hash_length));
@@ -472,7 +472,7 @@ static int elton_object_info_encode(struct packet *in,
 static int elton_object_info_decode(struct raw_packet *in, void **out) {
   size_t hash_length = 0;
   size_t algo_length = 0;
-  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_object_info, in, ({
+  *out = DECODE(ELTON_OBJECT_INFO_ID, struct elton_object_info, in, ({
                   do {
                     BREAK_IF(dec.dec_op->struct_(&dec, &sd));
                     BREAK_IF(sd.op->bytes(&sd, 1, NULL, &hash_length));
@@ -509,7 +509,7 @@ const static struct entry elton_object_info_entry = {
 
 static int elton_object_body_encode(struct packet *in,
                                     struct raw_packet **out) {
-  *out = ENCODE(ELTON_RPC_ERROR_ID, struct elton_object_body, in, ({
+  *out = ENCODE(ELTON_OBJECT_BODY_ID, struct elton_object_body, in, ({
                   do {
                     BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
                     BREAK_IF(
@@ -522,7 +522,7 @@ static int elton_object_body_encode(struct packet *in,
 }
 static int elton_object_body_decode(struct raw_packet *in, void **out) {
   size_t contents_length = 0;
-  *out = DECODE(ELTON_RPC_ERROR_ID, struct elton_object_body, in, ({
+  *out = DECODE(ELTON_OBJECT_BODY_ID, struct elton_object_body, in, ({
                   do {
                     BREAK_IF(dec.dec_op->struct_(&dec, &sd));
                     BREAK_IF(sd.op->bytes(&sd, 1, NULL, &contents_length));
@@ -551,7 +551,7 @@ const static struct entry elton_object_body_entry = {
 };
 
 static int commit_info_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(ELTON_RPC_ERROR_ID, struct commit_info, in, ({
+  *out = ENCODE(COMMIT_INFO_ID, struct commit_info, in, ({
                   do {
                     BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
                     BREAK_IF(se.op->timestamp(&se, 1, s->created_at));
@@ -569,7 +569,7 @@ static int commit_info_decode(struct raw_packet *in, void **out) {
   size_t left_length = 0;
   size_t right_length = 0;
   *out = DECODE(
-      ELTON_RPC_ERROR_ID, struct commit_info, in, ({
+      COMMIT_INFO_ID, struct commit_info, in, ({
         do {
           BREAK_IF(dec.dec_op->struct_(&dec, &sd));
           BREAK_IF(sd.op->timestamp(&sd, 1, NULL));
@@ -601,7 +601,7 @@ const static struct entry commit_info_entry = {
 };
 
 static int tree_info_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(ELTON_RPC_ERROR_ID, struct tree_info, in, ({
+  *out = ENCODE(TREE_INFO_ID, struct tree_info, in, ({
                   do {
                     BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
                     // todo
@@ -619,7 +619,7 @@ static int tree_info_decode(struct raw_packet *in, void **out) {
   size_t num_inodes = 0;
 
   *out =
-      DECODE(ELTON_RPC_ERROR_ID, struct tree_info, in, ({
+      DECODE(TREE_INFO_ID, struct tree_info, in, ({
                // Estimate required memory size.
                do {
                  struct xdr_map_decoder md;
