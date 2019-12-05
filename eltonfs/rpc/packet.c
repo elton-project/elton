@@ -175,7 +175,6 @@
     s;                                                                         \
   })
 
-// todo: これらの関数の出力を、いい感じにキャストするマクロを作成
 typedef int (*prepare_fn)(struct xdr_decoder *dec,
                           struct xdr_struct_decoder *sd, size_t *size,
                           void *data);
