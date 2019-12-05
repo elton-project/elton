@@ -4,23 +4,23 @@
 //   1. Define a struct and constant value (macro) in elton/struct.h
 //   2. Define helper functions of encoder and decoder using macros.
 //
-//      DECODER_DATA(elton_file) { ... };
-//      IMPL_ENCODER(elton_file) {
+//      DECODER_DATA(eltonfs_inode) { ... };
+//      IMPL_ENCODER(eltonfs_inode) {
 //          int error;
 //          ...
 //          return 0;
 //      }
-//      IMPL_DECODER_PREPARE(elton_file) {
+//      IMPL_DECODER_PREPARE(eltonfs_inode) {
 //          int error;
 //          ...
 //          return 0;
 //      }
-//      IMPL_DECODER_BODY(elton_file) {
+//      IMPL_DECODER_BODY(eltonfs_inode) {
 //          int error;
 //          ...
 //          return 0;
 //      }
-//      DEFINE_ENCDEC(elton_file, ELTON_FILE_ID);
+//      DEFINE_ENCDEC(eltonfs_inode, ELTON_FILE_ID);
 //
 //   3. Register XXX_entry to look_table.
 #define ELTON_LOG_PREFIX "[rpc/packet] "
@@ -315,7 +315,7 @@ static int not_implemented_decode(struct raw_packet *in, void **out) {
   return 0;
 }
 
-DECLARE_ENCDEC(elton_file);
+DECLARE_ENCDEC(eltonfs_inode);
 
 static int setup1_decode(struct raw_packet *in, void **out) {
   size_t str_size = 0;
@@ -659,9 +659,9 @@ static int tree_info_decode(struct raw_packet *in, void **out) {
                  BREAK_IF(sd.op->map(&sd, 3, &md));
                  for (;;) {
                    u64 ino;
-                   struct elton_file *f;
+                   struct eltonfs_inode *inode;
                    BREAK_IF(dec.dec_op->u64(&dec, &ino)); // key
-                   CALL_DECODER(elton_file, &dec, &f);    // value
+                   CALL_DECODER(eltonfs_inode, &dec, &f); // value
                    BREAK_IF(md.op->decoded_kv(&md));
                  }
                  BREAK_IF(md.op->close(&md));
@@ -678,8 +678,8 @@ const static struct entry tree_info_entry = {
     .decode = tree_info_decode,
 };
 
-DECODER_DATA(elton_file) { size_t id_length; };
-IMPL_ENCODER(elton_file) {
+DECODER_DATA(eltonfs_inode) { size_t id_length; };
+IMPL_ENCODER(eltonfs_inode) {
   int error;
   RETURN_IF(enc->enc_op->struct_(enc, se, 10));
   RETURN_IF(se->op->bytes(se, 1, s->object_id, strlen(s->object_id)));
@@ -695,14 +695,14 @@ IMPL_ENCODER(elton_file) {
   RETURN_IF(se->op->close(se));
   return 0;
 }
-IMPL_DECODER_PREPARE(elton_file) {
+IMPL_DECODER_PREPARE(eltonfs_inode) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
   *size = data->id_length + 1;
   return 0;
 }
-IMPL_DECODER_BODY(elton_file) {
+IMPL_DECODER_BODY(eltonfs_inode) {
   int error;
   // Initialize fields.
   s->object_id = &s->__embeded_buffer;
@@ -722,7 +722,7 @@ IMPL_DECODER_BODY(elton_file) {
   RETURN_IF(sd->op->close(sd));
   return 0;
 }
-DEFINE_ENCDEC(elton_file, ELTON_FILE_ID);
+DEFINE_ENCDEC(eltonfs_inode, ELTONFS_INODE_ID);
 
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
@@ -762,8 +762,8 @@ const static struct entry *look_table[] = {
     NULL,
     // 17: todo
     NULL,
-    // StructID 18: elton_file
-    &elton_file_entry,
+    // StructID 18: eltonfs_inode
+    &eltonfs_inode_entry,
 };
 #define ELTON_MAX_STRUCT_ID 18
 
