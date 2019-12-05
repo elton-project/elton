@@ -93,6 +93,11 @@ struct commit_info {
 struct tree_info {
   // Root node of directory tree.
   struct eltonfs_inode *root;
+  // All inodes (using radix tree).
+  //
+  // Key: eltonfs_ino  (Internal inode number)
+  // Value: struct eltonfs_inode *
+  struct radix_tree_root *inodes;
 
   // Note: Original tree_info structure has two fields.  In kernel module, it is
   // difficult to built hash maps.  So we directly encode/decode to/from
