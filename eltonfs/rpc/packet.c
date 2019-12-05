@@ -660,8 +660,8 @@ static int tree_info_decode(struct raw_packet *in, void **out) {
                  for (;;) {
                    u64 ino;
                    struct eltonfs_inode *inode;
-                   BREAK_IF(dec.dec_op->u64(&dec, &ino)); // key
-                   CALL_DECODER(eltonfs_inode, &dec, &f); // value
+                   BREAK_IF(dec.dec_op->u64(&dec, &ino));     // key
+                   CALL_DECODER(eltonfs_inode, &dec, &inode); // value
                    BREAK_IF(md.op->decoded_kv(&md));
                  }
                  BREAK_IF(md.op->close(&md));
