@@ -205,7 +205,7 @@ static inline int __DECODE_WITH(struct xdr_decoder *dec, struct raw_packet *in,
   memcpy(dec, &dec_backup, sizeof(*dec));
 
   sd->dec = NULL; // Initialize sd->dec to check the sd is used or not.
-  GOTO_IF(error, decode(dec, sd, in, data));
+  GOTO_IF(error, decode(dec, sd, s, data));
   GOTO_IF(error, dec->error);
   if (sd->dec != NULL && !sd->op->is_closed(sd)) {
     /* Decode_process used the sd.  But sd is not closed. */
