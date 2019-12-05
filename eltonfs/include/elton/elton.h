@@ -38,7 +38,7 @@ struct eltonfs_dir_entry {
 
 struct eltonfs_dir_entry_ino {
   struct list_head _list_head;
-  char *file;
+  char file[ELTONFS_NAME_LEN];
   // Inode number
   u64 ino;
 };
@@ -68,11 +68,9 @@ struct eltonfs_inode {
       u64 count;
     } dir;
 
-    // This field using only while initializing inode tree.
-    struct {
-      // Linked list of eltonfs_dir_entry_ino.
-      struct eltonfs_dir_entry_ino dir_entries_ino;
-    } _dir_tmp;
+    // Linked list of eltonfs_dir_entry_ino.
+    // This field using only while initializing directory tree.
+    struct eltonfs_dir_entry_ino *_dir_entries_tmp;
 
     struct {
       // Remote object ID.

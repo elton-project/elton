@@ -715,9 +715,33 @@ IMPL_DECODER_BODY(eltonfs_inode) {
     s->file.local_cache_id = NULL;
     s->file.cache_inode = NULL;
   } else if (S_ISDIR(s->vfs_inode.i_mode)) {
-    INIT_LIST_HEAD(&s->dir.dir_entries._list_head);
-    // todo: decode directory entries and append to s->dir->dir_entries.
-    s->dir.count = 0;
+    // Decode directory entries and save temporary list (s->_dir_entries_tmp).
+    // We MUST execute the finalize process to build directory tree after all
+    // inodes are decoded.
+    struct xdr_map_decoder _mdec;
+    struct xdr_map_decoder *mdec = &_mdec;
+
+    s->_dir_entries_tmp = (struct eltonfs_dir_entry_ino *)kmalloc(
+        sizeof(*s->_dir_entries_tmp), GFP_KERNEL);
+    if (s->_dir_entries_tmp == NULL) {
+      RETURN_IF(-ENOMEM);
+    }
+
+    RETURN_IF(sd->op->map(sd, 11, mdec));
+    while (mdec->op->has_next_kv(mdec)) {
+      size_t len;
+      struct eltonfs_dir_entry_ino *eino;
+      eino = (struct eltonfs_dir_entry_ino *)kmalloc(sizeof(*eino), GFP_KERNEL);
+
+      len = ELTONFS_NAME_LEN;
+      RETURN_IF(dec->dec_op->bytes(dec, eino->file, &len));
+      eino->file[len] = '\0';
+      RETURN_IF(dec->dec_op->u64(dec, &eino->ino));
+      RETURN_IF(mdec->op->decoded_kv(mdec));
+
+      list_add_tail(&eino->_list_head, &s->_dir_entries_tmp->_list_head);
+    }
+    RETURN_IF(mdec->op->close(mdec));
   } else if (S_ISLNK(s->vfs_inode.i_mode)) {
     s->symlink.object_id = obj_id;
     s->symlink.redirect_to = NULL;
