@@ -46,6 +46,9 @@ struct eltonfs_dir_entry_ino {
 struct eltonfs_inode {
   struct inode vfs_inode;
 
+  // Inode number for internal use.
+  u64 eltonfs_ino;
+
   spinlock_t lock;
   union {
     struct {

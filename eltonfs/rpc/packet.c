@@ -668,7 +668,7 @@ IMPL_ENCODER(eltonfs_inode) {
   RETURN_IF(se->op->map(se, 11, map, s->dir.count));
   ELTONFS_FOR_EACH_DIRENT(s, entry) {
     enc->enc_op->bytes(enc, entry->file, strlen(entry->file));
-    // todo: encode elton_ino
+    enc->enc_op->u64(enc, eltonfs_i(entry->inode)->eltonfs_ino);
     map->op->encoded_kv(map);
   }
   RETURN_IF(map->op->close(map));
