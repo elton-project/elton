@@ -114,6 +114,8 @@ struct xdr_struct_encoder_operations {
                    struct timestamp ts);
   int (*map)(struct xdr_struct_encoder *enc, u8 field_id,
              struct xdr_map_encoder *map_enc, u64 elements);
+  // Encoding a field by external encoder.
+  int (*external_encoder)(struct xdr_struct_encoder *enc, u8 field_id);
   int (*close)(struct xdr_struct_encoder *enc);
   bool (*is_closed)(struct xdr_struct_encoder *enc);
 };
@@ -126,6 +128,8 @@ struct xdr_struct_decoder_operations {
                    struct timestamp *ts);
   int (*map)(struct xdr_struct_decoder *dec, u8 field_id,
              struct xdr_map_decoder *map_dec);
+  // Decoding a field by external decoder.
+  int (*external_decoder)(struct xdr_struct_decoder *dec, u8 field_id);
   int (*close)(struct xdr_struct_decoder *dec);
   bool (*is_closed)(struct xdr_struct_decoder *dec);
 };

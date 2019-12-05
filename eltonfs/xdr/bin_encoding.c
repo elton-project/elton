@@ -368,6 +368,12 @@ static int sdec_map(struct xdr_struct_decoder *sdec, u8 field_id,
                     struct xdr_map_decoder *map_dec) {
   SDEC_BODY(sdec->dec->dec_op->map(sdec->dec, map_dec));
 }
+static int senc_external_encoder(struct xdr_struct_encoder *senc, u8 field_id) {
+  SENC_BODY(0 /* No operation */);
+}
+static int sdec_external_decoder(struct xdr_struct_decoder *sdec, u8 field_id) {
+  SDEC_BODY(0 /* No operation */);
+}
 static int senc_close(struct xdr_struct_encoder *senc) {
   int error;
   if (senc->closed)
@@ -411,6 +417,7 @@ static struct xdr_struct_encoder_operations struct_encoder_op = {
     .bytes = senc_bytes,
     .timestamp = senc_ts,
     .map = senc_map,
+    .external_encoder = senc_external_encoder,
     .close = senc_close,
     .is_closed = senc_is_closed,
 };
@@ -420,6 +427,7 @@ static struct xdr_struct_decoder_operations struct_decoder_op = {
     .bytes = sdec_bytes,
     .timestamp = sdec_ts,
     .map = sdec_map,
+    .external_decoder = sdec_external_decoder,
     .close = sdec_close,
     .is_closed = sdec_is_closed,
 };
