@@ -254,8 +254,10 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
   static inline int __##type_name##_encode(struct xdr_encoder *enc,            \
                                            struct xdr_struct_encoder *se,      \
                                            struct type_name *s)
+#define __DECLARE_ENCODER(type_name)                                           \
+  static int type_name##_encode(struct packet *in, struct raw_packet **out)
 #define __DEFINE_ENCODER(type_name, struct_id)                                 \
-  static int type_name##_encode(struct packet *in, struct raw_packet **out) {  \
+  __DECLARE_ENCODER(type_name) {                                               \
     *out = ENCODE(struct_id, struct type_name, in,                             \
                   error = __##type_name##_encode(&enc, &se, s));               \
     return 0;                                                                  \
@@ -270,8 +272,10 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
   static inline int __##type_name##_decode_body(                               \
       struct xdr_decoder *dec, struct xdr_struct_decoder *sd,                  \
       struct type_name *s, DECODER_DATA(type_name) * data)
+#define __DECLARE_DECODER(type_name)                                           \
+  static int type_name##_decode(struct raw_packet *in, void **out)
 #define __DEFINE_DECODER(type_name, struct_id)                                 \
-  static int type_name##_decode(struct raw_packet *in, void **out) {           \
+  __DECLARE_DECODER(type_name) {                                               \
     int error;                                                                 \
     DECODER_DATA(type_name) data = {};                                         \
     RETURN_IF(__DECODE(struct_id, in, out, sizeof(struct type_name), &data,    \
@@ -279,9 +283,11 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
                        (void *)__##type_name##_decode_body));                  \
     return 0;                                                                  \
   }
-#define __DEFINE_DECODER_WITH(type_name, struct_id)                            \
+#define __DECLARE_DECODER_WITH(type_name)                                      \
   __unused static int type_name##_decode_with(struct xdr_decoder *dec,         \
-                                              void **out) {                    \
+                                              void **out)
+#define __DEFINE_DECODER_WITH(type_name, struct_id)                            \
+  __DECLARE_DECODER_WITH(type_name) {                                          \
     int error;                                                                 \
     DECODER_DATA(type_name) data = {};                                         \
     /* TODO: raw_packet要らない? */                                        \
@@ -290,6 +296,10 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
                             (void *)__##type_name##_decode_body));             \
     return 0;                                                                  \
   }
+#define DECLARE_ENCDEC(type_name)                                              \
+  __DECLARE_ENCODER(type_name);                                                \
+  __DECLARE_DECODER(type_name);                                                \
+  __DECLARE_DECODER_WITH(type_name);
 #define DEFINE_ENCDEC(type_name, struct_id)                                    \
   __DEFINE_ENCODER(type_name, struct_id);                                      \
   __DEFINE_DECODER(type_name, struct_id);                                      \
