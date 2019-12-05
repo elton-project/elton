@@ -703,7 +703,7 @@ IMPL_ENCODER(eltonfs_inode) {
   } else {
     RETURN_IF(se->op->bytes(se, 1, "", 0));
   }
-  // 2: mode
+
   RETURN_IF(se->op->u64(se, 3, (u64)s->vfs_inode.i_mode));
   RETURN_IF(se->op->u64(se, 4, (u64)s->vfs_inode.i_uid.val));
   RETURN_IF(se->op->u64(se, 5, (u64)s->vfs_inode.i_gid.val));
