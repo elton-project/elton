@@ -639,6 +639,9 @@ static inline struct timespec64 timestamp_to_timespec64(struct timestamp ts) {
 DECODER_DATA(eltonfs_inode) { size_t id_length; };
 IMPL_ENCODER(eltonfs_inode) {
   int error;
+  struct xdr_map_encoder _map;
+  struct xdr_map_encoder *map = &_map;
+  struct eltonfs_dir_entry *entry;
   RETURN_IF(enc->enc_op->struct_(enc, se, 9));
 
   // 1: object_id
@@ -660,6 +663,16 @@ IMPL_ENCODER(eltonfs_inode) {
       se->op->timestamp(se, 8, timespec64_to_timestamp(s->vfs_inode.i_ctime)));
   RETURN_IF(se->op->u64(se, 9, (u64)imajor(&s->vfs_inode)));
   RETURN_IF(se->op->u64(se, 10, (u64)iminor(&s->vfs_inode)));
+
+  // 11: entries
+  RETURN_IF(se->op->map(se, 11, map, s->dir.count));
+  ELTONFS_FOR_EACH_DIRENT(s, entry) {
+    enc->enc_op->bytes(enc, entry->file, strlen(entry->file));
+    // todo: encode elton_ino
+    map->op->encoded_kv(map);
+  }
+  RETURN_IF(map->op->close(map));
+
   RETURN_IF(se->op->close(se));
   return 0;
 }
@@ -702,7 +715,8 @@ IMPL_DECODER_BODY(eltonfs_inode) {
     s->file.local_cache_id = NULL;
     s->file.cache_inode = NULL;
   } else if (S_ISDIR(s->vfs_inode.i_mode)) {
-    s->dir.dir_entries = NULL;
+    // todo
+    // s->dir.dir_entries = NULL;
   } else if (S_ISLNK(s->vfs_inode.i_mode)) {
     s->symlink.object_id = obj_id;
     s->symlink.redirect_to = NULL;

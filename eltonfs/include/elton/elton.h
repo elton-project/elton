@@ -31,8 +31,16 @@ struct eltonfs_info {
 };
 
 struct eltonfs_dir_entry {
+  struct list_head _list_head;
   char *file;
   struct inode *inode;
+};
+
+struct eltonfs_dir_entry_ino {
+  struct list_head _list_head;
+  char *file;
+  // Inode number
+  u64 ino;
 };
 
 struct eltonfs_inode {
@@ -55,8 +63,16 @@ struct eltonfs_inode {
     struct {
       // List of entries contained in this directory.
       // TODO: store directory entries to persistent storage.
-      struct eltonfs_dir_entry *dir_entries;
+      struct eltonfs_dir_entry dir_entries;
+      // Number of dir entries.
+      u64 count;
     } dir;
+
+    // This field using only while initializing inode tree.
+    struct {
+      // Linked list of eltonfs_dir_entry_ino.
+      struct eltonfs_dir_entry_ino dir_entries_ino;
+    } _dir_tmp;
 
     struct {
       // Remote object ID.
@@ -85,5 +101,18 @@ static inline struct eltonfs_inode *eltonfs_i(struct inode *inode) {
   }
   return container_of(inode, struct eltonfs_inode, vfs_inode);
 }
+
+// Iterate all directory entries in a eltonfs_inode.
+//
+// Arguments:
+//   i:         int or size_t
+//   entry_ino: struct eltonfs_dir_entry_ino *
+#define ELTONFS_FOR_EACH_DIRENT(eltonfs_inode, entry)                          \
+  if (S_ISREG((eltonfs_inode)->vfs_inode.i_mode)) {                            \
+    ERR("try to iterate directory entries of non-directory inode");            \
+    BUG();                                                                     \
+  } else                                                                       \
+    list_for_each_entry((entry), &(eltonfs_inode)->dir.dir_entries._list_head, \
+                        _list_head)
 
 #endif // _ELTON_ELTON_H
