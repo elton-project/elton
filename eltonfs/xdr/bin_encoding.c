@@ -376,6 +376,7 @@ static int senc_close(struct xdr_struct_encoder *senc) {
     GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
   if (senc->encoded != senc->fields)
     GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
+  senc->closed = true;
   return senc->enc->error;
 
 error:
@@ -390,6 +391,7 @@ static int sdec_close(struct xdr_struct_decoder *sdec) {
     GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
   if (sdec->decoded != sdec->fields)
     GOTO_IF(error, -ELTON_XDR_NOT_ENOUGH_FIELDS);
+  sdec->closed = true;
   return sdec->dec->error;
 
 error:
@@ -469,6 +471,7 @@ static int menc_close(struct xdr_map_encoder *menc) {
     return menc->enc->error;
   if (menc->elements < menc->encoded)
     GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
+  menc->closed = true;
   return menc->enc->error;
 
 error:
@@ -481,6 +484,7 @@ static int mdec_close(struct xdr_map_decoder *mdec) {
     return mdec->dec->error;
   if (mdec->elements < mdec->decoded)
     GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
+  mdec->closed = true;
   return mdec->dec->error;
 
 error:
