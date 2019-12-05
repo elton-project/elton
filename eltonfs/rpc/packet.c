@@ -715,8 +715,9 @@ IMPL_DECODER_BODY(eltonfs_inode) {
     s->file.local_cache_id = NULL;
     s->file.cache_inode = NULL;
   } else if (S_ISDIR(s->vfs_inode.i_mode)) {
-    // todo
-    // s->dir.dir_entries = NULL;
+    INIT_LIST_HEAD(&s->dir.dir_entries._list_head);
+    // todo: decode directory entries and append to s->dir->dir_entries.
+    s->dir.count = 0;
   } else if (S_ISLNK(s->vfs_inode.i_mode)) {
     s->symlink.object_id = obj_id;
     s->symlink.redirect_to = NULL;
