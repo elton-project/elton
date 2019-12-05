@@ -860,7 +860,7 @@ static void test_map_encoder(void) {
   if (ASSERT_NO_ERROR(enc.enc_op->map(&enc, &menc, 3)))
     return;
 
-  for (i = 0; i < 3; i++) {
+  for (i = 1; i <= 3; i++) {
     const u8 key = i;
     const u64 value = i * 2;
     if (ASSERT_NO_ERROR(enc.enc_op->u8(&enc, key)))
@@ -898,7 +898,7 @@ static void test_map_decoder(void) {
   if (ASSERT_NO_ERROR(dec.dec_op->map(&dec, &mdec)))
     return;
 
-  for (i = 0; i < 3; i++) {
+  for (i = 1; i <= 3; i++) {
     const u8 expected_key = i;
     const u64 expected_value = i * 2;
     u8 actual_key;
