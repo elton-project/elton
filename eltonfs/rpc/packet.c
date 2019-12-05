@@ -534,6 +534,7 @@ const static struct entry elton_object_body_entry = {
     .decode = elton_object_body_decode,
 };
 
+DECLARE_ENCDEC(tree_info);
 static int commit_info_encode(struct packet *in, struct raw_packet **out) {
   *out = ENCODE(COMMIT_INFO_ID, struct commit_info, in, ({
                   do {
@@ -564,6 +565,7 @@ static int commit_info_decode(struct raw_packet *in, void **out) {
       }),
       ({
         do {
+          struct tree_info tree;
           // Initialize error.
           s->left_parent_id = &s->__embeded_buffer;
           s->right_parent_id = &s->left_parent_id[left_length + 2];
@@ -573,7 +575,8 @@ static int commit_info_decode(struct raw_packet *in, void **out) {
           BREAK_IF(sd.op->timestamp(&sd, 1, &s->created_at));
           BREAK_IF(sd.op->bytes(&sd, 2, s->left_parent_id, &left_length));
           BREAK_IF(sd.op->bytes(&sd, 3, s->right_parent_id, &right_length));
-          // todo: decode the "tree" field.
+          // todo: notify sd to decoding a field by external decoder.
+          CALL_DECODER(tree_info, &dec, &tree);
           BREAK_IF(sd.op->close(&sd));
         } while (0);
       }));
