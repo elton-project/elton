@@ -143,16 +143,9 @@
                                                                                \
     /* Calculate additional space of struct_type. */                           \
     GOTO_IF(error, default_decoder_init(&dec, in->data, in->size));            \
-    sd.dec = NULL; /* Initialize sd.dec to check the sd is used or not. */     \
     size = additional_space;                                                   \
     if (dec.error)                                                             \
       GOTO_IF(error, dec.error);                                               \
-    if (sd.dec != NULL && !sd.op->is_closed(&sd)) {                            \
-      /* Additional_space used the sd.  But sd is not closed. */               \
-      ERR("DECODE: 'sd' is not closed.  Must check the logic in "              \
-          "additional_space.");                                                \
-      BUG();                                                                   \
-    }                                                                          \
                                                                                \
     /* Allocate memory of strct_type. */                                       \
     s = (struct_type *)kmalloc(sizeof(struct_type) + size, GFP_KERNEL);        \
@@ -201,15 +194,8 @@ static inline int __DECODE_WITH(struct xdr_decoder *dec, struct raw_packet *in,
   // Backup decoder status.
   memcpy(&dec_backup, dec, sizeof(*dec));
 
-  sd->dec = NULL; // Initialize sd->dec to check the sd is used or not.
   RETURN_IF(calc_size(dec, sd, &additional_size, data));
   RETURN_IF(dec->error);
-  if (sd->dec != NULL && !sd->op->is_closed(sd)) {
-    // Additional_space used the sd.  But sd is not closed.
-    ERR("DECODE: 'sd' is not closed.  Must check the logic in "
-        "additional_space.");
-    BUG();
-  }
 
   // Allocate memory of strct_type.
   s = kmalloc(struct_size + additional_size, GFP_KERNEL);
