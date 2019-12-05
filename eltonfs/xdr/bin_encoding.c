@@ -229,6 +229,9 @@ int init_map_encoder(struct xdr_encoder *enc, struct xdr_map_encoder *map_enc,
   map_enc->encoded = 0;
   map_enc->closed = false;
   map_enc->op = &map_encoder_op;
+
+  // Write number of elements.
+  RETURN_IF(enc->enc_op->u64(enc, elements));
   return 0;
 }
 int init_map_decoder(struct xdr_decoder *dec, struct xdr_map_decoder *map_dec) {
