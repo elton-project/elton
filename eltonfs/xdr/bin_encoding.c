@@ -464,7 +464,7 @@ static int menc_close(struct xdr_map_encoder *menc) {
   int error;
   if (menc->closed)
     return menc->enc->error;
-  if (menc->elements <= menc->encoded)
+  if (menc->elements < menc->encoded)
     GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
   return menc->enc->error;
 
@@ -476,7 +476,7 @@ static int mdec_close(struct xdr_map_decoder *mdec) {
   int error;
   if (mdec->closed)
     return mdec->dec->error;
-  if (mdec->elements <= mdec->decoded)
+  if (mdec->elements < mdec->decoded)
     GOTO_IF(error, -ELTON_XDR_TOO_MANY_ELEMENTS);
   return mdec->dec->error;
 
