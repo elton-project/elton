@@ -584,99 +584,44 @@ const static struct entry commit_info_entry = {
     .decode = commit_info_decode,
 };
 
-static int tree_info_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(TREE_INFO_ID, struct tree_info, in, ({
-                  do {
-                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
-                    // todo
-                    BREAK_IF(se.op->close(&se));
-                  } while (0);
-                }));
+DECODER_DATA(tree_info){};
+IMPL_ENCODER(tree_info) {
+  // todo
+}
+IMPL_DECODER_PREPARE(tree_info) { return 0; }
+IMPL_DECODER_BODY(tree_info) {
+  int error;
+  u64 root_ino;
+  struct xdr_map_decoder _mdec;
+  struct xdr_map_decoder *mdec = &_mdec;
+
+  s->inodes = (struct radix_tree_root *)kmalloc(sizeof(*s->inodes), GFP_KERNEL);
+  if (s->inodes == NULL)
+    RETURN_IF(-ENOMEM);
+  // TODO: remove radix tree when an error occured.
+
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->u64(sd, 3, &root_ino));
+  RETURN_IF(sd->op->map(sd, 4, mdec));
+  while (mdec->op->has_next_kv(mdec)) {
+    u64 ino;
+    struct eltonfs_inode *inode;
+    inode = (struct eltonfs_inode *)kmalloc(sizeof(*inode), GFP_KERNEL);
+    if (inode == NULL)
+      RETURN_IF(-ENOMEM);
+
+    // TODO: Initialize vfs_inode
+    RETURN_IF(dec->dec_op->u64(dec, &ino));
+    RETURN_IF(CALL_DECODER(eltonfs_inode, dec, inode));
+    RETURN_IF(mdec->op->decoded_kv(mdec));
+
+    RETURN_IF(radix_tree_insert(s->inodes, ino, inode));
+  }
+  RETURN_IF(mdec->op->close(mdec));
+  RETURN_IF(sd->op->close(sd));
   return 0;
 }
-static int tree_info_decode(struct raw_packet *in, void **out) {
-  // Number of paths
-  size_t num_paths = 0;
-  // Total bytes of all paths.
-  size_t paths_size = 0;
-  // Number of inodes
-  size_t num_inodes = 0;
-
-  *out =
-      DECODE(TREE_INFO_ID, struct tree_info, in, ({
-               // Estimate required memory size.
-               do {
-                 struct xdr_map_decoder md;
-                 BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-
-                 // Decodes a map from path to inode.
-                 BREAK_IF(sd.op->map(&sd, 2, &md));
-                 num_paths = md.elements;
-                 paths_size = 0;
-                 while (md.op->has_next_kv(&md)) {
-                   size_t size;
-                   BREAK_IF(dec.dec_op->bytes(&dec, NULL, &size)); // key
-                   BREAK_IF(dec.dec_op->u64(&dec, NULL));          // value
-                   paths_size += size + 1;
-                   BREAK_IF(md.op->decoded_kv(&md));
-                 }
-                 BREAK_IF(md.op->close(&md));
-
-                 // Decodes a map from inode to file.
-                 BREAK_IF(sd.op->map(&sd, 3, &md));
-                 num_inodes = md.elements;
-                 BREAK_IF(md.op->close(&md));
-               } while (0);
-               0;
-             }),
-             ({
-               do {
-                 struct xdr_map_decoder md;
-                 int i;
-                 char *path = (char *)vmalloc(paths_size);
-                 char *path_iter = path;
-                 u64 *p2i = (u64 *)vmalloc(sizeof(u64) * num_paths);
-                 char **path_list =
-                     (char **)vmalloc(sizeof(char *) * num_paths);
-
-                 BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-                 // Decode P2I.
-                 BREAK_IF(sd.op->map(&sd, 2, &md));
-                 for (i = 0; md.op->has_next_kv(&md); i++) {
-                   size_t size;
-                   u64 ino;
-                   BREAK_IF(dec.dec_op->bytes(&dec, path_iter, &size)); // key
-                   BREAK_IF(dec.dec_op->u64(&dec, &ino));               // value
-                   BREAK_IF(md.op->decoded_kv(&md));
-                   p2i[i] = ino;
-                   path_list[i] = path_iter;
-                   path_iter[size] = '\0';
-                   path_iter += size + 1;
-                 }
-                 BREAK_IF(md.op->close(&md));
-
-                 // Decode I2F.
-                 BREAK_IF(sd.op->map(&sd, 3, &md));
-                 for (;;) {
-                   u64 ino;
-                   struct eltonfs_inode *inode;
-                   BREAK_IF(dec.dec_op->u64(&dec, &ino));     // key
-                   CALL_DECODER(eltonfs_inode, &dec, &inode); // value
-                   BREAK_IF(md.op->decoded_kv(&md));
-                 }
-                 BREAK_IF(md.op->close(&md));
-                 BREAK_IF(sd.op->close(&sd));
-
-                 // Build inode tree.
-                 // TODO
-               } while (0);
-             }));
-  return 0;
-}
-const static struct entry tree_info_entry = {
-    .encode = tree_info_encode,
-    .decode = tree_info_decode,
-};
+DEFINE_ENCDEC(tree_info, TREE_INFO_ID);
 
 static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
   struct timestamp out;
