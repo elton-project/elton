@@ -79,7 +79,7 @@ struct xdr_encoder_operations {
   // Encode an unsigned 64bit integer.
   int (*u64)(struct xdr_encoder *enc, u64 val);
   // Encode bytes.
-  int (*bytes)(struct xdr_encoder *enc, char *bytes, size_t len);
+  int (*bytes)(struct xdr_encoder *enc, const char *bytes, size_t len);
   // Encode timestamp.
   int (*timestamp)(struct xdr_encoder *enc, struct timestamp ts);
   // Encode struct.
@@ -108,7 +108,7 @@ struct xdr_decoder_operations {
 struct xdr_struct_encoder_operations {
   int (*u8)(struct xdr_struct_encoder *enc, u8 field_id, u8 val);
   int (*u64)(struct xdr_struct_encoder *enc, u8 field_id, u64 val);
-  int (*bytes)(struct xdr_struct_encoder *enc, u8 field_id, char *bytes,
+  int (*bytes)(struct xdr_struct_encoder *enc, u8 field_id, const char *bytes,
                size_t len);
   int (*timestamp)(struct xdr_struct_encoder *enc, u8 field_id,
                    struct timestamp ts);

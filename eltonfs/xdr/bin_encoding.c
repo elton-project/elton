@@ -99,7 +99,7 @@ static int enc_u64(struct xdr_encoder *enc, u64 val) {
   }
   return 0;
 }
-static int enc_bytes(struct xdr_encoder *enc, char *bytes, size_t len) {
+static int enc_bytes(struct xdr_encoder *enc, const char *bytes, size_t len) {
   int error;
   CHECK_ENCODER_STATUS(enc);
   CHECK_WRITE_SIZE(enc, 8 + len);
@@ -344,8 +344,8 @@ static int senc_u64(struct xdr_struct_encoder *senc, u8 field_id, u64 val) {
 static int sdec_u64(struct xdr_struct_decoder *sdec, u8 field_id, u64 *val) {
   SDEC_BODY(sdec->dec->dec_op->u64(sdec->dec, val));
 }
-static int senc_bytes(struct xdr_struct_encoder *senc, u8 field_id, char *bytes,
-                      size_t len) {
+static int senc_bytes(struct xdr_struct_encoder *senc, u8 field_id,
+                      const char *bytes, size_t len) {
   SENC_BODY(senc->enc->enc_op->bytes(senc->enc, bytes, len));
 }
 static int sdec_bytes(struct xdr_struct_decoder *sdec, u8 field_id, char *bytes,
