@@ -834,6 +834,7 @@ static void test_decode_struct(void) {
 }
 static void test_map_encoder(void) {
   const char expected[] = {
+      0,   0,   0,   0,   0, 0, 0, 3, // Elements
       1,                              // 1: key
       0,   0,   0,   0,   0, 0, 0, 2, // 2: value
       2,                              // 2: key
@@ -877,6 +878,7 @@ static void test_map_decoder(void) {
   struct xdr_decoder dec;
   struct xdr_map_decoder mdec;
   char input[] = {
+      0,   0,   0,   0,   0, 0, 0, 3, // Elements
       1,                              // 1: key
       0,   0,   0,   0,   0, 0, 0, 2, // 2: value
       2,                              // 2: key
