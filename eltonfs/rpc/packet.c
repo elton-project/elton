@@ -678,20 +678,43 @@ const static struct entry tree_info_entry = {
     .decode = tree_info_decode,
 };
 
+static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
+  struct timestamp out;
+  out.sec = ts.tv_sec;
+  out.nsec = ts.tv_nsec;
+  return out;
+}
+static inline struct timespec64 timestamp_to_timespec64(struct timestamp ts) {
+  struct timespec64 out;
+  out.tv_sec = ts.sec;
+  out.tv_nsec = ts.nsec;
+  return out;
+}
+
 DECODER_DATA(eltonfs_inode) { size_t id_length; };
 IMPL_ENCODER(eltonfs_inode) {
   int error;
-  RETURN_IF(enc->enc_op->struct_(enc, se, 10));
-  RETURN_IF(se->op->bytes(se, 1, s->object_id, strlen(s->object_id)));
-  RETURN_IF(se->op->u8(se, 2, s->file_type));
-  RETURN_IF(se->op->u64(se, 3, s->mode));
-  RETURN_IF(se->op->u64(se, 4, s->owner));
-  RETURN_IF(se->op->u64(se, 5, s->group));
-  RETURN_IF(se->op->timestamp(se, 6, s->atime));
-  RETURN_IF(se->op->timestamp(se, 7, s->mtime));
-  RETURN_IF(se->op->timestamp(se, 8, s->ctime));
-  RETURN_IF(se->op->u64(se, 9, s->major));
-  RETURN_IF(se->op->u64(se, 10, s->minor));
+  RETURN_IF(enc->enc_op->struct_(enc, se, 9));
+
+  // 1: object_id
+  if (S_ISREG(s->vfs_inode.i_mode)) {
+    RETURN_IF(
+        se->op->bytes(se, 1, s->file.object_id, strlen(s->file.object_id)));
+  } else {
+    RETURN_IF(se->op->bytes(se, 1, "", NULL));
+  }
+  // 2: mode
+  RETURN_IF(se->op->u64(se, 3, (u64)s->vfs_inode.i_mode));
+  RETURN_IF(se->op->u64(se, 4, (u64)s->vfs_inode.i_uid.val));
+  RETURN_IF(se->op->u64(se, 5, (u64)s->vfs_inode.i_gid.val));
+  RETURN_IF(
+      se->op->timestamp(se, 6, timespec64_to_timestamp(s->vfs_inode.i_atime)));
+  RETURN_IF(
+      se->op->timestamp(se, 7, timespec64_to_timestamp(s->vfs_inode.i_mtime)));
+  RETURN_IF(
+      se->op->timestamp(se, 8, timespec64_to_timestamp(s->vfs_inode.i_ctime)));
+  RETURN_IF(se->op->u64(se, 9, (u64)imajor(&s->vfs_inode)));
+  RETURN_IF(se->op->u64(se, 10, (u64)iminor(&s->vfs_inode)));
   RETURN_IF(se->op->close(se));
   return 0;
 }
@@ -699,27 +722,47 @@ IMPL_DECODER_PREPARE(eltonfs_inode) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
-  *size = data->id_length + 1;
+  *size = 0;
   return 0;
 }
 IMPL_DECODER_BODY(eltonfs_inode) {
   int error;
-  // Initialize fields.
-  s->object_id = &s->__embeded_buffer;
+  u64 val64;
+  u64 major, minor;
+  struct timestamp ts;
+  char *obj_id = kmalloc(data->id_length + 1, GFP_KERNEL);
 
   // Decode
   RETURN_IF(dec->dec_op->struct_(dec, sd));
-  RETURN_IF(sd->op->bytes(sd, 1, s->object_id, &data->id_length));
-  RETURN_IF(sd->op->u8(sd, 2, &s->file_type));
-  RETURN_IF(sd->op->u64(sd, 3, &s->mode));
-  RETURN_IF(sd->op->u64(sd, 4, &s->owner));
-  RETURN_IF(sd->op->u64(sd, 5, &s->group));
-  RETURN_IF(sd->op->timestamp(sd, 6, &s->atime));
-  RETURN_IF(sd->op->timestamp(sd, 7, &s->mtime));
-  RETURN_IF(sd->op->timestamp(sd, 8, &s->ctime));
-  RETURN_IF(sd->op->u64(sd, 9, &s->major));
-  RETURN_IF(sd->op->u64(sd, 10, &s->minor));
+  RETURN_IF(sd->op->bytes(sd, 1, obj_id, &data->id_length));
+  RETURN_IF(sd->op->u64(sd, 3, &val64));
+  s->vfs_inode.i_mode = (umode_t)val64;
+  RETURN_IF(sd->op->u64(sd, 4, &val64));
+  s->vfs_inode.i_uid.val = (uid_t)val64;
+  RETURN_IF(sd->op->u64(sd, 5, &val64));
+  s->vfs_inode.i_gid.val = (gid_t)val64;
+  RETURN_IF(sd->op->timestamp(sd, 6, &ts));
+  s->vfs_inode.i_atime = timestamp_to_timespec64(ts);
+  RETURN_IF(sd->op->timestamp(sd, 7, &ts));
+  s->vfs_inode.i_mtime = timestamp_to_timespec64(ts);
+  RETURN_IF(sd->op->timestamp(sd, 8, &ts));
+  s->vfs_inode.i_ctime = timestamp_to_timespec64(ts);
+  RETURN_IF(sd->op->u64(sd, 9, &major));
+  RETURN_IF(sd->op->u64(sd, 10, &minor));
+  s->vfs_inode.i_rdev = (dev_t)MKDEV(major, minor);
   RETURN_IF(sd->op->close(sd));
+
+  if (S_ISREG(s->vfs_inode.i_mode)) {
+    s->file.object_id = obj_id;
+    s->file.local_cache_id = NULL;
+    s->file.cache_inode = NULL;
+  } else if (S_ISDIR(s->vfs_inode.i_mode)) {
+    s->dir.dir_entries = NULL;
+  } else if (S_ISLNK(s->vfs_inode.i_mode)) {
+    s->symlink.object_id = obj_id;
+    s->symlink.redirect_to = NULL;
+  }
+  // TODO: free obj_id to prevent memory leak.
   return 0;
 }
 DEFINE_ENCDEC(eltonfs_inode, ELTONFS_INODE_ID);
