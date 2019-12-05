@@ -308,6 +308,8 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
       .encode = type_name##_encode,                                            \
       .decode = type_name##_decode,                                            \
   }
+#define CALL_DECODER(struct_name, dec, out)                                    \
+  struct_name##_decode_with((dec), (void **)(out));
 
 void free_raw_packet(struct raw_packet *packet) { vfree(packet); }
 
@@ -328,6 +330,8 @@ static int not_implemented_decode(struct raw_packet *in, void **out) {
   // Unreachable.
   return 0;
 }
+
+DECLARE_ENCDEC(elton_file);
 
 static int setup1_decode(struct raw_packet *in, void **out) {
   size_t str_size = 0;
@@ -671,10 +675,9 @@ static int tree_info_decode(struct raw_packet *in, void **out) {
                  BREAK_IF(sd.op->map(&sd, 3, &md));
                  for (;;) {
                    u64 ino;
-                   struct elton_file f;
+                   struct elton_file *f;
                    BREAK_IF(dec.dec_op->u64(&dec, &ino)); // key
-                   // value
-                   // TODO: decode elton_file struct.
+                   CALL_DECODER(elton_file, &dec, &f);    // value
                    BREAK_IF(md.op->decoded_kv(&md));
                  }
                  BREAK_IF(md.op->close(&md));
