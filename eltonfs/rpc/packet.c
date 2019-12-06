@@ -732,6 +732,15 @@ IMPL_DECODER_BODY(notify_latest_commit) {
 }
 DEFINE_DEC_ONLY(notify_latest_commit, NOTIFY_LATEST_COMMIT_ID);
 
+IMPL_ENCODER(get_commit_info_request) {
+  int error;
+  RETURN_IF(enc->enc_op->struct_(enc, se, 1));
+  RETURN_IF(se->op->bytes(se, 1, s->commit_id, strlen(s->commit_id)));
+  RETURN_IF(se->op->close(se));
+  return 0;
+}
+DEFINE_ENC_ONLY(get_commit_info_request, GET_COMMIT_INFO_REQUEST_ID);
+
 static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
   struct timestamp out;
   out.sec = ts.tv_sec;
@@ -895,7 +904,7 @@ const static struct entry *look_table[] = {
     // 15: todo
     &notify_latest_commit_entry,
     // 16: todo
-    NULL,
+    &get_commit_info_request_entry,
     // 17: todo
     NULL,
     // StructID 18: eltonfs_inode
