@@ -823,7 +823,7 @@ const static struct entry *look_table[] = {
     &get_object_request_entry,
     // StructID 10: get_object_response
     &get_object_response_entry,
-    // 11: todo
+    // StructID 11: create_object_request
     &create_object_request_entry,
     // 12: todo
     NULL,
