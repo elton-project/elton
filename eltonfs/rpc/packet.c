@@ -536,43 +536,7 @@ IMPL_DECODER_BODY(elton_object_body) {
 }
 DEFINE_ENCDEC(elton_object_body, ELTON_OBJECT_BODY_ID);
 
-static int commit_info_decode(struct raw_packet *in, void **out) {
-  size_t left_length = 0;
-  size_t right_length = 0;
-  *out = DECODE(
-      COMMIT_INFO_ID, struct commit_info, in, ({
-        do {
-          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-          BREAK_IF(sd.op->timestamp(&sd, 1, NULL));
-          BREAK_IF(sd.op->bytes(&sd, 2, NULL, &left_length));
-          BREAK_IF(sd.op->bytes(&sd, 3, NULL, &right_length));
-        } while (0);
-        left_length + right_length + 2;
-      }),
-      ({
-        do {
-          struct tree_info tree;
-          // Initialize error.
-          s->left_parent_id = &s->__embeded_buffer;
-          s->right_parent_id = &s->left_parent_id[left_length + 2];
-
-          // Decode
-          BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-          BREAK_IF(sd.op->timestamp(&sd, 1, &s->created_at));
-          BREAK_IF(sd.op->bytes(&sd, 2, s->left_parent_id, &left_length));
-          BREAK_IF(sd.op->bytes(&sd, 3, s->right_parent_id, &right_length));
-          BREAK_IF(sd.op->external_decoder(&sd, 5));
-          CALL_DECODER(tree_info, &dec, &tree);
-          BREAK_IF(sd.op->close(&sd));
-        } while (0);
-      }));
-  return 0;
-}
-const static struct entry commit_info_entry = {
-    .encode = commit_info_encode,
-    .decode = commit_info_decode,
-};
-
+DECLARE_ENCDEC(tree_info);
 DECODER_DATA(commit_info) {
   size_t left_length;
   size_t right_length;
@@ -594,6 +558,7 @@ IMPL_DECODER_PREPARE(commit_info) {
   RETURN_IF(sd->op->timestamp(sd, 1, NULL));
   RETURN_IF(sd->op->bytes(sd, 2, NULL, &data->left_length));
   RETURN_IF(sd->op->bytes(sd, 3, NULL, &data->right_length));
+  *size = data->left_length + data->right_length + 2;
   return 0;
 }
 IMPL_DECODER_BODY(commit_info) {
