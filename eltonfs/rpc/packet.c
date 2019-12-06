@@ -292,6 +292,19 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
       .encode = type_name##_encode,                                            \
       .decode = type_name##_decode,                                            \
   }
+#define DEFINE_ENC_ONLY(type_name, struct_id)                                  \
+  __DEFINE_ENCODER(type_name, struct_id);                                      \
+  const static struct entry type_name##_entry = {                              \
+      .encode = type_name##_encode,                                            \
+      .decode = not_implemented_decode,                                        \
+  }
+#define DEFINE_DEC_ONLY(type_name, struct_id)                                  \
+  __DEFINE_DECODER(type_name, struct_id);                                      \
+  __DEFINE_DECODER_WITH(type_name, struct_id);                                 \
+  const static struct entry type_name##_entry = {                              \
+      .encode = not_implemented_encode,                                        \
+      .decode = type_name##_decode,                                            \
+  }
 #define CALL_DECODER(struct_name, dec, out)                                    \
   struct_name##_decode_with((dec), (void **)(out))
 
