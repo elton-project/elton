@@ -639,6 +639,16 @@ IMPL_DECODER_BODY(tree_info) {
 }
 DEFINE_ENCDEC(tree_info, TREE_INFO_ID);
 
+IMPL_ENCODER(get_object_request) {
+  int error;
+  RETURN_IF(enc->enc_op->struct_(enc, se, 3));
+  RETURN_IF(se->op->bytes(se, 1, s->id, strlen(s->id)));
+  RETURN_IF(se->op->u64(se, 2, s->offset));
+  RETURN_IF(se->op->u64(se, 2, s->size));
+  return 0;
+}
+DEFINE_ENC_ONLY(get_object_request, GET_OBJECT_REQUEST_ID);
+
 static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
   struct timestamp out;
   out.sec = ts.tv_sec;

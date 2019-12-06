@@ -104,6 +104,13 @@ struct tree_info {
   // internal representation.
 };
 
+#define GET_OBJECT_REQUEST_ID 9
+struct get_object_request {
+  char *id;   // FieldID=1
+  u64 offset; // FieldID=2
+  u64 size;   // FieldID=3
+};
+
 #define ELTONFS_INODE_ID 18
 // See struct eltonfs_inode in <elton/elton.h>
 
