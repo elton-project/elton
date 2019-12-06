@@ -126,6 +126,15 @@ struct create_object_request {
   struct elton_object_body *body; // FieldID=1
 };
 
+#define CREATE_OBJECT_RESPONSE_ID 12
+struct create_object_response {
+  char *object_id; // FieldID=1
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #define ELTONFS_INODE_ID 18
 // See struct eltonfs_inode in <elton/elton.h>
 

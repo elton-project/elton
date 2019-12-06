@@ -671,6 +671,25 @@ IMPL_ENCODER(create_object_request) {
 }
 DEFINE_ENC_ONLY(create_object_request, CREATE_OBJECT_REQUEST_ID);
 
+DECODER_DATA(create_object_response) { size_t id_length; };
+IMPL_DECODER_PREPARE(create_object_response) {
+  int error;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
+  return 0;
+}
+IMPL_DECODER_BODY(create_object_response) {
+  int error;
+  s->object_id = &s->__embeded_buffer;
+
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, s->object_id, &data->id_length));
+  s->object_id[data->id_length] = '\0';
+  RETURN_IF(sd->op->close(sd));
+  return 0;
+}
+DEFINE_DEC_ONLY(create_object_response, CREATE_OBJECT_RESPONSE_ID);
+
 static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
   struct timestamp out;
   out.sec = ts.tv_sec;
@@ -825,8 +844,8 @@ const static struct entry *look_table[] = {
     &get_object_response_entry,
     // StructID 11: create_object_request
     &create_object_request_entry,
-    // 12: todo
-    NULL,
+    // StructID 12: create_object_response
+    &create_object_response_entry,
     // 13: todo
     NULL,
     // 14: todo
