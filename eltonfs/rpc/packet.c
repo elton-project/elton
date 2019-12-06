@@ -655,7 +655,7 @@ IMPL_DECODER_BODY(get_object_response) {
   RETURN_IF(sd->op->bytes(sd, 1, s->id, &data->id_length));
   s->id[data->id_length] = '\0';
   RETURN_IF(sd->op->external_decoder(sd, 3));
-  CALL_DECODER(elton_object_body, dec, &s->body);
+  RETURN_IF(CALL_DECODER(elton_object_body, dec, &s->body));
   RETURN_IF(sd->op->close(sd));
   return 0;
 }
@@ -665,7 +665,7 @@ IMPL_ENCODER(create_object_request) {
   int error;
   RETURN_IF(enc->enc_op->struct_(enc, se, 1));
   RETURN_IF(se->op->external_encoder(se, 1));
-  CALL_ENCODER(elton_object_body, enc, se, s->body);
+  RETURN_IF(CALL_ENCODER(elton_object_body, enc, se, s->body));
   RETURN_IF(se->op->close(se));
   return 0;
 }
