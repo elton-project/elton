@@ -536,22 +536,6 @@ IMPL_DECODER_BODY(elton_object_body) {
 }
 DEFINE_ENCDEC(elton_object_body, ELTON_OBJECT_BODY_ID);
 
-DECLARE_ENCDEC(tree_info);
-static int commit_info_encode(struct packet *in, struct raw_packet **out) {
-  *out = ENCODE(COMMIT_INFO_ID, struct commit_info, in, ({
-                  do {
-                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
-                    BREAK_IF(se.op->timestamp(&se, 1, s->created_at));
-                    BREAK_IF(se.op->bytes(&se, 2, s->left_parent_id,
-                                          strlen(s->left_parent_id)));
-                    BREAK_IF(se.op->bytes(&se, 3, s->right_parent_id,
-                                          strlen(s->right_parent_id)));
-                    // todo: encode the "tree" field.
-                    BREAK_IF(se.op->close(&se));
-                  } while (0);
-                }));
-  return 0;
-}
 static int commit_info_decode(struct raw_packet *in, void **out) {
   size_t left_length = 0;
   size_t right_length = 0;
@@ -588,6 +572,48 @@ const static struct entry commit_info_entry = {
     .encode = commit_info_encode,
     .decode = commit_info_decode,
 };
+
+DECODER_DATA(commit_info) {
+  size_t left_length;
+  size_t right_length;
+};
+IMPL_ENCODER(commit_info) {
+  int error;
+  RETURN_IF(enc->enc_op->struct_(enc, se, 2));
+  RETURN_IF(se->op->timestamp(se, 1, s->created_at));
+  RETURN_IF(se->op->bytes(se, 2, s->left_parent_id, strlen(s->left_parent_id)));
+  RETURN_IF(
+      se->op->bytes(se, 3, s->right_parent_id, strlen(s->right_parent_id)));
+  // todo: encode the "tree" field.
+  RETURN_IF(se->op->close(se));
+  return 0;
+}
+IMPL_DECODER_PREPARE(commit_info) {
+  int error;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->timestamp(sd, 1, NULL));
+  RETURN_IF(sd->op->bytes(sd, 2, NULL, &data->left_length));
+  RETURN_IF(sd->op->bytes(sd, 3, NULL, &data->right_length));
+  return 0;
+}
+IMPL_DECODER_BODY(commit_info) {
+  int error;
+  struct tree_info tree;
+  // Initialize error.
+  s->left_parent_id = &s->__embeded_buffer;
+  s->right_parent_id = &s->left_parent_id[data->left_length + 2];
+
+  // Decode
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->timestamp(sd, 1, &s->created_at));
+  RETURN_IF(sd->op->bytes(sd, 2, s->left_parent_id, &data->left_length));
+  RETURN_IF(sd->op->bytes(sd, 3, s->right_parent_id, &data->right_length));
+  RETURN_IF(sd->op->external_decoder(sd, 5));
+  RETURN_IF(CALL_DECODER(tree_info, dec, &tree));
+  RETURN_IF(sd->op->close(sd));
+  return 0;
+}
+DEFINE_ENCDEC(commit_info, COMMIT_INFO_ID);
 
 DECODER_DATA(tree_info){};
 IMPL_ENCODER(tree_info) {
