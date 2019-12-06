@@ -687,6 +687,7 @@ IMPL_ENCODER(create_commit_request) {
   RETURN_IF(se->op->external_encoder(se, 1));
   RETURN_IF(CALL_ENCODER(commit_info, enc, se, &s->info));
   RETURN_IF(se->op->bytes(se, 2, s->base_commit_id, strlen(s->base_commit_id)));
+  RETURN_IF(se->op->close(se));
   return 0;
 }
 DEFINE_ENC_ONLY(create_commit_request, CREATE_COMMIT_REQUEST_ID);
