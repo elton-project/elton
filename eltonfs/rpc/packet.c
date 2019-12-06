@@ -584,7 +584,10 @@ DECODER_DATA(tree_info){};
 IMPL_ENCODER(tree_info) {
   // todo
 }
-IMPL_DECODER_PREPARE(tree_info) { return 0; }
+IMPL_DECODER_PREPARE(tree_info) {
+  *size = 0;
+  return 0;
+}
 IMPL_DECODER_BODY(tree_info) {
   int error;
   u64 root_ino;
