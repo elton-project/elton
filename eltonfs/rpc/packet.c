@@ -659,6 +659,15 @@ IMPL_DECODER_BODY(get_object_response) {
 }
 DEFINE_DEC_ONLY(get_object_response, GET_OBJECT_RESPONSE_ID);
 
+IMPL_ENCODER(create_object_request) {
+  int error;
+  RETURN_IF(enc->enc_op->struct_(enc, se, 1));
+  RETURN_IF(se->op->external_encoder(se, 1));
+  CALL_ENCODER(elton_object_body, enc, se, s->body);
+  return 0;
+}
+DEFINE_ENC_ONLY(create_object_request, CREATE_OBJECT_REQUEST_ID);
+
 static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
   struct timestamp out;
   out.sec = ts.tv_sec;
@@ -812,7 +821,7 @@ const static struct entry *look_table[] = {
     // StructID 10: get_object_response
     &get_object_response_entry,
     // 11: todo
-    NULL,
+    &create_object_request_entry,
     // 12: todo
     NULL,
     // 13: todo

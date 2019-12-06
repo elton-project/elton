@@ -121,6 +121,11 @@ struct get_object_response {      // StructID=10
   // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
+#define CREATE_OBJECT_REQUEST_ID 11
+struct create_object_request {
+  struct elton_object_body *body; // FieldID=1
+};
+
 #define ELTONFS_INODE_ID 18
 // See struct eltonfs_inode in <elton/elton.h>
 
