@@ -247,7 +247,8 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
                   error = __##type_name##_encode(&enc, &se, s));               \
     return 0;                                                                  \
   }
-#define CALL_ENCODER(type_name) __##type_name##_encode(enc, se, s)
+#define CALL_ENCODER(type_name, enc, se, s)                                    \
+  __##type_name##_encode((enc), (se), (s))
 #define DECODER_DATA(type_name) struct __##type_name##_decoder_data
 #define IMPL_DECODER_PREPARE(type_name)                                        \
   static inline int __##type_name##_decode_pre(                                \
