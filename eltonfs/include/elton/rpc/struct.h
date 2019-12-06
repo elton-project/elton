@@ -150,6 +150,15 @@ struct create_commit_response {
   // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
+#define NOTIFY_LATEST_COMMIT_ID 15
+struct notify_latest_commit {
+  char *commit_id; // FieldID=1
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #define ELTONFS_INODE_ID 18
 // See struct eltonfs_inode in <elton/elton.h>
 

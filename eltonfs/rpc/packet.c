@@ -712,6 +712,26 @@ IMPL_DECODER_BODY(create_commit_response) {
 }
 DEFINE_DEC_ONLY(create_commit_response, CREATE_COMMIT_RESPONSE_ID);
 
+DECODER_DATA(notify_latest_commit){size_t id_length};
+IMPL_DECODER_PREPARE(notify_latest_commit) {
+  int error;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
+  *size = data->id_length;
+  return 0;
+}
+IMPL_DECODER_BODY(notify_latest_commit) {
+  int error;
+  s->commit_id = &s->__embeded_buffer;
+
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, s->commit_id, &data->id_length));
+  s->commit_id[data->id_length] = '\0';
+  RETURN_IF(sd->op->close(sd));
+  return 0;
+}
+DEFINE_DEC_ONLY(notify_latest_commit, NOTIFY_LATEST_COMMIT_ID);
+
 static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
   struct timestamp out;
   out.sec = ts.tv_sec;
@@ -873,7 +893,7 @@ const static struct entry *look_table[] = {
     // 14: todo
     &create_commit_response_entry,
     // 15: todo
-    NULL,
+    &notify_latest_commit_entry,
     // 16: todo
     NULL,
     // 17: todo
