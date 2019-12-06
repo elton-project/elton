@@ -712,7 +712,7 @@ IMPL_DECODER_BODY(create_commit_response) {
 }
 DEFINE_DEC_ONLY(create_commit_response, CREATE_COMMIT_RESPONSE_ID);
 
-DECODER_DATA(notify_latest_commit){size_t id_length};
+DECODER_DATA(notify_latest_commit) { size_t id_length; };
 IMPL_DECODER_PREPARE(notify_latest_commit) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
