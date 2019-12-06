@@ -649,6 +649,27 @@ IMPL_ENCODER(get_object_request) {
 }
 DEFINE_ENC_ONLY(get_object_request, GET_OBJECT_REQUEST_ID);
 
+DECODER_DATA(get_object_response) { size_t id_length; };
+IMPL_DECODER_PREPARE(get_object_response) {
+  int error;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
+  *size = data->id_length + 1;
+  return 0;
+}
+IMPL_DECODER_BODY(get_object_response) {
+  int error;
+  s->id = &s->__embeded_buffer;
+
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, s->id, &data->id_length));
+  s->id[data->id_length] = '\0';
+  RETURN_IF(sd->op->external_decoder(sd, 3));
+  CALL_DECODER(elton_object_body, dec, &s->body);
+  return 0;
+}
+DEFINE_DEC_ONLY(get_object_response, GET_OBJECT_RESPONSE_ID);
+
 static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
   struct timestamp out;
   out.sec = ts.tv_sec;

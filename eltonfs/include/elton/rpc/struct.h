@@ -111,6 +111,16 @@ struct get_object_request {
   u64 size;   // FieldID=3
 };
 
+#define GET_OBJECT_RESPONSE_ID 10
+struct get_object_response {      // StructID=10
+  char *id;                       // FieldID=1
+  struct elton_object_body *body; // FieldID=3
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #define ELTONFS_INODE_ID 18
 // See struct eltonfs_inode in <elton/elton.h>
 
