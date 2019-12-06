@@ -920,15 +920,15 @@ const static struct entry *look_table[] = {
     &create_object_request_entry,
     // StructID 12: create_object_response
     &create_object_response_entry,
-    // 13: todo
+    // StructID 13: create_commit_request
     &create_commit_request_entry,
-    // 14: todo
+    // StructID 14: create_commit_response
     &create_commit_response_entry,
-    // 15: todo
+    // StructID 15: notify_latest_commit
     &notify_latest_commit_entry,
-    // 16: todo
+    // StructID 16: get_commit_info_request
     &get_commit_info_request_entry,
-    // 17: todo
+    // StructID 17: get_commit_info_response
     &get_commit_info_response_entry,
     // StructID 18: eltonfs_inode
     &eltonfs_inode_entry,
