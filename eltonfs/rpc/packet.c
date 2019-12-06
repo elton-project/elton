@@ -504,48 +504,36 @@ const static struct entry elton_object_info_entry = {
     .decode = elton_object_info_decode,
 };
 
-static int elton_object_body_encode(struct packet *in,
-                                    struct raw_packet **out) {
-  *out = ENCODE(ELTON_OBJECT_BODY_ID, struct elton_object_body, in, ({
-                  do {
-                    BREAK_IF(enc.enc_op->struct_(&enc, &se, 2));
-                    BREAK_IF(
-                        se.op->bytes(&se, 1, s->contents, s->contents_length));
-                    BREAK_IF(se.op->u64(&se, 2, s->offset));
-                    BREAK_IF(se.op->close(&se));
-                  } while (0);
-                }));
+DECODER_DATA(elton_object_body) { size_t contents_length; };
+IMPL_ENCODER(elton_object_body) {
+  int error;
+  RETURN_IF(enc->enc_op->struct_(enc, se, 2));
+  RETURN_IF(se->op->bytes(se, 1, s->contents, s->contents_length));
+  RETURN_IF(se->op->u64(se, 2, s->offset));
+  RETURN_IF(se->op->close(se));
   return 0;
 }
-static int elton_object_body_decode(struct raw_packet *in, void **out) {
-  size_t contents_length = 0;
-  *out = DECODE(ELTON_OBJECT_BODY_ID, struct elton_object_body, in, ({
-                  do {
-                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-                    BREAK_IF(sd.op->bytes(&sd, 1, NULL, &contents_length));
-                  } while (0);
-                  contents_length;
-                }),
-                ({
-                  do {
-                    // Initialize error.
-                    s->contents = &s->__embeded_buffer;
+IMPL_DECODER_PREPARE(elton_object_body) {
+  int error;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->contents_length));
+  *size = data->contents_length;
+  return 0;
+}
+IMPL_DECODER_BODY(elton_object_body) {
+  int error;
+  // Initialize error.
+  s->contents = &s->__embeded_buffer;
 
-                    // Decode
-                    BREAK_IF(dec.dec_op->struct_(&dec, &sd));
-                    s->contents_length = contents_length;
-                    BREAK_IF(
-                        sd.op->bytes(&sd, 1, s->contents, &s->contents_length));
-                    BREAK_IF(sd.op->u64(&sd, 2, &s->offset));
-                    BREAK_IF(sd.op->close(&sd));
-                  } while (0);
-                }));
+  // Decode
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  s->contents_length = data->contents_length;
+  RETURN_IF(sd->op->bytes(sd, 1, s->contents, &s->contents_length));
+  RETURN_IF(sd->op->u64(sd, 2, &s->offset));
+  RETURN_IF(sd->op->close(sd));
   return 0;
 }
-const static struct entry elton_object_body_entry = {
-    .encode = elton_object_body_encode,
-    .decode = elton_object_body_decode,
-};
+DEFINE_ENCDEC(elton_object_body, ELTON_OBJECT_BODY_ID);
 
 DECLARE_ENCDEC(tree_info);
 static int commit_info_encode(struct packet *in, struct raw_packet **out) {
