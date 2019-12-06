@@ -135,6 +135,12 @@ struct create_object_response {
   // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
 };
 
+#define CREATE_COMMIT_REQUEST_ID 13
+struct create_commit_request { // StructID=13
+  struct commit_info info;     // FieldID=1
+  char *base_commit_id;        // FieldID=2
+};
+
 #define ELTONFS_INODE_ID 18
 // See struct eltonfs_inode in <elton/elton.h>
 
