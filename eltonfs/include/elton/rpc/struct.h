@@ -141,6 +141,15 @@ struct create_commit_request { // StructID=13
   char *base_commit_id;        // FieldID=2
 };
 
+#define CREATE_COMMIT_RESPONSE_ID 14
+struct create_commit_response {
+  char *commit_id; // FieldID=1
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #define ELTONFS_INODE_ID 18
 // See struct eltonfs_inode in <elton/elton.h>
 
