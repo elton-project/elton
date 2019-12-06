@@ -634,6 +634,7 @@ IMPL_ENCODER(get_object_request) {
   RETURN_IF(se->op->bytes(se, 1, s->id, strlen(s->id)));
   RETURN_IF(se->op->u64(se, 2, s->offset));
   RETURN_IF(se->op->u64(se, 2, s->size));
+  RETURN_IF(se->op->close(se));
   return 0;
 }
 DEFINE_ENC_ONLY(get_object_request, GET_OBJECT_REQUEST_ID);
@@ -655,6 +656,7 @@ IMPL_DECODER_BODY(get_object_response) {
   s->id[data->id_length] = '\0';
   RETURN_IF(sd->op->external_decoder(sd, 3));
   CALL_DECODER(elton_object_body, dec, &s->body);
+  RETURN_IF(sd->op->close(sd));
   return 0;
 }
 DEFINE_DEC_ONLY(get_object_response, GET_OBJECT_RESPONSE_ID);
@@ -664,6 +666,7 @@ IMPL_ENCODER(create_object_request) {
   RETURN_IF(enc->enc_op->struct_(enc, se, 1));
   RETURN_IF(se->op->external_encoder(se, 1));
   CALL_ENCODER(elton_object_body, enc, se, s->body);
+  RETURN_IF(se->op->close(se));
   return 0;
 }
 DEFINE_ENC_ONLY(create_object_request, CREATE_OBJECT_REQUEST_ID);
