@@ -293,16 +293,16 @@ const EltonFileStructID = 18
 
 type EltonFile struct {
 	XXX_XDR_ID struct{}      `xdrid:"18"`
-	ObjectID   EltonObjectID `xdrid:"1"`
-	FileType   uint8         `xdrid:"2"`
-	Mode       uint64        `xdrid:"3"`
-	Owner      uint64        `xdrid:"4"`
-	Group      uint64        `xdrid:"5"`
-	Atime      time.Time     `xdrid:"6"`
-	Mtime      time.Time     `xdrid:"7"`
-	Ctime      time.Time     `xdrid:"8"`
-	Major      uint64        `xdrid:"9"`
-	Minor      uint64        `xdrid:"10"`
+	ObjectID   EltonObjectID `xdr:"1"`
+	FileType   uint8         `xdr:"2"`
+	Mode       uint64        `xdr:"3"`
+	Owner      uint64        `xdr:"4"`
+	Group      uint64        `xdr:"5"`
+	Atime      time.Time     `xdr:"6"`
+	Mtime      time.Time     `xdr:"7"`
+	Ctime      time.Time     `xdr:"8"`
+	Major      uint64        `xdr:"9"`
+	Minor      uint64        `xdr:"10"`
 }
 
 func (f EltonFile) ToGRPC() *elton_v2.File {
