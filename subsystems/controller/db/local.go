@@ -547,6 +547,7 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 	left := info.GetLeftParentID()
 	right := info.GetRightParentID()
 
+	// Validate arguments.
 	if left.GetId().GetId() != "" {
 		// Request to create normal commit.
 		if bytes.Compare(
@@ -574,6 +575,8 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 			return
 		}
 	}
+
+	// Validate tree.
 	if err2 := tree.FastValidate(); err2 != nil {
 		err = ErrInvalidTree.Wrap(err2)
 		return
