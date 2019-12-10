@@ -61,10 +61,8 @@ message CommitInfo {
 
 // Tree keeps encoded data of directory tree structure in the commit.
 message Tree {
-  // Mapping from path to inode.
-  map<string, uint64> p2i = 1;
-  // Mapping from inode to file object.
-  map<uint64, File> i2f = 2;
+  uint64 root_ino = 3;
+  map<uint64, File> inodes = 4;
 }
 
 // File presents the Linux inode.
@@ -87,6 +85,9 @@ message File {
   // For device file.
   uint32 major = 9;
   uint32 minor = 10;
+
+  // For directory.
+  map<string, uint64> entries = 11;
 }
 enum FileType {
   Regular = 0;

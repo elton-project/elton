@@ -138,7 +138,6 @@ struct create_object_response {
 #define CREATE_COMMIT_REQUEST_ID 13
 struct create_commit_request { // StructID=13
   struct commit_info info;     // FieldID=1
-  char *base_commit_id;        // FieldID=2
 };
 
 #define CREATE_COMMIT_RESPONSE_ID 14
@@ -172,7 +171,6 @@ struct get_commit_info_request {
 struct get_commit_info_response {
   char *commit_id;          // FieldID=1
   struct commit_info *info; // FieldID=2
-  struct tree_info *tree;   // FieldID=3
 
   // Embeds array at the tail of this struct.
   char __embeded_buffer;

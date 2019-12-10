@@ -154,29 +154,29 @@ const TreeInfoStructID = 8
 
 type TreeInfo struct {
 	XXX_XDR_ID struct{}              `xdrid:"8"`
-	P2I        map[string]uint64     `xdr:"2"`
-	I2F        map[uint64]*EltonFile `xdr:"3"`
+	RootIno    uint64                `xdr:"3"`
+	Inodes     map[uint64]*EltonFile `xdr:"4"`
 }
 
 func (TreeInfo) FromGRPC(t *elton_v2.Tree) *TreeInfo {
-	i2f := map[uint64]*EltonFile{}
-	for i, f := range t.I2F {
-		i2f[i] = EltonFile{}.FromGRPC(f)
+	inodes := map[uint64]*EltonFile{}
+	for i, f := range t.GetInodes() {
+		inodes[i] = EltonFile{}.FromGRPC(f)
 	}
-	tree := &TreeInfo{}
-	tree.P2I = t.GetP2I()
-	tree.I2F = i2f
-	return tree
+	return &TreeInfo{
+		RootIno: t.GetRootIno(),
+		Inodes:  inodes,
+	}
 }
 
 func (info TreeInfo) ToGRPC() *elton_v2.Tree {
-	i2f := map[uint64]*elton_v2.File{}
-	for i, f := range info.I2F {
-		i2f[i] = f.ToGRPC()
+	inodes := map[uint64]*elton_v2.File{}
+	for i, f := range info.Inodes {
+		inodes[i] = f.ToGRPC()
 	}
 	return &elton_v2.Tree{
-		P2I: info.P2I,
-		I2F: i2f,
+		RootIno: info.RootIno,
+		Inodes:  nil,
 	}
 }
 
@@ -231,13 +231,11 @@ const CreateCommitRequestStructID = 13
 type CreateCommitRequest struct {
 	XXX_XDR_ID struct{}   `xdrid:"13"`
 	Info       CommitInfo `xdr:"1"`
-	VID        VolumeID   `xdr:"2"`
 }
 
 func (req CreateCommitRequest) ToGRPC() *elton_v2.CommitRequest {
 	return &elton_v2.CommitRequest{
 		Info: req.Info.ToGRPC(),
-		Id:   req.VID.ToGRC(),
 	}
 }
 
@@ -292,17 +290,18 @@ func (GetCommitInfoResponse) FromGRPC(res *elton_v2.GetCommitResponse) *GetCommi
 const EltonFileStructID = 18
 
 type EltonFile struct {
-	XXX_XDR_ID struct{}      `xdrid:"18"`
-	ObjectID   EltonObjectID `xdr:"1"`
-	FileType   uint8         `xdr:"2"`
-	Mode       uint64        `xdr:"3"`
-	Owner      uint64        `xdr:"4"`
-	Group      uint64        `xdr:"5"`
-	Atime      time.Time     `xdr:"6"`
-	Mtime      time.Time     `xdr:"7"`
-	Ctime      time.Time     `xdr:"8"`
-	Major      uint64        `xdr:"9"`
-	Minor      uint64        `xdr:"10"`
+	XXX_XDR_ID struct{}          `xdrid:"18"`
+	ObjectID   EltonObjectID     `xdr:"1"`
+	FileType   uint8             `xdr:"2"`
+	Mode       uint64            `xdr:"3"`
+	Owner      uint64            `xdr:"4"`
+	Group      uint64            `xdr:"5"`
+	Atime      time.Time         `xdr:"6"`
+	Mtime      time.Time         `xdr:"7"`
+	Ctime      time.Time         `xdr:"8"`
+	Major      uint64            `xdr:"9"`
+	Minor      uint64            `xdr:"10"`
+	Entries    map[string]uint64 `xdr:"11"`
 }
 
 func (f EltonFile) ToGRPC() *elton_v2.File {

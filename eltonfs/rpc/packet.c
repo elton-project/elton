@@ -686,10 +686,9 @@ DEFINE_DEC_ONLY(create_object_response, CREATE_OBJECT_RESPONSE_ID);
 
 IMPL_ENCODER(create_commit_request) {
   int error;
-  RETURN_IF(enc->enc_op->struct_(enc, se, 2));
+  RETURN_IF(enc->enc_op->struct_(enc, se, 1));
   RETURN_IF(se->op->external_encoder(se, 1));
   RETURN_IF(CALL_ENCODER(commit_info, enc, se, &s->info));
-  RETURN_IF(se->op->bytes(se, 2, s->base_commit_id, strlen(s->base_commit_id)));
   RETURN_IF(se->op->close(se));
   return 0;
 }
@@ -761,8 +760,6 @@ IMPL_DECODER_BODY(get_commit_info_response) {
   s->commit_id[data->id_length] = '\0';
   RETURN_IF(sd->op->external_decoder(sd, 2));
   RETURN_IF(CALL_DECODER(commit_info, dec, &s->info));
-  RETURN_IF(sd->op->external_decoder(sd, 3));
-  RETURN_IF(CALL_DECODER(tree_info, dec, &s->tree));
   RETURN_IF(sd->op->close(sd));
   return 0;
 }
