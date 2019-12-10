@@ -30,11 +30,9 @@ func withLocalDB(t *testing.T, fn func(stores Stores)) {
 }
 func createTree() *Tree {
 	return &Tree{
-		P2I: map[string]uint64{
-			"/": 1,
-		},
-		I2F: map[uint64]*File{
-			1: {},
+		RootIno: 1,
+		Inodes: map[uint64]*File{
+			1: {FileType: FileType_Directory},
 		},
 	}
 }
@@ -274,15 +272,11 @@ func TestLocalCS_Get(t *testing.T) {
 			cid, err := cs.Create(vid, &CommitInfo{
 				CreatedAt: ptypes.TimestampNow(),
 			}, &Tree{
-				P2I: map[string]uint64{
-					"/":            1,
-					"/bin":         2,
-					"/bin/busybox": 3,
-				},
-				I2F: map[uint64]*File{
-					1: {},
-					2: {},
-					3: {},
+				RootIno: 1,
+				Inodes: map[uint64]*File{
+					1: {FileType: FileType_Directory},
+					2: {FileType: FileType_Directory},
+					3: {FileType: FileType_Regular},
 				},
 			})
 			if !assert.Nil(t, err) || !assert.NotNil(t, cid) {
@@ -558,13 +552,10 @@ func TestLocalCS_Tree(t *testing.T) {
 				CreatedAt:    ptypes.TimestampNow(),
 				LeftParentID: nil,
 			}, &Tree{
-				P2I: map[string]uint64{
-					"/":    1,
-					"/bin": 2,
-				},
-				I2F: map[uint64]*File{
-					1: {},
-					2: {},
+				RootIno: 1,
+				Inodes: map[uint64]*File{
+					1: {FileType: FileType_Directory},
+					2: {FileType: FileType_Directory},
 				},
 			})
 			if !assert.NotNil(t, cid) || !assert.Nil(t, err) {

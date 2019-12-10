@@ -116,11 +116,9 @@ func createCommits(
 }
 func createEmptyTree() *elton_v2.Tree {
 	return &elton_v2.Tree{
-		P2I: map[string]uint64{
-			"/": 1,
-		},
-		I2F: map[uint64]*elton_v2.File{
-			1: {},
+		RootIno: 1,
+		Inodes: map[uint64]*elton_v2.File{
+			1: {FileType: elton_v2.FileType_Directory},
 		},
 	}
 }
@@ -543,54 +541,6 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
 			assert.Contains(t, status.Convert(err).Message(), "invalid parent commit: ")
-			assert.Nil(t, res)
-		})
-	})
-	t.Run("should_fail_when_it_contains_unreferenced_inodes", func(t *testing.T) {
-		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
-			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				Id: &elton_v2.VolumeID{Id: "test-volume"},
-				Info: &elton_v2.CommitInfo{
-					CreatedAt: ptypes.TimestampNow(),
-					Tree: &elton_v2.Tree{
-						P2I: map[string]uint64{
-							"/":     1,
-							"/file": 2,
-						},
-						I2F: map[uint64]*elton_v2.File{
-							1: {},
-							2: {},
-							3: {},
-						},
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err))
-			assert.Equal(t, "invalid tree: unused I2F entry found: inode=3", status.Convert(err).Message())
-			assert.Nil(t, res)
-		})
-	})
-	t.Run("should_fail_when_it_contians_invalid_inode", func(t *testing.T) {
-		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
-			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				Id: &elton_v2.VolumeID{Id: "test-volume"},
-				Info: &elton_v2.CommitInfo{
-					CreatedAt: ptypes.TimestampNow(),
-					Tree: &elton_v2.Tree{
-						P2I: map[string]uint64{
-							"/":              1,
-							"/invalid-inode": 2,
-						},
-						I2F: map[uint64]*elton_v2.File{
-							1: {},
-						},
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err))
-			assert.Equal(t, "invalid tree: no I2F entry: inode=2", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
