@@ -96,6 +96,13 @@ type CommitStore interface {
 	// - ErrNotFoundCommit: If volume has no commits.
 	// - InternalError
 	Latest(vid *VolumeID) (*CommitID, error)
+	// UpdateLatest changes latest CommitID from old to new.
+	//
+	// Error:
+	// - ErrCrossVolumeCommit: If mismatch VolumeID.
+	// - ErrNotFoundCommit: If specified commit is not found in volume.
+	// - InternalError
+	UpdateLatest(old, new *CommitID) error
 	// Create creates new commit.
 	//
 	// Error:
