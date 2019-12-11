@@ -45,6 +45,7 @@ var (
 	ErrCrossVolumeCommit   = &InputError{Msg: "cross-volume commit"}
 	ErrInvalidParentCommit = &InputError{Msg: "invalid parent commit"}
 	ErrInvalidTree         = &InputError{Msg: "invalid tree"}
+	ErrLatestCommitUpdated = &InputError{Msg: "latest commit is updated by other thread"}
 )
 
 // InternalError represents an error of database internal error.

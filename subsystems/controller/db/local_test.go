@@ -28,6 +28,14 @@ func withLocalDB(t *testing.T, fn func(stores Stores)) {
 
 	fn(stores)
 }
+func createCommit(left, right *CommitID) *CommitInfo {
+	return &CommitInfo{
+		CreatedAt:     ptypes.TimestampNow(),
+		LeftParentID:  left,
+		RightParentID: right,
+		Tree:          createTree(),
+	}
+}
 func createTree() *Tree {
 	return &Tree{
 		RootIno: 1,
@@ -462,6 +470,24 @@ func TestLocalCS_Latest(t *testing.T) {
 			cid, err := cs.Latest(vid)
 			assert.NoError(t, err)
 			assert.NotNil(t, cid)
+		})
+	})
+}
+
+func TestLocalCS_UpdateLatest(t *testing.T) {
+	t.Run("should_success_when_old_is_nil", func(t *testing.T) {
+		withLocalDB(t, func(stores Stores) {
+			vs := stores.VolumeStore()
+			cs := stores.CommitStore()
+
+			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
+			assert.NoError(t, err)
+
+			c := createCommit(nil, nil)
+			cid, err := cs.Create(vid, c, c.Tree)
+			assert.NoError(t, err)
+			err = cs.UpdateLatest(nil, cid)
+			assert.NoError(t, err)
 		})
 	})
 }
