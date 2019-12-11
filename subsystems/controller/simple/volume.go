@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/golang/protobuf/ptypes"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	controller_db "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/controller/db"
 	"google.golang.org/grpc/codes"
@@ -272,22 +273,65 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 		return nil, status.Error(codes.InvalidArgument, "tree should not nil")
 	}
 
-	m := &Merger{
-		Info:    req.GetInfo(),
-		Base:    nil, // todo: get base tree.
-		Latest:  nil, // todo: latest tree.
-		Current: req.GetInfo().GetTree(),
+	// Base info
+	baseID := req.GetInfo().GetRightParentID()
+	resCmt, err := v.GetCommit(ctx, &GetCommitRequest{
+		Id: baseID,
+	})
+	if err != nil {
+		return nil, err
 	}
-	newTree, err := m.Merge()
-	_ = newTree
-	// todo: create merge commit
-	// todo: save newTree
+	baseTree := resCmt.GetInfo().GetTree()
 
-	cid, err := v.cs.Create(
-		req.GetId(),
-		req.GetInfo(),
-		req.GetInfo().GetTree(),
-	)
+	// Last info
+	resLast, err := v.GetLastCommit(ctx, &GetLastCommitRequest{
+		VolumeId: req.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	lastID := resLast.GetId()
+	lastTree := resLast.GetInfo().GetTree()
+
+	if baseID == lastID {
+		cid, err := v.commit(req.GetId(), req.GetInfo())
+		if err != nil {
+			return nil, err
+		}
+		return &CommitResponse{Id: cid}, nil
+	} else {
+		// Some transactions are committed during this transaction processing.  Should try to merge two commits.
+		m := &Merger{
+			Info:    req.GetInfo(),
+			Base:    baseTree,
+			Latest:  lastTree,
+			Current: req.GetInfo().GetTree(),
+		}
+		mergedTree, err := m.Merge()
+		if err != nil {
+			return nil, err
+		}
+
+		// We succeed merge latest tree and current tree.  Commit latest current tree and merged tree.
+		// todo: latestを進めずにコミットする
+		currentCid, err := v.commit(req.GetId(), req.GetInfo())
+		if err != nil {
+			return nil, err
+		}
+		mergedCid, err := v.commit(req.GetId(), &CommitInfo{
+			CreatedAt:     ptypes.TimestampNow(),
+			LeftParentID:  lastID,
+			RightParentID: currentCid,
+			Tree:          mergedTree,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &CommitResponse{Id: mergedCid}, nil
+	}
+}
+func (v *localVolumeServer) commit(vid *VolumeID, info *CommitInfo) (*CommitID, error) {
+	cid, err := v.cs.Create(vid, info, info.GetTree())
 	if err != nil {
 		if errors.Is(err, controller_db.ErrCrossVolumeCommit) ||
 			errors.Is(err, controller_db.ErrNotFoundVolume) ||
@@ -302,7 +346,5 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 		log.Printf("[ERROR] %+v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &CommitResponse{
-		Id: cid,
-	}, nil
+	return cid, nil
 }
