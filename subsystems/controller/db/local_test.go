@@ -474,24 +474,6 @@ func TestLocalCS_Latest(t *testing.T) {
 	})
 }
 
-func TestLocalCS_UpdateLatest(t *testing.T) {
-	t.Run("should_success_when_old_is_nil", func(t *testing.T) {
-		withLocalDB(t, func(stores Stores) {
-			vs := stores.VolumeStore()
-			cs := stores.CommitStore()
-
-			vid, err := vs.Create(&VolumeInfo{Name: "foo"})
-			assert.NoError(t, err)
-
-			c := createCommit(nil, nil)
-			cid, err := cs.Create(vid, c, c.Tree)
-			assert.NoError(t, err)
-			err = cs.UpdateLatest(nil, cid)
-			assert.NoError(t, err)
-		})
-	})
-}
-
 func TestLocalCS_Create(t *testing.T) {
 	t.Run("should_error_when_volume_id_is_not_match", func(t *testing.T) {
 		withLocalDB(t, func(stores Stores) {
