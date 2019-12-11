@@ -603,8 +603,8 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 			"last commit=%s, left=%s, right=%s",
 			cs.Dec.CommitID(lastCID), left, right,
 		))
-	validationOK:
 
+	validationOK:
 		if err := tx.Bucket(localCommitBucket).Put(
 			cs.Enc.CommitID(newCID),
 			cs.Enc.CommitInfo(info),
