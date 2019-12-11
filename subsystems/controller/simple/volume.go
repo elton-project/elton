@@ -272,6 +272,17 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 		return nil, status.Error(codes.InvalidArgument, "tree should not nil")
 	}
 
+	m := &Merger{
+		Info:    req.GetInfo(),
+		Base:    nil, // todo: get base tree.
+		Latest:  nil, // todo: latest tree.
+		Current: req.GetInfo().GetTree(),
+	}
+	newTree, err := m.Merge()
+	_ = newTree
+	// todo: create merge commit
+	// todo: save newTree
+
 	cid, err := v.cs.Create(
 		req.GetId(),
 		req.GetInfo(),

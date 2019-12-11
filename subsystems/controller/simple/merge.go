@@ -1,4 +1,4 @@
-package controller_db
+package simple
 
 import (
 	mapset "github.com/deckarep/golang-set"
