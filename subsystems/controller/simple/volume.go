@@ -349,5 +349,5 @@ func (v *localVolumeServer) commit(vid *VolumeID, info *CommitInfo) (*CommitID, 
 	return cid, nil
 }
 func wrapStatus(err error, prefix string) error {
-	return status.Errorf(status.Code(err), "%s: %s", prefix, err)
+	return status.Errorf(status.Code(err), "%s: %s", prefix, status.Convert(err).Message())
 }
