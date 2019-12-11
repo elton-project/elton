@@ -54,7 +54,11 @@ message CommitID {
 // TODO: rename
 message CommitInfo {
   google.protobuf.Timestamp createdAt = 1;
+  // 親コミットのID
+  // 通常のコミットはleftのみを指定する。
   CommitID leftParentID = 2;
+  // nil以外の場合は、このコミットはマージコミット。
+  // もう一つの親コミットIDを指定する。
   CommitID rightParentID = 4;
   Tree tree = 5;
 }

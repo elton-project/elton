@@ -534,13 +534,17 @@ func (m *CommitID) GetNumber() uint64 {
 
 // TODO: rename
 type CommitInfo struct {
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
-	LeftParentID         *CommitID            `protobuf:"bytes,2,opt,name=leftParentID,proto3" json:"leftParentID,omitempty"`
-	RightParentID        *CommitID            `protobuf:"bytes,4,opt,name=rightParentID,proto3" json:"rightParentID,omitempty"`
-	Tree                 *Tree                `protobuf:"bytes,5,opt,name=tree,proto3" json:"tree,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,1,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
+	// 親コミットのID
+	// 通常のコミットはleftのみを指定する。
+	LeftParentID *CommitID `protobuf:"bytes,2,opt,name=leftParentID,proto3" json:"leftParentID,omitempty"`
+	// nil以外の場合は、このコミットはマージコミット。
+	// もう一つの親コミットIDを指定する。
+	RightParentID        *CommitID `protobuf:"bytes,4,opt,name=rightParentID,proto3" json:"rightParentID,omitempty"`
+	Tree                 *Tree     `protobuf:"bytes,5,opt,name=tree,proto3" json:"tree,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
 }
 
 func (m *CommitInfo) Reset()         { *m = CommitInfo{} }
