@@ -587,7 +587,7 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 		Info:    info,
 		Base:    nil, // todo: get base tree.
 		Latest:  nil, // todo: latest tree.
-		Current: nil, // todo: current tree.
+		Current: info.Tree,
 	}
 	newTree, err := m.Merge()
 	_ = newTree
