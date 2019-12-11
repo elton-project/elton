@@ -540,22 +540,6 @@ func (cs *localCS) Latest(vid *VolumeID) (latest *CommitID, err error) {
 	})
 	return
 }
-func (cs *localCS) UpdateLatest(old, new *CommitID) error {
-	if old != nil && old.Id != new.Id {
-		return ErrCrossVolumeCommit.Wrap(fmt.Errorf("old_volume=%s, new_volume=%s", old.Id, new.Id))
-	}
-	return cs.DB.Update(func(tx *bbolt.Tx) error {
-		latest := tx.Bucket(localLatestCommitBucket).Get(cs.Enc.VolumeID(new.Id))
-		if !bytes.Equal(cs.Enc.CommitID(old), latest) {
-			return ErrLatestCommitUpdated.Wrap(fmt.Errorf("expected=%s actual=%s", old, cs.Dec.CommitID(latest)))
-		}
-
-		return tx.Bucket(localLatestCommitBucket).Put(
-			cs.Enc.VolumeID(new.Id),
-			cs.Enc.CommitID(new),
-		)
-	})
-}
 func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *CommitID, err error) {
 	newCID := cs.Gen.CommitID(vid)
 	info.Tree = tree
@@ -621,10 +605,20 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 		))
 
 	validationOK:
-		return tx.Bucket(localCommitBucket).Put(
+		if err := tx.Bucket(localCommitBucket).Put(
 			cs.Enc.CommitID(newCID),
 			cs.Enc.CommitInfo(info),
-		)
+		); err != nil {
+			return err
+		}
+
+		binVid := cs.Enc.VolumeID(vid)
+		latest := cs.Dec.CommitID(tx.Bucket(localLatestCommitBucket).Get(binVid))
+		if latest == info.LeftParentID {
+			// New commit is based on the latest commit.  Should update latest CommitID.
+			return tx.Bucket(localLatestCommitBucket).Put(binVid, cs.Enc.CommitID(newCID))
+		}
+		return nil
 	})
 	if err == nil {
 		cid = newCID

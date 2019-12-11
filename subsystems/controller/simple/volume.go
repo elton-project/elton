@@ -68,24 +68,13 @@ func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeR
 	}
 
 	empty := v.firstCommit()
-	ci, err := v.cs.Create(vid, empty, empty.Tree)
+	_, err = v.cs.Create(vid, empty, empty.Tree)
 	if err != nil {
 		if errors.Is(err, controller_db.ErrNotFoundVolume) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 		if errors.Is(err, controller_db.ErrCrossVolumeCommit) || errors.Is(err, controller_db.ErrInvalidParentCommit) || errors.Is(err, controller_db.ErrInvalidTree) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		log.Println("ERROR:", err)
-		return nil, status.Error(codes.Internal, "commit error")
-	}
-	err = v.cs.UpdateLatest(nil, ci)
-	if err != nil {
-		if errors.Is(err, controller_db.ErrCrossVolumeCommit) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		if errors.Is(err, controller_db.ErrNotFoundCommit) {
-			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Println("ERROR:", err)
 		return nil, status.Error(codes.Internal, "commit error")
