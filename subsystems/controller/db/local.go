@@ -582,6 +582,18 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 		return
 	}
 
+	// todo
+	m := &Merger{
+		Info:    info,
+		Base:    nil, // todo: get base tree.
+		Latest:  nil, // todo: latest tree.
+		Current: nil, // todo: current tree.
+	}
+	newTree, err := m.Merge()
+	_ = newTree
+	// todo: create merge commit
+	// todo: save newTree
+
 	err = cs.DB.Update(func(tx *bbolt.Tx) error {
 		// Check whether the volume is exist.
 		if tx.Bucket(localVolumeBucket).Get(cs.Enc.VolumeID(vid)) == nil {
