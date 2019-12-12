@@ -486,28 +486,6 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 }
 
 func TestLocalVolumeServer_Commit(t *testing.T) {
-	t.Run("should_success_when_creating_first_commit", func(t *testing.T) {
-		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
-			vc := elton_v2.NewVolumeServiceClient(dial())
-			vres, err := vc.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
-				Info: &elton_v2.VolumeInfo{Name: "test-volume"},
-			})
-			assert.NoError(t, err)
-			volume := vres.GetId()
-			assert.NotNil(t, volume)
-
-			client := elton_v2.NewCommitServiceClient(dial())
-			res, err := client.Commit(ctx, &elton_v2.CommitRequest{
-				Id: volume,
-				Info: &elton_v2.CommitInfo{
-					CreatedAt: ptypes.TimestampNow(),
-					Tree:      createEmptyTree(),
-				},
-			})
-			assert.NoError(t, err)
-			assert.NotNil(t, res)
-		})
-	})
 	t.Run("should_success_when_creating_next_commit", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			volume, commits := createCommits(t, dial, ctx, "test-volume", []*elton_v2.CommitRequest{
