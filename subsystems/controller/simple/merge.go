@@ -141,6 +141,9 @@ func (m *Merger) Merge() (*Tree, error) {
 
 	// Apply merge policies.
 	// todo
+
+	// Create merged tree by apply currentDiff.
+	// todo
 	panic("todo")
 }
 func (m *Merger) inodeSet(tree *Tree) mapset.Set {
