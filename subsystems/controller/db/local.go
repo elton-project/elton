@@ -111,6 +111,10 @@ func (localEncoder) VolumeName(info *VolumeInfo) []byte {
 func (localEncoder) VolumeInfo(info *VolumeInfo) []byte {
 	return mustMarshall(info)
 }
+func (localEncoder) CommitIDPrefix(id *VolumeID) []byte {
+	s := fmt.Sprintf("%s/", id.GetId())
+	return []byte(s)
+}
 func (localEncoder) CommitID(id *CommitID) []byte {
 	s := fmt.Sprintf("%s/%d", id.GetId().GetId(), id.GetNumber())
 	return []byte(s)
@@ -417,39 +421,14 @@ func (vs *localVS) Delete(id *VolumeID) error {
 		if err := lcb.Delete(vs.Enc.VolumeID(id)); err != nil {
 			return IErrDelete.Wrap(err)
 		}
-		commitStack := make([]*CommitID, 0, 1024)
-		commitStack = append(commitStack, vs.Dec.CommitID(data))
 
 		// Delete commits and trees.
-		for len(commitStack) > 0 {
-			commit := commitStack[len(commitStack)-1]
-			commitStack = commitStack[0 : len(commitStack)-1]
-			if commit.Empty() {
-				log.Printf("[WARN] Found an empty CommitID")
-				continue
-			}
-			log.Printf("[INFO] Deleting commit %s", commit)
-
-			// Get current commit info.
-			data := cb.Get(vs.Enc.CommitID(commit))
-			if len(data) == 0 {
-				log.Printf("[WARN] Not found CommitInfo in commit bucket: %s", commit)
-				continue
-			}
-			commitInfo := vs.Dec.CommitInfo(data)
-
-			// Enqueue next commits.
-			if !commitInfo.GetLeftParentID().Empty() {
-				commitStack = append(commitStack, commitInfo.GetLeftParentID())
-			}
-			if !commitInfo.GetRightParentID().Empty() {
-				commitStack = append(commitStack, commitInfo.GetRightParentID())
-			}
-
-			// Delete a commit and tree.
-			if err := cb.Delete(vs.Enc.CommitID(commit)); err != nil {
-				return IErrDelete.Wrap(err)
-			}
+		prefix := vs.Enc.CommitIDPrefix(id)
+		if err := bboltPrefixScan(cb, prefix, func(k, v []byte) error {
+			log.Printf("[INFO] Deleting commit %s", k)
+			return cb.Delete(k)
+		}); err != nil {
+			return IErrDelete.Wrap(err)
 		}
 		return nil
 	})
@@ -730,4 +709,14 @@ func (ns *localNS) List(walker func(id *NodeID, node *Node) error) error {
 			return walker(id, node)
 		})
 	})
+}
+
+func bboltPrefixScan(b *bbolt.Bucket, prefix []byte, fn func(k, v []byte) error) error {
+	c := b.Cursor()
+	for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
+		if err := fn(k, v); err != nil {
+			return err
+		}
+	}
+	return nil
 }
