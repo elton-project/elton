@@ -414,6 +414,9 @@ func (vs *localVS) Delete(id *VolumeID) error {
 			// Volume is empty.  We don't need to delete commits and trees.
 			return nil
 		}
+		if err := lcb.Delete(vs.Enc.VolumeID(id)); err != nil {
+			return IErrDelete.Wrap(err)
+		}
 		commitStack := make([]*CommitID, 0, 1024)
 		commitStack = append(commitStack, vs.Dec.CommitID(data))
 
