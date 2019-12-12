@@ -149,7 +149,7 @@ func TestLocalVS_Delete(t *testing.T) {
 			}
 			assert.NotNil(t, commit2)
 
-			// Delete commit.
+			// Delete volume.
 			err = vs.Delete(volume)
 			if !assert.NoError(t, err) {
 				return
