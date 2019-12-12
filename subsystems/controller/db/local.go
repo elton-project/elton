@@ -615,7 +615,7 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 
 		binVid := cs.Enc.VolumeID(vid)
 		latest := cs.Dec.CommitID(tx.Bucket(localLatestCommitBucket).Get(binVid))
-		if latest == info.LeftParentID {
+		if latest.Equals(info.LeftParentID) {
 			// New commit is based on the latest commit.  Should update latest CommitID.
 			return tx.Bucket(localLatestCommitBucket).Put(binVid, cs.Enc.CommitID(newCID))
 		}
