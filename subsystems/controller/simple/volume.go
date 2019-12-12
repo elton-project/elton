@@ -216,7 +216,7 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 		default:
 			err = srv.Send(&ListCommitsResponse{
 				Next: "",
-				Id:   nil,
+				Id:   cid,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send response: %w", err)
@@ -238,7 +238,7 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 		}
 		cid = info.GetLeftParentID()
 	}
-	return status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
+	return nil
 }
 func (v *localVolumeServer) GetCommit(ctx context.Context, req *GetCommitRequest) (*GetCommitResponse, error) {
 	if req.GetId() == nil {
