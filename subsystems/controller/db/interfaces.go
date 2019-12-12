@@ -96,7 +96,7 @@ type CommitStore interface {
 	// - ErrNotFoundCommit: If volume has no commits.
 	// - InternalError
 	Latest(vid *VolumeID) (*CommitID, error)
-	// Create creates new commit.  If new commit is based on current latest commit, it updates latest commit tonew commit id.
+	// Create creates new commit.  If new commit is based on current latest commit, it updates latest commit to new commit id.
 	//
 	// Error:
 	// - ErrCrossVolumeCommit: If mismatch vid and info.LeftParentID and info.RightParentID.
