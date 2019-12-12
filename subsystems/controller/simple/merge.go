@@ -27,21 +27,22 @@ const (
 type fileConflictKey struct{ Right, Left ModificationType }
 
 var fileConflictTable = map[fileConflictKey]ConflictType{
+	// Left = InodeDeleted
 	{InodeDeleted, InodeDeleted}:     NoConflict,
 	{InodeAdded, InodeDeleted}:       Conflict,
 	{InodeModified, InodeDeleted}:    Conflict,
 	{InodeNotModified, InodeDeleted}: NoConflict,
-
+	// Left = InodeAdded
 	{InodeDeleted, InodeAdded}:     Conflict,
 	{InodeAdded, InodeAdded}:       NeedCheckContents,
 	{InodeModified, InodeAdded}:    NeedCheckContents,
 	{InodeNotModified, InodeAdded}: NoConflict,
-
+	// Left = InodeModified
 	{InodeDeleted, InodeModified}:     Conflict,
 	{InodeAdded, InodeModified}:       NeedCheckContents,
 	{InodeModified, InodeModified}:    NeedCheckContents,
 	{InodeNotModified, InodeModified}: NoConflict,
-
+	// Left = InodeNotModified
 	{InodeDeleted, InodeNotModified}:     NoConflict,
 	{InodeAdded, InodeNotModified}:       NoConflict,
 	{InodeModified, InodeNotModified}:    NoConflict,
