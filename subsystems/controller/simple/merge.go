@@ -133,7 +133,7 @@ func (m *Merger) Merge() (*Tree, error) {
 			c2 := currentDiff.HowChangesDir(ino)
 			switch fileConflictTable[fileConflictKey{c1, c2}] {
 			case NoConflict:
-				// ok
+				// Do nothing.
 			case Conflict:
 				// todo: エラーメッセージを詳細にする
 				return nil, xerrors.Errorf("conflict")
