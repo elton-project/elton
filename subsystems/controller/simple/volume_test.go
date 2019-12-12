@@ -455,7 +455,14 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 			})
 			assert.NoError(t, err)
 			assert.NotNil(t, stream)
+
+			// Receive first commit.
 			res, err := stream.Recv()
+			assert.NoError(t, err)
+			assert.NotNil(t, res)
+
+			// Receive EOF.
+			res, err = stream.Recv()
 			assert.Equal(t, io.EOF, err)
 			assert.Nil(t, res)
 		})
