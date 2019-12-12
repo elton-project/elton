@@ -280,7 +280,7 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 		Id: baseID,
 	})
 	if err != nil {
-		return nil, wrapStatus(err, "left parent")
+		return nil, wrapStatus(err, codes.InvalidArgument, "left parent")
 	}
 	baseTree := resCmt.GetInfo().GetTree()
 
@@ -289,7 +289,7 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 		VolumeId: req.Id,
 	})
 	if err != nil {
-		return nil, wrapStatus(err, "last commit")
+		return nil, wrapStatus(err, codes.InvalidArgument, "last commit")
 	}
 	lastID := resLast.GetId()
 	lastTree := resLast.GetInfo().GetTree()
@@ -297,7 +297,7 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 	if baseID.Equals(lastID) {
 		cid, err := v.commit(req.GetId(), req.GetInfo())
 		if err != nil {
-			return nil, wrapStatus(err, "saving new commit")
+			return nil, wrapStatus(err, 0, "saving new commit")
 		}
 		return &CommitResponse{Id: cid}, nil
 	} else {
@@ -310,14 +310,14 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 		}
 		mergedTree, err := m.Merge()
 		if err != nil {
-			return nil, wrapStatus(err, "merge two commits")
+			return nil, wrapStatus(err, 0, "merge two commits")
 		}
 
 		// We succeed merge latest tree and current tree.  Commit latest current tree and merged tree.
 		// todo: latestを進めずにコミットする
 		currentCid, err := v.commit(req.GetId(), req.GetInfo())
 		if err != nil {
-			return nil, wrapStatus(err, "saving current commit")
+			return nil, wrapStatus(err, 0, "saving current commit")
 		}
 		mergedCid, err := v.commit(req.GetId(), &CommitInfo{
 			CreatedAt:     ptypes.TimestampNow(),
@@ -326,7 +326,7 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 			Tree:          mergedTree,
 		})
 		if err != nil {
-			return nil, wrapStatus(err, "saving merged commit")
+			return nil, wrapStatus(err, 0, "saving merged commit")
 		}
 		return &CommitResponse{Id: mergedCid}, nil
 	}
@@ -349,6 +349,13 @@ func (v *localVolumeServer) commit(vid *VolumeID, info *CommitInfo) (*CommitID, 
 	}
 	return cid, nil
 }
-func wrapStatus(err error, prefix string) error {
-	return status.Errorf(status.Code(err), "%s: %s", prefix, status.Convert(err).Message())
+
+// wrapStatus returns new gRPC error object with specified code and prefix.
+// If base error code is codes.Internal or code==0, the code argument is ignored and keeps original gRPC error code.
+func wrapStatus(err error, code codes.Code, prefix string) error {
+	newCode := status.Code(err)
+	if newCode != codes.Internal && code != 0 {
+		newCode = code
+	}
+	return status.Errorf(code, "%s: %s", prefix, status.Convert(err).Message())
 }
