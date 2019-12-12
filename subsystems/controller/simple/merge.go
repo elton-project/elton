@@ -139,6 +139,7 @@ func (m *Merger) Merge() (*Tree, error) {
 				return nil, xerrors.Errorf("conflict")
 			case NeedCheckContents:
 				// todo
+				panic("todo")
 			default:
 				panic("todo")
 			}
