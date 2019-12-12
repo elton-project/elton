@@ -69,6 +69,9 @@ func (d *Diff) HowChanges(ino uint64) ModificationType {
 	}
 	return InodeNotModified
 }
+func (d *Diff) HowChangesDir(ino uint64) ModificationType {
+	panic("todo")
+}
 
 // Merger merges Latest tree and Current tree by the 3 way merge algorithm.
 type Merger struct {
@@ -115,20 +118,49 @@ func (m *Merger) Merge() (*Tree, error) {
 	// Check conflict.
 	for _ino := range latestDiff.Changed().Union(currentDiff.Changed()).Iter() {
 		ino := _ino.(uint64)
-		c1 := latestDiff.HowChanges(ino)
-		c2 := currentDiff.HowChanges(ino)
-		switch fileConflictTable[fileConflictKey{c1, c2}] {
-		case NoConflict:
-			// OK
-		case Conflict:
-			// todo: エラーメッセージを詳細にする
-			return nil, xerrors.Errorf("conflict")
-		case NeedCheckContents:
-			// todo: 何を確認すれば良いのか？
-			panic("todo")
-		default:
-			panic("todo")
+
+		lino := m.Latest.Inodes[ino]
+		cino := newCurrent.Inodes[ino]
+		if lino.FileType != cino.FileType {
+			err := xerrors.Errorf("changed file type: ino=%d, latest=%s, current=%s", ino, m.Latest.Inodes[ino], newCurrent.Inodes[ino])
+			panic(err)
 		}
+
+		switch lino.FileType {
+		case FileType_Directory:
+			// Check changes to directory inode are acceptable.
+			c1 := latestDiff.HowChangesDir(ino)
+			c2 := currentDiff.HowChangesDir(ino)
+			switch fileConflictTable[fileConflictKey{c1, c2}] {
+			case NoConflict:
+				// ok
+			case Conflict:
+				// todo
+			case NeedCheckContents:
+				// todo
+			default:
+				panic("todo")
+			}
+			// Check directory entries.
+			// todo
+
+		default: // files
+			c1 := latestDiff.HowChanges(ino)
+			c2 := currentDiff.HowChanges(ino)
+			switch fileConflictTable[fileConflictKey{c1, c2}] {
+			case NoConflict:
+				// OK
+			case Conflict:
+				// todo: エラーメッセージを詳細にする
+				return nil, xerrors.Errorf("conflict")
+			case NeedCheckContents:
+				// todo: 何を確認すれば良いのか？
+				panic("todo")
+			default:
+				panic("todo")
+			}
+		}
+
 	}
 
 	rb := m.reverseIndex(m.Base)
