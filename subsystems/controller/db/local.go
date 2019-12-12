@@ -596,9 +596,6 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 		if lastCID != nil && left != nil && right != nil {
 			goto validationOK
 		}
-		if lastCID == nil && left == nil && right == nil {
-			goto validationOK
-		}
 		return ErrInvalidParentCommit.Wrap(fmt.Errorf(
 			"last commit=%s, left=%s, right=%s",
 			cs.Dec.CommitID(lastCID), left, right,
