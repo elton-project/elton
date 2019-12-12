@@ -135,7 +135,8 @@ func (m *Merger) Merge() (*Tree, error) {
 			case NoConflict:
 				// ok
 			case Conflict:
-				// todo
+				// todo: エラーメッセージを詳細にする
+				return nil, xerrors.Errorf("conflict")
 			case NeedCheckContents:
 				// todo
 			default:
