@@ -588,20 +588,24 @@ func (cs *localCS) Create(vid *VolumeID, info *CommitInfo, tree *Tree) (cid *Com
 			return ErrNotFoundVolume.Wrap(fmt.Errorf("id=%s", vid))
 		}
 
-		// Check whether the commit is based the latest commit.
+		// Check whether parent commits are valid.
 		lastCID := tx.Bucket(localLatestCommitBucket).Get(cs.Enc.VolumeID(vid))
-		if lastCID != nil && left != nil && right == nil {
-			goto validationOK
+		if !(lastCID != nil && left != nil) {
+			// Invalid combination.
+			return ErrInvalidParentCommit.Wrap(fmt.Errorf(
+				"last commit=%s, left=%s, right=%s",
+				cs.Dec.CommitID(lastCID), left, right,
+			))
 		}
-		if lastCID != nil && left != nil && right != nil {
-			goto validationOK
+		if tx.Bucket(localCommitBucket).Get(cs.Enc.CommitID(left)) == nil {
+			// Specified left parent is not found.
+			return ErrInvalidParentCommit.Wrap(fmt.Errorf("left parent commit is not found: %s", left))
 		}
-		return ErrInvalidParentCommit.Wrap(fmt.Errorf(
-			"last commit=%s, left=%s, right=%s",
-			cs.Dec.CommitID(lastCID), left, right,
-		))
+		if right != nil && tx.Bucket(localCommitBucket).Get(cs.Enc.CommitID(right)) == nil {
+			// Right parent is specified.  But it is not found.
+			return ErrInvalidParentCommit.Wrap(fmt.Errorf("right parent commit is not found: %s", right))
+		}
 
-	validationOK:
 		if err := tx.Bucket(localCommitBucket).Put(
 			cs.Enc.CommitID(newCID),
 			cs.Enc.CommitInfo(info),
