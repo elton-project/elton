@@ -397,7 +397,7 @@ func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
 			assert.NotNil(t, res.GetInfo())
 		})
 	})
-	t.Run("should_fail_when_volume_has_no_commit", func(t *testing.T) {
+	t.Run("should_return_first_commit_id", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			vc := elton_v2.NewVolumeServiceClient(dial())
 			vres, err := vc.CreateVolume(ctx, &elton_v2.CreateVolumeRequest{
@@ -411,9 +411,8 @@ func TestLocalVolumeServer_GetLastCommit(t *testing.T) {
 			res, err := client.GetLastCommit(ctx, &elton_v2.GetLastCommitRequest{
 				VolumeId: volume,
 			})
-			assert.Equal(t, codes.NotFound, status.Code(err))
-			assert.Equal(t, "not found commit: no commit in volume", status.Convert(err).Message())
-			assert.Nil(t, res)
+			assert.NoError(t, err)
+			assert.NotNil(t, res)
 		})
 	})
 	t.Run("should_fail_when_invalid_volume_id", func(t *testing.T) {
