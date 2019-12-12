@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/protobuf/ptypes"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
 	"go.etcd.io/bbolt"
@@ -447,8 +448,10 @@ func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
 	err = vs.DB.Update(func(tx *bbolt.Tx) error {
 		vb := tx.Bucket(localVolumeBucket)
 		vnb := tx.Bucket(localVolumeNameBucket)
+		cb := tx.Bucket(localCommitBucket)
+		lcb := tx.Bucket(localLatestCommitBucket)
 
-		// Duplication check
+		// Duplication check.
 		if vb.Get(vs.Enc.VolumeID(id)) != nil {
 			return ErrDupVolumeID.Wrap(fmt.Errorf("id=%s", id))
 		}
@@ -456,16 +459,31 @@ func (vs *localVS) Create(info *VolumeInfo) (id *VolumeID, err error) {
 			return ErrDupVolumeName.Wrap(fmt.Errorf("name=%s", info.GetName()))
 		}
 
+		// Save volume info.
 		if err := vb.Put(
 			vs.Enc.VolumeID(id),
 			vs.Enc.VolumeInfo(info),
 		); err != nil {
 			return err
 		}
-
-		return vnb.Put(
+		if err := vnb.Put(
 			vs.Enc.VolumeName(info),
 			vs.Enc.VolumeID(id),
+		); err != nil {
+			return err
+		}
+
+		// Create empty commit.
+		newCID := vs.Gen.CommitID(id)
+		if err := cb.Put(
+			vs.Enc.CommitID(newCID),
+			vs.Enc.CommitInfo(firstCommit()),
+		); err != nil {
+			return err
+		}
+		return lcb.Put(
+			vs.Enc.VolumeID(id),
+			vs.Enc.CommitID(newCID),
 		)
 	})
 	return
@@ -719,4 +737,30 @@ func bboltPrefixScan(b *bbolt.Bucket, prefix []byte, fn func(k, v []byte) error)
 		}
 	}
 	return nil
+}
+func firstCommit() *CommitInfo {
+	now := ptypes.TimestampNow()
+	return &CommitInfo{
+		CreatedAt:     now,
+		LeftParentID:  nil,
+		RightParentID: nil,
+		Tree: &Tree{
+			RootIno: 1,
+			Inodes: map[uint64]*File{
+				1: {
+					ContentRef: nil,
+					FileType:   FileType_Directory,
+					Mode:       0755,
+					Owner:      0,
+					Group:      0,
+					Atime:      now,
+					Mtime:      now,
+					Ctime:      now,
+					Major:      0,
+					Minor:      0,
+					Entries:    nil,
+				},
+			},
+		},
+	}
 }

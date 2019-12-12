@@ -24,32 +24,6 @@ type localVolumeServer struct {
 	cs controller_db.CommitStore
 }
 
-func (v *localVolumeServer) firstCommit() *CommitInfo {
-	now := ptypes.TimestampNow()
-	return &CommitInfo{
-		CreatedAt:     now,
-		LeftParentID:  nil,
-		RightParentID: nil,
-		Tree: &Tree{
-			RootIno: 1,
-			Inodes: map[uint64]*File{
-				1: {
-					ContentRef: nil,
-					FileType:   FileType_Directory,
-					Mode:       0755,
-					Owner:      0,
-					Group:      0,
-					Atime:      now,
-					Mtime:      now,
-					Ctime:      now,
-					Major:      0,
-					Minor:      0,
-					Entries:    nil,
-				},
-			},
-		},
-	}
-}
 func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeRequest) (*CreateVolumeResponse, error) {
 	if req.GetInfo() == nil {
 		return nil, status.Error(codes.InvalidArgument, "info is null")
@@ -65,19 +39,6 @@ func (v *localVolumeServer) CreateVolume(ctx context.Context, req *CreateVolumeR
 		}
 		log.Println("ERROR:", err)
 		return nil, status.Error(codes.Internal, "database error")
-	}
-
-	empty := v.firstCommit()
-	_, err = v.cs.Create(vid, empty, empty.Tree)
-	if err != nil {
-		if errors.Is(err, controller_db.ErrNotFoundVolume) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		if errors.Is(err, controller_db.ErrCrossVolumeCommit) || errors.Is(err, controller_db.ErrInvalidParentCommit) || errors.Is(err, controller_db.ErrInvalidTree) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		log.Println("ERROR:", err)
-		return nil, status.Error(codes.Internal, "commit error")
 	}
 
 	return &CreateVolumeResponse{
