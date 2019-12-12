@@ -60,3 +60,32 @@ func (f *File) DeepCopy() *File {
 	}
 	return x
 }
+func (t *Tree) maxIno() uint64 {
+	max := uint64(0)
+	for ino := range t.GetInodes() {
+		if max < ino {
+			max = ino
+		}
+	}
+	return max
+}
+
+// NextIno returns next available inode number.
+// If additional arguments are specified, NexIno choose an inode number that does not exist in all specified trees.
+func (t *Tree) NextIno(trees ...*Tree) uint64 {
+	trees = append(trees, t)
+	ino := t.maxIno() + 1
+	for {
+		found := false
+		for _, tree := range trees {
+			if tree.Inodes[ino] != nil {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return ino
+		}
+		ino++
+	}
+}

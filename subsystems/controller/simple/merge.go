@@ -90,7 +90,7 @@ func (m *Merger) Merge() (*Tree, error) {
 	newCurrent := m.Current.DeepCopy()
 	for _oldIno := range latestDiff.Added.Intersect(currentDiff.Added).Iter() {
 		oldIno := _oldIno.(uint64)
-		newIno := uint64(0) // todo: generate next inode.
+		newIno := newCurrent.NextIno(m.Base, m.Latest)
 
 		if !(m.Latest.Inodes[newIno] == nil && newCurrent.Inodes[newIno] == nil) {
 			panic("bug")
