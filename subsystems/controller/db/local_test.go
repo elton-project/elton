@@ -165,6 +165,7 @@ func TestLocalVS_Delete(t *testing.T) {
 			assert.Nil(t, info)
 			info, err = cs.Get(commit2)
 			if !assert.Error(t, err) {
+				return
 			}
 			assert.Contains(t, err.Error(), "not found commit: ")
 			assert.Nil(t, info)
