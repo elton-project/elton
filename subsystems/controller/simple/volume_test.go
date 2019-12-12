@@ -486,7 +486,7 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 }
 
 func TestLocalVolumeServer_Commit(t *testing.T) {
-	t.Run("should_success_when_creating_next_commit", func(t *testing.T) {
+	t.Run("should_success_when_creating_second_commit", func(t *testing.T) {
 		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
 			volume, commits := createCommits(t, dial, ctx, "test-volume", []*elton_v2.CommitRequest{
 				{
