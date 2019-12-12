@@ -16,8 +16,14 @@ func (id *NodeID) Empty() bool {
 func (id *VolumeID) Empty() bool {
 	return id.GetId() == ""
 }
+func (id *VolumeID) Equals(other *VolumeID) bool {
+	return id.GetId() == other.GetId()
+}
 func (id *CommitID) Empty() bool {
 	return id.GetId().Empty() && id.GetNumber() == 0
+}
+func (id *CommitID) Equals(other *CommitID) bool {
+	return id.GetId().Equals(other.GetId()) && id.GetNumber() == other.GetNumber()
 }
 
 func (t *Tree) FastValidate() error {

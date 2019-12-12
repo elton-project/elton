@@ -294,7 +294,7 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 	lastID := resLast.GetId()
 	lastTree := resLast.GetInfo().GetTree()
 
-	if baseID == lastID {
+	if baseID.Equals(lastID) {
 		cid, err := v.commit(req.GetId(), req.GetInfo())
 		if err != nil {
 			return nil, wrapStatus(err, "saving new commit")
