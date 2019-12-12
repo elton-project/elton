@@ -103,7 +103,16 @@ func createCommits(
 		// Set parent CommitID.
 		if len(ids) > 0 {
 			commit.Info.LeftParentID = ids[len(ids)-1]
+		} else {
+			lres, err := cc.GetLastCommit(ctx, &elton_v2.GetLastCommitRequest{
+				VolumeId: volumeID,
+			})
+			if !assert.NoError(t, err) {
+				t.FailNow()
+			}
+			commit.Info.LeftParentID = lres.GetId()
 		}
+		assert.NotNil(t, commit.Info.LeftParentID)
 
 		res, err := cc.Commit(ctx, commit)
 		if !assert.NoError(t, err) {
