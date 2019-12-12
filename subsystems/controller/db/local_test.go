@@ -1,7 +1,6 @@
 package controller_db
 
 import (
-	"errors"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
@@ -131,9 +130,15 @@ func TestLocalVS_Delete(t *testing.T) {
 			}
 			assert.NotNil(t, volume)
 
+			parent, err := cs.Latest(volume)
+			if !assert.NoError(t, err) {
+				return
+			}
+
 			// Create commits.
 			commit, err := cs.Create(volume, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: parent,
 			}, createTree())
 			if !assert.NoError(t, err) {
 				return
@@ -278,8 +283,14 @@ func TestLocalCS_Get(t *testing.T) {
 				return
 			}
 
+			parent, err := cs.Latest(vid)
+			if !assert.NoError(t, err) {
+				return
+			}
+
 			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: parent,
 			}, &Tree{
 				RootIno: 1,
 				Inodes: map[uint64]*File{
@@ -340,8 +351,13 @@ func TestLocalCS_Exists(t *testing.T) {
 			if !assert.NoError(t, err) {
 				return
 			}
+			parent, err := cs.Latest(vid)
+			if !assert.NoError(t, err) {
+				return
+			}
 			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
+				CreatedAt:    ptypes.TimestampNow(),
+				LeftParentID: parent,
 			}, createTree())
 			if !assert.NoError(t, err) {
 				return
@@ -378,13 +394,11 @@ func TestLocalCS_Parents(t *testing.T) {
 			if !assert.NoError(t, err) {
 				return
 			}
-			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
-			}, createTree())
+
+			cid, err := cs.Latest(vid)
 			if !assert.NoError(t, err) {
 				return
 			}
-			assert.NotNil(t, cid)
 
 			left, right, err := cs.Parents(cid)
 			assert.NoError(t, err)
@@ -403,12 +417,12 @@ func TestLocalCS_Parents(t *testing.T) {
 			if !assert.NoError(t, err) {
 				return
 			}
-			cid, err := cs.Create(vid, &CommitInfo{
-				CreatedAt: ptypes.TimestampNow(),
-			}, createTree())
+
+			cid, err := cs.Latest(vid)
 			if !assert.NoError(t, err) {
 				return
 			}
+
 			cid2, err := cs.Create(vid, &CommitInfo{
 				CreatedAt:    ptypes.TimestampNow(),
 				LeftParentID: cid,
@@ -437,7 +451,7 @@ func TestLocalCS_Latest(t *testing.T) {
 			assert.Nil(t, cid)
 		})
 	})
-	t.Run("should_error_when_volume_is_empty", func(t *testing.T) {
+	t.Run("should_return_valid_commit_id_when_volume_is_exists", func(t *testing.T) {
 		withLocalDB(t, func(stores Stores) {
 			vs := stores.VolumeStore()
 			cs := stores.CommitStore()
@@ -447,27 +461,6 @@ func TestLocalCS_Latest(t *testing.T) {
 			if !assert.NoError(t, err) {
 				return
 			}
-			cid, err := cs.Latest(vid)
-			assert.EqualError(t, err, "not found commit: no commit in volume")
-			assert.True(t, errors.Is(err, ErrNotFoundCommit))
-			assert.Nil(t, cid)
-		})
-	})
-	t.Run("should_return_valid_commit_id_when_volume_is_not_empty", func(t *testing.T) {
-		withLocalDB(t, func(stores Stores) {
-			vs := stores.VolumeStore()
-			cs := stores.CommitStore()
-			vid, err := vs.Create(&VolumeInfo{
-				Name: "foo",
-			})
-			if !assert.NoError(t, err) {
-				return
-			}
-			_, err = cs.Create(vid, &CommitInfo{}, createTree())
-			if assert.NoError(t, err) {
-				return
-			}
-
 			cid, err := cs.Latest(vid)
 			assert.NoError(t, err)
 			assert.NotNil(t, cid)
@@ -527,6 +520,9 @@ func TestLocalCS_Create(t *testing.T) {
 			cid, err := cs.Create(vid, &CommitInfo{
 				LeftParentID: invalidCID,
 			}, createTree())
+			if !assert.Error(t, err) {
+				return
+			}
 			assert.Contains(t, err.Error(), "invalid parent commit: ")
 			assert.Nil(t, cid)
 		})
@@ -557,9 +553,14 @@ func TestLocalCS_Tree(t *testing.T) {
 				return
 			}
 
+			parent, err := cs.Latest(vid)
+			if !assert.NoError(t, err) {
+				return
+			}
+
 			cid, err := cs.Create(vid, &CommitInfo{
 				CreatedAt:    ptypes.TimestampNow(),
-				LeftParentID: nil,
+				LeftParentID: parent,
 			}, &Tree{
 				RootIno: 1,
 				Inodes: map[uint64]*File{
