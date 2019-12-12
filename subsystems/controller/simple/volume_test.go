@@ -517,7 +517,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
-			assert.Equal(t, "cross-volume commit: mismatch VolumeID and CommitInfo.RightParentID", status.Convert(err).Message())
+			assert.Equal(t, "left parent: id should not nil", status.Convert(err).Message())
 			assert.Nil(t, res)
 		})
 	})
@@ -533,7 +533,7 @@ func TestLocalVolumeServer_Commit(t *testing.T) {
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err))
-			assert.Contains(t, status.Convert(err).Message(), "invalid parent commit: ")
+			assert.Contains(t, status.Convert(err).Message(), "left parent: not found commit: ")
 			assert.Nil(t, res)
 		})
 	})
