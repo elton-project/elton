@@ -314,12 +314,12 @@ func (v *localVolumeServer) Commit(ctx context.Context, req *CommitRequest) (*Co
 	}
 
 	// Base info
-	baseID := req.GetInfo().GetRightParentID()
+	baseID := req.GetInfo().GetLeftParentID()
 	resCmt, err := v.GetCommit(ctx, &GetCommitRequest{
 		Id: baseID,
 	})
 	if err != nil {
-		return nil, wrapStatus(err, "right parent")
+		return nil, wrapStatus(err, "left parent")
 	}
 	baseTree := resCmt.GetInfo().GetTree()
 
