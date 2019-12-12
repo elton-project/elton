@@ -69,9 +69,6 @@ func (d *Diff) HowChanges(ino uint64) ModificationType {
 	}
 	return InodeNotModified
 }
-func (d *Diff) HowChangesDir(ino uint64) ModificationType {
-	panic("todo")
-}
 
 // Merger merges Latest tree and Current tree by the 3 way merge algorithm.
 type Merger struct {
@@ -129,8 +126,8 @@ func (m *Merger) Merge() (*Tree, error) {
 		switch lino.FileType {
 		case FileType_Directory:
 			// Check changes to directory inode are acceptable.
-			c1 := latestDiff.HowChangesDir(ino)
-			c2 := currentDiff.HowChangesDir(ino)
+			c1 := latestDiff.HowChanges(ino)
+			c2 := currentDiff.HowChanges(ino)
 			switch fileConflictTable[fileConflictKey{c1, c2}] {
 			case NoConflict:
 				// Do nothing.
@@ -206,15 +203,37 @@ func (m *Merger) diff(base, other mapset.Set, baseT, otherT *Tree) *Diff {
 	}
 }
 func (m *Merger) filterNotModifiedInodes(inodes mapset.Set, base, other *Tree) mapset.Set {
-	b := base.GetInodes()
-	o := other.GetInodes()
-
 	out := mapset.NewThreadUnsafeSet()
-	for ino := range inodes.Iter() {
-		_ = b
-		_ = o
-		_ = ino
-		// TODO: fileの比較処理
+	for _ino := range inodes.Iter() {
+		ino := _ino.(uint64)
+		bino := base.Inodes[ino]
+		oino := other.Inodes[ino]
+
+		if bino == nil {
+			panic(xerrors.New("bino is nil"))
+		}
+		if oino == nil {
+			panic(xerrors.New("oino is nil"))
+		}
+		if bino.FileType != oino.FileType {
+			panic(xerrors.Errorf("mismatch file type: bino=%s, oino=%s", bino, oino))
+		}
+
+		changed := false
+		switch bino.FileType {
+		case FileType_Directory:
+			// Compare two directory inodes.
+			// NOTE: In this case, MUST ignore changes of mtime and entries fields.
+			// todo
+			panic("todo")
+		default: // files
+			// Compare two inodes with all fields.
+			// todo
+			panic("todo")
+		}
+		if changed {
+			out.Add(ino)
+		}
 	}
 	return out
 }
