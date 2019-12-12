@@ -248,7 +248,7 @@ func (v *localVolumeServer) GetCommit(ctx context.Context, req *GetCommitRequest
 	info, err := v.cs.Get(req.GetId())
 	if err != nil {
 		if errors.Is(err, controller_db.ErrNotFoundCommit) {
-			return nil, status.Error(codes.NotFound, "not found commit")
+			return nil, status.Errorf(codes.NotFound, "not found commit: %s", req.GetId())
 		}
 		if errors.Is(err, &controller_db.InputError{}) {
 			log.Printf("[CRITICAL] Missing error handling: %+v", err)
