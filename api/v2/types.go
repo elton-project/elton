@@ -2,6 +2,7 @@ package elton_v2
 
 import (
 	"golang.org/x/xerrors"
+	"log"
 )
 
 func (id *ObjectKey) Empty() bool {
@@ -88,4 +89,66 @@ func (t *Tree) NextIno(trees ...*Tree) uint64 {
 		}
 		ino++
 	}
+}
+
+type comparableFile struct {
+	ContentRef     string
+	FileType       FileType
+	Mode           uint32
+	Owner          uint32
+	Group          uint32
+	AtimeUnixEpoch int64
+	AtimeNsec      int32
+	MtimeUnixEpoch int64
+	MtimeNsec      int32
+	CtimeUnixEpoch int64
+	CtimeNsec      int32
+	Major          uint32
+	Minor          uint32
+}
+
+func (f *File) toComparableFile() comparableFile {
+	return comparableFile{
+		ContentRef:     f.GetContentRef().GetKey().GetId(),
+		FileType:       f.GetFileType(),
+		Mode:           f.GetMode(),
+		Owner:          f.GetOwner(),
+		Group:          f.GetGroup(),
+		AtimeUnixEpoch: f.GetAtime().GetSeconds(),
+		AtimeNsec:      f.GetAtime().GetNanos(),
+		MtimeUnixEpoch: f.GetMtime().GetSeconds(),
+		MtimeNsec:      f.GetMtime().GetNanos(),
+		CtimeUnixEpoch: f.GetCtime().GetSeconds(),
+		CtimeNsec:      f.GetCtime().GetNanos(),
+		Major:          f.GetMajor(),
+		Minor:          f.GetMinor(),
+	}
+}
+func (a *File) EqualsFile(b *File) bool {
+	if a.GetFileType() == FileType_Directory || b.GetFileType() == FileType_Directory {
+		log.Println("[WARN] Trying to compare directory as non-directory file")
+	}
+	if len(a.GetEntries()) > 0 || len(b.GetEntries()) > 0 {
+		log.Println("[WARN] Contains directory entries in non-directory file")
+	}
+	return a.toComparableFile() == b.toComparableFile()
+}
+
+// EqualsDirWithoutContents compares two directory files and returns result.
+// This comparision function ignores changes of mtime and entries fields.  The caller should compare those fields.
+func (a *File) EqualsDirWithoutContents(b *File) bool {
+	if a.GetFileType() != FileType_Directory || b.GetFileType() != FileType_Directory {
+		log.Println("[WARN] Trying to compare non-directory file as directory")
+	}
+
+	a2 := a.toComparableFile()
+	b2 := b.toComparableFile()
+
+	// MUST ignore changes of mtime.
+	a2.MtimeUnixEpoch = 0
+	a2.MtimeNsec = 0
+	b2.MtimeUnixEpoch = 0
+	b2.MtimeNsec = 0
+
+	return a2 == b2
 }
