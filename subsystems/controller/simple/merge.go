@@ -86,22 +86,22 @@ func (m *Merger) Merge() (*Tree, error) {
 	latestDiff := m.diff(b, l, m.Base, m.Latest)
 	currentDiff := m.diff(b, c, m.Base, m.Current)
 
-	// Fix inode number to prevent conflict.
-	// TODO: 既存のツリーを上書きしないようにする。
+	// Fix inode number to prevent conflict.  Result is stored to newCurrent.  m.Current tree is kept original status.
+	newCurrent := m.Current.DeepCopy()
 	for _oldIno := range latestDiff.Added.Intersect(currentDiff.Added).Iter() {
 		oldIno := _oldIno.(uint64)
 		newIno := uint64(0) // todo: generate next inode.
 
-		if !(m.Latest.Inodes[newIno] == nil && m.Current.Inodes[newIno] == nil) {
+		if !(m.Latest.Inodes[newIno] == nil && newCurrent.Inodes[newIno] == nil) {
 			panic("bug")
 		}
 
 		// Fix inodes table.
-		m.Current.Inodes[newIno] = m.Current.Inodes[oldIno]
-		delete(m.Current.Inodes, oldIno)
+		newCurrent.Inodes[newIno] = newCurrent.Inodes[oldIno]
+		delete(newCurrent.Inodes, oldIno)
 
 		// Fix directory entries.
-		for _, inode := range m.Current.Inodes {
+		for _, inode := range newCurrent.Inodes {
 			if inode.FileType == FileType_Directory {
 				for name, to := range inode.Entries {
 					if to == oldIno {

@@ -41,3 +41,22 @@ func (t *Tree) FastValidate() error {
 	// TODO: ちゃんとチェックする
 	return nil
 }
+func (t *Tree) DeepCopy() *Tree {
+	inodes := make(map[uint64]*File, len(t.GetInodes()))
+	for ino, f := range t.GetInodes() {
+		inodes[ino] = f.DeepCopy()
+	}
+	return &Tree{
+		RootIno: t.GetRootIno(),
+		Inodes:  inodes,
+	}
+}
+func (f *File) DeepCopy() *File {
+	x := &File{}
+	*x = *f
+	x.Entries = make(map[string]uint64, len(f.Entries))
+	for name, ino := range f.Entries {
+		x.Entries[name] = ino
+	}
+	return x
+}
