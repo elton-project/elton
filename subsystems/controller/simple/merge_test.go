@@ -135,3 +135,61 @@ func TestMerger_filterNotModifiedInodes(t *testing.T) {
 		})
 	}
 }
+
+func TestMerger_diff(t *testing.T) {
+	type fields struct {
+		Info    *CommitInfo
+		Base    *Tree
+		Latest  *Tree
+		Current *Tree
+	}
+	type args struct {
+		base   mapset.Set
+		other  mapset.Set
+		baseT  *Tree
+		otherT *Tree
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *Diff
+	}{
+		{
+			name: "test_added",
+			args: args{
+				base:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+				other: mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(1)}),
+			},
+			want: &Diff{
+				Added:    mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(1)}),
+				Deleted:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+				Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+			},
+		}, {
+			name: "test_deleted",
+			args: args{
+				base:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(1)}),
+				other: mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+			},
+			want: &Diff{
+				Added:    mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+				Deleted:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(1)}),
+				Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &Merger{
+				Info:    tt.fields.Info,
+				Base:    tt.fields.Base,
+				Latest:  tt.fields.Latest,
+				Current: tt.fields.Current,
+			}
+			if got := m.diff(tt.args.base, tt.args.other, tt.args.baseT, tt.args.otherT); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("diff() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
