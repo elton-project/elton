@@ -248,7 +248,7 @@ func TestMerger_reverseIndex(t *testing.T) {
 						5: { // /tmp/
 							FileType: FileType_Directory,
 							Entries: map[string]uint64{
-								"bash": 4,
+								"bash": 4, // (hard link)
 							},
 						},
 					},
