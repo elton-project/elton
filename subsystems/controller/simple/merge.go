@@ -225,6 +225,9 @@ func (m *Merger) filterNotModifiedInodes(inodes mapset.Set, base, other *Tree) m
 		case FileType_Directory:
 			// Compare two directory inodes.
 			changed = bino.EqualsDirWithoutContents(oino)
+			if !changed {
+				changed = bino.EqualsDirContents(oino)
+			}
 		default: // files
 			// Compare two non-directory files.
 			changed = bino.EqualsFile(oino)

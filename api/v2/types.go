@@ -152,3 +152,22 @@ func (a *File) EqualsDirWithoutContents(b *File) bool {
 
 	return a2 == b2
 }
+
+// EqualsDirContents compares contained files of two directories.
+func (a *File) EqualsDirContents(b *File) bool {
+	if a.GetFileType() != FileType_Directory || b.GetFileType() != FileType_Directory {
+		log.Println("[WARN] Trying to compare non-directory file as directory")
+	}
+
+	if len(a.Entries) != len(b.Entries) {
+		// Fast path
+		return false
+	}
+	// Slow path
+	for k, v := range a.Entries {
+		if v != b.Entries[k] {
+			return false
+		}
+	}
+	return true
+}
