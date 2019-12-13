@@ -14,11 +14,11 @@ import proxmoxer
 from typing import Optional, List
 
 # Gateway address
-GATEWAY = '192.168.189.1'
+GATEWAY = '10.10.0.1'
 # IP address used on the setup node.
-SETUP_NODE = '192.168.189.149'
+SETUP_NODE = '10.10.127.1'
 # Netmask used on the setup node.
-SETUP_NODE_NETMASK = 24
+SETUP_NODE_NETMASK = 16
 # Path to bash script file.
 SETUP_SCRIPT_FILE = 'eltonfs/clustertest/node-setup.sh'
 # Memory size allocated to the setup node (in megabytes).
