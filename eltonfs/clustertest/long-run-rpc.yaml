@@ -14,10 +14,10 @@ specs:
         password: waiphaefiRaiph5ing7o
       fingerprint: 2C:CF:88:33:C6:56:2C:76:21:56:07:AB:02:E5:4F:1B:41:A3:CB:F1:49:6F:D9:CE:05:73:EE:33:89:08:3C:29
     address_pools:
-      - start_address: 192.168.189.131
-        end_address: 192.168.189.148
-        cidr: 24
-        gateway: 192.168.189.1
+      - start_address: 10.10.1.1
+        end_address: 10.10.1.255
+        cidr: 16
+        gateway: 10.10.0.1
     user:
       user: root
       ssh_public_key: |
