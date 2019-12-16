@@ -175,7 +175,7 @@ func TestMerger_filterNotModifiedInodes(t *testing.T) {
 	}
 }
 
-func TestMerger_diff(t *testing.T) {
+func TestMerger_fileDiff(t *testing.T) {
 	type fields struct {
 		Info    *CommitInfo
 		Base    *Tree
@@ -226,7 +226,7 @@ func TestMerger_diff(t *testing.T) {
 				Latest:  tt.fields.Latest,
 				Current: tt.fields.Current,
 			}
-			got := m.diff(tt.args.base, tt.args.other, tt.args.baseT, tt.args.otherT)
+			got := m.fileDiff(tt.args.base, tt.args.other, tt.args.baseT, tt.args.otherT)
 			assert.Equal(t, tt.want, got)
 		})
 	}

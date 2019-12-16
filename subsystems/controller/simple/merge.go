@@ -91,8 +91,8 @@ func (m *Merger) Merge() (*Tree, error) {
 	l := m.inodeSet(m.Latest)
 	c := m.inodeSet(m.Current)
 
-	latestDiff := m.diff(b, l, m.Base, m.Latest)
-	currentDiff := m.diff(b, c, m.Base, m.Current)
+	latestDiff := m.fileDiff(b, l, m.Base, m.Latest)
+	currentDiff := m.fileDiff(b, c, m.Base, m.Current)
 
 	// Fix inode number to prevent conflict.  Result is stored to newCurrent.  m.Current tree is kept original status.
 	newCurrent := m.shiftIno(latestDiff, currentDiff)
@@ -267,7 +267,7 @@ func (m *Merger) reverseIndex(tree *Tree) map[uint64]InoSlice {
 	}
 	return rev
 }
-func (m *Merger) diff(base, other mapset.Set, baseT, otherT *Tree) *Diff {
+func (m *Merger) fileDiff(base, other mapset.Set, baseT, otherT *Tree) *Diff {
 	return &Diff{
 		Added:    other.Difference(base),                                          // other - base = added inodes
 		Deleted:  base.Difference(other),                                          // base - other = deleted inodes
