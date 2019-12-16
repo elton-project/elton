@@ -302,7 +302,6 @@ type conflictRule struct{}
 
 // CheckConflictRulesFile checks conflict of files and directories (attributes only).
 func (conflictRule) CheckConflictRulesFile(a, b *Diff, aTree, bTree *Tree) error {
-	// Check conflicts.
 	if inoset := a.Deleted.Intersect(b.Added); inoset.Cardinality() > 0 {
 		err := xerrors.Errorf("conflict(del-add): %s", inoset)
 		log.Printf("[WARN] %s", err)
