@@ -226,9 +226,8 @@ func TestMerger_diff(t *testing.T) {
 				Latest:  tt.fields.Latest,
 				Current: tt.fields.Current,
 			}
-			if got := m.diff(tt.args.base, tt.args.other, tt.args.baseT, tt.args.otherT); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("diff() = %v, want %v", got, tt.want)
-			}
+			got := m.diff(tt.args.base, tt.args.other, tt.args.baseT, tt.args.otherT)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
