@@ -111,6 +111,11 @@ func (m *Merger) Merge() (*Tree, error) {
 		log.Printf("[WARN] %s", err)
 		return nil, err
 	}
+	if inoset := latestDiff.Added.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(add-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return nil, err
+	}
 	if inoset := latestDiff.Added.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
 		err := xerrors.Errorf("conflict(add-mod): %s", inoset)
 		log.Printf("[WARN] %s", err)
