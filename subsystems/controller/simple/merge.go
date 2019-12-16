@@ -294,8 +294,19 @@ func (m *Merger) checkFileConflict(latestDiffAll, currentDiffAll *Diff, newCurre
 	return conflictRule{}.CheckConflictRulesFile(latestDiff, currentDiff, m.Latest, newCurrent)
 }
 
-func (m *Merger) checkDirConflict(diff, diff2 *Diff, tree *Tree) error {
-	// todo
+func (m *Merger) checkDirConflict(latestDiffAll, currentDiffAll *Diff, newCurrent *Tree) error {
+	// Filter by file type.
+	latestDiff := latestDiffAll.Filter(func(ino uint64) bool {
+		return m.Latest.Inodes[ino].FileType == FileType_Directory
+	})
+	currentDiff := currentDiffAll.Filter(func(ino uint64) bool {
+		return newCurrent.Inodes[ino].FileType == FileType_Directory
+	})
+
+	if err := (conflictRule{}).CheckConflictRulesFile(latestDiff, currentDiff, m.Latest, newCurrent); err != nil {
+		return err
+	}
+	return conflictRule{}.CheckConflictRulesDir(latestDiff, currentDiff, m.Base, m.Latest, newCurrent)
 }
 
 type conflictRule struct{}
@@ -357,4 +368,60 @@ func (conflictRule) CheckConflictRulesFile(a, b *Diff, aTree, bTree *Tree) error
 		}
 	}
 	return nil
+}
+
+// CheckConflictRulesDir checks conflict of directory entries.
+func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tree) error {
+	for _ino := range a.Modified.Intersect(b.Modified).Iter() {
+		ino := _ino.(uint64)
+		baseFile := baseTree.Inodes[ino]
+		aFile := aTree.Inodes[ino]
+		bFile := bTree.Inodes[ino]
+
+		aDiff := conflictRule{}.entryDiff(baseFile, aFile)
+		bDiff := conflictRule{}.entryDiff(baseFile, bFile)
+
+		if nameSet := aDiff.Deleted.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
+			// todo: warn
+		}
+		if nameSet := aDiff.Added.Intersect(bDiff.Deleted); nameSet.Cardinality() > 0 {
+			// todo: warn
+		}
+		if nameSet := aDiff.Added.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
+			// todo: 挙動未定
+		}
+	}
+	return nil
+}
+
+func (conflictRule) entryDiff(base, changed *File) *entryDiff {
+	baseNames := conflictRule{}.nameSet(base)
+	changedNames := conflictRule{}.nameSet(changed)
+
+	modified := mapset.NewThreadUnsafeSet()
+	for _name := range baseNames.Intersect(changedNames).Iter() {
+		name := _name.(string)
+		if base.Entries[name] != changed.Entries[name] {
+			modified.Add(name)
+		}
+	}
+
+	return &entryDiff{
+		Added:    changedNames.Difference(baseNames),
+		Deleted:  baseNames.Difference(changedNames),
+		Modified: modified,
+	}
+}
+func (conflictRule) nameSet(f *File) mapset.Set {
+	ent := mapset.NewThreadUnsafeSet()
+	for name := range f.Entries {
+		ent.Add(name)
+	}
+	return ent
+}
+
+type entryDiff struct {
+	Added    mapset.Set
+	Deleted  mapset.Set
+	Modified mapset.Set
 }
