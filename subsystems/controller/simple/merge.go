@@ -120,6 +120,19 @@ func (m *Merger) Merge() (*Tree, error) {
 	}
 
 	// Check conflict.
+	if inoset := latestDiff.Deleted.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
+		return nil, xerrors.Errorf("conflict(del-add): %s", inoset)
+	}
+	if inoset := latestDiff.Deleted.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
+		return nil, xerrors.Errorf("conflict(del-mod): %s", inoset)
+	}
+	if inoset := latestDiff.Added.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
+		return nil, xerrors.Errorf("conflict(add-del): %s", inoset)
+	}
+	if inoset := latestDiff.Modified.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
+		return nil, xerrors.Errorf("conflict(mod-del): %s", inoset)
+	}
+
 	for _ino := range latestDiff.Changed().Union(currentDiff.Changed()).Iter() {
 		ino := _ino.(uint64)
 
