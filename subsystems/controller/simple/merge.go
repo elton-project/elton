@@ -49,6 +49,12 @@ var fileConflictTable = map[fileConflictKey]ConflictType{
 	{InodeNotModified, InodeNotModified}: NoConflict,
 }
 
+type InoSlice []uint64
+
+func (s InoSlice) Len() int           { return len(s) }
+func (s InoSlice) Less(i, j int) bool { return s[i] < s[j] }
+func (s InoSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
 type Diff struct {
 	Added    mapset.Set
 	Deleted  mapset.Set
@@ -187,8 +193,8 @@ func (m *Merger) inodeSet(tree *Tree) mapset.Set {
 	}
 	return inodes
 }
-func (m *Merger) reverseIndex(tree *Tree) map[uint64][]uint64 {
-	rev := map[uint64][]uint64{}
+func (m *Merger) reverseIndex(tree *Tree) map[uint64]InoSlice {
+	rev := map[uint64]InoSlice{}
 	for ino, f := range tree.GetInodes() {
 		if f.GetFileType() == FileType_Directory {
 			for _, ent := range f.GetEntries() {

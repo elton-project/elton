@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 )
@@ -208,7 +209,7 @@ func TestMerger_reverseIndex(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   map[uint64][]uint64
+		want   map[uint64]InoSlice
 	}{
 		{
 			name: "empty_tree",
@@ -218,7 +219,7 @@ func TestMerger_reverseIndex(t *testing.T) {
 					Inodes:  map[uint64]*File{},
 				},
 			},
-			want: map[uint64][]uint64{},
+			want: map[uint64]InoSlice{},
 		}, {
 			name: "normal_tree",
 			args: args{
@@ -254,7 +255,7 @@ func TestMerger_reverseIndex(t *testing.T) {
 					},
 				},
 			},
-			want: map[uint64][]uint64{
+			want: map[uint64]InoSlice{
 				2: {1},
 				3: {2},
 				4: {2, 5},
@@ -270,7 +271,12 @@ func TestMerger_reverseIndex(t *testing.T) {
 				Latest:  tt.fields.Latest,
 				Current: tt.fields.Current,
 			}
-			if got := m.reverseIndex(tt.args.tree); !reflect.DeepEqual(got, tt.want) {
+			got := m.reverseIndex(tt.args.tree)
+			for _, parents := range got {
+				// The order of inode numbers is not defined.  We should sort it to ensure stability.
+				sort.Sort(parents)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("reverseIndex() = %v, want %v", got, tt.want)
 			}
 		})
