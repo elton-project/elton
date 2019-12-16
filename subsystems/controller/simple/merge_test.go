@@ -4,7 +4,9 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/stretchr/testify/assert"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	"golang.org/x/xerrors"
 	"reflect"
 	"sort"
 	"testing"
@@ -17,6 +19,42 @@ func mustProtoTime(t time.Time) *timestamp.Timestamp {
 		panic(err)
 	}
 	return ts
+}
+
+type treeBuilder struct {
+	Tree
+}
+
+func newTreeBuilder() *treeBuilder {
+	b := &treeBuilder{}
+	b.Tree = Tree{
+		RootIno: 1,
+		Inodes:  map[uint64]*File{},
+	}
+	return b
+}
+func (b *treeBuilder) Dirs(inos ...uint64) *treeBuilder {
+	for _, ino := range inos {
+		if b.Tree.Inodes[ino] != nil {
+			panic(xerrors.Errorf("dir inode(%d) is already added", ino))
+		}
+		b.Tree.Inodes[ino] = &File{
+			FileType: FileType_Directory,
+			Entries:  map[string]uint64{},
+		}
+	}
+	return b
+}
+func (b *treeBuilder) Files(inos ...uint64) *treeBuilder {
+	for _, ino := range inos {
+		if b.Tree.Inodes[ino] != nil {
+			panic(xerrors.Errorf("regular file inode(%d) is already added", ino))
+		}
+		b.Tree.Inodes[ino] = &File{
+			FileType: FileType_Regular,
+		}
+	}
+	return b
 }
 
 func TestMerger_filterNotModifiedInodes(t *testing.T) {
@@ -279,6 +317,78 @@ func TestMerger_reverseIndex(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("reverseIndex() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestMerger_shiftIno(t *testing.T) {
+	type fields struct {
+		Info    *CommitInfo
+		Base    *Tree
+		Latest  *Tree
+		Current *Tree
+	}
+	type args struct {
+		latestDiff  *Diff
+		currentDiff *Diff
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *Tree
+	}{
+		{
+			name: "no_file_added",
+			fields: fields{
+				Current: &newTreeBuilder().Dirs(1).Files(2, 4, 5, 6).Tree,
+			},
+			args: args{
+				latestDiff: &Diff{
+					Added:    mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+					Deleted:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(2), uint64(3)}),
+					Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(4), uint64(5)}),
+				},
+				currentDiff: &Diff{
+					Added:    mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+					Deleted:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(3)}),
+					Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(4), uint64(6)}),
+				},
+			},
+			want: &newTreeBuilder().Dirs(1).Files(2, 4, 5, 6).Tree,
+		},
+		{
+			name: "add_inodes_with_same_ino",
+			fields: fields{
+				Base:    &newTreeBuilder().Dirs(1).Files(2).Tree,
+				Latest:  &newTreeBuilder().Dirs(1).Files(2, 3, 4).Tree,
+				Current: &newTreeBuilder().Dirs(1).Files(2, 3, 4).Tree,
+			},
+			args: args{
+				latestDiff: &Diff{
+					Added:    mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(3), uint64(4)}),
+					Deleted:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+					Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+				},
+				currentDiff: &Diff{
+					Added:    mapset.NewThreadUnsafeSetFromSlice([]interface{}{uint64(3), uint64(4)}),
+					Deleted:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+					Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
+				},
+			},
+			want: &newTreeBuilder().Dirs(1).Files(2, 5, 6).Tree,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &Merger{
+				Info:    tt.fields.Info,
+				Base:    tt.fields.Base,
+				Latest:  tt.fields.Latest,
+				Current: tt.fields.Current,
+			}
+			got := m.shiftIno(tt.args.latestDiff, tt.args.currentDiff)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

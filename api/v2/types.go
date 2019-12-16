@@ -55,9 +55,13 @@ func (t *Tree) DeepCopy() *Tree {
 func (f *File) DeepCopy() *File {
 	x := &File{}
 	*x = *f
-	x.Entries = make(map[string]uint64, len(f.Entries))
-	for name, ino := range f.Entries {
-		x.Entries[name] = ino
+	if f.FileType == FileType_Directory {
+		x.Entries = make(map[string]uint64, len(f.Entries))
+		for name, ino := range f.Entries {
+			x.Entries[name] = ino
+		}
+	} else if f.Entries != nil {
+		log.Println("[WARN] allocated File.Entries to a non-directory inode")
 	}
 	return x
 }
