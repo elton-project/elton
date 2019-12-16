@@ -78,6 +78,25 @@ func (d *Diff) HowChanges(ino uint64) ModificationType {
 	return InodeNotModified
 }
 
+func (d *Diff) Filter(fn func(ino uint64) bool) *Diff {
+	return &Diff{
+		Added:    d.filterByFunc(d.Added, fn),
+		Deleted:  d.filterByFunc(d.Deleted, fn),
+		Modified: d.filterByFunc(d.Modified, fn),
+	}
+}
+
+func (d *Diff) filterByFunc(set mapset.Set, fn func(ino uint64) bool) mapset.Set {
+	out := mapset.NewThreadUnsafeSet()
+	for _ino := range set.Iter() {
+		ino := _ino.(uint64)
+		if fn(ino) {
+			out.Add(ino)
+		}
+	}
+	return out
+}
+
 // Merger merges Latest tree and Current tree by the 3 way merge algorithm.
 type Merger struct {
 	Info    *CommitInfo
@@ -97,60 +116,13 @@ func (m *Merger) Merge() (*Tree, error) {
 	// Fix inode number to prevent conflict.  Result is stored to newCurrent.  m.Current tree is kept original status.
 	newCurrent := m.shiftIno(latestDiff, currentDiff)
 
-	// Check conflict.
-	if inoset := latestDiff.Deleted.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(del-add): %s", inoset)
-		log.Printf("[WARN] %s", err)
+	// Check conflicts.
+	if err := m.checkFileConflict(latestDiff, currentDiff, newCurrent); err != nil {
 		return nil, err
 	}
-	if inoset := latestDiff.Deleted.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
-		return nil, xerrors.Errorf("conflict(del-mod): %s", inoset)
-	}
-	if inoset := latestDiff.Added.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(add-del): %s", inoset)
-		log.Printf("[WARN] %s", err)
+	if err := m.checkDirConflict(latestDiff, currentDiff, newCurrent); err != nil {
 		return nil, err
 	}
-	if inoset := latestDiff.Added.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(add-add): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return nil, err
-	}
-	if inoset := latestDiff.Added.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(add-mod): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return nil, err
-	}
-	if inoset := latestDiff.Modified.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
-		return nil, xerrors.Errorf("conflict(mod-del): %s", inoset)
-	}
-	if inoset := latestDiff.Modified.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(mod-add): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return nil, err
-	}
-	if inoset := latestDiff.Modified.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
-		for _ino := range inoset.Iter() {
-			ino := _ino.(uint64)
-			bi := m.Base.Inodes[ino]
-			li := m.Latest.Inodes[ino]
-			ci := m.Current.Inodes[ino]
-
-			if bi.EqualsFile(li) || bi.EqualsFile(ci) {
-				err := xerrors.Errorf("registered not modified inodes to Diff.Modified set: base=%s latest=%s current=%s", bi, li, ci)
-				log.Printf("[WARN] %s", err)
-				return nil, err
-			}
-			if li.EqualsFile(ci) {
-				// Changed same file by two ways (base->latest and base->current), but the result is same.
-				// This changes are should allow.
-			} else {
-				// The result is not same.
-				return nil, xerrors.Errorf("conflict(mod-mod): base=%s latest=%s current=%s", bi, li, ci)
-			}
-		}
-	}
-
 	// todo
 	return nil, nil
 
@@ -308,4 +280,73 @@ func (m *Merger) filterNotModifiedInodes(inodes mapset.Set, base, other *Tree) m
 		}
 	}
 	return out
+}
+
+func (m *Merger) checkFileConflict(latestDiffAll, currentDiffAll *Diff, newCurrent *Tree) error {
+	// Filter by file type.
+	latestDiff := latestDiffAll.Filter(func(ino uint64) bool {
+		return m.Latest.Inodes[ino].FileType != FileType_Directory
+	})
+	currentDiff := currentDiffAll.Filter(func(ino uint64) bool {
+		return newCurrent.Inodes[ino].FileType != FileType_Directory
+	})
+
+	// Check conflicts.
+	if inoset := latestDiff.Deleted.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(del-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := latestDiff.Deleted.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
+		return xerrors.Errorf("conflict(del-mod): %s", inoset)
+	}
+	if inoset := latestDiff.Added.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(add-del): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := latestDiff.Added.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(add-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := latestDiff.Added.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(add-mod): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := latestDiff.Modified.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
+		return xerrors.Errorf("conflict(mod-del): %s", inoset)
+	}
+	if inoset := latestDiff.Modified.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(mod-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := latestDiff.Modified.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
+		for _ino := range inoset.Iter() {
+			ino := _ino.(uint64)
+			bi := m.Base.Inodes[ino]
+			li := m.Latest.Inodes[ino]
+			ci := m.Current.Inodes[ino]
+
+			if bi.EqualsFile(li) || bi.EqualsFile(ci) {
+				err := xerrors.Errorf("registered not modified inodes to Diff.Modified set: base=%s latest=%s current=%s", bi, li, ci)
+				log.Printf("[WARN] %s", err)
+				return err
+			}
+			if li.EqualsFile(ci) {
+				// Changed same file by two ways (base->latest and base->current), but the result is same.
+				// This changes are should allow.
+			} else {
+				// The result is not same.
+				return xerrors.Errorf("conflict(mod-mod): base=%s latest=%s current=%s", bi, li, ci)
+			}
+		}
+	}
+	return nil
+}
+
+func (m *Merger) checkDirConflict(diff, diff2 *Diff, tree *Tree) error {
+	// todo
 }
