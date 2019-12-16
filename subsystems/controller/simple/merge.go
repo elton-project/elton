@@ -291,62 +291,72 @@ func (m *Merger) checkFileConflict(latestDiffAll, currentDiffAll *Diff, newCurre
 		return newCurrent.Inodes[ino].FileType != FileType_Directory
 	})
 
-	// Check conflicts.
-	if inoset := latestDiff.Deleted.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(del-add): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return err
-	}
-	if inoset := latestDiff.Deleted.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
-		return xerrors.Errorf("conflict(del-mod): %s", inoset)
-	}
-	if inoset := latestDiff.Added.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(add-del): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return err
-	}
-	if inoset := latestDiff.Added.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(add-add): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return err
-	}
-	if inoset := latestDiff.Added.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(add-mod): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return err
-	}
-	if inoset := latestDiff.Modified.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
-		return xerrors.Errorf("conflict(mod-del): %s", inoset)
-	}
-	if inoset := latestDiff.Modified.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
-		err := xerrors.Errorf("conflict(mod-add): %s", inoset)
-		log.Printf("[WARN] %s", err)
-		return err
-	}
-	if inoset := latestDiff.Modified.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
-		for _ino := range inoset.Iter() {
-			ino := _ino.(uint64)
-			bi := m.Base.Inodes[ino]
-			li := m.Latest.Inodes[ino]
-			ci := m.Current.Inodes[ino]
-
-			if bi.EqualsFile(li) || bi.EqualsFile(ci) {
-				err := xerrors.Errorf("registered not modified inodes to Diff.Modified set: base=%s latest=%s current=%s", bi, li, ci)
-				log.Printf("[WARN] %s", err)
-				return err
-			}
-			if li.EqualsFile(ci) {
-				// Changed same file by two ways (base->latest and base->current), but the result is same.
-				// This changes are should allow.
-			} else {
-				// The result is not same.
-				return xerrors.Errorf("conflict(mod-mod): base=%s latest=%s current=%s", bi, li, ci)
-			}
-		}
-	}
-	return nil
+	return conflictRule{}.checkConflictRulesFile(latestDiff, currentDiff, m.Latest, newCurrent)
 }
 
 func (m *Merger) checkDirConflict(diff, diff2 *Diff, tree *Tree) error {
 	// todo
+}
+
+type conflictRule struct{}
+
+// File checks two inode
+// A and B is set of elton inode numbers.
+func (conflictRule) checkConflictRulesFile(a, b *Diff, aTree, bTree *Tree) error {
+	// Check conflicts.
+	if inoset := a.Deleted.Intersect(b.Added); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(del-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := a.Deleted.Intersect(b.Modified); inoset.Cardinality() > 0 {
+		return xerrors.Errorf("conflict(del-mod): %s", inoset)
+	}
+	if inoset := a.Added.Intersect(b.Deleted); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(add-del): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := a.Added.Intersect(b.Added); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(add-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := a.Added.Intersect(b.Modified); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(add-mod): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := a.Modified.Intersect(b.Deleted); inoset.Cardinality() > 0 {
+		return xerrors.Errorf("conflict(mod-del): %s", inoset)
+	}
+	if inoset := a.Modified.Intersect(b.Added); inoset.Cardinality() > 0 {
+		err := xerrors.Errorf("conflict(mod-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return err
+	}
+	if inoset := a.Modified.Intersect(b.Modified); inoset.Cardinality() > 0 {
+		for _ino := range inoset.Iter() {
+			// TODO: goroutine leak.  ループ中にbreakまたはreturnすると、Iter()内部で作成した1つのgoroutineがリークする。
+
+			ino := _ino.(uint64)
+			aino := aTree.Inodes[ino]
+			bino := bTree.Inodes[ino]
+
+			if aino.FileType == FileType_Directory {
+				if !aino.EqualsDirWithoutContents(bino) {
+					// THe result is not same.
+					return xerrors.Errorf("conflict(mod-mod): a=%s, b=%s", aino, bino)
+				}
+			} else {
+				if !aino.EqualsFile(bino) {
+					// The result is not same.
+					return xerrors.Errorf("conflict(mod-mod): a=%s, b=%s", aino, bino)
+				}
+			}
+			// Changed same file by two ways (base->latest and base->current), but the result is same.
+			// This changes are should allow.
+		}
+	}
+	return nil
 }
