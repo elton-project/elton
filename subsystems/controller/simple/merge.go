@@ -4,6 +4,7 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
+	"log"
 )
 
 type ModificationType uint8
@@ -98,13 +99,17 @@ func (m *Merger) Merge() (*Tree, error) {
 
 	// Check conflict.
 	if inoset := latestDiff.Deleted.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
-		return nil, xerrors.Errorf("conflict(del-add): %s", inoset)
+		err := xerrors.Errorf("conflict(del-add): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return nil, err
 	}
 	if inoset := latestDiff.Deleted.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
 		return nil, xerrors.Errorf("conflict(del-mod): %s", inoset)
 	}
 	if inoset := latestDiff.Added.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
-		return nil, xerrors.Errorf("conflict(add-del): %s", inoset)
+		err := xerrors.Errorf("conflict(add-del): %s", inoset)
+		log.Printf("[WARN] %s", err)
+		return nil, err
 	}
 	if inoset := latestDiff.Modified.Intersect(currentDiff.Deleted); inoset.Cardinality() > 0 {
 		return nil, xerrors.Errorf("conflict(mod-del): %s", inoset)
