@@ -129,6 +129,30 @@ func (m *Merger) Merge() (*Tree, error) {
 		log.Printf("[WARN] %s", err)
 		return nil, err
 	}
+	if inoset := latestDiff.Modified.Intersect(currentDiff.Modified); inoset.Cardinality() > 0 {
+		for _ino := range inoset.Iter() {
+			ino := _ino.(uint64)
+			bi := m.Base.Inodes[ino]
+			li := m.Latest.Inodes[ino]
+			ci := m.Current.Inodes[ino]
+
+			if bi.EqualsFile(li) || bi.EqualsFile(ci) {
+				err := xerrors.Errorf("registered not modified inodes to Diff.Modified set: base=%s latest=%s current=%s", bi, li, ci)
+				log.Printf("[WARN] %s", err)
+				return nil, err
+			}
+			if li.EqualsFile(ci) {
+				// Changed same file by two ways (base->latest and base->current), but the result is same.
+				// This changes are should allow.
+			} else {
+				// The result is not same.
+				return nil, xerrors.Errorf("conflict(mod-mod): base=%s latest=%s current=%s", bi, li, ci)
+			}
+		}
+	}
+
+	// todo
+	return nil, nil
 
 	for _ino := range latestDiff.Changed().Union(currentDiff.Changed()).Iter() {
 		ino := _ino.(uint64)
