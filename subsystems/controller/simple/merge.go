@@ -94,30 +94,7 @@ func (m *Merger) Merge() (*Tree, error) {
 	currentDiff := m.diff(b, c, m.Base, m.Current)
 
 	// Fix inode number to prevent conflict.  Result is stored to newCurrent.  m.Current tree is kept original status.
-	newCurrent := m.Current.DeepCopy()
-	for _oldIno := range latestDiff.Added.Intersect(currentDiff.Added).Iter() {
-		oldIno := _oldIno.(uint64)
-		newIno := newCurrent.NextIno(m.Base, m.Latest)
-
-		if !(m.Latest.Inodes[newIno] == nil && newCurrent.Inodes[newIno] == nil) {
-			panic("bug")
-		}
-
-		// Fix inodes table.
-		newCurrent.Inodes[newIno] = newCurrent.Inodes[oldIno]
-		delete(newCurrent.Inodes, oldIno)
-
-		// Fix directory entries.
-		for _, inode := range newCurrent.Inodes {
-			if inode.FileType == FileType_Directory {
-				for name, to := range inode.Entries {
-					if to == oldIno {
-						inode.Entries[name] = newIno
-					}
-				}
-			}
-		}
-	}
+	newCurrent := m.shiftIno(latestDiff, currentDiff)
 
 	// Check conflict.
 	if inoset := latestDiff.Deleted.Intersect(currentDiff.Added); inoset.Cardinality() > 0 {
@@ -198,6 +175,35 @@ func (m *Merger) Merge() (*Tree, error) {
 	// Create merged tree by apply currentDiff.
 	// todo
 	panic("todo")
+}
+
+// shiftIno shifts inode number (ino) of added inodes to prevent conflict.  m.Current tree is kept original status.
+func (m *Merger) shiftIno(latestDiff, currentDiff *Diff) *Tree {
+	newCurrent := m.Current.DeepCopy()
+	for _oldIno := range latestDiff.Added.Intersect(currentDiff.Added).Iter() {
+		oldIno := _oldIno.(uint64)
+		newIno := newCurrent.NextIno(m.Base, m.Latest)
+
+		if !(m.Latest.Inodes[newIno] == nil && newCurrent.Inodes[newIno] == nil) {
+			panic("bug")
+		}
+
+		// Fix inodes table.
+		newCurrent.Inodes[newIno] = newCurrent.Inodes[oldIno]
+		delete(newCurrent.Inodes, oldIno)
+
+		// Fix directory entries.
+		for _, inode := range newCurrent.Inodes {
+			if inode.FileType == FileType_Directory {
+				for name, to := range inode.Entries {
+					if to == oldIno {
+						inode.Entries[name] = newIno
+					}
+				}
+			}
+		}
+	}
+	return newCurrent
 }
 func (m *Merger) inodeSet(tree *Tree) mapset.Set {
 	inodes := mapset.NewThreadUnsafeSet()
