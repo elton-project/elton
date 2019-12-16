@@ -133,7 +133,7 @@ func (m *Merger) Merge() (*Tree, error) {
 	_ = rc
 
 	// Apply merge policies.
-	// todo
+	log.Println("[WARN] merge policies check is not implemented")
 
 	// Create merged tree by apply currentDiff.
 	// todo
