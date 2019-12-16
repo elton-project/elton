@@ -136,8 +136,10 @@ func (m *Merger) Merge() (*Tree, error) {
 				// todo: エラーメッセージを詳細にする
 				return nil, xerrors.Errorf("conflict")
 			case NeedCheckContents:
-				// todo
-				panic("todo")
+				// todo: dir entriesのdiffが欲しい
+				// todo: added
+				// todo: deleted
+				// todo: modify?
 			default:
 				panic("todo")
 			}
