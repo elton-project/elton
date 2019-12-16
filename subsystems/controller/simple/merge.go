@@ -123,59 +123,9 @@ func (m *Merger) Merge() (*Tree, error) {
 	if err := m.checkDirConflict(latestDiff, currentDiff, newCurrent); err != nil {
 		return nil, err
 	}
+
 	// todo
 	return nil, nil
-
-	for _ino := range latestDiff.Changed().Union(currentDiff.Changed()).Iter() {
-		ino := _ino.(uint64)
-
-		lino := m.Latest.Inodes[ino]
-		cino := newCurrent.Inodes[ino]
-		if lino.FileType != cino.FileType {
-			err := xerrors.Errorf("changed file type: ino=%d, latest=%s, current=%s", ino, m.Latest.Inodes[ino], newCurrent.Inodes[ino])
-			panic(err)
-		}
-
-		switch lino.FileType {
-		case FileType_Directory:
-			// Check changes to directory inode are acceptable.
-			c1 := latestDiff.HowChanges(ino)
-			c2 := currentDiff.HowChanges(ino)
-			switch fileConflictTable[fileConflictKey{c1, c2}] {
-			case NoConflict:
-				// Do nothing.
-			case Conflict:
-				// todo: エラーメッセージを詳細にする
-				return nil, xerrors.Errorf("conflict")
-			case NeedCheckContents:
-				// todo: dir entriesのdiffが欲しい
-				// todo: added
-				// todo: deleted
-				// todo: modify?
-			default:
-				panic("todo")
-			}
-			// Check directory entries.
-			// todo
-
-		default: // files
-			c1 := latestDiff.HowChanges(ino)
-			c2 := currentDiff.HowChanges(ino)
-			switch fileConflictTable[fileConflictKey{c1, c2}] {
-			case NoConflict:
-				// OK
-			case Conflict:
-				// todo: エラーメッセージを詳細にする
-				return nil, xerrors.Errorf("conflict")
-			case NeedCheckContents:
-				// todo: 何を確認すれば良いのか？
-				panic("todo")
-			default:
-				panic("todo")
-			}
-		}
-
-	}
 
 	rb := m.reverseIndex(m.Base)
 	rl := m.reverseIndex(m.Latest)
