@@ -376,6 +376,7 @@ func TestMerger_shiftIno(t *testing.T) {
 					Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{}),
 				},
 			},
+			// 3 and 4 are shifted to 5 and 6.
 			want: &newTreeBuilder().Dirs(1).Files(2, 5, 6).Tree,
 		},
 	}
