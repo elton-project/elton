@@ -291,7 +291,7 @@ func (m *Merger) checkFileConflict(latestDiffAll, currentDiffAll *Diff, newCurre
 		return newCurrent.Inodes[ino].FileType != FileType_Directory
 	})
 
-	return conflictRule{}.checkConflictRulesFile(latestDiff, currentDiff, m.Latest, newCurrent)
+	return conflictRule{}.CheckConflictRulesFile(latestDiff, currentDiff, m.Latest, newCurrent)
 }
 
 func (m *Merger) checkDirConflict(diff, diff2 *Diff, tree *Tree) error {
@@ -300,9 +300,8 @@ func (m *Merger) checkDirConflict(diff, diff2 *Diff, tree *Tree) error {
 
 type conflictRule struct{}
 
-// File checks two inode
-// A and B is set of elton inode numbers.
-func (conflictRule) checkConflictRulesFile(a, b *Diff, aTree, bTree *Tree) error {
+// CheckConflictRulesFile checks conflict of files and directories (attributes only).
+func (conflictRule) CheckConflictRulesFile(a, b *Diff, aTree, bTree *Tree) error {
 	// Check conflicts.
 	if inoset := a.Deleted.Intersect(b.Added); inoset.Cardinality() > 0 {
 		err := xerrors.Errorf("conflict(del-add): %s", inoset)
