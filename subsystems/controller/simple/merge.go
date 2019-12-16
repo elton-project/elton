@@ -124,9 +124,6 @@ func (m *Merger) Merge() (*Tree, error) {
 		return nil, err
 	}
 
-	// todo
-	return nil, nil
-
 	rb := m.reverseIndex(m.Base)
 	rl := m.reverseIndex(m.Latest)
 	rc := m.reverseIndex(m.Current)
