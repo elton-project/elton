@@ -675,6 +675,7 @@ func Test_conflictRule_CheckConflictRulesDir(t *testing.T) {
 		{noOP, modOP, true},
 		{noOP, noOP, true},
 	}
+	baseTree := &newTreeBuilder().Dirs(1).Tree
 
 	op2diffTree := func(op OP) (*Diff, *Tree) {
 		d := newDiffBuilder()
@@ -703,7 +704,7 @@ func Test_conflictRule_CheckConflictRulesDir(t *testing.T) {
 		return args{
 			a:        a,
 			b:        b,
-			baseTree: &newTreeBuilder().Dirs(1).Tree,
+			baseTree: baseTree.DeepCopy(),
 			aTree:    at,
 			bTree:    bt,
 		}
@@ -726,7 +727,7 @@ func Test_conflictRule_CheckConflictRulesDir(t *testing.T) {
 	t.Run("mod-mod/mismatch", func(t *testing.T) {
 		a := &newDiffBuilder().Modify(1).Diff
 		b := &newDiffBuilder().Modify(1).Diff
-		base := &newTreeBuilder().Dirs(1).Tree
+		base := baseTree.DeepCopy()
 		at := &newTreeBuilder().Dirs(1).DirEntry(1, "foo", 3).Files(3).Tree
 		bt := &newTreeBuilder().Dirs(1).DirEntry(1, "bar", 4).Files(4).Tree
 		err := conflictRule{}.CheckConflictRulesDir(a, b, base, at, bt)
