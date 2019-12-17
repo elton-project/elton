@@ -363,6 +363,9 @@ func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tr
 			log.Printf("[WARN] %s", err)
 			return err
 		}
+		if nameSet := aDiff.Deleted.Intersect(bDiff.Modified); nameSet.Cardinality() > 0 {
+			return xerrors.Errorf("conflict(del-mod): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+		}
 		if nameSet := aDiff.Added.Intersect(bDiff.Deleted); nameSet.Cardinality() > 0 {
 			err := xerrors.Errorf("conflict(add-del): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
 			log.Printf("[WARN] %s", err)
@@ -374,7 +377,30 @@ func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tr
 			log.Printf("[WARN] %s", err)
 			return err
 		}
-		// todo: check modified.
+		if nameSet := aDiff.Added.Intersect(bDiff.Modified); nameSet.Cardinality() > 0 {
+			err := xerrors.Errorf("conflict(add-mod): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+			log.Printf("[WARN] %s", err)
+			return err
+		}
+		if nameSet := aDiff.Modified.Intersect(bDiff.Deleted); nameSet.Cardinality() > 0 {
+			return xerrors.Errorf("conflict(mod-del): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+		}
+		if nameSet := aDiff.Modified.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
+			err := xerrors.Errorf("conflict(mod-add): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+			log.Printf("[WARN] %s", err)
+			return err
+		}
+		if nameSet := aDiff.Modified.Intersect(bDiff.Modified); nameSet.Cardinality() > 0 {
+			for _name := range nameSet.Iter() {
+				name := _name.(string)
+				if aFile.Entries[name] != bFile.Entries[name] {
+					// The referenced inode number of directory entries associated "name" is changed.  And it is not match.
+					return xerrors.Errorf("conflict(mod-mod): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+				}
+				// The referenced inode number of directory entries associated "name" is changed.  But it is referenced
+				// same inode number.
+			}
+		}
 	}
 	return nil
 }
