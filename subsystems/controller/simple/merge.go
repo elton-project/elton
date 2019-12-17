@@ -135,7 +135,11 @@ func (m *Merger) Merge() (*Tree, error) {
 	// Apply merge policies.
 	log.Println("[WARN] merge policies check is not implemented")
 
-	// Create merged tree by apply currentDiff.
+	return m.mergeTree(latestDiff, currentDiff, newCurrent)
+}
+
+// mergeTree creates merged tree by apply currentDiff to latest tree.
+func (m *Merger) mergeTree(latestDiff *Diff, currentDiff *Diff, newCurrent *Tree) (*Tree, error) {
 	tree := m.Latest.DeepCopy()
 	for _ino := range currentDiff.Added.Iter() {
 		ino := _ino.(uint64)
