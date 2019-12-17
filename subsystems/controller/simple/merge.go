@@ -136,7 +136,7 @@ func (m *Merger) Merge() (*Tree, error) {
 	log.Println("[WARN] merge policies check is not implemented")
 
 	// Create merged tree by apply currentDiff.
-	tree := m.Base.DeepCopy()
+	tree := m.Latest.DeepCopy()
 	for _ino := range currentDiff.Added.Iter() {
 		ino := _ino.(uint64)
 		tree.Inodes[ino] = newCurrent.Inodes[ino]
