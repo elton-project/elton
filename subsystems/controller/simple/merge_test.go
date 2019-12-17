@@ -675,7 +675,7 @@ func Test_conflictRule_CheckConflictRulesDir(t *testing.T) {
 		{noOP, modOP, true},
 		{noOP, noOP, true},
 	}
-	baseTree := &newTreeBuilder().Dirs(1).Tree
+	baseTree := &newTreeBuilder().Dirs(1).DirEntry(1, "foo", 2).Files(2).Tree
 
 	op2diffTree := func(op OP) (*Diff, *Tree) {
 		d := newDiffBuilder()
