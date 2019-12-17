@@ -363,6 +363,7 @@ func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tr
 		if nameSet := aDiff.Added.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
 			// todo: 挙動未定
 		}
+		// todo: check modified.
 	}
 	return nil
 }
