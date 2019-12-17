@@ -662,11 +662,13 @@ func Test_conflictRule_CheckConflictRulesDir(t *testing.T) {
 		// This situation is not occur.
 		// {addOP, delOP, false},
 		{addOP, addOP, false},
-		{addOP, modOP, false},
+		// This situation is not occur.
+		// {addOP, modOP, false},
 		{addOP, noOP, true},
 		// mod-*
 		{modOP, delOP, false},
-		{modOP, addOP, false},
+		// This situation is not occur.
+		// {modOP, addOP, false},
 		{modOP, modOP, true}, // NOTE: このテストでは、変更後のファイルが同一なので常にtrueになる。
 		{modOP, noOP, true},
 		// noop-*
