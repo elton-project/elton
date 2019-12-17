@@ -136,7 +136,29 @@ func (m *Merger) Merge() (*Tree, error) {
 	log.Println("[WARN] merge policies check is not implemented")
 
 	// Create merged tree by apply currentDiff.
-	// todo
+	tree := m.Base.DeepCopy()
+	for _ino := range currentDiff.Added.Iter() {
+		ino := _ino.(uint64)
+		tree.Inodes[ino] = newCurrent.Inodes[ino]
+	}
+	for _ino := range currentDiff.Modified.Iter() {
+		ino := _ino.(uint64)
+		if newCurrent.Inodes[ino].FileType == FileType_Directory {
+			// Copy directory attributes from current tree.
+			f := &File{}
+			tree.Inodes[ino] = f
+			*f = *newCurrent.Inodes[ino]
+			f.Entries = map[string]uint64{}
+
+			// todo: Apply changes of directory entries.
+		} else { // file
+			tree.Inodes[ino] = newCurrent.Inodes[ino]
+		}
+	}
+	for _ino := range currentDiff.Deleted.Iter() {
+		ino := _ino.(uint64)
+		delete(tree.Inodes, ino)
+	}
 	panic("todo")
 }
 
