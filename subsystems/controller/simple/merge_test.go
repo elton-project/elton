@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	. "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -54,6 +55,22 @@ func (b *treeBuilder) Files(inos ...uint64) *treeBuilder {
 		b.Tree.Inodes[ino] = &File{
 			FileType: FileType_Regular,
 		}
+	}
+	return b
+}
+
+func (b *treeBuilder) File(ino uint64, mode os.FileMode, s string) *treeBuilder {
+	if b.Tree.Inodes[ino] != nil {
+		panic(xerrors.Errorf("regular file inode(%d) is already added", ino))
+	}
+	b.Tree.Inodes[ino] = &File{
+		ContentRef: &FileContentRef{
+			Key: &ObjectKey{
+				Id: "id-" + s,
+			},
+		},
+		FileType: FileType_Regular,
+		Mode:     uint32(mode),
 	}
 	return b
 }
@@ -597,4 +614,13 @@ func Test_conflictRule_CheckConflictRulesFile(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("mod-mod/mismatch", func(t *testing.T) {
+		a := &newDiffBuilder().Modify(2).Diff
+		b := &newDiffBuilder().Modify(2).Diff
+		at := &newTreeBuilder().Dirs(1).File(2, 0644, "foo").Tree
+		bt := &newTreeBuilder().Dirs(1).File(2, 0644, "bar").Tree
+		err := conflictRule{}.CheckConflictRulesFile(a, b, at, bt)
+		assert.Error(t, err)
+	})
 }
