@@ -654,11 +654,13 @@ func Test_conflictRule_CheckConflictRulesDir(t *testing.T) {
 	}{
 		// del-*
 		{delOP, delOP, true},
-		{delOP, addOP, false},
+		// This situation is not occur.
+		// {delOP, addOP, false},
 		{delOP, modOP, false},
 		{delOP, noOP, true},
 		// add-*
-		{addOP, delOP, false},
+		// This situation is not occur.
+		// {addOP, delOP, false},
 		{addOP, addOP, false},
 		{addOP, modOP, false},
 		{addOP, noOP, true},
