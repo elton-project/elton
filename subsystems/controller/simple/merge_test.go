@@ -606,11 +606,10 @@ func Test_conflictRule_CheckConflictRulesFile(t *testing.T) {
 			co := conflictRule{}
 			t.Logf("arg: %+v", arg)
 			err := co.CheckConflictRulesFile(arg.a, arg.b, arg.aTree, arg.bTree)
-			wantErr := !tt.OK
-			if wantErr {
-				assert.Error(t, err)
-			} else {
+			if tt.OK {
 				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
 			}
 		})
 	}
