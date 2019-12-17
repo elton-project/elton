@@ -329,10 +329,14 @@ func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tr
 		bDiff := conflictRule{}.entryDiff(baseFile, bFile)
 
 		if nameSet := aDiff.Deleted.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
-			// todo: warn
+			err := xerrors.Errorf("conflict(del-add): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+			log.Printf("[WARN] %s", err)
+			return err
 		}
 		if nameSet := aDiff.Added.Intersect(bDiff.Deleted); nameSet.Cardinality() > 0 {
-			// todo: warn
+			err := xerrors.Errorf("conflict(add-del): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+			log.Printf("[WARN] %s", err)
+			return err
 		}
 		if nameSet := aDiff.Added.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
 			// todo: 挙動未定
