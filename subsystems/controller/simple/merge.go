@@ -145,12 +145,20 @@ func (m *Merger) Merge() (*Tree, error) {
 		ino := _ino.(uint64)
 		if newCurrent.Inodes[ino].FileType == FileType_Directory {
 			// Copy directory attributes from current tree.
-			f := &File{}
-			tree.Inodes[ino] = f
-			*f = *newCurrent.Inodes[ino]
-			f.Entries = map[string]uint64{}
+			i := newCurrent.Inodes[ino].DeepCopy()
+			tree.Inodes[ino] = i
 
 			// todo: Apply changes of directory entries.
+			nameDiff := newEntryDiff(m.Base.Inodes[ino], newCurrent.Inodes[ino])
+			for _name := range nameDiff.Added.Iter() {
+				name := _name.(string)
+				i.Entries[name] = newCurrent.Inodes[ino].Entries[name]
+			}
+			for _name := range nameDiff.Deleted.Iter() {
+				name := _name.(string)
+				delete(i.Entries, name)
+			}
+			// todo: apply modified
 		} else { // file
 			tree.Inodes[ino] = newCurrent.Inodes[ino]
 		}
