@@ -75,6 +75,14 @@ func (b *treeBuilder) File(ino uint64, mode os.FileMode, s string) *treeBuilder 
 	return b
 }
 
+func (b *treeBuilder) DirEntry(dirIno uint64, name string, fileIno uint64) *treeBuilder {
+	if b.Tree.Inodes[dirIno] != nil {
+		panic(xerrors.Errorf("dir inode(%d) is not found", dirIno))
+	}
+	b.Tree.Inodes[dirIno].Entries[name] = fileIno
+	return b
+}
+
 type diffBuilder struct {
 	Diff
 }
@@ -620,6 +628,106 @@ func Test_conflictRule_CheckConflictRulesFile(t *testing.T) {
 		at := &newTreeBuilder().Dirs(1).File(2, 0644, "foo").Tree
 		bt := &newTreeBuilder().Dirs(1).File(2, 0644, "bar").Tree
 		err := conflictRule{}.CheckConflictRulesFile(a, b, at, bt)
+		assert.Error(t, err)
+	})
+}
+
+func Test_conflictRule_CheckConflictRulesDir(t *testing.T) {
+	type OP string
+	const (
+		addOP OP = "add"
+		delOP OP = "del"
+		modOP OP = "mod"
+		noOP  OP = "nop"
+	)
+	type args struct {
+		a        *Diff
+		b        *Diff
+		baseTree *Tree
+		aTree    *Tree
+		bTree    *Tree
+	}
+	tests := []struct {
+		aOP OP
+		bOP OP
+		OK  bool
+	}{
+		// del-*
+		{delOP, delOP, true},
+		{delOP, addOP, false},
+		{delOP, modOP, false},
+		{delOP, noOP, true},
+		// add-*
+		{addOP, delOP, false},
+		{addOP, addOP, false},
+		{addOP, modOP, false},
+		{addOP, noOP, true},
+		// mod-*
+		{modOP, delOP, false},
+		{modOP, addOP, false},
+		{modOP, modOP, true}, // NOTE: このテストでは、変更後のファイルが同一なので常にtrueになる。
+		{modOP, noOP, true},
+		// noop-*
+		{noOP, delOP, true},
+		{noOP, addOP, true},
+		{noOP, modOP, true},
+		{noOP, noOP, true},
+	}
+
+	op2diffTree := func(op OP) (*Diff, *Tree) {
+		d := newDiffBuilder()
+		t := newTreeBuilder().Dirs(1)
+		switch op {
+		case addOP:
+			d.Modify(1)
+			t.DirEntry(1, "foo", 2)
+			t.DirEntry(1, "bar", 3).Files(2) // Add "bar" file.
+		case delOP:
+			d.Modify(1)
+			// Delete "foo" file.
+		case modOP:
+			d.Modify(1)
+			t.DirEntry(1, "foo", 3).Files(2) // Change "foo" file.
+		case noOP:
+			t.DirEntry(1, "foo", 2).Files(2)
+		default:
+			panic(xerrors.Errorf("unexpected op: %s", op))
+		}
+		return &d.Diff, &t.Tree
+	}
+	op2args := func(aOP, bOP OP) args {
+		a, at := op2diffTree(aOP)
+		b, bt := op2diffTree(bOP)
+		return args{
+			a:        a,
+			b:        b,
+			baseTree: &newTreeBuilder().Dirs(1).Tree,
+			aTree:    at,
+			bTree:    bt,
+		}
+	}
+
+	for _, tt := range tests {
+		name := fmt.Sprintf("%s-%s", tt.aOP, tt.bOP)
+		t.Run(name, func(t *testing.T) {
+			arg := op2args(tt.aOP, tt.bOP)
+			co := conflictRule{}
+			err := co.CheckConflictRulesDir(arg.a, arg.b, arg.baseTree, arg.aTree, arg.bTree)
+			if tt.OK {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+
+	t.Run("mod-mod/mismatch", func(t *testing.T) {
+		a := &newDiffBuilder().Modify(1).Diff
+		b := &newDiffBuilder().Modify(1).Diff
+		base := &newTreeBuilder().Dirs(1).Tree
+		at := &newTreeBuilder().Dirs(1).DirEntry(1, "foo", 3).Files(3).Tree
+		bt := &newTreeBuilder().Dirs(1).DirEntry(1, "bar", 4).Files(4).Tree
+		err := conflictRule{}.CheckConflictRulesDir(a, b, base, at, bt)
 		assert.Error(t, err)
 	})
 }
