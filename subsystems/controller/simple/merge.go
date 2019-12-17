@@ -132,7 +132,7 @@ func (m *Merger) Merge() (*Tree, error) {
 	_ = rl
 	_ = rc
 
-	// Apply merge policies.
+	// TODO: Apply merge policies.
 	log.Println("[WARN] merge policies check is not implemented")
 
 	return m.mergeTree(latestDiff, currentDiff, newCurrent)
