@@ -370,6 +370,9 @@ func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tr
 		}
 		if nameSet := aDiff.Added.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
 			// todo: 挙動未定
+			err := xerrors.Errorf("conflict(add-add): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
+			log.Printf("[WARN] %s", err)
+			return err
 		}
 		// todo: check modified.
 	}
