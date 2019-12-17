@@ -170,7 +170,7 @@ func (m *Merger) Merge() (*Tree, error) {
 		ino := _ino.(uint64)
 		delete(tree.Inodes, ino)
 	}
-	panic("todo")
+	return tree, nil
 }
 
 // shiftIno shifts inode number (ino) of added inodes to prevent conflict.  m.Current tree is kept original status.
