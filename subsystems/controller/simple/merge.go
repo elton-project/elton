@@ -437,6 +437,11 @@ func newEntryDiff(base, changed *File) *entryDiff {
 	}
 }
 func (entryDiff) nameSet(f *File) mapset.Set {
+	if f.FileType != FileType_Directory {
+		err := xerrors.Errorf("f is not directory: %s", f)
+		panic(err)
+	}
+
 	ent := mapset.NewThreadUnsafeSet()
 	for name := range f.Entries {
 		ent.Add(name)
