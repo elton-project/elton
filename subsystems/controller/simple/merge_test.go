@@ -392,3 +392,88 @@ func TestMerger_shiftIno(t *testing.T) {
 		})
 	}
 }
+
+func Test_newEntryDiff(t *testing.T) {
+	type args struct {
+		base    *File
+		changed *File
+	}
+	tests := []struct {
+		name string
+		args args
+		want *entryDiff
+	}{
+		{
+			name: "no_change",
+			args: args{
+				base: &File{
+					FileType: FileType_Directory,
+					Entries: map[string]uint64{
+						"foo": 1,
+						"bar": 2,
+					},
+				},
+				changed: &File{
+					FileType: FileType_Directory,
+					Entries: map[string]uint64{
+						"foo": 1,
+						"bar": 2,
+					},
+				},
+			},
+			want: &entryDiff{
+				Added:    mapset.NewThreadUnsafeSetFromSlice(nil),
+				Deleted:  mapset.NewThreadUnsafeSetFromSlice(nil),
+				Modified: mapset.NewThreadUnsafeSetFromSlice(nil),
+			},
+		}, {
+			name: "add_and_delete",
+			args: args{
+				base: &File{
+					FileType: FileType_Directory,
+					Entries: map[string]uint64{
+						"foo": 1,
+					},
+				},
+				changed: &File{
+					FileType: FileType_Directory,
+					Entries: map[string]uint64{
+						"bar": 2,
+					},
+				},
+			},
+			want: &entryDiff{
+				Added:    mapset.NewThreadUnsafeSetFromSlice([]interface{}{"bar"}),
+				Deleted:  mapset.NewThreadUnsafeSetFromSlice([]interface{}{"foo"}),
+				Modified: mapset.NewThreadUnsafeSetFromSlice(nil),
+			},
+		}, {
+			name: "change_referenced_inode_number",
+			args: args{
+				base: &File{
+					FileType: FileType_Directory,
+					Entries: map[string]uint64{
+						"foo": 1,
+					},
+				},
+				changed: &File{
+					FileType: FileType_Directory,
+					Entries: map[string]uint64{
+						"foo": 2,
+					},
+				},
+			},
+			want: &entryDiff{
+				Added:    mapset.NewThreadUnsafeSetFromSlice(nil),
+				Deleted:  mapset.NewThreadUnsafeSetFromSlice(nil),
+				Modified: mapset.NewThreadUnsafeSetFromSlice([]interface{}{"foo"}),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := newEntryDiff(tt.args.base, tt.args.changed)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
