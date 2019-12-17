@@ -1,6 +1,7 @@
 package simple
 
 import (
+	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -53,6 +54,38 @@ func (b *treeBuilder) Files(inos ...uint64) *treeBuilder {
 		b.Tree.Inodes[ino] = &File{
 			FileType: FileType_Regular,
 		}
+	}
+	return b
+}
+
+type diffBuilder struct {
+	Diff
+}
+
+func newDiffBuilder() *diffBuilder {
+	return &diffBuilder{
+		Diff{
+			Added:    mapset.NewThreadUnsafeSet(),
+			Deleted:  mapset.NewThreadUnsafeSet(),
+			Modified: mapset.NewThreadUnsafeSet(),
+		},
+	}
+}
+func (b *diffBuilder) Add(inos ...uint64) *diffBuilder {
+	for _, ino := range inos {
+		b.Diff.Added.Add(ino)
+	}
+	return b
+}
+func (b *diffBuilder) Del(inos ...uint64) *diffBuilder {
+	for _, ino := range inos {
+		b.Diff.Deleted.Add(ino)
+	}
+	return b
+}
+func (b *diffBuilder) Modify(inos ...uint64) *diffBuilder {
+	for _, ino := range inos {
+		b.Diff.Modified.Add(ino)
 	}
 	return b
 }
@@ -474,6 +507,94 @@ func Test_newEntryDiff(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := newEntryDiff(tt.args.base, tt.args.changed)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_conflictRule_CheckConflictRulesFile(t *testing.T) {
+	type OP string
+	const (
+		addOP OP = "add"
+		delOP OP = "del"
+		modOP OP = "mod"
+		noOP  OP = "nop"
+	)
+	type args struct {
+		a     *Diff
+		b     *Diff
+		aTree *Tree
+		bTree *Tree
+	}
+	tests := []struct {
+		aOP OP
+		bOP OP
+		OK  bool
+	}{
+		// del-*
+		{delOP, delOP, true},
+		{delOP, addOP, false},
+		{delOP, modOP, false},
+		{delOP, noOP, true},
+		// add-*
+		{addOP, delOP, false},
+		{addOP, addOP, false},
+		{addOP, modOP, false},
+		{addOP, noOP, true},
+		// mod-*
+		{modOP, delOP, false},
+		{modOP, addOP, false},
+		{modOP, modOP, true}, // NOTE: このテストでは、変更後のファイルが同一なので常にtrueになる。
+		{modOP, noOP, true},
+		// noop-*
+		{noOP, delOP, true},
+		{noOP, addOP, true},
+		{noOP, modOP, true},
+		{noOP, noOP, true},
+	}
+
+	op2diffTree := func(op OP) (*Diff, *Tree) {
+		d := newDiffBuilder()
+		t := newTreeBuilder().Dirs(1)
+		switch op {
+		case addOP:
+			d.Add(2)
+			t.Files(2)
+		case delOP:
+			d.Del(2)
+		case modOP:
+			d.Modify(2)
+			t.Files(2)
+		case noOP:
+			t.Files(2)
+		default:
+			panic(xerrors.Errorf("unexpected op: %s", op))
+		}
+		return &d.Diff, &t.Tree
+	}
+	op2args := func(aOP, bOP OP) args {
+		a, at := op2diffTree(aOP)
+		b, bt := op2diffTree(bOP)
+		return args{
+			a:     a,
+			b:     b,
+			aTree: at,
+			bTree: bt,
+		}
+	}
+
+	for _, tt := range tests {
+		name := fmt.Sprintf("%s-%s", tt.aOP, tt.bOP)
+		t.Run(name, func(t *testing.T) {
+			arg := op2args(tt.aOP, tt.bOP)
+			co := conflictRule{}
+			t.Logf("arg: %+v", arg)
+			err := co.CheckConflictRulesFile(arg.a, arg.b, arg.aTree, arg.bTree)
+			wantErr := !tt.OK
+			if wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
