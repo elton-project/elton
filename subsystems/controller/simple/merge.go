@@ -148,7 +148,7 @@ func (m *Merger) Merge() (*Tree, error) {
 			i := newCurrent.Inodes[ino].DeepCopy()
 			tree.Inodes[ino] = i
 
-			// todo: Apply changes of directory entries.
+			// Apply changes of directory entries.
 			nameDiff := newEntryDiff(m.Base.Inodes[ino], newCurrent.Inodes[ino])
 			for _name := range nameDiff.Added.Iter() {
 				name := _name.(string)
@@ -158,7 +158,10 @@ func (m *Merger) Merge() (*Tree, error) {
 				name := _name.(string)
 				delete(i.Entries, name)
 			}
-			// todo: apply modified
+			for _name := range nameDiff.Modified.Iter() {
+				name := _name.(string)
+				i.Entries[name] = newCurrent.Inodes[ino].Entries[name]
+			}
 		} else { // file
 			tree.Inodes[ino] = newCurrent.Inodes[ino]
 		}
