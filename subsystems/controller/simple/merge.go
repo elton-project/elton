@@ -347,8 +347,8 @@ func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tr
 		aFile := aTree.Inodes[ino]
 		bFile := bTree.Inodes[ino]
 
-		aDiff := conflictRule{}.entryDiff(baseFile, aFile)
-		bDiff := conflictRule{}.entryDiff(baseFile, bFile)
+		aDiff := newEntryDiff(baseFile, aFile)
+		bDiff := newEntryDiff(baseFile, bFile)
 
 		if nameSet := aDiff.Deleted.Intersect(bDiff.Added); nameSet.Cardinality() > 0 {
 			err := xerrors.Errorf("conflict(del-add): base=%s a=%s b=%s conflicted_entries=%s", baseFile, aFile, bFile, nameSet)
@@ -367,9 +367,15 @@ func (conflictRule) CheckConflictRulesDir(a, b *Diff, baseTree, aTree, bTree *Tr
 	return nil
 }
 
-func (conflictRule) entryDiff(base, changed *File) *entryDiff {
-	baseNames := conflictRule{}.nameSet(base)
-	changedNames := conflictRule{}.nameSet(changed)
+type entryDiff struct {
+	Added    mapset.Set
+	Deleted  mapset.Set
+	Modified mapset.Set
+}
+
+func newEntryDiff(base, changed *File) *entryDiff {
+	baseNames := entryDiff{}.nameSet(base)
+	changedNames := entryDiff{}.nameSet(changed)
 
 	modified := mapset.NewThreadUnsafeSet()
 	for _name := range baseNames.Intersect(changedNames).Iter() {
@@ -385,16 +391,10 @@ func (conflictRule) entryDiff(base, changed *File) *entryDiff {
 		Modified: modified,
 	}
 }
-func (conflictRule) nameSet(f *File) mapset.Set {
+func (entryDiff) nameSet(f *File) mapset.Set {
 	ent := mapset.NewThreadUnsafeSet()
 	for name := range f.Entries {
 		ent.Add(name)
 	}
 	return ent
-}
-
-type entryDiff struct {
-	Added    mapset.Set
-	Deleted  mapset.Set
-	Modified mapset.Set
 }
