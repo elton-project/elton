@@ -76,7 +76,7 @@ func (b *treeBuilder) File(ino uint64, mode os.FileMode, s string) *treeBuilder 
 }
 
 func (b *treeBuilder) DirEntry(dirIno uint64, name string, fileIno uint64) *treeBuilder {
-	if b.Tree.Inodes[dirIno] != nil {
+	if b.Tree.Inodes[dirIno] == nil {
 		panic(xerrors.Errorf("dir inode(%d) is not found", dirIno))
 	}
 	b.Tree.Inodes[dirIno].Entries[name] = fileIno
