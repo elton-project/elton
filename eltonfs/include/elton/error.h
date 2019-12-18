@@ -8,6 +8,8 @@
 #define ELTON_RPC_DIFF_TYPE 1004
 // Reached to EOF.
 #define ELTON_RPC_EOF 1005
+// Received elton_rpc_error packet.
+#define ELTON_RPC_ERROR_PACKET 1006
 
 #define ELTON_XDR_INVAL 2001
 #define ELTON_XDR_NOMEM 2002

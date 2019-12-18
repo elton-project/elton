@@ -123,6 +123,7 @@ static int ns_send_error(struct elton_rpc_ns *ns, struct elton_rpc_error *e) {
 static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
   int error = 0;
   struct raw_packet *raw = NULL;
+  struct elton_rpc_error *rpc_err = NULL;
 
   DEBUG("waiting a struct to be received");
   elton_rpc_dequeue(&ns->q, &raw);
@@ -137,16 +138,27 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
   }
 
   if (raw->struct_id != struct_id) {
-    // Unexpected struct.
-    ERR("unexpected struct is received: expected=%llu, actual=%llu", struct_id,
-        raw->struct_id);
-    GOTO_IF(error_dequeue, -ELTON_RPC_DIFF_TYPE);
+    if (raw->struct_id == ELTON_RPC_ERROR_ID) {
+      // Received error response.
+      GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, (void **)&rpc_err));
+      ERR("unexpected error is received: expected=%llu, error_id=%llu, "
+          "reason=%s",
+          struct_id, rpc_err->error_id, rpc_err->reason);
+      error = ELTON_RPC_ERROR_PACKET;
+    } else {
+      // Unexpected struct.
+      ERR("unexpected struct is received: expected=%llu, actual=%llu",
+          struct_id, raw->struct_id);
+      GOTO_IF(error_dequeue, -ELTON_RPC_DIFF_TYPE);
+    }
   }
 
   GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, data));
   DEBUG("received a struct");
 
 error_dequeue:
+  if (rpc_err)
+    elton_rpc_free_decoded_data(rpc_err);
   if (raw)
     raw->free(raw);
   return error;
