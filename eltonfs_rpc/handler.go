@@ -2,9 +2,7 @@ package eltonfs_rpc
 
 import (
 	"context"
-	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
-	"google.golang.org/grpc"
 	"log"
 )
 
@@ -64,11 +62,10 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 		req := rawReq.(*GetCommitInfoRequest)
 
 		// Get commit info from meta node.
-		cc, err := grpc.Dial("", nil) // todo: get meta server address
+		c, err := apiClient{}.CommitService()
 		if err != nil {
-			return nil, xerrors.Errorf("dial: %w", err)
+			return nil, xerrors.Errorf("api client: %w", err)
 		}
-		c := elton_v2.NewCommitServiceClient(cc)
 		res, err := c.GetCommit(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
@@ -83,11 +80,10 @@ func handleGetObjectRequest(ns ClientNS) {
 		req := rawReq.(*GetObjectRequest)
 
 		// Get object from storage.
-		cc, err := grpc.Dial("", nil) // todo
+		c, err := apiClient{}.StorageService()
 		if err != nil {
-			return nil, xerrors.Errorf("dial: %w", err)
+			return nil, xerrors.Errorf("api client: %w", err)
 		}
-		c := elton_v2.NewStorageServiceClient(cc)
 		res, err := c.GetObject(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
@@ -102,11 +98,10 @@ func handleCreateObject(ns ClientNS) {
 		req := rawReq.(*CreateObjectRequest)
 
 		// Send create object request.
-		cc, err := grpc.Dial("", nil) // todo
+		c, err := apiClient{}.StorageService()
 		if err != nil {
-			return nil, xerrors.Errorf("dial: %w", err)
+			return nil, xerrors.Errorf("api client: %w", err)
 		}
-		c := elton_v2.NewStorageServiceClient(cc)
 		res, err := c.CreateObject(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
@@ -120,11 +115,10 @@ func handleCreateCommitRequest(ns ClientNS) {
 		req := rawReq.(*CreateCommitRequest)
 
 		// Send commit request.
-		cc, err := grpc.Dial("", nil) // todo
+		c, err := apiClient{}.CommitService()
 		if err != nil {
-			return nil, xerrors.Errorf("dial: %w", err)
+			return nil, xerrors.Errorf("api client: %w", err)
 		}
-		c := elton_v2.NewCommitServiceClient(cc)
 		res, err := c.Commit(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
