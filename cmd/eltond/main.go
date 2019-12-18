@@ -54,7 +54,8 @@ func Main() int {
 
 	// Start servers.
 	swg := sync.WaitGroup{}
-	for _, role := range conf.Roles {
+	for _, _role := range conf.Roles {
+		role := _role
 		fn := func() subsystems.Server {
 			s := NewServer(role)
 			if s == nil {
