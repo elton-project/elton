@@ -12,7 +12,7 @@ type apiClient struct{}
 
 func (apiClient) dial(port int) (*grpc.ClientConn, error) {
 	address := "localhost:" + strconv.Itoa(port)
-	return grpc.Dial(address, nil)
+	return grpc.Dial(address, grpc.WithInsecure())
 }
 func (apiClient) CommitService() (elton_v2.CommitServiceClient, error) {
 	cc, err := apiClient{}.dial(subsystems.ControllerPort)
