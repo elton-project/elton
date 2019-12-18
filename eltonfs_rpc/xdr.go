@@ -187,6 +187,7 @@ func (e *binEncoder) RawPacket(nsid NSID, flags PacketFlag, data interface{}) {
 }
 func (e *binEncoder) Auto(v interface{}) {
 	switch vv := v.(type) {
+	// Fast paths.
 	case uint8:
 		e.Uint8(vv)
 	case bool:
@@ -199,10 +200,26 @@ func (e *binEncoder) Auto(v interface{}) {
 		e.Bytes(vv)
 	case time.Time:
 		e.Timestamp(vv)
-	default:
+
+	default: // Slow path.
 		kind := reflect.TypeOf(v).Kind()
 		switch kind {
+		case reflect.Uint8:
+			fallthrough
+		case reflect.Bool:
+			fallthrough
+		case reflect.Uint64:
+			fallthrough
+		case reflect.String:
+			err := xerrors.Errorf("type alias is not supported: %s", kind)
+			panic(err)
+
 		case reflect.Slice:
+			if reflect.TypeOf(v).Elem().Kind() == reflect.Uint8 {
+				// Type of v is an alias of []byte.
+				err := xerrors.Errorf("type alias is not supported: %s", kind)
+				panic(err)
+			}
 			e.Slice(v)
 		case reflect.Map:
 			e.Map(v)
