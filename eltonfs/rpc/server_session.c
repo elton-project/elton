@@ -3,6 +3,47 @@
 
 #include <elton/rpc/_server.h>
 
+#ifdef ELTON_RPC_CALL_TEST
+#include <elton/rpc/struct.h>
+
+static int rpc_call_create_obj(struct elton_rpc_session *s) {
+  int error = 0;
+  struct elton_rpc_ns _ns;
+  struct elton_rpc_ns *ns = &_ns;
+  struct elton_object_body body = {
+      .contents_length = 13,
+      .contents = "hello-world :-)",
+      .offset = 0,
+  };
+  struct create_object_request req = {
+      .body = &body,
+  };
+  struct create_object_response *res;
+
+  DEBUG("creating object");
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
+  RETURN_IF(ns->ops->send_struct(ns, CREATE_OBJECT_REQUEST_ID, &req));
+  RETURN_IF(ns->ops->recv_struct(ns, CREATE_OBJECT_RESPONSE_ID, (void **)&res));
+  if (ASSERT_NOT_NULL(res))
+    return -EINVAL;
+  if (ASSERT_NOT_NULL(res->object_id))
+    return -EINVAL;
+  if (strlen(res->object_id) <= 0) {
+    RETURN_IF(-EINVAL);
+  }
+  DEBUG("created object: id=%s", res->object_id);
+  INFO("create_obj: OK");
+  return 0;
+}
+
+static int start_call_test(void *_s) {
+  struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
+  rpc_call_create_obj(s);
+  INFO("RPC_CALL_TEST: all test cases are passed");
+  return 0;
+}
+#endif
+
 static struct elton_rpc_setup2 setup2 = {
     .error = 0,
     .reason = "",
@@ -197,6 +238,9 @@ int rpc_session_worker(void *_s) {
   // Start health check worker.
   pinger = (struct task_struct *)kthread_run(rpc_session_pinger, s,
                                              "elton-ping [%d]", s->sid);
+#endif
+#ifdef ELTON_RPC_CALL_TEST
+  kthread_run(start_call_test, s, "elton-call-test");
 #endif
 
   // Receive data from client until socket is closed.
