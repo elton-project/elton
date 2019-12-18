@@ -37,8 +37,9 @@ static int rpc_call_create_obj(struct elton_rpc_session *s) {
 }
 
 static int start_call_test(void *_s) {
+  int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
-  rpc_call_create_obj(s);
+  RETURN_IF(rpc_call_create_obj(s));
   INFO("RPC_CALL_TEST: all test cases are passed");
   return 0;
 }
