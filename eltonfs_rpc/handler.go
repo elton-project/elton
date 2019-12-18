@@ -18,6 +18,8 @@ func defaultHandler(ns ClientNS, sid StructID, flags PacketFlag) {
 		handleGetCommitInfoRequest(ns)
 	case GetObjectRequestStructID:
 		handleGetObjectRequest(ns)
+	case CreateObjectRequestStructID:
+		handleCreateObject(ns)
 	case CreateCommitRequestStructID:
 		handleCreateCommitRequest(ns)
 	default:
@@ -92,6 +94,24 @@ func handleGetObjectRequest(ns ClientNS) {
 		}
 
 		return GetObjectResponse{}.FromGRPC(res), nil
+	})
+}
+
+func handleCreateObject(ns ClientNS) {
+	rpcHandlerHelper(ns, &CreateObjectRequest{}, func(rawReq interface{}) (i interface{}, e error) {
+		req := rawReq.(*CreateObjectRequest)
+
+		// Send create object request.
+		cc, err := grpc.Dial("", nil) // todo
+		if err != nil {
+			return nil, xerrors.Errorf("dial: %w", err)
+		}
+		c := elton_v2.NewStorageServiceClient(cc)
+		res, err := c.CreateObject(context.Background(), req.ToGRPC())
+		if err != nil {
+			return nil, xerrors.Errorf("call api: %w", err)
+		}
+		return CreateObjectResponse{}.FromGRPC(res), nil
 	})
 }
 

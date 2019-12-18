@@ -122,6 +122,13 @@ func (EltonObjectBody) FromGRPC(body *elton_v2.ObjectBody) EltonObjectBody {
 	}
 }
 
+func (body EltonObjectBody) ToGRPC() *elton_v2.ObjectBody {
+	return &elton_v2.ObjectBody{
+		Contents: body.Contents,
+		Offset:   body.Offset,
+	}
+}
+
 const CommitInfoStructID = 7
 
 type CommitInfo struct {
@@ -219,11 +226,23 @@ type CreateObjectRequest struct {
 	Body       EltonObjectBody `xdr:"1"`
 }
 
+func (req CreateObjectRequest) ToGRPC() *elton_v2.CreateObjectRequest {
+	return &elton_v2.CreateObjectRequest{
+		Body: req.Body.ToGRPC(),
+	}
+}
+
 const CreateObjectResponseStructID = 12
 
 type CreateObjectResponse struct {
 	XXX_XDR_ID struct{}      `xdrid:"12"`
 	ID         EltonObjectID `xdr:"1"`
+}
+
+func (CreateObjectResponse) FromGRPC(res *elton_v2.CreateObjectResponse) *CreateObjectResponse {
+	return &CreateObjectResponse{
+		ID: EltonObjectID("").FromGRPC(res.GetKey()),
+	}
 }
 
 const CreateCommitRequestStructID = 13
