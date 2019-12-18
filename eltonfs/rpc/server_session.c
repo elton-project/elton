@@ -193,9 +193,11 @@ int rpc_session_worker(void *_s) {
   INFO("established connection (client=%s)",
        setup1->client_name ? setup1->client_name : "no-name client");
 
+#ifndef ELTON_RPC_CALL_TEST // RPC呼び出しのテスト中は、ログが増えて読みづらくなるのでヘルスチェックを無効化
   // Start health check worker.
   pinger = (struct task_struct *)kthread_run(rpc_session_pinger, s,
                                              "elton-ping [%d]", s->sid);
+#endif
 
   // Receive data from client until socket is closed.
   for (;;) {
