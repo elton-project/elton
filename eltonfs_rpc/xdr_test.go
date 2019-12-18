@@ -316,6 +316,16 @@ func TestBinEncoder_Auto(t *testing.T) {
 			9,  // field value
 		}, buf.Bytes())
 	})
+	t.Run("type-alias", func(t *testing.T) {
+		buf, enc := newEnc()
+		type Alias string
+		enc.Auto(Alias("alias"))
+
+		assert.Equal(t, []byte{
+			0, 0, 0, 0, 0, 0, 0, 3, // string length
+			'a', 'l', 'i', 'a', 's', // string body
+		}, buf.Bytes())
+	})
 }
 func TestBinDecoder_Uint8(t *testing.T) {
 	n := uint8(10)
