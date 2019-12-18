@@ -9,15 +9,15 @@ import (
 	"google.golang.org/grpc"
 	"net"
 	"os"
+	"strconv"
 )
 
-const DefaultListenAddr = "0.0.0.0:0"
 const DefaultCacheDir = "/var/tmp/elton-local-storage"
 const DefaultMaxObjectSize = 10 << 20 // 10MiB
 
 func NewLocalStorageServer() subsystems.Server {
 	return &LocalStorage{
-		ListenAddr: DefaultListenAddr,
+		ListenAddr: "0.0.0.0:" + strconv.Itoa(subsystems.StoragePort),
 		CacheDir:   DefaultCacheDir,
 	}
 }

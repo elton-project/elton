@@ -3,15 +3,15 @@ package simple
 import (
 	"context"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"net"
 	"os"
+	"strconv"
 )
-
-const DefaultListenAddr = "0.0.0.0:0"
 
 type Server struct {
 	ListenAddr string
@@ -63,6 +63,6 @@ func (s *Server) Serve(ctx context.Context) error {
 
 func NewServer() *Server {
 	return &Server{
-		ListenAddr: DefaultListenAddr,
+		ListenAddr: "0.0.0.0:" + strconv.Itoa(subsystems.ControllerPort),
 	}
 }
