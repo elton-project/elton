@@ -144,7 +144,7 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
       ERR("unexpected error is received: expected=%llu, error_id=%llu, "
           "reason=%s, flags=%u",
           struct_id, rpc_err->error_id, rpc_err->reason, raw->flags);
-      error = ELTON_RPC_ERROR_PACKET;
+      error = -ELTON_RPC_ERROR_PACKET;
     } else {
       // Unexpected struct.
       ERR("unexpected struct is received: expected=%llu, actual=%llu, "
