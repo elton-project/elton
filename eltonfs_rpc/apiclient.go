@@ -10,17 +10,19 @@ import (
 
 type apiClient struct{}
 
+func (apiClient) dial(port int) (*grpc.ClientConn, error) {
+	address := "localhost:" + strconv.Itoa(port)
+	return grpc.Dial(address, nil)
+}
 func (apiClient) CommitService() (elton_v2.CommitServiceClient, error) {
-	server := "localhost:" + strconv.Itoa(subsystems.ControllerPort)
-	cc, err := grpc.Dial(server, nil)
+	cc, err := apiClient{}.dial(subsystems.ControllerPort)
 	if err != nil {
 		return nil, xerrors.Errorf("dial: %w", err)
 	}
 	return elton_v2.NewCommitServiceClient(cc), nil
 }
 func (apiClient) StorageService() (elton_v2.StorageServiceClient, error) {
-	server := "localhost:" + strconv.Itoa(subsystems.StoragePort)
-	cc, err := grpc.Dial(server, nil)
+	cc, err := apiClient{}.dial(subsystems.StoragePort)
 	if err != nil {
 		return nil, xerrors.Errorf("dial: %w", err)
 	}
