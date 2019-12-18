@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"time"
+	"unsafe"
 )
 
 const XDRTag = "xdr"
@@ -205,22 +206,30 @@ func (e *binEncoder) Auto(v interface{}) {
 		kind := reflect.TypeOf(v).Kind()
 		switch kind {
 		case reflect.Uint8:
-			fallthrough
+			u := uint8(reflect.ValueOf(v).Uint())
+			e.Uint8(u)
 		case reflect.Bool:
-			fallthrough
+			b := reflect.ValueOf(v).Bool()
+			e.Bool(b)
 		case reflect.Uint64:
-			fallthrough
+			u := reflect.ValueOf(v).Uint()
+			e.Uint64(u)
 		case reflect.String:
-			err := xerrors.Errorf("type alias is not supported: %s", kind)
-			panic(err)
-
+			s := reflect.ValueOf(v).String()
+			e.String(s)
 		case reflect.Slice:
 			if reflect.TypeOf(v).Elem().Kind() == reflect.Uint8 {
-				// Type of v is an alias of []byte.
-				err := xerrors.Errorf("type alias is not supported: %s", kind)
-				panic(err)
+				vv := reflect.ValueOf(v)
+				ptr := &reflect.SliceHeader{
+					Data: vv.Pointer(),
+					Len:  vv.Len(),
+					Cap:  vv.Cap(),
+				}
+				b := *(*[]byte)(unsafe.Pointer(ptr))
+				e.Bytes(b)
+			} else {
+				e.Slice(v)
 			}
-			e.Slice(v)
 		case reflect.Map:
 			e.Map(v)
 		case reflect.Struct:

@@ -317,30 +317,52 @@ func TestBinEncoder_Auto(t *testing.T) {
 		}, buf.Bytes())
 	})
 	t.Run("type-alias", func(t *testing.T) {
-		assert.Panics(t, func() {
-			_, enc := newEnc()
+		assert.NotPanics(t, func() {
+			buf, enc := newEnc()
 			type Alias uint8
 			enc.Auto(Alias(1))
+
+			assert.Equal(t, []byte{
+				1,
+			}, buf.Bytes())
 		})
-		assert.Panics(t, func() {
-			_, enc := newEnc()
+		assert.NotPanics(t, func() {
+			buf, enc := newEnc()
 			type Alias bool
 			enc.Auto(Alias(true))
+
+			assert.Equal(t, []byte{
+				1,
+			}, buf.Bytes())
 		})
-		assert.Panics(t, func() {
-			_, enc := newEnc()
+		assert.NotPanics(t, func() {
+			buf, enc := newEnc()
 			type Alias uint64
 			enc.Auto(Alias(1))
+
+			assert.Equal(t, []byte{
+				0, 0, 0, 0, 0, 0, 0, 1,
+			}, buf.Bytes())
 		})
-		assert.Panics(t, func() {
-			_, enc := newEnc()
+		assert.NotPanics(t, func() {
+			buf, enc := newEnc()
 			type Alias string
 			enc.Auto(Alias("alias"))
+
+			assert.Equal(t, []byte{
+				0, 0, 0, 0, 0, 0, 0, 5,
+				'a', 'l', 'i', 'a', 's',
+			}, buf.Bytes())
 		})
-		assert.Panics(t, func() {
-			_, enc := newEnc()
+		assert.NotPanics(t, func() {
+			buf, enc := newEnc()
 			type Alias []byte
 			enc.Auto(Alias("alias"))
+
+			assert.Equal(t, []byte{
+				0, 0, 0, 0, 0, 0, 0, 5,
+				'a', 'l', 'i', 'a', 's',
+			}, buf.Bytes())
 		})
 	})
 }
