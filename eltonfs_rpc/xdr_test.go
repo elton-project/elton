@@ -317,14 +317,31 @@ func TestBinEncoder_Auto(t *testing.T) {
 		}, buf.Bytes())
 	})
 	t.Run("type-alias", func(t *testing.T) {
-		buf, enc := newEnc()
-		type Alias string
-		enc.Auto(Alias("alias"))
-
-		assert.Equal(t, []byte{
-			0, 0, 0, 0, 0, 0, 0, 3, // string length
-			'a', 'l', 'i', 'a', 's', // string body
-		}, buf.Bytes())
+		assert.Panics(t, func() {
+			_, enc := newEnc()
+			type Alias uint8
+			enc.Auto(Alias(1))
+		})
+		assert.Panics(t, func() {
+			_, enc := newEnc()
+			type Alias bool
+			enc.Auto(Alias(true))
+		})
+		assert.Panics(t, func() {
+			_, enc := newEnc()
+			type Alias uint64
+			enc.Auto(Alias(1))
+		})
+		assert.Panics(t, func() {
+			_, enc := newEnc()
+			type Alias string
+			enc.Auto(Alias("alias"))
+		})
+		assert.Panics(t, func() {
+			_, enc := newEnc()
+			type Alias []byte
+			enc.Auto(Alias("alias"))
+		})
 	})
 }
 func TestBinDecoder_Uint8(t *testing.T) {
