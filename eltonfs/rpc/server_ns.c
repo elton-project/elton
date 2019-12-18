@@ -142,13 +142,14 @@ static int ns_recv_struct(struct elton_rpc_ns *ns, u64 struct_id, void **data) {
       // Received error response.
       GOTO_IF(error_dequeue, elton_rpc_decode_packet(raw, (void **)&rpc_err));
       ERR("unexpected error is received: expected=%llu, error_id=%llu, "
-          "reason=%s",
-          struct_id, rpc_err->error_id, rpc_err->reason);
+          "reason=%s, flags=%u",
+          struct_id, rpc_err->error_id, rpc_err->reason, raw->flags);
       error = ELTON_RPC_ERROR_PACKET;
     } else {
       // Unexpected struct.
-      ERR("unexpected struct is received: expected=%llu, actual=%llu",
-          struct_id, raw->struct_id);
+      ERR("unexpected struct is received: expected=%llu, actual=%llu, "
+          "flags=%d, size=%lu",
+          struct_id, raw->struct_id, raw->flags, raw->size);
       GOTO_IF(error_dequeue, -ELTON_RPC_DIFF_TYPE);
     }
   }
