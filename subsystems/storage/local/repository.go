@@ -281,7 +281,10 @@ func (r *ObjectV1) hash() ([]byte, error) {
 	}
 }
 func DumpHeader(rs io.ReadSeeker) (string, error) {
-	obj, err := LoadObjectV1(rs, 0, 0, ObjectLimitV1{})
+	obj, err := LoadObjectV1(rs, 0, 0, ObjectLimitV1{
+		MaxBodySize: 0,
+		MaxInfoSize: maxMetadataSize,
+	})
 	if err != nil {
 		return "", xerrors.Errorf("load object: %w", err)
 	}
