@@ -35,11 +35,40 @@ static int rpc_call_create_obj(struct elton_rpc_session *s) {
   INFO("create_obj: OK");
   return 0;
 }
+static int rpc_call_create_commit(struct elton_rpc_session *s) {
+  int error = 0;
+  struct elton_rpc_ns _ns;
+  struct elton_rpc_ns *ns = &_ns;
+  radix_tree_init;
+  struct eltonfs_inode root;
+  RADIX_TREE(itree, GFP_KERNEL);
+  struct tree_info tree = {.root = &root, .inodes = &itree};
+  struct commit_info info = {
+      .created_at =
+          {
+              .sec = 1,
+              .nsec = 2,
+          },
+      .left_parent_id = "311c4edc000000/13823398882902016",
+      .right_parent_id = "",
+      .tree = &tree,
+  };
+  struct create_commit_request req = {
+      .info = info,
+  };
+  struct create_commit_response *res;
 
+  DEBUG("creating commit");
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
+  RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
+  RETURN_IF(ns->ops->recv_struct(ns, CREATE_COMMIT_RESPONSE_ID, (void **)&res));
+  return 0;
+}
 static int start_call_test(void *_s) {
   int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
   RETURN_IF(rpc_call_create_obj(s));
+  RETURN_IF(rpc_call_create_commit(s));
   INFO("RPC_CALL_TEST: all test cases are passed");
   return 0;
 }
