@@ -23,10 +23,20 @@ var volumeCreateCmd = &cobra.Command{
 	Short: "Create a volume",
 	RunE:  volumeCreateFn,
 }
+var debugCmd = &cobra.Command{
+	Use:   "debug",
+	Short: "Debug utilities",
+}
+var debugDumpObj = &cobra.Command{
+	Use:   "dump-obj",
+	Short: "Dump objects with human-readable string",
+	RunE:  debugDumpObjFn,
+}
 
 func init() {
 	volumeCmd.AddCommand(volumeLsCmd, volumeCreateCmd)
-	rootCmd.AddCommand(volumeCmd)
+	debugCmd.AddCommand(debugDumpObj)
+	rootCmd.AddCommand(volumeCmd, debugCmd)
 }
 func main() {
 	os.Exit(Main())

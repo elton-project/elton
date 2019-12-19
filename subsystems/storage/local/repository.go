@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/yuuki0xff/pathlib"
@@ -11,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -277,4 +279,20 @@ func (r *ObjectV1) hash() ([]byte, error) {
 		msg := fmt.Sprintf("not supported hash type: %s", r.Info.HashAlgorithm)
 		return nil, NewInvalidObject(msg).Wrap(nil)
 	}
+}
+func DumpHeader(rs io.ReadSeeker) (string, error) {
+	obj, err := LoadObjectV1(rs, 0, 0, ObjectLimitV1{})
+	if err != nil {
+		return "", xerrors.Errorf("load object: %w", err)
+	}
+	if obj.Offset != 0 || uint64(len(obj.Body)) != obj.Info.Size {
+		panic(xerrors.Errorf("bug: offset=%d, body_len=%d info_len=%d", obj.Offset, len(obj.Body), obj.Info.Size))
+	}
+
+	b := &strings.Builder{}
+	fmt.Fprintf(b, "Version: %d\n", obj.Version())
+	fmt.Fprintf(b, "Hash: %s (%s)\n", hex.EncodeToString(obj.Info.Hash), obj.Info.HashAlgorithm)
+	fmt.Fprintf(b, "Created: %s\n", obj.Info.CreateTime)
+	fmt.Fprintf(b, "Size: %d\n", obj.Info.Size)
+	return b.String(), nil
 }
