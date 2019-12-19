@@ -544,7 +544,7 @@ DECODER_DATA(commit_info) {
 };
 IMPL_ENCODER(commit_info) {
   int error;
-  RETURN_IF(enc->enc_op->struct_(enc, se, 2));
+  RETURN_IF(enc->enc_op->struct_(enc, se, 4));
   RETURN_IF(se->op->timestamp(se, 1, s->created_at));
   RETURN_IF(se->op->bytes(se, 2, s->left_parent_id, strlen(s->left_parent_id)));
   RETURN_IF(
