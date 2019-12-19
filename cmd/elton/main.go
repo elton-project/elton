@@ -32,11 +32,22 @@ var debugDumpObjCmd = &cobra.Command{
 	Short: "Dump objects with human-readable string",
 	RunE:  debugDumpObjFn,
 }
+var historyCmd = &cobra.Command{
+	Use: "history",
+}
+var historyLsCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "Show commits",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return nil
+	},
+}
 
 func init() {
 	volumeCmd.AddCommand(volumeLsCmd, volumeCreateCmd)
 	debugCmd.AddCommand(debugDumpObjCmd)
-	rootCmd.AddCommand(volumeCmd, debugCmd)
+	historyCmd.AddCommand(historyLsCmd)
+	rootCmd.AddCommand(volumeCmd, debugCmd, historyCmd)
 }
 func main() {
 	os.Exit(Main())
