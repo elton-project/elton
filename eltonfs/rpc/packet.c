@@ -248,8 +248,11 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
                   error = type_name##_encode_with(&enc, &se, s));              \
     return 0;                                                                  \
   }
-#define CALL_ENCODER(type_name, enc, se, s)                                    \
-  type_name##_encode_with((enc), (se), (s))
+#define CALL_ENCODER(type_name, enc, s)                                        \
+  ({                                                                           \
+    struct xdr_struct_encoder se2;                                             \
+    type_name##_encode_with((enc), &se2, (s));                                 \
+  })
 #define DECODER_DATA(type_name) struct __##type_name##_decoder_data
 #define IMPL_DECODER_PREPARE(type_name)                                        \
   static inline int __##type_name##_decode_pre(                                \
@@ -599,11 +602,9 @@ IMPL_ENCODER(tree_info) {
   RETURN_IF(se->op->map(se, 4, me, inode_count));
   radix_tree_for_each_slot(slot, s->inodes, &iter, 0) {
     struct eltonfs_inode *inode = (struct eltonfs_inode *)*slot;
-    struct xdr_struct_encoder _se2;
-    struct xdr_struct_encoder *se2 = &_se2;
 
     RETURN_IF(enc->enc_op->u64(enc, inode->eltonfs_ino));
-    RETURN_IF(CALL_ENCODER(eltonfs_inode, enc, se2, inode));
+    RETURN_IF(CALL_ENCODER(eltonfs_inode, enc, inode));
     RETURN_IF(me->op->encoded_kv(me));
   }
   RETURN_IF(me->op->close(me));
@@ -685,7 +686,7 @@ IMPL_ENCODER(create_object_request) {
   int error;
   RETURN_IF(enc->enc_op->struct_(enc, se, 1));
   RETURN_IF(se->op->external_encoder(se, 1));
-  RETURN_IF(CALL_ENCODER(elton_object_body, enc, se, s->body));
+  RETURN_IF(CALL_ENCODER(elton_object_body, enc, s->body));
   RETURN_IF(se->op->close(se));
   return 0;
 }
@@ -715,7 +716,7 @@ IMPL_ENCODER(create_commit_request) {
   int error;
   RETURN_IF(enc->enc_op->struct_(enc, se, 1));
   RETURN_IF(se->op->external_encoder(se, 1));
-  RETURN_IF(CALL_ENCODER(commit_info, enc, se, &s->info));
+  RETURN_IF(CALL_ENCODER(commit_info, enc, &s->info));
   RETURN_IF(se->op->close(se));
   return 0;
 }
