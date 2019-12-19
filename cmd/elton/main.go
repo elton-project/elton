@@ -18,6 +18,11 @@ var volumeLsCmd = &cobra.Command{
 	Short: "List all volumes",
 	RunE:  volumeLsFn,
 }
+var volumeCreateCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Create a volume",
+	RunE:  volumeCreateFn,
+}
 
 func init() {
 	volumeCmd.AddCommand(volumeLsCmd)
