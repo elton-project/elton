@@ -25,7 +25,7 @@ var volumeCreateCmd = &cobra.Command{
 }
 
 func init() {
-	volumeCmd.AddCommand(volumeLsCmd)
+	volumeCmd.AddCommand(volumeLsCmd, volumeCreateCmd)
 	rootCmd.AddCommand(volumeCmd)
 }
 func main() {
