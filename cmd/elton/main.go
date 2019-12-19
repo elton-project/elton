@@ -27,7 +27,7 @@ var debugCmd = &cobra.Command{
 	Use:   "debug",
 	Short: "Debug utilities",
 }
-var debugDumpObj = &cobra.Command{
+var debugDumpObjCmd = &cobra.Command{
 	Use:   "dump-obj",
 	Short: "Dump objects with human-readable string",
 	RunE:  debugDumpObjFn,
@@ -35,7 +35,7 @@ var debugDumpObj = &cobra.Command{
 
 func init() {
 	volumeCmd.AddCommand(volumeLsCmd, volumeCreateCmd)
-	debugCmd.AddCommand(debugDumpObj)
+	debugCmd.AddCommand(debugDumpObjCmd)
 	rootCmd.AddCommand(volumeCmd, debugCmd)
 }
 func main() {
