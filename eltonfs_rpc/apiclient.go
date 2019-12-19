@@ -12,22 +12,22 @@ import (
 
 const DefaultAPITimeout = 3 * time.Second
 
-type apiClient struct{}
+type ApiClient struct{}
 
-func (apiClient) dial(port int) (*grpc.ClientConn, error) {
+func (ApiClient) dial(port int) (*grpc.ClientConn, error) {
 	address := "localhost:" + strconv.Itoa(port)
 	ctx, _ := context.WithTimeout(context.Background(), DefaultAPITimeout)
 	return grpc.DialContext(ctx, address, grpc.WithInsecure())
 }
-func (apiClient) CommitService() (elton_v2.CommitServiceClient, error) {
-	cc, err := apiClient{}.dial(subsystems.ControllerPort)
+func (ApiClient) CommitService() (elton_v2.CommitServiceClient, error) {
+	cc, err := ApiClient{}.dial(subsystems.ControllerPort)
 	if err != nil {
 		return nil, xerrors.Errorf("dial: %w", err)
 	}
 	return elton_v2.NewCommitServiceClient(cc), nil
 }
-func (apiClient) StorageService() (elton_v2.StorageServiceClient, error) {
-	cc, err := apiClient{}.dial(subsystems.StoragePort)
+func (ApiClient) StorageService() (elton_v2.StorageServiceClient, error) {
+	cc, err := ApiClient{}.dial(subsystems.StoragePort)
 	if err != nil {
 		return nil, xerrors.Errorf("dial: %w", err)
 	}

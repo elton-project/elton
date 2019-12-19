@@ -62,7 +62,7 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 		req := rawReq.(*GetCommitInfoRequest)
 
 		// Get commit info from meta node.
-		c, err := apiClient{}.CommitService()
+		c, err := ApiClient{}.CommitService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
@@ -80,7 +80,7 @@ func handleGetObjectRequest(ns ClientNS) {
 		req := rawReq.(*GetObjectRequest)
 
 		// Get object from storage.
-		c, err := apiClient{}.StorageService()
+		c, err := ApiClient{}.StorageService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
@@ -98,7 +98,7 @@ func handleCreateObject(ns ClientNS) {
 		req := rawReq.(*CreateObjectRequest)
 
 		// Send create object request.
-		c, err := apiClient{}.StorageService()
+		c, err := ApiClient{}.StorageService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
@@ -115,7 +115,7 @@ func handleCreateCommitRequest(ns ClientNS) {
 		req := rawReq.(*CreateCommitRequest)
 
 		// Send commit request.
-		c, err := apiClient{}.CommitService()
+		c, err := ApiClient{}.CommitService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
