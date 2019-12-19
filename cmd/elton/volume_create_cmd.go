@@ -37,4 +37,5 @@ func _volumeCreateFn(ctx context.Context, names []string) error {
 		// Show volume ID.
 		fmt.Println(res.GetId())
 	}
+	return nil
 }
