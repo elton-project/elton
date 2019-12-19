@@ -671,6 +671,7 @@ IMPL_DECODER_PREPARE(create_object_response) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
+  *size = data->id_length + 1;
   return 0;
 }
 IMPL_DECODER_BODY(create_object_response) {
