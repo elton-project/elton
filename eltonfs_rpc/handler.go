@@ -2,6 +2,7 @@ package eltonfs_rpc
 
 import (
 	"context"
+	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
 	"log"
 )
@@ -62,7 +63,7 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 		req := rawReq.(*GetCommitInfoRequest)
 
 		// Get commit info from meta node.
-		c, err := ApiClient{}.CommitService()
+		c, err := elton_v2.ApiClient{}.CommitService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
@@ -80,7 +81,7 @@ func handleGetObjectRequest(ns ClientNS) {
 		req := rawReq.(*GetObjectRequest)
 
 		// Get object from storage.
-		c, err := ApiClient{}.StorageService()
+		c, err := elton_v2.ApiClient{}.StorageService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
@@ -98,7 +99,7 @@ func handleCreateObject(ns ClientNS) {
 		req := rawReq.(*CreateObjectRequest)
 
 		// Send create object request.
-		c, err := ApiClient{}.StorageService()
+		c, err := elton_v2.ApiClient{}.StorageService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
@@ -115,7 +116,7 @@ func handleCreateCommitRequest(ns ClientNS) {
 		req := rawReq.(*CreateCommitRequest)
 
 		// Send commit request.
-		c, err := ApiClient{}.CommitService()
+		c, err := elton_v2.ApiClient{}.CommitService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}

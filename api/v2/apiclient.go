@@ -1,8 +1,7 @@
-package eltonfs_rpc
+package elton_v2
 
 import (
 	"context"
-	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
