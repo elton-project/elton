@@ -554,7 +554,8 @@ IMPL_ENCODER(commit_info) {
   RETURN_IF(se->op->bytes(se, 2, s->left_parent_id, strlen(s->left_parent_id)));
   RETURN_IF(
       se->op->bytes(se, 3, s->right_parent_id, strlen(s->right_parent_id)));
-  // todo: encode the "tree" field.
+  RETURN_IF(se->op->external_encoder(se, 5));
+  RETURN_IF(CALL_ENCODER(tree_info, enc, s->tree));
   RETURN_IF(se->op->close(se));
   return 0;
 }
