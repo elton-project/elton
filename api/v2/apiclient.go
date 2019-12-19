@@ -32,3 +32,11 @@ func (ApiClient) StorageService() (StorageServiceClient, error) {
 	}
 	return NewStorageServiceClient(cc), nil
 }
+
+func (ApiClient) VolumeService() (VolumeServiceClient, error) {
+	cc, err := ApiClient{}.dial(subsystems.ControllerPort)
+	if err != nil {
+		return nil, xerrors.Errorf("dial: %w", err)
+	}
+	return NewVolumeServiceClient(cc), nil
+}
