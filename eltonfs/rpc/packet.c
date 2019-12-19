@@ -721,7 +721,7 @@ IMPL_DECODER_PREPARE(notify_latest_commit) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
-  *size = data->id_length;
+  *size = data->id_length + 1;
   return 0;
 }
 IMPL_DECODER_BODY(notify_latest_commit) {
@@ -750,7 +750,7 @@ IMPL_DECODER_PREPARE(get_commit_info_response) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
-  *size = data->id_length;
+  *size = data->id_length + 1;
   return 0;
 }
 IMPL_DECODER_BODY(get_commit_info_response) {
