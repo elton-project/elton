@@ -589,16 +589,16 @@ IMPL_ENCODER(tree_info) {
   struct xdr_map_encoder _me;
   struct xdr_map_encoder *me = &_me;
   void **slot;
-  void *iter;
+  struct radix_tree_iter iter;
   u64 inode_count = 0;
 
-  radix_tree_for_each_slot(slot, s->inodes, iter, 0) inode_count++;
+  radix_tree_for_each_slot(slot, s->inodes, &iter, 0) inode_count++;
 
   RETURN_IF(enc->enc_op->struct_(enc, se, 2));
   RETURN_IF(se->op->u64(se, 3, s->root->eltonfs_ino));
   RETURN_IF(se->op->map(se, 4, me, inode_count));
-  radix_tree_for_each_slot(slot, s->inodes, iter, 0) {
-    struct eltonfs_inode *inode = (struct eltonfs_inode *)iter;
+  radix_tree_for_each_slot(slot, s->inodes, &iter, 0) {
+    struct eltonfs_inode *inode = (struct eltonfs_inode *)*slot;
     struct xdr_struct_encoder _se2;
     struct xdr_struct_encoder *se2 = &_se2;
 
