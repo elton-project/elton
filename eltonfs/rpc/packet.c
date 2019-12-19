@@ -306,8 +306,8 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
       .encode = not_implemented_encode,                                        \
       .decode = type_name##_decode,                                            \
   }
-#define CALL_DECODER(struct_name, dec, out)                                    \
-  struct_name##_decode_with((dec), (void **)(out))
+#define CALL_DECODER(type_name, dec, out)                                      \
+  type_name##_decode_with((dec), (void **)(out))
 
 void free_raw_packet(struct raw_packet *packet) { vfree(packet); }
 
