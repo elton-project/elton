@@ -11,12 +11,12 @@ import (
 )
 
 func volumeLsFn(cmd *cobra.Command, args []string) error {
-	if err := _volumeLsFn(cmd, args); err != nil {
+	if err := _volumeLsFn(); err != nil {
 		showError(err)
 	}
 	return nil
 }
-func _volumeLsFn(cmd *cobra.Command, args []string) error {
+func _volumeLsFn() error {
 	c, err := elton_v2.ApiClient{}.VolumeService()
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
