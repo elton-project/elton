@@ -518,7 +518,7 @@ IMPL_DECODER_PREPARE(elton_object_body) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->contents_length));
-  *size = data->contents_length;
+  *size = data->contents_length + 1;
   return 0;
 }
 IMPL_DECODER_BODY(elton_object_body) {
@@ -530,6 +530,7 @@ IMPL_DECODER_BODY(elton_object_body) {
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   s->contents_length = data->contents_length;
   RETURN_IF(sd->op->bytes(sd, 1, s->contents, &s->contents_length));
+  s->contents[s->contents_length] = '\0';
   RETURN_IF(sd->op->u64(sd, 2, &s->offset));
   RETURN_IF(sd->op->close(sd));
   return 0;
