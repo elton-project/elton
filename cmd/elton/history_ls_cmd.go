@@ -12,7 +12,7 @@ import (
 
 func historyLsFn(cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
-		return errors.New("")
+		return errors.New("invalid args")
 	}
 
 	volume := args[0]
