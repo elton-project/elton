@@ -235,20 +235,21 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
   return 0;
 }
 
-#define IMPL_ENCODER(type_name)                                                \
-  static inline int __##type_name##_encode(struct xdr_encoder *enc,            \
-                                           struct xdr_struct_encoder *se,      \
-                                           struct type_name *s)
+#define __DECLARE_ENCODER_WITH(type_name)                                      \
+  __unused static inline int type_name##_encode_with(                          \
+      struct xdr_encoder *enc, struct xdr_struct_encoder *se,                  \
+      struct type_name *s)
+#define IMPL_ENCODER(type_name) __DECLARE_ENCODER_WITH(type_name)
 #define __DECLARE_ENCODER(type_name)                                           \
   static int type_name##_encode(struct packet *in, struct raw_packet **out)
 #define __DEFINE_ENCODER(type_name, struct_id)                                 \
   __DECLARE_ENCODER(type_name) {                                               \
     *out = ENCODE(struct_id, struct type_name, in,                             \
-                  error = __##type_name##_encode(&enc, &se, s));               \
+                  error = type_name##_encode_with(&enc, &se, s));              \
     return 0;                                                                  \
   }
 #define CALL_ENCODER(type_name, enc, se, s)                                    \
-  __##type_name##_encode((enc), (se), (s))
+  type_name##_encode_with((enc), (se), (s))
 #define DECODER_DATA(type_name) struct __##type_name##_decoder_data
 #define IMPL_DECODER_PREPARE(type_name)                                        \
   static inline int __##type_name##_decode_pre(                                \
@@ -283,6 +284,7 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
   }
 #define DECLARE_ENCDEC(type_name)                                              \
   __DECLARE_ENCODER(type_name);                                                \
+  __DECLARE_ENCODER_WITH(type_name);                                           \
   __DECLARE_DECODER(type_name);                                                \
   __DECLARE_DECODER_WITH(type_name);
 #define DEFINE_ENCDEC(type_name, struct_id)                                    \
