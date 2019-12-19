@@ -38,9 +38,7 @@ var historyCmd = &cobra.Command{
 var historyLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "Show commits",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return nil
-	},
+	RunE:  historyLsFn,
 }
 
 func init() {
