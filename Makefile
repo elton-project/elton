@@ -14,6 +14,7 @@
 PREFIX = /usr/local
 MODULE_DIR = /lib/modules/$(shell uname -r)/elton
 
+BUILD_SBIN_FILES += build/sbin/elton
 BUILD_SBIN_FILES += build/sbin/eltond
 BUILD_SBIN_FILES += build/sbin/eltonfs-helper
 BUILD_KMOD_FILES += build/kmod/elton.ko
@@ -78,6 +79,8 @@ help:
 	@ sed '/^$$/Q; s/^# \?//;' Makefile
 
 
+build/sbin/elton: $(GO_DEPS)
+	go build -o $@ ./cmd/elton
 
 build/sbin/eltond: $(GO_DEPS)
 	go build -o $@ ./cmd/eltond
