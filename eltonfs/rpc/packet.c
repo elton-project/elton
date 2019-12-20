@@ -334,7 +334,7 @@ static int not_implemented_decode(struct raw_packet *in, void **out) {
   return 0;
 }
 
-DECLARE_ENCDEC(eltonfs_inode);
+DECLARE_ENCDEC(eltonfs_inode_xdr);
 
 static int setup1_decode(struct raw_packet *in, void **out) {
   size_t str_size = 0;
@@ -602,10 +602,10 @@ IMPL_ENCODER(tree_info) {
   RETURN_IF(se->op->u64(se, 3, s->root->eltonfs_ino));
   RETURN_IF(se->op->map(se, 4, me, inode_count));
   radix_tree_for_each_slot(slot, s->inodes, &iter, 0) {
-    struct eltonfs_inode *inode = (struct eltonfs_inode *)*slot;
+    struct eltonfs_inode_xdr *inode = (struct eltonfs_inode_xdr *)*slot;
 
     RETURN_IF(enc->enc_op->u64(enc, inode->eltonfs_ino));
-    RETURN_IF(CALL_ENCODER(eltonfs_inode, enc, inode));
+    RETURN_IF(CALL_ENCODER(eltonfs_inode_xdr, enc, inode));
     RETURN_IF(me->op->encoded_kv(me));
   }
   RETURN_IF(me->op->close(me));
@@ -632,14 +632,14 @@ IMPL_DECODER_BODY(tree_info) {
   RETURN_IF(sd->op->map(sd, 4, mdec));
   while (mdec->op->has_next_kv(mdec)) {
     u64 ino;
-    struct eltonfs_inode *inode;
-    inode = (struct eltonfs_inode *)kmalloc(sizeof(*inode), GFP_KERNEL);
+    struct eltonfs_inode_xdr *inode;
+    inode = (struct eltonfs_inode_xdr *)kmalloc(sizeof(*inode), GFP_KERNEL);
     if (inode == NULL)
       // TODO: release inodes when an error occured.
       RETURN_IF(-ENOMEM);
 
     RETURN_IF(dec->dec_op->u64(dec, &ino));
-    RETURN_IF(CALL_DECODER(eltonfs_inode, dec, inode));
+    RETURN_IF(CALL_DECODER(eltonfs_inode_xdr, dec, inode));
     RETURN_IF(mdec->op->decoded_kv(mdec));
 
     RETURN_IF(radix_tree_insert(s->inodes, ino, inode));
@@ -807,39 +807,29 @@ static inline struct timespec64 timestamp_to_timespec64(struct timestamp ts) {
   return out;
 }
 
-DECODER_DATA(eltonfs_inode) { size_t id_length; };
-IMPL_ENCODER(eltonfs_inode) {
+DECODER_DATA(eltonfs_inode_xdr) { size_t id_length; };
+IMPL_ENCODER(eltonfs_inode_xdr) {
   int error;
   struct xdr_map_encoder _map;
   struct xdr_map_encoder *map = &_map;
   struct eltonfs_dir_entry *entry;
-  RETURN_IF(enc->enc_op->struct_(enc, se, 9));
+  RETURN_IF(enc->enc_op->struct_(enc, se, 10));
 
-  // 1: object_id
-  if (S_ISREG(s->vfs_inode.i_mode)) {
-    RETURN_IF(
-        se->op->bytes(se, 1, s->file.object_id, strlen(s->file.object_id)));
-  } else {
-    RETURN_IF(se->op->bytes(se, 1, "", 0));
-  }
-
-  RETURN_IF(se->op->u64(se, 3, (u64)s->vfs_inode.i_mode));
-  RETURN_IF(se->op->u64(se, 4, (u64)s->vfs_inode.i_uid.val));
-  RETURN_IF(se->op->u64(se, 5, (u64)s->vfs_inode.i_gid.val));
-  RETURN_IF(
-      se->op->timestamp(se, 6, timespec64_to_timestamp(s->vfs_inode.i_atime)));
-  RETURN_IF(
-      se->op->timestamp(se, 7, timespec64_to_timestamp(s->vfs_inode.i_mtime)));
-  RETURN_IF(
-      se->op->timestamp(se, 8, timespec64_to_timestamp(s->vfs_inode.i_ctime)));
-  RETURN_IF(se->op->u64(se, 9, (u64)imajor(&s->vfs_inode)));
-  RETURN_IF(se->op->u64(se, 10, (u64)iminor(&s->vfs_inode)));
+  RETURN_IF(se->op->bytes(se, 1, s->object_id, strlen(s->object_id)));
+  RETURN_IF(se->op->u64(se, 3, s->mode));
+  RETURN_IF(se->op->u64(se, 4, s->owner));
+  RETURN_IF(se->op->u64(se, 5, s->group));
+  RETURN_IF(se->op->timestamp(se, 6, s->atime));
+  RETURN_IF(se->op->timestamp(se, 7, s->mtime));
+  RETURN_IF(se->op->timestamp(se, 8, s->ctime));
+  RETURN_IF(se->op->u64(se, 9, s->major));
+  RETURN_IF(se->op->u64(se, 10, s->minor));
 
   // 11: entries
-  RETURN_IF(se->op->map(se, 11, map, s->dir.count));
-  ELTONFS_FOR_EACH_DIRENT(s, entry) {
+  RETURN_IF(se->op->map(se, 11, map, s->dir_entries_len));
+  list_for_each_entry(entry, &s->dir_entries._list_head, _list_head) {
     enc->enc_op->bytes(enc, entry->file, strlen(entry->file));
-    enc->enc_op->u64(enc, eltonfs_i(entry->inode)->eltonfs_ino);
+    enc->enc_op->u64(enc, entry->ino);
     map->op->encoded_kv(map);
   }
   RETURN_IF(map->op->close(map));
@@ -847,83 +837,61 @@ IMPL_ENCODER(eltonfs_inode) {
   RETURN_IF(se->op->close(se));
   return 0;
 }
-IMPL_DECODER_PREPARE(eltonfs_inode) {
+IMPL_DECODER_PREPARE(eltonfs_inode_xdr) {
   int error;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_length));
   *size = 0;
   return 0;
 }
-// Decode eltonfs_inode object from bytes.
-// このデコーダは、vfs_inodeの一部のフィールドしか初期化しない。また、dirも_dir_entries_tmpのみを初期化する。
-// 実際に使用するには、vfs_inodeフィールドの初期化やdir_entriesの構築をする必要がある。
-IMPL_DECODER_BODY(eltonfs_inode) {
+IMPL_DECODER_BODY(eltonfs_inode_xdr) {
   int error;
-  u64 val64;
-  u64 major, minor;
-  struct timestamp ts;
-  char *obj_id = kmalloc(data->id_length + 1, GFP_KERNEL);
+  struct xdr_map_decoder _mdec;
+  struct xdr_map_decoder *mdec = &_mdec;
+  char *obj_id;
+
+  obj_id = kmalloc(data->id_length + 1, GFP_KERNEL);
+  if (obj_id == NULL) {
+    RETURN_IF(-ENOMEM);
+  }
 
   // Decode
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, obj_id, &data->id_length));
-  RETURN_IF(sd->op->u64(sd, 3, &val64));
-  s->vfs_inode.i_mode = (umode_t)val64;
-  RETURN_IF(sd->op->u64(sd, 4, &val64));
-  s->vfs_inode.i_uid.val = (uid_t)val64;
-  RETURN_IF(sd->op->u64(sd, 5, &val64));
-  s->vfs_inode.i_gid.val = (gid_t)val64;
-  RETURN_IF(sd->op->timestamp(sd, 6, &ts));
-  s->vfs_inode.i_atime = timestamp_to_timespec64(ts);
-  RETURN_IF(sd->op->timestamp(sd, 7, &ts));
-  s->vfs_inode.i_mtime = timestamp_to_timespec64(ts);
-  RETURN_IF(sd->op->timestamp(sd, 8, &ts));
-  s->vfs_inode.i_ctime = timestamp_to_timespec64(ts);
-  RETURN_IF(sd->op->u64(sd, 9, &major));
-  RETURN_IF(sd->op->u64(sd, 10, &minor));
-  s->vfs_inode.i_rdev = (dev_t)MKDEV(major, minor);
+  obj_id[data->id_length] = '\0';
+  s->object_id = obj_id;
+  RETURN_IF(sd->op->u64(sd, 3, &s->mode));
+  RETURN_IF(sd->op->u64(sd, 4, &s->owner));
+  RETURN_IF(sd->op->u64(sd, 5, &s->group));
+  RETURN_IF(sd->op->timestamp(sd, 6, &s->atime));
+  RETURN_IF(sd->op->timestamp(sd, 7, &s->mtime));
+  RETURN_IF(sd->op->timestamp(sd, 8, &s->ctime));
+  RETURN_IF(sd->op->u64(sd, 9, &s->major));
+  RETURN_IF(sd->op->u64(sd, 10, &s->minor));
   RETURN_IF(sd->op->close(sd));
 
-  if (S_ISREG(s->vfs_inode.i_mode)) {
-    s->file.object_id = obj_id;
-    s->file.local_cache_id = NULL;
-    s->file.cache_inode = NULL;
-  } else if (S_ISDIR(s->vfs_inode.i_mode)) {
-    // Decode directory entries and save temporary list (s->_dir_entries_tmp).
-    // We MUST execute the finalize process to build directory tree after all
-    // inodes are decoded.
-    struct xdr_map_decoder _mdec;
-    struct xdr_map_decoder *mdec = &_mdec;
-
-    s->_dir_entries_tmp = (struct eltonfs_dir_entry_ino *)kmalloc(
-        sizeof(*s->_dir_entries_tmp), GFP_KERNEL);
-    if (s->_dir_entries_tmp == NULL) {
+  INIT_LIST_HEAD(&s->dir_entries._list_head);
+  RETURN_IF(sd->op->map(sd, 11, mdec));
+  while (mdec->op->has_next_kv(mdec)) {
+    size_t len;
+    struct eltonfs_dir_entry_ino *eino;
+    eino = (struct eltonfs_dir_entry_ino *)kmalloc(sizeof(*eino), GFP_KERNEL);
+    if (eino == NULL) {
       RETURN_IF(-ENOMEM);
     }
 
-    RETURN_IF(sd->op->map(sd, 11, mdec));
-    while (mdec->op->has_next_kv(mdec)) {
-      size_t len;
-      struct eltonfs_dir_entry_ino *eino;
-      eino = (struct eltonfs_dir_entry_ino *)kmalloc(sizeof(*eino), GFP_KERNEL);
+    len = ELTONFS_NAME_LEN;
+    RETURN_IF(dec->dec_op->bytes(dec, eino->file, &len));
+    eino->file[len] = '\0';
+    RETURN_IF(dec->dec_op->u64(dec, &eino->ino));
+    RETURN_IF(mdec->op->decoded_kv(mdec));
 
-      len = ELTONFS_NAME_LEN;
-      RETURN_IF(dec->dec_op->bytes(dec, eino->file, &len));
-      eino->file[len] = '\0';
-      RETURN_IF(dec->dec_op->u64(dec, &eino->ino));
-      RETURN_IF(mdec->op->decoded_kv(mdec));
-
-      list_add_tail(&eino->_list_head, &s->_dir_entries_tmp->_list_head);
-    }
-    RETURN_IF(mdec->op->close(mdec));
-  } else if (S_ISLNK(s->vfs_inode.i_mode)) {
-    s->symlink.object_id = obj_id;
-    s->symlink.redirect_to = NULL;
+    list_add_tail(&eino->_list_head, &s->dir_entries._list_head);
   }
-  // TODO: free obj_id to prevent memory leak.
+  RETURN_IF(mdec->op->close(mdec));
   return 0;
 }
-DEFINE_ENCDEC(eltonfs_inode, ELTONFS_INODE_ID);
+DEFINE_ENCDEC(eltonfs_inode_xdr, ELTONFS_INODE_ID);
 
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
@@ -964,7 +932,7 @@ const static struct entry *look_table[] = {
     // StructID 17: get_commit_info_response
     &get_commit_info_response_entry,
     // StructID 18: eltonfs_inode
-    &eltonfs_inode_entry,
+    &eltonfs_inode_xdr_entry,
 };
 #define ELTON_MAX_STRUCT_ID 18
 

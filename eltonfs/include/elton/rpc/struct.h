@@ -96,7 +96,7 @@ struct tree_info {
   // All inodes (using radix tree).
   //
   // Key: eltonfs_ino  (Internal inode number)
-  // Value: struct eltonfs_inode *
+  // Value: struct eltonfs_inode_xdr *
   struct radix_tree_root *inodes;
 
   // Note: Original tree_info structure has two fields.  In kernel module, it is
@@ -182,16 +182,17 @@ struct get_commit_info_response {
 // See struct eltonfs_inode in <elton/elton.h>
 struct eltonfs_inode_xdr {
   u64 eltonfs_ino;
-  const char *object_id;                    // FieldID=1
-  u64 mode;                                 // FieldID=3
-  u64 owner;                                // FieldID=4
-  u64 group;                                // FieldID=5
-  struct timestamp atime;                   // FieldID=6
-  struct timestamp mtime;                   // FieldID=7
-  struct timestamp ctime;                   // FieldID=8
-  u64 major;                                // FieldID=9
-  u64 minor;                                // FieldID=10
-  struct eltonfs_dir_entry_ino dir_entries; // FieldID=11
+  const char *object_id;                // FieldID=1
+  u64 mode;                             // FieldID=3
+  u64 owner;                            // FieldID=4
+  u64 group;                            // FieldID=5
+  struct timestamp atime;               // FieldID=6
+  struct timestamp mtime;               // FieldID=7
+  struct timestamp ctime;               // FieldID=8
+  u64 major;                            // FieldID=9
+  u64 minor;                            // FieldID=10
+  struct eltonfs_dir_entry dir_entries; // FieldID=11
+  u64 dir_entries_len;
 };
 
 #endif // _ELTON_RPC_STRUCT_H
