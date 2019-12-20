@@ -103,6 +103,8 @@ static inline struct eltonfs_inode *eltonfs_i(struct inode *inode) {
   return container_of(inode, struct eltonfs_inode, vfs_inode);
 }
 
+void eltonfs_inode_init_once(struct eltonfs_inode *i);
+
 // Iterate all directory entries in a eltonfs_inode.
 //
 // Arguments:

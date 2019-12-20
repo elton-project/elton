@@ -222,16 +222,16 @@ static struct dentry *mount(struct file_system_type *fs_type, int flags,
 static void kill_sb(struct super_block *sb) {}
 
 struct inode *eltonfs_alloc_inode(struct super_block *sb) {
-  struct inode *inode;
   struct eltonfs_inode *i = kmalloc(sizeof(struct eltonfs_inode), GFP_KERNEL);
-
+  eltonfs_inode_init_once(i);
+  return vfs_i(i);
+}
+void eltonfs_inode_init_once(struct eltonfs_inode *i) {
 #ifdef ELTONFS_XATTRS
   simple_xattrs_init(&i->xattrs);
 #endif
 
-  inode = vfs_i(i);
-  inode_init_once(inode);
-  return inode;
+  inode_init_once(vfs_i(i));
 }
 static void eltonfs_destory_inode(struct inode *inode) {
   struct eltonfs_inode *i = eltonfs_i(inode);
