@@ -178,6 +178,20 @@ struct get_commit_info_response {
 };
 
 #define ELTONFS_INODE_ID 18
+// External data representation of eltonfs_inode.
 // See struct eltonfs_inode in <elton/elton.h>
+struct eltonfs_inode_xdr {
+  u64 eltonfs_ino;
+  const char *object_id;                    // FieldID=1
+  u64 mode;                                 // FieldID=3
+  u64 owner;                                // FieldID=4
+  u64 group;                                // FieldID=5
+  struct timestamp atime;                   // FieldID=6
+  struct timestamp mtime;                   // FieldID=7
+  struct timestamp ctime;                   // FieldID=8
+  u64 major;                                // FieldID=9
+  u64 minor;                                // FieldID=10
+  struct eltonfs_dir_entry_ino dir_entries; // FieldID=11
+};
 
 #endif // _ELTON_RPC_STRUCT_H
