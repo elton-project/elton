@@ -828,7 +828,7 @@ IMPL_ENCODER(eltonfs_inode_xdr) {
   // 11: entries
   RETURN_IF(se->op->map(se, 11, map, s->dir_entries_len));
   list_for_each_entry(entry, &s->dir_entries._list_head, _list_head) {
-    enc->enc_op->bytes(enc, entry->file, strlen(entry->file));
+    enc->enc_op->bytes(enc, entry->name, entry->name_len);
     enc->enc_op->u64(enc, entry->ino);
     map->op->encoded_kv(map);
   }
@@ -874,15 +874,16 @@ IMPL_DECODER_BODY(eltonfs_inode_xdr) {
   RETURN_IF(sd->op->map(sd, 11, mdec));
   while (mdec->op->has_next_kv(mdec)) {
     size_t len;
-    struct eltonfs_dir_entry_ino *eino;
-    eino = (struct eltonfs_dir_entry_ino *)kmalloc(sizeof(*eino), GFP_KERNEL);
+    struct eltonfs_dir_entry *eino;
+    eino = (struct eltonfs_dir_entry *)kmalloc(sizeof(*eino), GFP_KERNEL);
     if (eino == NULL) {
       RETURN_IF(-ENOMEM);
     }
 
     len = ELTONFS_NAME_LEN;
-    RETURN_IF(dec->dec_op->bytes(dec, eino->file, &len));
-    eino->file[len] = '\0';
+    RETURN_IF(dec->dec_op->bytes(dec, eino->name, &len));
+    eino->name_len = len;
+    eino->name[len] = '\0';
     RETURN_IF(dec->dec_op->u64(dec, &eino->ino));
     RETURN_IF(mdec->op->decoded_kv(mdec));
 
