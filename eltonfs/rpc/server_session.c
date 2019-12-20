@@ -255,7 +255,9 @@ int rpc_session_worker(void *_s) {
   int error = 0;
   struct elton_rpc_session *s = (struct elton_rpc_session *)_s;
   struct elton_rpc_setup1 *setup1 = NULL;
+#ifndef ELTON_RPC_CALL_TEST // RPC呼び出しのテスト中は、ログが増えて読みづらくなるのでヘルスチェックを無効化
   struct task_struct *pinger = NULL;
+#endif
 
   GOTO_IF(error_setup1, rpc_session_setup1(s, &setup1));
   GOTO_IF(error_setup2, rpc_session_setup2(s));
