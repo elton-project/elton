@@ -33,7 +33,6 @@ struct eltonfs_info {
 struct eltonfs_dir_entry {
   struct list_head _list_head;
   char *file;
-  struct inode *inode;
   // Eltonfs inode number.
   u64 ino;
 };
