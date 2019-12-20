@@ -635,6 +635,7 @@ IMPL_DECODER_BODY(tree_info) {
     struct eltonfs_inode *inode;
     inode = (struct eltonfs_inode *)kmalloc(sizeof(*inode), GFP_KERNEL);
     if (inode == NULL)
+      // TODO: release inodes when an error occured.
       RETURN_IF(-ENOMEM);
 
     // TODO: Initialize vfs_inode
