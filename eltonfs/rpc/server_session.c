@@ -39,7 +39,7 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
   int error = 0;
   struct elton_rpc_ns _ns;
   struct elton_rpc_ns *ns = &_ns;
-  struct eltonfs_inode root;
+  struct eltonfs_inode root = {}; // todo: initialize inode
   RADIX_TREE(itree, GFP_KERNEL);
   struct tree_info tree = {.root = &root, .inodes = &itree};
   struct commit_info info = {
