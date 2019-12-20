@@ -638,7 +638,6 @@ IMPL_DECODER_BODY(tree_info) {
       // TODO: release inodes when an error occured.
       RETURN_IF(-ENOMEM);
 
-    // TODO: Initialize vfs_inode
     RETURN_IF(dec->dec_op->u64(dec, &ino));
     RETURN_IF(CALL_DECODER(eltonfs_inode, dec, inode));
     RETURN_IF(mdec->op->decoded_kv(mdec));
@@ -855,6 +854,9 @@ IMPL_DECODER_PREPARE(eltonfs_inode) {
   *size = 0;
   return 0;
 }
+// Decode eltonfs_inode object from bytes.
+// このデコーダは、vfs_inodeの一部のフィールドしか初期化しない。また、dirも_dir_entries_tmpのみを初期化する。
+// 実際に使用するには、vfs_inodeフィールドの初期化やdir_entriesの構築をする必要がある。
 IMPL_DECODER_BODY(eltonfs_inode) {
   int error;
   u64 val64;
