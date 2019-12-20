@@ -195,4 +195,9 @@ struct eltonfs_inode_xdr {
   u64 dir_entries_len;
 };
 
+#define ELTONFS_NOTIFY_LATEST_COMMIT_REQUEST 19
+struct notify_latest_commit_request {
+  const char *volume_id; // FieldID=1
+};
+
 #endif // _ELTON_RPC_STRUCT_H
