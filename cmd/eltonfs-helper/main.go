@@ -20,7 +20,9 @@ func Main() (exitCode int) {
 	log.SetFlags(log.Llongfile)
 
 	log.Println("starting eltonfs-helper")
-	defer log.Printf("stopping eltonfs-helper with exit-code(%d)", exitCode)
+	defer func() {
+		log.Printf("stopping eltonfs-helper with exit-code(%d)", exitCode)
+	}()
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Printf("%+v\n", err)
