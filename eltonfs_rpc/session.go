@@ -451,7 +451,7 @@ func (ns *clientNS) closeWith(v interface{}, flags PacketFlag) error {
 		//
 		// 1. Closed from kmod.  Send a packet with close flags.
 		// 2. Closed from UMH.  Send a packet with close flags and release memory.
-		//       ↓↓↓
+		//       ↑↑↑  NOW
 		err = ns.S.sendPacket(ns.nsid, CloseSessionFlag|flags, v)
 		ns.S.unregisterNS(ns.nsid)
 		// 3. Kmod receives a packet with close flags.  Should release memory.
@@ -459,9 +459,9 @@ func (ns *clientNS) closeWith(v interface{}, flags PacketFlag) error {
 		// Closed from UMH.  Wait for close ns from kmod.
 		//
 		// 1. Closed from UMH.  Send a packet with close flags.
+		//       ↑↑↑  NOW
 		// 2. Closed from kmod.  Send a packet with close flags and release memory.
 		// 3. Receive a packet with close flags from kmod.  Should release memory.
-		//      ↓↓↓
 
 		// Send a packet with close flags.
 		err = ns.S.sendPacket(ns.nsid, CloseSessionFlag|flags, v)
