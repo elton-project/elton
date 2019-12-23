@@ -2,12 +2,9 @@ package eltonfs_rpc
 
 import (
 	"context"
-	"fmt"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
 	"log"
-	"os"
-	"runtime/debug"
 )
 
 type RpcHandler func(ClientNS, StructID, PacketFlag)
@@ -35,17 +32,7 @@ func defaultHandler(ns ClientNS, sid StructID, flags PacketFlag) {
 }
 
 func rpcHandlerHelper(ns ClientNS, reqType interface{}, fn func(rawReq interface{}) (interface{}, error)) {
-	defer ns.Close()
-	defer func() {
-		// WORKAROUND: 処理中にpanicしても、なぜかプロセスが落ちない問題を修正する
-		v := recover()
-		if v != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: %+v", v)
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	}()
-
+	// TODO: ns leak when an error occurred.
 	rawReq, err := ns.Recv(reqType)
 	if err != nil {
 		log.Println(xerrors.Errorf("recv request: %w", err))
@@ -65,6 +52,16 @@ func rpcHandlerHelper(ns ClientNS, reqType interface{}, fn func(rawReq interface
 	}
 	if err := ns.Send(res); err != nil {
 		log.Println(xerrors.Errorf("send response: %w", err))
+		return
+	}
+	// WORKAROUND: prevent dead-lock if panics during executing handler.
+	//
+	// panicや何らかのエラーが生じた後にns.Close()すると、closeパケットを送信してから返答を待機する。
+	// しかし、現在の実装では返答がkmodから返されないため、デッドロック状態に陥ってしまう。
+	// このため、処理中にpanicしても該当goroutineがロック状態になるだけであり、意図せずプロセスが動き続けてしまう。
+	// https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/issues/153#note_3754
+	if err := ns.Close(); err != nil {
+		log.Println(xerrors.Errorf("close error: %w", err))
 		return
 	}
 }
