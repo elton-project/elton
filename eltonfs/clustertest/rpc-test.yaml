@@ -1,0 +1,54 @@
+# eltonfsrpcの動作テストを行う。
+
+version: 1
+name: elton-fs-volume-rpc
+specs:
+  - type: proxmox-ve
+    name: pve
+    proxmox:
+      address: https://elton-pve.internal.t-lab.cs.teu.ac.jp:8006/
+      account:
+        user: clustertest@pve
+        password: waiphaefiRaiph5ing7o
+      fingerprint: 2C:CF:88:33:C6:56:2C:76:21:56:07:AB:02:E5:4F:1B:41:A3:CB:F1:49:6F:D9:CE:05:73:EE:33:89:08:3C:29
+    address_pools:
+      - start_address: 10.10.1.1
+        end_address: 10.10.1.255
+        cidr: 16
+        gateway: 10.10.0.1
+    user:
+      user: root
+      ssh_public_key: |
+        ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz2CNhpZjPTf9Kp/rynfb5kzVYM7Hb2rXLZhJZ1IDyHYAsxAeTuQGQqvwX8CoVWwoU+ltCt+Ce2dqWIbSJD6R4ce30CNLC30UiXhXHPopBJAFQQolbI8/e65gYuwDDs8/DAkQRtn6tFxM3I+4Z5sRURH21rNZPQDKofE1tDcfyb/R6Kvvcl+D2e7gsuPj5FXaxoS3DQsNuvPHFeEfDPy+Tu6YtmYy3rxS4YzGxaOeWjlk3LA/iRzqMsKove1lUGBmD8a0s7f4S7A+Atc7JG76YX6NDnrFX+Cxde978q0bcRD2SG4IE98/B9uzfEcPBL6TEc9uE1PsDGDNxTW1Ya0Hf yuuki@tagoken-desktop1
+        ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDaUKxnmDKRVwCZE7UoZWbhOD2Lrnm61Z+fCuphdqsX9502Fk4L1yoETRg/SEOxkY2gmYtyU+9o5EDfXxFEVmMD0DpoWiXFvvyXz+tFT6lHPRMs7jI5dnWoVD1Vq03EKm6OgPNd9TF4qFK/vLi0L3vsSoRP9C6oQQfXt/VwMPbKPqLXp2yOq9RZPGShIH8D9osGE1iF00SNllxNENmFHUxW/gpux8u8mGR0IFJ5o7F2+oZiLgosdyiVQR7lPgSNJv8WE7+XBo8Pbih8cmElR9D+SMoEip3/cOLOncR3laX6MCfwyw0yNOEL3vXPEY2OEUExg68Cb/n+DTSnnNsmVa31 yuuki@gate-worker
+    vms:
+      vm:
+        template: template-ubuntu-19.04-ltp
+        pool: clustertest
+        nodes: 1
+        processors: 4
+        memory_size: 2048
+        storage_size: 10
+        scripts:
+          before:
+            type: remote-shell
+            commands:
+              # Install kernel module.
+              - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
+              - 'cd elton && make build -j4'
+              - 'cd elton && make install'
+          main:
+            type: remote-shell
+            commands:
+              # Run test cases.
+              - 'ELTON_ROLES=controller,storage nohup eltond &>eltond.log &'
+              - 'sleep 1'
+              - 'elton volume create foo'
+              - 'elton volume ls |grep foo'
+              - 'cd elton/eltonfs && make insmod'
+              - 'sleep 1'
+          after:
+            type: remote-shell
+            commands:
+              # Check test result.
+              - 'journalctl |grep "RPC_CALL_TEST: all test cases are passed"'
