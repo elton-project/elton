@@ -6,10 +6,9 @@
 #ifdef ELTON_RPC_CALL_TEST
 #include <elton/rpc/struct.h>
 
-static int rpc_call_create_obj(struct elton_rpc_session *s) {
+static inline int _rpc_call_create_obj(struct elton_rpc_session *s,
+                                       struct elton_rpc_ns *ns) {
   int error = 0;
-  struct elton_rpc_ns _ns;
-  struct elton_rpc_ns *ns = &_ns;
   struct elton_object_body body = {
       .contents_length = 13,
       .contents = "hello-world :-)",
@@ -21,10 +20,8 @@ static int rpc_call_create_obj(struct elton_rpc_session *s) {
   struct create_object_response *res;
 
   DEBUG("creating object");
-  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   RETURN_IF(ns->ops->send_struct(ns, CREATE_OBJECT_REQUEST_ID, &req));
   RETURN_IF(ns->ops->recv_struct(ns, CREATE_OBJECT_RESPONSE_ID, (void **)&res));
-  RETURN_IF(ns->ops->close(ns));
   if (ASSERT_NOT_NULL(res))
     return -EINVAL;
   if (ASSERT_NOT_NULL(res->object_id))
@@ -36,10 +33,19 @@ static int rpc_call_create_obj(struct elton_rpc_session *s) {
   INFO("create_obj: OK");
   return 0;
 }
-static int rpc_call_create_commit(struct elton_rpc_session *s) {
+static int rpc_call_create_obj(struct elton_rpc_session *s) {
   int error = 0;
   struct elton_rpc_ns _ns;
   struct elton_rpc_ns *ns = &_ns;
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
+  GOTO_IF(out, _rpc_call_create_obj(s, ns));
+out:
+  WARN_IF(ns->ops->close(ns));
+  return error;
+}
+static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
+                                          struct elton_rpc_ns *ns) {
+  int error = 0;
   struct eltonfs_inode root = {}; // todo: initialize inode
   RADIX_TREE(itree, GFP_KERNEL);
   struct tree_info tree = {.root = &root, .inodes = &itree};
@@ -59,11 +65,19 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
   struct create_commit_response *res;
 
   DEBUG("creating commit");
-  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
   RETURN_IF(ns->ops->recv_struct(ns, CREATE_COMMIT_RESPONSE_ID, (void **)&res));
-  RETURN_IF(ns->ops->close(ns));
   return 0;
+}
+static int rpc_call_create_commit(struct elton_rpc_session *s) {
+  int error = 0;
+  struct elton_rpc_ns _ns;
+  struct elton_rpc_ns *ns = &_ns;
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
+  GOTO_IF(out, _rpc_call_create_commit(s, ns));
+out:
+  WARN_IF(ns->ops->close(ns));
+  return error;
 }
 static int start_call_test(void *_s) {
   int error = 0;

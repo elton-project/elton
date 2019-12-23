@@ -95,6 +95,15 @@ extern volatile bool __assertion_failed;
     if (CHECK_ERROR(error))                                                    \
       return;                                                                  \
   } while (0)
+// エラーならwarningを表示死、error変数の値を更新する。
+// 既にerror変数がセットされていた場合は更新しない。
+#define WARN_IF(expr)                                                          \
+  do {                                                                         \
+    int __error = (expr);                                                      \
+    CHECK_ERROR(__error);                                                      \
+    if (!error)                                                                \
+      error = __error;                                                         \
+  } while (0)
 // ポインタがNULLの場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。
 #define ASSERT_NOT_NULL(expr)                                                  \

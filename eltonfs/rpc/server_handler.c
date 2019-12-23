@@ -8,14 +8,9 @@ static int ping_handler(struct elton_rpc_ns *ns) {
   struct elton_rpc_ping ping = {};
 
   DEBUG("received ping from UMH.");
-  GOTO_IF(error_recv,
-          ns->ops->recv_struct(ns, ELTON_RPC_PING_ID, (void **)&recved_ping));
-  GOTO_IF(error_send, ns->ops->send_struct(ns, ELTON_RPC_PING_ID, &ping));
-
-error_send:
-error_recv:
-  RETURN_IF(ns->ops->close(ns));
-  return error;
+  RETURN_IF(ns->ops->recv_struct(ns, ELTON_RPC_PING_ID, (void **)&recved_ping));
+  RETURN_IF(ns->ops->send_struct(ns, ELTON_RPC_PING_ID, &ping));
+  return 0;
 }
 
 int elton_rpc_new_ns_handler(void *_args) {
@@ -33,6 +28,7 @@ int elton_rpc_new_ns_handler(void *_args) {
     // Unreachable.
   }
 
+  WARN_IF(ns->ops->close(ns));
   args->free(args);
   return 0;
 }
