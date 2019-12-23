@@ -24,6 +24,7 @@ static int rpc_call_create_obj(struct elton_rpc_session *s) {
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   RETURN_IF(ns->ops->send_struct(ns, CREATE_OBJECT_REQUEST_ID, &req));
   RETURN_IF(ns->ops->recv_struct(ns, CREATE_OBJECT_RESPONSE_ID, (void **)&res));
+  RETURN_IF(ns->ops->close(ns));
   if (ASSERT_NOT_NULL(res))
     return -EINVAL;
   if (ASSERT_NOT_NULL(res->object_id))
@@ -61,6 +62,7 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
   RETURN_IF(ns->ops->recv_struct(ns, CREATE_COMMIT_RESPONSE_ID, (void **)&res));
+  RETURN_IF(ns->ops->close(ns));
   return 0;
 }
 static int start_call_test(void *_s) {
