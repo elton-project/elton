@@ -97,6 +97,11 @@ make install
 popd
 
 
+# Install golang debugger
+go get -u github.com/go-delve/delve/cmd/dlv
+ln -s ~/go/bin/dlv /usr/local/bin/
+
+
 # Install docker
 apt_install docker.io
 # Download images
