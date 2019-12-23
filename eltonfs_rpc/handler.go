@@ -22,7 +22,12 @@ func defaultHandler(ns ClientNS, sid StructID, flags PacketFlag) {
 	case CreateCommitRequestStructID:
 		handleCreateCommitRequest(ns)
 	default:
-		log.Println(xerrors.Errorf("not implemented handler: struct_id=%d", sid))
+		err := xerrors.Errorf("not implemented handler: struct_id=%d", sid)
+		log.Println(err)
+		ns.CloseWithError(SessionError{
+			ErrorID: UnsupportedStruct,
+			Reason:  err.Error(),
+		})
 	}
 }
 
