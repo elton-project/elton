@@ -74,6 +74,7 @@ extern volatile bool __assertion_failed;
     if (CHECK_ERROR(error))                                                    \
       goto label;                                                              \
   } while (0)
+// エラーならbreakする。
 #define BREAK_IF(expr)                                                         \
   ({                                                                           \
     error = (expr);                                                            \
