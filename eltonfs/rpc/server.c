@@ -151,12 +151,8 @@ static int rpc_start_umh(struct elton_rpc_server *s) {
       // Redirect stdin/stdout/stderr by shell.
       "/bin/sh",
       "-c",
-      "exec </dev/null >>\"$1\" 2>&1;  shift;  exec $@",
-      "@",
-      ELTONFS_HELPER_OUTPUT,
-      ELTONFS_HELPER,
-      "--socket",
-      ELTONFS_HELPER_SOCK,
+      ELTONFS_HELPER " --socket " ELTONFS_HELPER_SOCK " 2>&1 |"
+                     "logger -t " ELTONFS_HELPER_LOG_TAG,
       NULL,
   };
   char *envp[] = {

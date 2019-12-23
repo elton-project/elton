@@ -14,6 +14,7 @@
 // Path to UNIX domain socket to communicate with helper process.
 #define ELTONFS_HELPER_SOCK "/run/elton.sock"
 #define ELTONFS_HELPER_OUTPUT "/var/log/eltonfs-helper.log"
+#define ELTONFS_HELPER_LOG_TAG "eltonfs-helper-output"
 // PATH Environment value for elton-helper.
 #define PATH_ENV                                                               \
   "/sbin:"                                                                     \
