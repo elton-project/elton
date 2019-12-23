@@ -2,9 +2,12 @@ package eltonfs_rpc
 
 import (
 	"context"
+	"fmt"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
 	"log"
+	"os"
+	"runtime/debug"
 )
 
 type RpcHandler func(ClientNS, StructID, PacketFlag)
@@ -33,6 +36,15 @@ func defaultHandler(ns ClientNS, sid StructID, flags PacketFlag) {
 
 func rpcHandlerHelper(ns ClientNS, reqType interface{}, fn func(rawReq interface{}) (interface{}, error)) {
 	defer ns.Close()
+	defer func() {
+		// WORKAROUND: 処理中にpanicしても、なぜかプロセスが落ちない問題を修正する
+		v := recover()
+		if v != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: %+v", v)
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	}()
 
 	rawReq, err := ns.Recv(reqType)
 	if err != nil {
