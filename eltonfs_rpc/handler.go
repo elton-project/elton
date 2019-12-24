@@ -4,6 +4,7 @@ import (
 	"context"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
+	"io"
 	"log"
 )
 
@@ -21,6 +22,8 @@ func defaultHandler(ns ClientNS, sid StructID, flags PacketFlag) {
 		handleCreateObject(ns)
 	case CreateCommitRequestStructID:
 		handleCreateCommitRequest(ns)
+	case NotifyLatestCommitRequestID:
+		handleNotifyLatestCommitRequest(ns)
 	default:
 		err := xerrors.Errorf("not implemented handler: struct_id=%d", sid)
 		log.Println(err)
@@ -140,5 +143,26 @@ func handleCreateCommitRequest(ns ClientNS) {
 		}
 
 		return CreateCommitResponse{}.FromGRPC(res), nil
+	})
+}
+
+func handleNotifyLatestCommitRequest(ns ClientNS) {
+	rpcHandlerHelper(ns, &NotifyLatestCommitRequest{}, func(rawReq interface{}) (i interface{}, err error) {
+		req := rawReq.(*NotifyLatestCommitRequest)
+
+		c, err := elton_v2.ApiClient{}.CommitService()
+		receiver, err := c.ListCommits(context.Background(), &elton_v2.ListCommitsRequest{
+			Id:    req.VolumeID.ToGRC(),
+			Limit: 1,
+		})
+		res, err := receiver.Recv()
+		if err != nil {
+			return nil, xerrors.Errorf("receiver: unexpected error: %w", err)
+		}
+		out := NotifyLatestCommit{}.FromGRPC(res.GetId())
+		if _, err := receiver.Recv(); err != io.EOF {
+			return nil, xerrors.Errorf("receiver: not EOF: %w", err)
+		}
+		return out, nil
 	})
 }

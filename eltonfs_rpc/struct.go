@@ -278,6 +278,12 @@ type NotifyLatestCommit struct {
 	ID         CommitID `xdr:"1"`
 }
 
+func (NotifyLatestCommit) FromGRPC(cid *elton_v2.CommitID) *NotifyLatestCommit {
+	return &NotifyLatestCommit{
+		ID: CommitID(fmt.Sprintf("%s/%d", cid.GetId().GetId(), cid.GetNumber())),
+	}
+}
+
 const GetCommitInfoRequestStructID = 16
 
 type GetCommitInfoRequest struct {
