@@ -133,7 +133,13 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
 
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_get_volume_id(s, ns, "foo", vid, sizeof(vid)));
+  RETURN_IF(ns->ops->close(ns));
+
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_get_latest_commit_id(s, ns, vid, cid, sizeof(cid)));
+  RETURN_IF(ns->ops->close(ns));
+
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_create_commit(s, ns, cid));
 out:
   WARN_IF(ns->ops->close(ns));
