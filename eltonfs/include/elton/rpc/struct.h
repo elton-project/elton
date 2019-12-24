@@ -200,4 +200,18 @@ struct notify_latest_commit_request {
   const char *volume_id; // FieldID=1
 };
 
+#define GET_VOLUME_ID_REQUEST_ID 20
+struct get_volume_id_request {
+  const char *volume_name; // FieldID=1
+};
+
+#define GET_VOLUME_ID_RESPONSE_ID 21
+struct get_volume_id_response {
+  const char *volume_id; // FieldID=1
+
+  // Embeds array at the tail of this struct.
+  char __embeded_buffer;
+  // WARNING: MUST NOT DEFINE ANY FIELD AFTER THE __embeded_buffer FIELD.
+};
+
 #endif // _ELTON_RPC_STRUCT_H

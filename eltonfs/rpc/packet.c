@@ -904,6 +904,34 @@ IMPL_ENCODER(notify_latest_commit_request) {
 DEFINE_ENC_ONLY(notify_latest_commit_request,
                 ELTONFS_NOTIFY_LATEST_COMMIT_REQUEST);
 
+IMPL_ENCODER(get_volume_id_request) {
+  int error;
+  RETURN_IF(enc->enc_op->struct_(enc, se, 1));
+  RETURN_IF(se->op->bytes(se, 1, s->volume_name, strlen(s->volume_name)));
+  RETURN_IF(se->op->close(se));
+  return 0;
+}
+DEFINE_ENC_ONLY(get_volume_id_request, GET_VOLUME_ID_REQUEST_ID);
+
+DECODER_DATA(get_volume_id_response) { size_t id_len; };
+IMPL_DECODER_PREPARE(get_volume_id_response) {
+  int error;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, NULL, &data->id_len));
+  *size = data->id_len + 1;
+  return 0;
+}
+IMPL_DECODER_BODY(get_volume_id_response) {
+  int error;
+  char *buffer = &s->__embeded_buffer;
+  RETURN_IF(dec->dec_op->struct_(dec, sd));
+  RETURN_IF(sd->op->bytes(sd, 1, buffer, &data->id_len));
+  RETURN_IF(sd->op->close(sd));
+  s->volume_id = buffer;
+  return 0;
+}
+DEFINE_DEC_ONLY(get_volume_id_response, GET_VOLUME_ID_RESPONSE_ID);
+
 // Lookup table from struct_id to encoder/decoder function.
 const static struct entry *look_table[] = {
     // StructID 0: invalid
@@ -946,8 +974,12 @@ const static struct entry *look_table[] = {
     &eltonfs_inode_xdr_entry,
     // StructID 19: notify_latest_commit_request
     &notify_latest_commit_request_entry,
+    // StructID 20: get_volume_id_request
+    &get_volume_id_request_entry,
+    // StructID 21: get_volume_id_response
+    &get_volume_id_response_entry,
 };
-#define ELTON_MAX_STRUCT_ID 19
+#define ELTON_MAX_STRUCT_ID 21
 
 static int lookup(u64 struct_id, const struct entry **entry) {
   BUILD_ASSERT_EQUAL_ARRAY_SIZE(ELTON_MAX_STRUCT_ID + 1, look_table);
