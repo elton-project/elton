@@ -901,8 +901,7 @@ IMPL_ENCODER(notify_latest_commit_request) {
   RETURN_IF(se->op->close(se));
   return 0;
 }
-DEFINE_ENC_ONLY(notify_latest_commit_request,
-                ELTONFS_NOTIFY_LATEST_COMMIT_REQUEST);
+DEFINE_ENC_ONLY(notify_latest_commit_request, NOTIFY_LATEST_COMMIT_REQUEST_ID);
 
 IMPL_ENCODER(get_volume_id_request) {
   int error;
