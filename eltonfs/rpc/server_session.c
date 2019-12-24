@@ -55,7 +55,7 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
               .sec = 1,
               .nsec = 2,
           },
-      .left_parent_id = "311c4edc000000/13823398882902016",
+      .left_parent_id = "311c4edc000000:13823398882902016",
       .right_parent_id = "",
       .tree = &tree,
   };
