@@ -43,8 +43,63 @@ out:
   WARN_IF(ns->ops->close(ns));
   return error;
 }
+// name:        volume name
+// vid:         buffer for store a volume id.
+// max_vid_len: size of vid buffer.
+static inline int _rpc_call_get_volume_id(struct elton_rpc_session *s,
+                                          struct elton_rpc_ns *ns,
+                                          const char *name, char *vid,
+                                          size_t max_vid_len) {
+  int error;
+  struct get_volume_id_request req = {.volume_name = name};
+  struct get_volume_id_response *res;
+  size_t vid_len;
+
+  DEBUG("getting volume id from name (%s)", name);
+  RETURN_IF(ns->ops->send_struct(ns, GET_VOLUME_ID_REQUEST_ID, &req));
+  RETURN_IF(ns->ops->recv_struct(ns, GET_VOLUME_ID_RESPONSE_ID, (void **)&res));
+
+  vid_len = strlen(res->volume_id);
+  if (vid_len >= max_vid_len) {
+    DEBUG("volume id length too long: %zu", vid_len);
+    BUG();
+  }
+  memcpy(vid, res->volume_id, vid_len);
+  vid[vid_len] = '\0';
+  elton_rpc_free_decoded_data(res);
+  return 0;
+}
+// vid:         volume id
+// cid:         buffer for store a commit id.
+// max_cid_len: size of cid buffer.
+static inline int _rpc_call_get_latest_commit_id(struct elton_rpc_session *s,
+                                                 struct elton_rpc_ns *ns,
+                                                 const char *vid, char *cid,
+                                                 size_t max_cid_len) {
+  int error;
+  struct notify_latest_commit_request req = {
+      .volume_id = vid,
+  };
+  struct notify_latest_commit *res;
+  size_t cid_len;
+
+  RETURN_IF(ns->ops->send_struct(ns, NOTIFY_LATEST_COMMIT_REQUEST_ID, &req));
+  RETURN_IF(ns->ops->recv_struct(ns, NOTIFY_LATEST_COMMIT_ID, (void **)&res));
+
+  cid_len = strlen(res->commit_id);
+  if (cid_len >= max_cid_len) {
+    DEBUG("commit id length too long: %zu", cid_len);
+    BUG();
+  }
+  memcpy(cid, res->commit_id, cid_len);
+  cid[cid_len] = '\0';
+  elton_rpc_free_decoded_data(res);
+  return 0;
+}
+// cid: commit id
 static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
-                                          struct elton_rpc_ns *ns) {
+                                          struct elton_rpc_ns *ns,
+                                          const char *cid) {
   int error = 0;
   struct eltonfs_inode root = {}; // todo: initialize inode
   RADIX_TREE(itree, GFP_KERNEL);
@@ -55,7 +110,7 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
               .sec = 1,
               .nsec = 2,
           },
-      .left_parent_id = "311c4edc000000:13823398882902016",
+      .left_parent_id = (char *)cid,
       .right_parent_id = "",
       .tree = &tree,
   };
@@ -73,8 +128,13 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
   int error = 0;
   struct elton_rpc_ns _ns;
   struct elton_rpc_ns *ns = &_ns;
+  char vid[64];
+  char cid[64];
+
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
-  GOTO_IF(out, _rpc_call_create_commit(s, ns));
+  GOTO_IF(out, _rpc_call_get_volume_id(s, ns, "foo", vid, sizeof(vid)));
+  GOTO_IF(out, _rpc_call_get_latest_commit_id(s, ns, vid, cid, sizeof(cid)));
+  GOTO_IF(out, _rpc_call_create_commit(s, ns, cid));
 out:
   WARN_IF(ns->ops->close(ns));
   return error;
