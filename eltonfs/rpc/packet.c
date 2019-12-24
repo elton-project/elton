@@ -944,7 +944,7 @@ const static struct entry *look_table[] = {
     &get_commit_info_response_entry,
     // StructID 18: eltonfs_inode
     &eltonfs_inode_xdr_entry,
-    // StructID 18: notify_latest_commit_request
+    // StructID 19: notify_latest_commit_request
     &notify_latest_commit_request_entry,
 };
 #define ELTON_MAX_STRUCT_ID 19
