@@ -43,10 +43,17 @@ func (EltonObjectID) FromGRPC(key *elton_v2.ObjectKey) EltonObjectID {
 type CommitID string
 
 func (CommitID) FromGRPC(id *elton_v2.CommitID) CommitID {
+	if id.GetId().GetId() == "" && id.GetNumber() == 0 {
+		return ""
+	}
 	return CommitID(fmt.Sprintf("%s:%d", id.GetId(), id.GetNumber()))
 }
 
 func (id CommitID) ToGRPC() *elton_v2.CommitID {
+	if id == CommitID("") {
+		return nil
+	}
+
 	components := strings.SplitN(string(id), ":", 2)
 	if len(components) != 2 {
 		panic(xerrors.Errorf("invalid CommitID: %s", id))
