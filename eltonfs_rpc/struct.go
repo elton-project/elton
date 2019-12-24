@@ -295,7 +295,7 @@ type NotifyLatestCommit struct {
 
 func (NotifyLatestCommit) FromGRPC(cid *elton_v2.CommitID) *NotifyLatestCommit {
 	return &NotifyLatestCommit{
-		ID: CommitID(fmt.Sprintf("%s/%d", cid.GetId().GetId(), cid.GetNumber())),
+		ID: CommitID("").FromGRPC(cid),
 	}
 }
 
