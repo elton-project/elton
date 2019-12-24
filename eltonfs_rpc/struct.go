@@ -48,6 +48,9 @@ func (CommitID) FromGRPC(id *elton_v2.CommitID) CommitID {
 
 func (id CommitID) ToGRPC() *elton_v2.CommitID {
 	components := strings.SplitN(string(id), ":", 2)
+	if len(components) != 2 {
+		panic(xerrors.Errorf("invalid CommitID: %s", id))
+	}
 	n, err := strconv.ParseUint(components[1], 10, 64)
 	if err != nil {
 		panic(xerrors.Errorf("parse int: %w", err))
