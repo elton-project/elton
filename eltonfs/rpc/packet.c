@@ -925,6 +925,7 @@ IMPL_DECODER_BODY(get_volume_id_response) {
   char *buffer = &s->__embeded_buffer;
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->bytes(sd, 1, buffer, &data->id_len));
+  buffer[data->id_len] = '\0';
   RETURN_IF(sd->op->close(sd));
   s->volume_id = buffer;
   return 0;
