@@ -473,4 +473,15 @@ func TestBinDecoder_Struct(t *testing.T) {
 			Y string `xdr:"2"`
 		}{}))
 	})
+	t.Run("type-alias", func(t *testing.T) {
+		type Alias string
+		type Struct struct {
+			Field Alias `xdr:"1"`
+		}
+		s := &Struct{Field: Alias("foo")}
+		dec := newDec(s)
+		assert.Equal(t, &Struct{
+			Field: "foo",
+		}, dec.Struct(&Struct{}))
+	})
 }

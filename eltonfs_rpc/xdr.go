@@ -372,6 +372,12 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 			err := xerrors.Errorf("failed to set the value: FieldID=%d", fieldID)
 			panic(err)
 		}
+
+		if t.Field(idx).Type != value.Type() {
+			// t.Field(idx) and value are same kind.  But those are different types.
+			// Must cast to specified type before setting it.
+			value = value.Convert(t.Field(idx).Type)
+		}
 		v.Field(idx).Set(value)
 	}
 
