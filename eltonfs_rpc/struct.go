@@ -359,4 +359,18 @@ type NotifyLatestCommitRequest struct {
 	VolumeID   VolumeID `xdr:"1"`
 }
 
-const MaxStructID = 18
+const GetVolumeIDRequestID = 20
+
+type GetVolumeIDRequest struct {
+	XXX_XDR_ID struct{} `xdrid:"20"`
+	VolumeName string   `xdr:"1"`
+}
+
+const GetVolumeIDResponseID = 21
+
+type GetVolumeIDResponse struct {
+	XXX_XDR_ID struct{} `xdrid:"21"`
+	VolumeID   VolumeID `xdr:"1"`
+}
+
+const MaxStructID = 21
