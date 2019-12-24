@@ -79,6 +79,10 @@ func (id VolumeID) ToGRC() *elton_v2.VolumeID {
 	}
 }
 
+func (VolumeID) FromGRC(id *elton_v2.VolumeID) VolumeID {
+	return VolumeID(id.GetId())
+}
+
 const Setup1StructID = 1
 
 type Setup1 struct {

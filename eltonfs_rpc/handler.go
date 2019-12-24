@@ -186,6 +186,9 @@ func handleGetVolumeIDRequest(ns ClientNS) {
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
 		}
-		return res.GetId(), nil
+
+		return &GetVolumeIDResponse{
+			VolumeID: VolumeID("").FromGRC(res.GetId()),
+		}, nil
 	})
 }
