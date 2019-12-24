@@ -151,6 +151,9 @@ func handleNotifyLatestCommitRequest(ns ClientNS) {
 		req := rawReq.(*NotifyLatestCommitRequest)
 
 		c, err := elton_v2.ApiClient{}.CommitService()
+		if err != nil {
+			return nil, xerrors.Errorf("api client: %w", err)
+		}
 		receiver, err := c.ListCommits(context.Background(), &elton_v2.ListCommitsRequest{
 			Id:    req.VolumeID.ToGRC(),
 			Limit: 1,
