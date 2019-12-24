@@ -264,6 +264,7 @@ type CreateCommitRequest struct {
 
 func (req CreateCommitRequest) ToGRPC() *elton_v2.CommitRequest {
 	return &elton_v2.CommitRequest{
+		Id:   req.Info.LeftParentID.ToGRPC().GetId(),
 		Info: req.Info.ToGRPC(),
 	}
 }
