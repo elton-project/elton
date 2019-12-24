@@ -346,4 +346,4 @@ func (EltonFile) FromGRPC(f *elton_v2.File) *EltonFile {
 	}
 }
 
-const MaxStructID = 17
+const MaxStructID = 18
