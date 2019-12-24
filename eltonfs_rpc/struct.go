@@ -46,7 +46,7 @@ func (CommitID) FromGRPC(id *elton_v2.CommitID) CommitID {
 	if id.GetId().GetId() == "" && id.GetNumber() == 0 {
 		return ""
 	}
-	return CommitID(fmt.Sprintf("%s:%d", id.GetId(), id.GetNumber()))
+	return CommitID(fmt.Sprintf("%s:%d", id.GetId().GetId(), id.GetNumber()))
 }
 
 func (id CommitID) ToGRPC() *elton_v2.CommitID {
