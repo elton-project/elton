@@ -355,7 +355,7 @@ func (EltonFile) FromGRPC(f *elton_v2.File) *EltonFile {
 const NotifyLatestCommitRequestID = 19
 
 type NotifyLatestCommitRequest struct {
-	XXX_XDR_ID struct{} `xdrid:"18"`
+	XXX_XDR_ID struct{} `xdrid:"19"`
 	VolumeID   VolumeID `xdr:"1"`
 }
 
