@@ -160,6 +160,9 @@ func handleNotifyLatestCommitRequest(ns ClientNS) {
 			Id:    req.VolumeID.ToGRC(),
 			Limit: 1,
 		})
+		if err != nil {
+			return nil, xerrors.Errorf("api client: %w", err)
+		}
 		res, err := receiver.Recv()
 		if err != nil {
 			return nil, xerrors.Errorf("receiver: unexpected error: %w", err)
