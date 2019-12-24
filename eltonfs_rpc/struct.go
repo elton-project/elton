@@ -197,7 +197,7 @@ func (info TreeInfo) ToGRPC() *elton_v2.Tree {
 	}
 	return &elton_v2.Tree{
 		RootIno: info.RootIno,
-		Inodes:  nil,
+		Inodes:  inodes,
 	}
 }
 
