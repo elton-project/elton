@@ -24,6 +24,8 @@ func defaultHandler(ns ClientNS, sid StructID, flags PacketFlag) {
 		handleCreateCommitRequest(ns)
 	case NotifyLatestCommitRequestID:
 		handleNotifyLatestCommitRequest(ns)
+	case GetVolumeIDRequestID:
+		handleGetVolumeIDRequest(ns)
 	default:
 		err := xerrors.Errorf("not implemented handler: struct_id=%d", sid)
 		log.Println(err)
@@ -167,5 +169,23 @@ func handleNotifyLatestCommitRequest(ns ClientNS) {
 			return nil, xerrors.Errorf("receiver: not EOF: %w", err)
 		}
 		return out, nil
+	})
+}
+
+func handleGetVolumeIDRequest(ns ClientNS) {
+	rpcHandlerHelper(ns, &GetVolumeIDRequest{}, func(rawReq interface{}) (i interface{}, err error) {
+		req := rawReq.(*GetVolumeIDRequest)
+
+		c, err := elton_v2.ApiClient{}.VolumeService()
+		if err != nil {
+			return nil, xerrors.Errorf("api client: %w", err)
+		}
+		res, err := c.InspectVolume(context.Background(), &elton_v2.InspectVolumeRequest{
+			Name: req.VolumeName,
+		})
+		if err != nil {
+			return nil, xerrors.Errorf("call api: %w", err)
+		}
+		return res.GetId(), nil
 	})
 }
