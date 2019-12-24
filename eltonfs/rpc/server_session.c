@@ -125,6 +125,7 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
   RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
   RETURN_IF(ns->ops->recv_struct(ns, CREATE_COMMIT_RESPONSE_ID, (void **)&res));
   DEBUG("new cid=%s", res->commit_id);
+  elton_rpc_free_decoded_data(res);
   return 0;
 }
 static int rpc_call_create_commit(struct elton_rpc_session *s) {
