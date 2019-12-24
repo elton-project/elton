@@ -67,6 +67,7 @@ static inline int _rpc_call_get_volume_id(struct elton_rpc_session *s,
   memcpy(vid, res->volume_id, vid_len);
   vid[vid_len] = '\0';
   elton_rpc_free_decoded_data(res);
+  DEBUG("vid=%s", vid);
   return 0;
 }
 // vid:         volume id
@@ -94,6 +95,7 @@ static inline int _rpc_call_get_latest_commit_id(struct elton_rpc_session *s,
   memcpy(cid, res->commit_id, cid_len);
   cid[cid_len] = '\0';
   elton_rpc_free_decoded_data(res);
+  DEBUG("cid=%s", cid);
   return 0;
 }
 // cid: commit id
@@ -122,6 +124,7 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
   DEBUG("creating commit");
   RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
   RETURN_IF(ns->ops->recv_struct(ns, CREATE_COMMIT_RESPONSE_ID, (void **)&res));
+  DEBUG("new cid=%s", res->commit_id);
   return 0;
 }
 static int rpc_call_create_commit(struct elton_rpc_session *s) {
