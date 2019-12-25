@@ -26,7 +26,7 @@ func UnixMode2FileType(mode uint32) FileType {
 	case unix.S_IFSOCK:
 		return FileType_Socket
 	default:
-		err := xerrors.Errorf("unknown file type: 0%o", mode)
+		err := xerrors.Errorf("unknown unix file type: mode=0%o", mode)
 		panic(err)
 	}
 }
