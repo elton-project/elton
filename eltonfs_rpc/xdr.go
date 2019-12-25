@@ -355,6 +355,11 @@ func (d *binDecoder) struct_(t reflect.Type) interface{} {
 	v := vp.Elem()
 
 	length := d.Uint8()
+	if length != uint8(len(fieldID2Index)) {
+		err := xerrors.Errorf("mismatch number of fields: local=%d, remote=%d", length, len(fieldID2Index))
+		panic(err)
+	}
+
 	for i := 0; i < int(length); i++ {
 		fieldID := d.Uint8()
 		if fieldID == 0 {
