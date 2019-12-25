@@ -30,6 +30,9 @@ func (id *CommitID) Equals(other *CommitID) bool {
 	return id.GetId().Equals(other.GetId()) && id.GetNumber() == other.GetNumber()
 }
 func (id *CommitID) ConvertString() string {
+	if id == nil {
+		return "<nil>"
+	}
 	return fmt.Sprintf("%s/%d", id.GetId().GetId(), id.GetNumber())
 }
 func ParseCommitID(s string) (*CommitID, error) {
