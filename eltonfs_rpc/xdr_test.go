@@ -484,4 +484,33 @@ func TestBinDecoder_Struct(t *testing.T) {
 			Field: "foo",
 		}, dec.Struct(&Struct{}))
 	})
+	t.Run("different-schema/additional-field", func(t *testing.T) {
+		type StructA struct {
+			A uint64 `xdr:"1"`
+			B string `xdr:"3"`
+		}
+		type StructB struct {
+			A uint64 `xdr:"1"`
+			X []byte `xdr:"2"`
+			B string `xdr:"3"`
+		}
+		dec := newDec(&StructA{})
+		assert.Panics(t, func() {
+			dec.Struct(&StructB{})
+		})
+	})
+	t.Run("different-schema/same-length", func(t *testing.T) {
+		type StructA struct {
+			A uint64 `xdr:"1"`
+			B string `xdr:"2"`
+		}
+		type StructB struct {
+			A uint64 `xdr:"1"`
+			B string `xdr:"3"`
+		}
+		dec := newDec(&StructA{})
+		assert.Panics(t, func() {
+			dec.Struct(&StructB{})
+		})
+	})
 }
