@@ -40,11 +40,16 @@ var historyLsCmd = &cobra.Command{
 	Short: "Show commits",
 	RunE:  historyLsFn,
 }
+var historyInspect = &cobra.Command{
+	Use:   "inspect COMMIT [PATH]",
+	Short: "Show commit info or file info",
+	RunE:  historyInspectFn,
+}
 
 func init() {
 	volumeCmd.AddCommand(volumeLsCmd, volumeCreateCmd)
 	debugCmd.AddCommand(debugDumpObjCmd)
-	historyCmd.AddCommand(historyLsCmd)
+	historyCmd.AddCommand(historyLsCmd, historyInspect)
 	rootCmd.AddCommand(volumeCmd, debugCmd, historyCmd)
 }
 func main() {

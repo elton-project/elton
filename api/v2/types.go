@@ -1,8 +1,11 @@
 package elton_v2
 
 import (
+	"fmt"
 	"golang.org/x/xerrors"
 	"log"
+	"strconv"
+	"strings"
 )
 
 func (id *ObjectKey) Empty() bool {
@@ -25,6 +28,27 @@ func (id *CommitID) Empty() bool {
 }
 func (id *CommitID) Equals(other *CommitID) bool {
 	return id.GetId().Equals(other.GetId()) && id.GetNumber() == other.GetNumber()
+}
+func (id *CommitID) ConvertString() string {
+	return fmt.Sprintf("%s/%d", id.GetId().GetId(), id.GetNumber())
+}
+func ParseCommitID(s string) (*CommitID, error) {
+	parts := strings.SplitN(s, "/", 2)
+	if len(parts) != 2 {
+		return nil, xerrors.Errorf("invalid commit id: not found separator")
+	}
+
+	id := parts[0]
+	num, err := strconv.ParseUint(parts[1], 10, 64)
+	if err != nil {
+		return nil, xerrors.Errorf("invalid commit id: %w", err)
+	}
+	return &CommitID{
+		Id: &VolumeID{
+			Id: id,
+		},
+		Number: num,
+	}, nil
 }
 
 func (t *Tree) FastValidate() error {
