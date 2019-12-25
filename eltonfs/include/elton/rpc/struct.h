@@ -92,7 +92,7 @@ struct commit_info {
 #define TREE_INFO_ID 8
 struct tree_info {
   // Root node of directory tree.
-  struct eltonfs_inode *root;
+  struct eltonfs_inode_xdr *root;
   // All inodes (using radix tree).
   //
   // Key: eltonfs_ino  (Internal inode number)

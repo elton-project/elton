@@ -103,7 +103,7 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
                                           struct elton_rpc_ns *ns,
                                           const char *cid) {
   int error = 0;
-  struct eltonfs_inode root = {
+  struct eltonfs_inode_xdr root = {
       .eltonfs_ino = 1,
   };
   RADIX_TREE(itree, GFP_KERNEL);
