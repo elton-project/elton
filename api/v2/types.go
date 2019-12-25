@@ -30,6 +30,27 @@ func UnixMode2FileType(mode uint32) FileType {
 		panic(err)
 	}
 }
+func FileType2UnixMode(ft FileType) uint32 {
+	switch ft {
+	case FileType_Regular:
+		return unix.S_IFREG
+	case FileType_Directory:
+		return unix.S_IFDIR
+	case FileType_SymbolicLink:
+		return unix.S_IFLNK
+	case FileType_FIFO:
+		return unix.S_IFIFO
+	case FileType_CharacterDevice:
+		return unix.S_IFCHR
+	case FileType_BlockDevice:
+		return unix.S_IFBLK
+	case FileType_Socket:
+		return unix.S_IFSOCK
+	default:
+		err := xerrors.Errorf("unknown file type: %d", ft)
+		panic(err)
+	}
+}
 
 func (id *ObjectKey) Empty() bool {
 	return id.GetId() == ""

@@ -365,7 +365,15 @@ func (f EltonFile) ToGRPC() *elton_v2.File {
 func (EltonFile) FromGRPC(f *elton_v2.File) *EltonFile {
 	return &EltonFile{
 		ObjectID: EltonObjectID("").FromGRPC(f.GetContentRef().GetKey()),
-		// todo
+		Mode:     uint64(elton_v2.FileType2UnixMode(f.GetFileType()) | f.GetMode()),
+		Owner:    uint64(f.GetOwner()),
+		Group:    uint64(f.GetGroup()),
+		Atime:    timestamp2time(f.GetAtime()),
+		Mtime:    timestamp2time(f.GetMtime()),
+		Ctime:    timestamp2time(f.GetCtime()),
+		Major:    uint64(f.GetMajor()),
+		Minor:    uint64(f.GetMinor()),
+		Entries:  f.GetEntries(),
 	}
 }
 
