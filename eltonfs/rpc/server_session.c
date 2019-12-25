@@ -107,6 +107,11 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
       .eltonfs_ino = 1,
       .object_id = "",
       .mode = S_IFDIR | 0755,
+      .owner = 1000,
+      .group = 2000,
+      .atime = {.sec = 111, .nsec = 222},
+      .mtime = {.sec = 11, .nsec = 22},
+      .ctime = {.sec = 1, .nsec = 2},
   };
   RADIX_TREE(itree, GFP_KERNEL);
   struct tree_info tree = {.root = &empty_dir, .inodes = &itree};
