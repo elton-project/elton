@@ -19,7 +19,7 @@ var volumeLsCmd = &cobra.Command{
 	RunE:  volumeLsFn,
 }
 var volumeCreateCmd = &cobra.Command{
-	Use:   "create",
+	Use:   "create NAMES...",
 	Short: "Create a volume",
 	RunE:  volumeCreateFn,
 }
@@ -36,7 +36,7 @@ var historyCmd = &cobra.Command{
 	Use: "history",
 }
 var historyLsCmd = &cobra.Command{
-	Use:   "ls",
+	Use:   "ls VOLUME",
 	Short: "Show commits",
 	RunE:  historyLsFn,
 }
