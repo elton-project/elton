@@ -46,7 +46,7 @@ func _historyInspectFn(ctx context.Context, cid *elton_v2.CommitID, files []stri
 	}
 	info := res.GetInfo()
 
-	if len(files) > 0 {
+	if len(files) == 0 {
 		fmt.Print(dumpCommitInfo(info))
 	} else {
 		for _, f := range files {
