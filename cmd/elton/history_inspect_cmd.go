@@ -99,14 +99,15 @@ func dumpFileInfo(info *elton_v2.CommitInfo, fpath string) (string, error) {
 	return buff.String(), nil
 }
 func searchFile(tree *elton_v2.Tree, fpath string) (uint64, error) {
-	components := filepath.SplitList(fpath)
-
-	if len(components) == 0 {
-		return 0, xerrors.Errorf("invalid file path: components is empty: fpath=%s", fpath)
+	fpath = filepath.Clean(fpath)
+	fpath = filepath.ToSlash(fpath)
+	components := strings.Split(fpath, "/")
+	if components[0] != "" {
+		return 0, xerrors.Errorf("file path must start with slash (\"/\")")
 	}
 
 	ino := tree.RootIno
-	for _, name := range components {
+	for _, name := range components[1:] {
 		inode, ok := tree.Inodes[ino]
 		if !ok {
 			return 0, xerrors.Errorf("not found inode: ino=%d", ino)
