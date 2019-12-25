@@ -161,13 +161,16 @@ _rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
   struct commit_info *info = kzalloc(sizeof(*info), GFP_NOFS);
 
   DEBUG("building inode tree with empty dir");
+  // init empty_dir.
   *empty_dir = empty_dir_tmpl;
   INIT_LIST_HEAD(&empty_dir->dir_entries._list_head);
-
+  // init itree.
   INIT_RADIX_TREE(itree, GFP_NOFS);
+  radix_tree_insert(itree, empty_dir->eltonfs_ino, empty_dir);
+  // init tree.
   tree->root = empty_dir;
   tree->inodes = itree;
-
+  // init info.
   *info = info_tmpl;
   info->left_parent_id = (char *)base_cid;
   info->right_parent_id = "";
