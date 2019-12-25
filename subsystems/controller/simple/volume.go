@@ -357,5 +357,5 @@ func wrapStatus(err error, code codes.Code, prefix string) error {
 	if newCode != codes.Internal && code != 0 {
 		newCode = code
 	}
-	return status.Errorf(code, "%s: %s", prefix, status.Convert(err).Message())
+	return status.Errorf(newCode, "%s: %s", prefix, status.Convert(err).Message())
 }
