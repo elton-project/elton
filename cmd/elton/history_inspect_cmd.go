@@ -94,7 +94,7 @@ func dumpFileInfo(info *elton_v2.CommitInfo, fpath string) (string, error) {
 	buff.WriteString(fmt.Sprintf("Minor: %d\n", inode.GetMinor()))
 	buff.WriteString(fmt.Sprintf("Entries:\n"))
 	for name, ino := range inode.GetEntries() {
-		buff.WriteString(fmt.Sprintf("  \"%s\" => %d\n", name, ino))
+		buff.WriteString(fmt.Sprintf("  %q => %d\n", name, ino))
 	}
 	return buff.String(), nil
 }
