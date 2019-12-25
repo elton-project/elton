@@ -101,6 +101,9 @@ func dumpFileInfo(info *elton_v2.CommitInfo, fpath string) (string, error) {
 func searchFile(tree *elton_v2.Tree, fpath string) (uint64, error) {
 	fpath = filepath.Clean(fpath)
 	fpath = filepath.ToSlash(fpath)
+	if fpath == "/" {
+		return tree.RootIno, nil
+	}
 	components := strings.Split(fpath, "/")
 	if components[0] != "" {
 		return 0, xerrors.Errorf("file path must start with slash (\"/\")")
