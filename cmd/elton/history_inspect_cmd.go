@@ -114,7 +114,11 @@ func searchFile(tree *elton_v2.Tree, fpath string) (uint64, error) {
 
 		switch inode.FileType {
 		case elton_v2.FileType_Directory:
-			ino = inode.Entries[name]
+			var ok bool
+			ino, ok = inode.Entries[name]
+			if !ok {
+				return 0, xerrors.Errorf("not found entry: ino=%d, name=%s", ino, name)
+			}
 		default:
 			return 0, xerrors.Errorf("not a directory: ino=%d", ino)
 		}
