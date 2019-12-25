@@ -9,6 +9,7 @@ import (
 	"golang.org/x/xerrors"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -332,7 +333,6 @@ const EltonFileStructID = 18
 type EltonFile struct {
 	XXX_XDR_ID struct{}          `xdrid:"18"`
 	ObjectID   EltonObjectID     `xdr:"1"`
-	FileType   uint8             `xdr:"2"`
 	Mode       uint64            `xdr:"3"`
 	Owner      uint64            `xdr:"4"`
 	Group      uint64            `xdr:"5"`
@@ -349,8 +349,8 @@ func (f EltonFile) ToGRPC() *elton_v2.File {
 		ContentRef: &elton_v2.FileContentRef{
 			Key: f.ObjectID.ToGRPC(),
 		},
-		FileType: elton_v2.FileType(f.FileType),
-		Mode:     uint32(f.Mode),
+		FileType: elton_v2.UnixMode2FileType(uint32(f.Mode)),
+		Mode:     (^uint32(syscall.S_IFMT)) & uint32(f.Mode),
 		Owner:    uint32(f.Owner),
 		Group:    uint32(f.Group),
 		Atime:    time2timestamp(f.Atime),

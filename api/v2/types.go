@@ -2,11 +2,34 @@ package elton_v2
 
 import (
 	"fmt"
+	"golang.org/x/sys/unix"
 	"golang.org/x/xerrors"
 	"log"
 	"strconv"
 	"strings"
 )
+
+func UnixMode2FileType(mode uint32) FileType {
+	switch mode & unix.S_IFMT {
+	case unix.S_IFREG:
+		return FileType_Regular
+	case unix.S_IFDIR:
+		return FileType_Directory
+	case unix.S_IFLNK:
+		return FileType_SymbolicLink
+	case unix.S_IFIFO:
+		return FileType_FIFO
+	case unix.S_IFCHR:
+		return FileType_CharacterDevice
+	case unix.S_IFBLK:
+		return FileType_BlockDevice
+	case unix.S_IFSOCK:
+		return FileType_Socket
+	default:
+		err := xerrors.Errorf("unknown file type: 0%o", mode)
+		panic(err)
+	}
+}
 
 func (id *ObjectKey) Empty() bool {
 	return id.GetId() == ""
