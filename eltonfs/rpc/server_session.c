@@ -103,7 +103,9 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
                                           struct elton_rpc_ns *ns,
                                           const char *cid) {
   int error = 0;
-  struct eltonfs_inode root = {}; // todo: initialize inode
+  struct eltonfs_inode root = {
+      .eltonfs_ino = 1,
+  };
   RADIX_TREE(itree, GFP_KERNEL);
   struct tree_info tree = {.root = &root, .inodes = &itree};
   struct commit_info info = {
@@ -120,6 +122,9 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
       .info = info,
   };
   struct create_commit_response *res;
+
+  DEBUG("building inode tree");
+  radix_tree_insert(&itree, 1, &root);
 
   DEBUG("creating commit");
   RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
