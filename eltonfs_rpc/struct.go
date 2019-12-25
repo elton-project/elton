@@ -358,7 +358,7 @@ func (f EltonFile) ToGRPC() *elton_v2.File {
 		Ctime:    time2timestamp(f.Ctime),
 		Major:    uint32(f.Major),
 		Minor:    uint32(f.Minor),
-		// todo
+		Entries:  f.Entries,
 	}
 }
 
