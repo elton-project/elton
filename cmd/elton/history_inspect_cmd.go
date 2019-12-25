@@ -84,7 +84,7 @@ func dumpFileInfo(info *elton_v2.CommitInfo, fpath string) (string, error) {
 	buff.WriteString(fmt.Sprintf("Ino: %d\n", ino))
 	buff.WriteString(fmt.Sprintf("ContentRef: %s\n", inode.GetContentRef().GetKey().GetId()))
 	buff.WriteString(fmt.Sprintf("FileType: %s\n", inode.GetFileType().String()))
-	buff.WriteString(fmt.Sprintf("Mode: %d\n", inode.GetMode()))
+	buff.WriteString(fmt.Sprintf("Mode: 0%o\n", inode.GetMode()))
 	buff.WriteString(fmt.Sprintf("Owner: %d\n", inode.GetOwner()))
 	buff.WriteString(fmt.Sprintf("Groups: %d\n", inode.GetGroup()))
 	buff.WriteString(fmt.Sprintf("Atime: %s\n", inode.GetAtime().String()))
