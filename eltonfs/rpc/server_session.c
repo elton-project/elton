@@ -99,11 +99,38 @@ static inline int _rpc_call_get_latest_commit_id(struct elton_rpc_session *s,
   return 0;
 }
 // cid: commit id
-static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
-                                          struct elton_rpc_ns *ns,
-                                          const char *cid) {
+static int _rpc_call_create_commit(struct elton_rpc_session *s,
+                                   struct elton_rpc_ns *ns,
+                                   struct commit_info *info, const char *cid,
+                                   char *new_cid, size_t max_new_cid) {
   int error = 0;
-  struct eltonfs_inode_xdr empty_dir = {
+  struct create_commit_request req = {
+      .info = *info,
+  };
+  struct create_commit_response *res;
+  size_t len;
+
+  DEBUG("creating commit");
+  RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
+  RETURN_IF(ns->ops->recv_struct(ns, CREATE_COMMIT_RESPONSE_ID, (void **)&res));
+  DEBUG("new cid=%s", res->commit_id);
+
+  len = strlen(res->commit_id);
+  if (len >= max_new_cid) {
+    DEBUG("commit id length too long: %zu", len);
+    BUG();
+  }
+  memcpy(new_cid, res->commit_id, len);
+  new_cid[len] = '\0';
+
+  elton_rpc_free_decoded_data(res);
+  return 0;
+}
+static inline int
+_rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
+                                         struct commit_info **out_info,
+                                         const char *base_cid) {
+  const static struct eltonfs_inode_xdr empty_dir_tmpl = {
       .eltonfs_ino = 1,
       .object_id = "",
       .mode = S_IFDIR | 0755,
@@ -112,41 +139,52 @@ static inline int _rpc_call_create_commit(struct elton_rpc_session *s,
       .atime = {.sec = 111, .nsec = 222},
       .mtime = {.sec = 11, .nsec = 22},
       .ctime = {.sec = 1, .nsec = 2},
+      // Fill above fields:
+      //  * dir_entries
+      //  * dir_entries_len
   };
-  RADIX_TREE(itree, GFP_KERNEL);
-  struct tree_info tree = {.root = &empty_dir, .inodes = &itree};
-  struct commit_info info = {
+  const static struct commit_info info_tmpl = {
       .created_at =
           {
               .sec = 1,
               .nsec = 2,
           },
-      .left_parent_id = (char *)cid,
-      .right_parent_id = "",
-      .tree = &tree,
+      // Fill above fields:
+      //  * left_parent_id
+      //  * right_parent_id
+      //  * tree
   };
-  struct create_commit_request req = {
-      .info = info,
-  };
-  struct create_commit_response *res;
 
-  DEBUG("building inode tree");
-  radix_tree_insert(&itree, 1, &empty_dir);
-  INIT_LIST_HEAD(&empty_dir.dir_entries._list_head);
+  struct eltonfs_inode_xdr *empty_dir = kzalloc(sizeof(*empty_dir), GFP_NOFS);
+  struct radix_tree_root *itree = kzalloc(sizeof(*itree), GFP_NOFS);
+  struct tree_info *tree = kzalloc(sizeof(*tree), GFP_NOFS);
+  struct commit_info *info = kzalloc(sizeof(*info), GFP_NOFS);
 
-  DEBUG("creating commit");
-  RETURN_IF(ns->ops->send_struct(ns, CREATE_COMMIT_REQUEST_ID, &req));
-  RETURN_IF(ns->ops->recv_struct(ns, CREATE_COMMIT_RESPONSE_ID, (void **)&res));
-  DEBUG("new cid=%s", res->commit_id);
-  elton_rpc_free_decoded_data(res);
+  DEBUG("building inode tree with empty dir");
+  *empty_dir = empty_dir_tmpl;
+  INIT_LIST_HEAD(&empty_dir->dir_entries._list_head);
+
+  INIT_RADIX_TREE(itree, GFP_NOFS);
+  tree->root = empty_dir;
+  tree->inodes = itree;
+
+  *info = info_tmpl;
+  info->left_parent_id = (char *)base_cid;
+  info->right_parent_id = "";
+  info->tree = tree;
+
+  DEBUG("builded inode tree");
+  *out_info = info;
   return 0;
 }
 static int rpc_call_create_commit(struct elton_rpc_session *s) {
   int error = 0;
   struct elton_rpc_ns _ns;
   struct elton_rpc_ns *ns = &_ns;
+  struct commit_info *info;
   char vid[64];
   char cid[64];
+  char cid2[64];
 
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_get_volume_id(s, ns, "foo", vid, sizeof(vid)));
@@ -156,8 +194,9 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
   GOTO_IF(out, _rpc_call_get_latest_commit_id(s, ns, vid, cid, sizeof(cid)));
   RETURN_IF(ns->ops->close(ns));
 
+  RETURN_IF(_rpc_call_new_commit_info_with_empty_dir(s, &info, cid));
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
-  GOTO_IF(out, _rpc_call_create_commit(s, ns, cid));
+  GOTO_IF(out, _rpc_call_create_commit(s, ns, info, cid, cid2, sizeof(cid2)));
 out:
   WARN_IF(ns->ops->close(ns));
   return error;
