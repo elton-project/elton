@@ -60,7 +60,7 @@ func _historyLsFn(ctx context.Context, volumeName string) error {
 			return xerrors.Errorf("api client: %w", err)
 		}
 
-		fmt.Println(cRes.GetId())
+		fmt.Println(cRes.GetId().ConvertString())
 	}
 	return nil
 }

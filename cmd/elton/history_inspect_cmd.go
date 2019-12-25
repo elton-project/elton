@@ -59,8 +59,8 @@ func _historyInspectFn(ctx context.Context, cid *elton_v2.CommitID, files []stri
 func dumpCommitInfo(info *elton_v2.CommitInfo) string {
 	var buff strings.Builder
 	buff.WriteString(fmt.Sprintf("CreatedAt: %s\n", info.GetCreatedAt().String()))
-	buff.WriteString(fmt.Sprintf("Left: %s\n", info.GetLeftParentID()))
-	buff.WriteString(fmt.Sprintf("Right: %s\n", info.GetRightParentID()))
+	buff.WriteString(fmt.Sprintf("Left: %s\n", info.GetLeftParentID().ConvertString()))
+	buff.WriteString(fmt.Sprintf("Right: %s\n", info.GetRightParentID().ConvertString()))
 	buff.WriteString(fmt.Sprintf("RootIno: %d\n", info.GetTree().GetRootIno()))
 	buff.WriteString(fmt.Sprintf("Inodes: %d\n", len(info.GetTree().GetInodes())))
 	return buff.String()
