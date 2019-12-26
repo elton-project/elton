@@ -279,7 +279,7 @@ static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
       break;
     }
 
-    if (strcmp(arg, "vid")) {
+    if (!strcmp(arg, "vid")) {
       if (!found_value) {
         ERR("vid option requires an value");
         return -EINVAL;
@@ -290,7 +290,7 @@ static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
         return -ENOMEM;
       }
       strcpy(config->vid, value);
-    } else if (strcmp(arg, "cid")) {
+    } else if (!strcmp(arg, "cid")) {
       if (!found_value) {
         ERR("cid option requires an value");
         return -EINVAL;
@@ -301,7 +301,7 @@ static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
         return -ENOMEM;
       }
       strcpy(config->cid, value);
-    } else if (strcmp(arg, "vol")) {
+    } else if (!strcmp(arg, "vol")) {
       if (!found_value) {
         ERR("vol option requires an value");
         return -EINVAL;
@@ -312,13 +312,13 @@ static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
         return -ENOMEM;
       }
       strcpy(config->vol_name, value);
-    } else if (strcmp(arg, "auto_tx")) {
+    } else if (!strcmp(arg, "auto_tx")) {
       if (found_value) {
         ERR("auto_tx is not accept a value");
         return -EINVAL;
       }
       config->auto_tx = true;
-    } else if (strcmp(arg, "no_auto_tx")) {
+    } else if (!strcmp(arg, "no_auto_tx")) {
       if (found_value) {
         ERR("no_auto_tx is not accept a value");
         return -EINVAL;
