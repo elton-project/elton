@@ -628,18 +628,21 @@ static void test_eltonfs_parse_opt(void) {
   struct eltonfs_config config;
   // With vol.
   strcpy(opt, "vol=foo,no_auto_tx");
-  ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config));
-  ASSERT_EQUAL_BOOL(false, config.auto_tx);
-  ASSERT_EQUAL_BYTES("foo", config.vol_name, 4);
+  if (!ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config))) {
+    ASSERT_EQUAL_BOOL(false, config.auto_tx);
+    ASSERT_EQUAL_BYTES("foo", config.vol_name, 4);
+  }
   // With vid.
   strcpy(opt, "vid=34a50566000000");
-  ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config));
-  ASSERT_EQUAL_BOOL(true, config.auto_tx);
-  ASSERT_EQUAL_BYTES("34a50566000000", config.vid, 15);
+  if (!ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config))) {
+    ASSERT_EQUAL_BOOL(true, config.auto_tx);
+    ASSERT_EQUAL_BYTES("34a50566000000", config.vid, 15);
+  }
   // With cid.
   strcpy(opt, "cid=34a50566000000/14818143155257344");
-  ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config));
-  ASSERT_EQUAL_BYTES("34a50566000000/14818143155257344", config.cid, 33);
+  if (!ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config))) {
+    ASSERT_EQUAL_BYTES("34a50566000000/14818143155257344", config.cid, 33);
+  }
   // No argument.
   strcpy(opt, "");
   ASSERT_EQUAL_ERROR(-EINVAL, eltonfs_parse_opt(opt, &config));
