@@ -198,6 +198,41 @@ _rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
   *out_info = info;
   return 0;
 }
+static inline int
+_rpc_call_new_commit_info_with_some_files(struct elton_rpc_session *s,
+                                          struct commit_info **out_info,
+                                          const char *base_cid) {
+  int error = 0;
+  struct commit_info *info = *out_info;
+  struct eltonfs_inode_xdr *file;
+  struct eltonfs_inode_xdr *root;
+  struct eltonfs_dir_entry *entry;
+  const size_t max_oid = 64;
+  char *oid = kzalloc(max_oid, GFP_NOFS);
+
+  RETURN_IF(_rpc_call_new_commit_info_with_empty_dir(s, out_info, base_cid));
+  RETURN_IF(rpc_call_create_obj(s, oid, max_oid));
+
+  file = kzalloc(sizeof(*file), GFP_NOFS);
+  file->eltonfs_ino = 2;
+  file->object_id = oid;
+  file->mode = S_IFREG | 0644;
+  file->owner = 1000;
+  file->group = 1000;
+  file->atime = TIMESTAMP(50, 60);
+  file->mtime = TIMESTAMP(30, 40);
+  file->ctime = TIMESTAMP(10, 20);
+  radix_tree_insert(info->tree->inodes, file->eltonfs_ino, file);
+
+  entry = kzalloc(sizeof(*entry), GFP_NOFS);
+  entry->ino = 2;
+  strcpy(entry->name, "new.txt");
+  entry->name_len = strlen(entry->name);
+
+  root = radix_tree_lookup(info->tree->inodes, info->tree->root->eltonfs_ino);
+  list_add_tail(&entry->_list_head, &root->dir_entries._list_head);
+  return 0;
+}
 static int rpc_call_create_commit(struct elton_rpc_session *s) {
   int error = 0;
   struct elton_rpc_ns _ns;
@@ -218,6 +253,11 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
   RETURN_IF(_rpc_call_new_commit_info_with_empty_dir(s, &info, cid));
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_create_commit(s, ns, info, cid, cid2, sizeof(cid2)));
+  RETURN_IF(ns->ops->close(ns));
+
+  RETURN_IF(_rpc_call_new_commit_info_with_some_files(s, &info, cid2));
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
+  GOTO_IF(out, _rpc_call_create_commit(s, ns, info, cid2, cid, sizeof(cid)));
 out:
   WARN_IF(ns->ops->close(ns));
   return error;
