@@ -7,6 +7,7 @@ import (
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/xerrors"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -71,10 +72,23 @@ func dumpCommitInfo(info *elton_v2.CommitInfo) string {
 	return buff.String()
 }
 func dumpFileInfo(info *elton_v2.CommitInfo, fpath string) (string, error) {
-	ino, err := searchFile(info.GetTree(), fpath)
-	if err != nil {
-		return "", xerrors.Errorf("dump file info: %w", err)
+	var ino uint64
+
+	if isFilePath(fpath) {
+		var err error
+		ino, err = searchFile(info.GetTree(), fpath)
+		if err != nil {
+			return "", xerrors.Errorf("dump file info: %w", err)
+		}
+	} else {
+		// fpath is not file path.  Treat fpath as inode number.
+		var err error
+		ino, err = strconv.ParseUint(fpath, 10, 64)
+		if err != nil {
+			return "", xerrors.Errorf("dump file info: %w", err)
+		}
 	}
+
 	inode, ok := info.Tree.Inodes[ino]
 	if !ok {
 		return "", xerrors.Errorf("not found inode: ino=%d", ino)
@@ -128,4 +142,7 @@ func searchFile(tree *elton_v2.Tree, fpath string) (uint64, error) {
 		}
 	}
 	return ino, nil
+}
+func isFilePath(s string) bool {
+	return strings.HasPrefix(s, "/")
 }
