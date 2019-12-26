@@ -222,7 +222,7 @@ func (req GetObjectRequest) ToGRPC() *elton_v2.GetObjectRequest {
 const GetObjectResponseStructID = 10
 
 type GetObjectResponse struct {
-	XXX_XDR_ID struct{}        `xdrid:"8"`
+	XXX_XDR_ID struct{}        `xdrid:"10"`
 	ID         EltonObjectID   `xdr:"1"`
 	Body       EltonObjectBody `xdr:"3"`
 }
