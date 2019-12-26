@@ -223,6 +223,7 @@ _rpc_call_new_commit_info_with_some_files(struct elton_rpc_session *s,
   file->atime = TIMESTAMP(50, 60);
   file->mtime = TIMESTAMP(30, 40);
   file->ctime = TIMESTAMP(10, 20);
+  INIT_LIST_HEAD(&file->dir_entries._list_head);
   radix_tree_insert(info->tree->inodes, file->eltonfs_ino, file);
 
   entry = kzalloc(sizeof(*entry), GFP_NOFS);
