@@ -24,6 +24,7 @@
   "/usr/bin:"                                                                  \
   "/usr/local/bin"
 
+// FS specified data.  It is linked from super block.
 struct eltonfs_info {
 #ifdef ELTONFS_STATISTIC
   unsigned long mmap_size;
