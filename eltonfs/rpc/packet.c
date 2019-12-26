@@ -655,7 +655,7 @@ IMPL_ENCODER(get_object_request) {
   RETURN_IF(enc->enc_op->struct_(enc, se, 3));
   RETURN_IF(se->op->bytes(se, 1, s->id, strlen(s->id)));
   RETURN_IF(se->op->u64(se, 2, s->offset));
-  RETURN_IF(se->op->u64(se, 2, s->size));
+  RETURN_IF(se->op->u64(se, 3, s->size));
   RETURN_IF(se->op->close(se));
   return 0;
 }
