@@ -6,6 +6,32 @@
 #ifdef ELTON_RPC_CALL_TEST
 #include <elton/rpc/struct.h>
 
+// oid: object id
+static inline int _rpc_call_get_obj(struct elton_rpc_session *s,
+                                    struct elton_rpc_ns *ns, const char *oid,
+                                    const char *expected_data) {
+  int error = 0;
+  struct get_object_request req = {
+      .id = (char *)oid,
+  };
+  struct get_object_response *res;
+
+  DEBUG("getting object data by id (%s)", oid);
+  RETURN_IF(ns->ops->send_struct(ns, GET_OBJECT_REQUEST_ID, &req));
+  RETURN_IF(ns->ops->recv_struct(ns, GET_OBJECT_RESPONSE_ID, (void **)&res));
+
+  DEBUG("object id: %s", res->id);
+  DEBUG("object data len: %zu", res->body->contents_length);
+  DEBUG("object data offset: %lld", res->body->offset);
+  DEBUG("object data: %s", res->body->contents);
+  DEBUG("expected data: %s", expected_data);
+
+  if (strcmp(res->body->contents, expected_data)) {
+    DEBUG("content is not match");
+    RETURN_IF(-EINVAL);
+  }
+  return 0;
+}
 // new_oid: buffer for store new object id.
 // max_oid: size of oid buffer.
 static inline int _rpc_call_create_obj(struct elton_rpc_session *s,
@@ -57,6 +83,10 @@ static int rpc_call_create_obj(struct elton_rpc_session *s, char *new_oid,
   struct elton_rpc_ns *ns = &_ns;
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_create_obj(s, ns, new_oid, max_oid));
+  RETURN_IF(ns->ops->close(ns));
+
+  RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
+  GOTO_IF(out, _rpc_call_get_obj(s, ns, new_oid, "hello world :"));
 out:
   WARN_IF(ns->ops->close(ns));
   return error;
