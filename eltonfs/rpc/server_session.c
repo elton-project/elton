@@ -26,6 +26,11 @@ static inline int _rpc_call_get_obj(struct elton_rpc_session *s,
   DEBUG("object data: %s", res->body->contents);
   DEBUG("expected data: %s", expected_data);
 
+  if (res->body->contents_length != strlen(res->body->contents)) {
+    DEBUG("content length is not match: len=%llu, actual=%zu",
+          res->body->contents_length, strlen(res->body->contents));
+    RETURN_IF(-EINVAL);
+  }
   if (strcmp(res->body->contents, expected_data)) {
     DEBUG("content is not match");
     RETURN_IF(-EINVAL);
