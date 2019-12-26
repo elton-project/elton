@@ -193,6 +193,7 @@ static int eltonfs_parse_arg_name(char **cursor, char **arg,
   start = *cursor;
 
   if (**cursor == '\0') {
+    // Empty string.
     *arg = NULL;
     *found_value = false;
     return 0;
