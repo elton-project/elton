@@ -219,7 +219,9 @@ static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,
                                     const char *dev_name, void *data) {
   return mount_nodev(fs_type, flags, data, eltonfs_fill_super);
 }
-static void kill_sb(struct super_block *sb) {}
+static void kill_sb(struct super_block *sb) {
+  // todo
+}
 
 struct inode *eltonfs_alloc_inode(struct super_block *sb) {
   struct eltonfs_inode *i = kmalloc(sizeof(struct eltonfs_inode), GFP_KERNEL);
