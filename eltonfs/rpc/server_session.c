@@ -232,6 +232,7 @@ _rpc_call_new_commit_info_with_some_files(struct elton_rpc_session *s,
 
   root = radix_tree_lookup(info->tree->inodes, info->tree->root->eltonfs_ino);
   list_add_tail(&entry->_list_head, &root->dir_entries._list_head);
+  root->dir_entries_len++;
   return 0;
 }
 static int rpc_call_create_commit(struct elton_rpc_session *s) {
