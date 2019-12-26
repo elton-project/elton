@@ -643,9 +643,11 @@ static void test_eltonfs_parse_opt(void) {
   if (!ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config))) {
     ASSERT_EQUAL_BYTES("34a50566000000/14818143155257344", config.cid, 33);
   }
-  // No argument.
+  // With empty argument.
   strcpy(opt, "");
   ASSERT_EQUAL_ERROR(-EINVAL, eltonfs_parse_opt(opt, &config));
+  // With no argument.
+  ASSERT_EQUAL_ERROR(-EINVAL, eltonfs_parse_opt(NULL, &config));
   // Invalid argument name.
   strcpy(opt, "invalid");
   ASSERT_EQUAL_ERROR(-EINVAL, eltonfs_parse_opt(opt, &config));
