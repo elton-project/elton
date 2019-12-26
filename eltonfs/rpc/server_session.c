@@ -85,6 +85,12 @@ static int rpc_call_create_obj(struct elton_rpc_session *s, char *new_oid,
   GOTO_IF(out, _rpc_call_create_obj(s, ns, new_oid, max_oid));
   RETURN_IF(ns->ops->close(ns));
 
+  if (!new_oid) {
+    // We can not get an oid of new object because new_oid buffer is NULL.
+    // Skip content validation.
+    return 0;
+  }
+
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_get_obj(s, ns, new_oid, "hello world :"));
 out:
