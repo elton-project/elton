@@ -11,6 +11,11 @@ struct timestamp {
   // nanoseconds.
   u64 nsec;
 };
+#define TIMESTAMP(_sec, _nsec)                                                 \
+  ({                                                                           \
+    struct timestamp ts = {.sec = _sec, .nsec = _nsec};                        \
+    ts;                                                                        \
+  })
 
 struct tree_info;
 
