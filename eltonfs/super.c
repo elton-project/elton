@@ -197,6 +197,7 @@ static int eltonfs_parse_arg_name(char **cursor, char **arg,
   switch (**cursor) {
   case ',': // Found next argument.
     **cursor = '\0';
+    (*cursor)++;
     // fallthrough
   case '\0': // Reached to end of string.
     *arg = start;
@@ -204,6 +205,7 @@ static int eltonfs_parse_arg_name(char **cursor, char **arg,
     break;
   case '=': // Found a value.
     **cursor = '\0';
+    (*cursor)++;
     *arg = start;
     *found_value = true;
     break;
@@ -240,6 +242,7 @@ static int eltonfs_parse_arg_value(char **cursor, char **value) {
   switch (**cursor) {
   case ',': // Found next argument.
     **cursor = '\0';
+    (*cursor)++;
     // fallthrough
   case '\0': // Reached to end of string.
     *value = start;
