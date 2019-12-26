@@ -214,7 +214,7 @@ static int eltonfs_parse_arg_name(char **cursor, char **arg,
     (*cursor)++;
     **cursor = '\0';
     *arg = NULL;
-    found_value = false;
+    *found_value = false;
     ERR("invalid mount option \"%s\".  The character '0x%x' is not allowed in "
         "argument name of mount option.",
         start, invalid);
