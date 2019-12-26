@@ -24,8 +24,24 @@
   "/usr/bin:"                                                                  \
   "/usr/local/bin"
 
+struct eltonfs_config {
+  // Flag for auto_tx mode  (default=true).
+  // If this flag is true, transaction should start in following situations:
+  //  * eltonfs is mounted.
+  //  * transaction is rollbacked.
+  bool auto_tx;
+  // Volume id  (nullable)
+  char *vid;
+  // Commit id  (nullable)
+  char *cid;
+  // Volume name  (nullable)
+  char *vol_name;
+};
+
 // FS specified data.  It is linked from super block.
 struct eltonfs_info {
+  struct eltonfs_config config;
+
 #ifdef ELTONFS_STATISTIC
   unsigned long mmap_size;
   rwlock_t mmap_size_lock;

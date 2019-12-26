@@ -177,12 +177,186 @@ static long eltonfs_compat_ioctl(struct file *file, unsigned int cmd,
 }
 #endif
 
+static inline bool eltonfs_is_valid_arg_name_char(char c) {
+  return ('a' <= c && c <= 'z') || c == '_';
+}
+static int eltonfs_parse_arg_name(char **cursor, char **arg,
+                                  bool *found_value) {
+  char *start = *cursor;
+
+  if (**cursor == '\0') {
+    *arg = NULL;
+    return 0;
+  }
+
+  // Seek an option.
+  while (eltonfs_is_valid_arg_name_char(**cursor))
+    (*cursor)++;
+
+  // Check termination char.
+  switch (**cursor) {
+  case ',': // Found next argument.
+    **cursor = '\0';
+    // fallthrough
+  case '\0': // Reached to end of string.
+    *arg = start;
+    *found_value = false;
+    break;
+  case '=': // Found a value.
+    **cursor = '\0';
+    *arg = start;
+    *found_value = true;
+    break;
+  default: { // Invalid character found.
+    char invalid = **cursor;
+    (*cursor)++;
+    **cursor = '\0';
+    *arg = NULL;
+    found_value = false;
+    ERR("invalid mount option \"%s\".  The character '0x%x' is not allowed in "
+        "argument name of mount option.",
+        start, invalid);
+    return -EINVAL;
+  }
+  }
+  return 0;
+}
+static bool eltonfs_is_valid_arg_value(char c) {
+  return ('a' <= c && c <= 'z') || c == '/';
+}
+static int eltonfs_parse_arg_value(char **cursor, char **value) {
+  char *start = *cursor;
+
+  if (**cursor == '\0') {
+    *value = NULL;
+    return 0;
+  }
+
+  // Seek a value.
+  while (eltonfs_is_valid_arg_value(**cursor))
+    (*cursor)++;
+
+  // Check termination char.
+  switch (**cursor) {
+  case ',': // Found next argument.
+    **cursor = '\0';
+    // fallthrough
+  case '\0': // Reached to end of string.
+    *value = start;
+    break;
+  default: { // Invalid character found.
+    char invalid = **cursor;
+    (*cursor)++;
+    **cursor = '\0';
+    *value = NULL;
+    ERR("invalid mount option \"%s\".  The character '0x%x' is not allowed in "
+        "argument value of mount option.",
+        start, invalid);
+    return -EINVAL;
+  }
+  }
+  return 0;
+}
+static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
+  int error = 0;
+  char *arg, *value;
+  bool found_value;
+
+  // Set default settings.
+  config->auto_tx = true;
+  config->vid = NULL;
+  config->cid = NULL;
+  config->vol_name = NULL;
+
+  // Parse config string.
+  while (1) {
+    RETURN_IF(eltonfs_parse_arg_name(&opt, &arg, &found_value));
+    if (arg == NULL) {
+      // Reached to end of string.
+      break;
+    }
+
+    if (strcmp(arg, "vid")) {
+      if (!found_value) {
+        ERR("vid option requires an value");
+        return -EINVAL;
+      }
+      RETURN_IF(eltonfs_parse_arg_value(&opt, &value));
+      config->vid = kmalloc(strlen(value) + 1, GFP_KERNEL);
+      if (config->vid == NULL) {
+        return -ENOMEM;
+      }
+      strcpy(config->vid, value);
+    } else if (strcmp(arg, "cid")) {
+      if (!found_value) {
+        ERR("cid option requires an value");
+        return -EINVAL;
+      }
+      RETURN_IF(eltonfs_parse_arg_value(&opt, &value));
+      config->cid = kmalloc(strlen(value) + 1, GFP_KERNEL);
+      if (config->cid == NULL) {
+        return -ENOMEM;
+      }
+      strcpy(config->cid, value);
+    } else if (strcmp(arg, "vol")) {
+      if (!found_value) {
+        ERR("vol option requires an value");
+        return -EINVAL;
+      }
+      RETURN_IF(eltonfs_parse_arg_value(&opt, &value));
+      config->vol_name = kmalloc(strlen(value) + 1, GFP_KERNEL);
+      if (config->vol_name == NULL) {
+        return -ENOMEM;
+      }
+      strcpy(config->vol_name, value);
+    } else if (strcmp(arg, "auto_tx")) {
+      if (found_value) {
+        ERR("auto_tx is not accept a value");
+        return -EINVAL;
+      }
+      config->auto_tx = true;
+    } else if (strcmp(arg, "no_auto_tx")) {
+      if (found_value) {
+        ERR("no_auto_tx is not accept a value");
+        return -EINVAL;
+      }
+      config->auto_tx = false;
+    } else {
+      ERR("unrecognized mount option \"%s\"", arg);
+      return -EINVAL;
+    }
+  }
+
+  // Check arguments combination.
+  {
+    int counter = 0;
+    if (config->vid)
+      counter++;
+    if (config->cid)
+      counter++;
+    if (config->vol_name)
+      counter++;
+
+    if (counter == 0) {
+      ERR("require vid or cid or vol option");
+      return -EINVAL;
+    } else if (counter > 1) {
+      ERR("vid and cid and vol options are exclusive");
+      return -EINVAL;
+    }
+  }
+  return 0;
+}
+
 static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
+  int error = 0;
   struct inode *inode;
   struct dentry *root;
   struct iattr ia;
 
   struct eltonfs_info *info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
+  RETURN_IF(eltonfs_parse_opt(data, &info->config));
+
 #ifdef ELTONFS_STATISTIC
   rwlock_init(&info->mmap_size_lock);
   info->mmap_size = 0;
@@ -289,6 +463,10 @@ static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
   return 0;
 }
 
+#ifdef ELTONFS_UNIT_TEST
+void test_super(void);
+#endif // ELTONFS_UNIT_TEST
+
 static int __init fs_module_init(void) {
   int error;
   DEBUG("Loading the module ...");
@@ -297,6 +475,7 @@ static int __init fs_module_init(void) {
   INFO("Running unit test cases");
   test_xdr();
   test_rpc();
+  test_super();
   if (IS_ASSERTION_FAILED()) {
     ERR("Failed to some unit test cases");
     GOTO_IF(out, -ENOTRECOVERABLE);
@@ -439,3 +618,34 @@ MODULE_ALIAS_FS("elton");
 MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR("yuuki0xff <yuuki0xff@gmail.com>");
 MODULE_DESCRIPTION(MODULE_NAME " module");
+
+#ifdef ELTONFS_UNIT_TEST
+static void test_eltonfs_parse_opt(void) {
+  char opt[64];
+  struct eltonfs_config config;
+  // With vol.
+  strcpy(opt, "vol=foo,no_auto_tx");
+  ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config));
+  ASSERT_EQUAL_BOOL(false, config.auto_tx);
+  ASSERT_EQUAL_BYTES("foo", config.vol_name, 4);
+  // With vid.
+  strcpy(opt, "vid=34a50566000000");
+  ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config));
+  ASSERT_EQUAL_BOOL(true, config.auto_tx);
+  ASSERT_EQUAL_BYTES("34a50566000000", config.vid, 15);
+  // With cid.
+  strcpy(opt, "cid=34a50566000000/14818143155257344");
+  ASSERT_NO_ERROR(eltonfs_parse_opt(opt, &config));
+  ASSERT_EQUAL_BYTES("34a50566000000/14818143155257344", config.cid, 33);
+  // No argument.
+  strcpy(opt, "");
+  ASSERT_EQUAL_ERROR(-EINVAL, eltonfs_parse_opt(opt, &config));
+  // Invalid argument name.
+  strcpy(opt, "invalid");
+  ASSERT_EQUAL_ERROR(-EINVAL, eltonfs_parse_opt(opt, &config));
+  // Invalid value.
+  strcpy(opt, "cid=###");
+  ASSERT_EQUAL_ERROR(-EINVAL, eltonfs_parse_opt(opt, &config));
+}
+void test_super(void) { test_eltonfs_parse_opt(); }
+#endif // ELTONFS_UNIT_TEST

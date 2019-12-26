@@ -46,6 +46,8 @@
 #include <elton/logging.h>
 #include <linux/bug.h>
 
+#define BOOL2STR(b) ((b) ? "true" : "false")
+
 #define lengthof(array) (sizeof(array) / sizeof((array)[0]))
 // Break compile if array size is not match.
 #define BUILD_ASSERT_EQUAL_ARRAY_SIZE(expected, array)                         \
@@ -154,6 +156,21 @@ extern volatile bool __assertion_failed;
       ERR("ASSERT: %s return expeccted value (%s %s:%d): "                     \
           "expected=%d actual=%d",                                             \
           #expr, __func__, __FILE__, __LINE__, expected, actual);              \
+      SET_ASSERTION_FAILED();                                                  \
+    }                                                                          \
+    fail;                                                                      \
+  })
+// 条件式が想定外の数値を返した場合、WARNINGを表示してtrueを返す。
+// それ以外の場合は、falseを返す。
+#define ASSERT_EQUAL_BOOL(expected, expr)                                      \
+  ({                                                                           \
+    bool actual = expr;                                                        \
+    bool fail = actual != expected;                                            \
+    if (fail) {                                                                \
+      ERR("ASSERT: %s return expeccted value (%s %s:%d): "                     \
+          "expected=%s actual=%s",                                             \
+          #expr, __func__, __FILE__, __LINE__, BOOL2STR(expected),             \
+          BOOL2STR(actual));                                                   \
       SET_ASSERTION_FAILED();                                                  \
     }                                                                          \
     fail;                                                                      \
