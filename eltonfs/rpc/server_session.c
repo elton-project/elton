@@ -33,6 +33,8 @@ static inline int _rpc_call_get_obj(struct elton_rpc_session *s,
   }
   if (strcmp(res->body->contents, expected_data)) {
     DEBUG("content is not match");
+    ASSERT_EQUAL_BYTES(res->body->contents, expected_data,
+                       res->body->contents_length);
     RETURN_IF(-EINVAL);
   }
   return 0;
