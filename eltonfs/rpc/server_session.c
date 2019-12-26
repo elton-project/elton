@@ -203,7 +203,7 @@ _rpc_call_new_commit_info_with_some_files(struct elton_rpc_session *s,
                                           struct commit_info **out_info,
                                           const char *base_cid) {
   int error = 0;
-  struct commit_info *info = *out_info;
+  struct commit_info *info;
   struct eltonfs_inode_xdr *file;
   struct eltonfs_inode_xdr *root;
   struct eltonfs_dir_entry *entry;
@@ -211,6 +211,7 @@ _rpc_call_new_commit_info_with_some_files(struct elton_rpc_session *s,
   char *oid = kzalloc(max_oid, GFP_NOFS);
 
   RETURN_IF(_rpc_call_new_commit_info_with_empty_dir(s, out_info, base_cid));
+  info = *out_info;
   RETURN_IF(rpc_call_create_obj(s, oid, max_oid));
 
   file = kzalloc(sizeof(*file), GFP_NOFS);
