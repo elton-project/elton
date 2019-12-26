@@ -230,7 +230,7 @@ static int eltonfs_parse_arg_value(char **cursor, char **value) {
   char *start = *cursor;
 
   if (**cursor == '\0') {
-    *value = NULL;
+    *value = start;
     return 0;
   }
 
