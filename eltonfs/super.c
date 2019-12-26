@@ -215,8 +215,8 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   DEBUG("Prepared the super block");
   return 0;
 }
-static struct dentry *mount(struct file_system_type *fs_type, int flags,
-                            const char *dev_name, void *data) {
+static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,
+                                    const char *dev_name, void *data) {
   return mount_nodev(fs_type, flags, data, eltonfs_fill_super);
 }
 static void kill_sb(struct super_block *sb) {}
@@ -360,7 +360,7 @@ int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
 static struct file_system_type eltonfs_type = {
     .owner = THIS_MODULE,
     .name = FS_NAME,
-    .mount = mount,
+    .mount = eltonfs_mount,
     .kill_sb = kill_sb,
     .fs_flags = 0,
 };
