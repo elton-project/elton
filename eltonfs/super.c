@@ -357,11 +357,13 @@ int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
   return generic_file_mmap(file, vma);
 }
 
-static struct file_system_type eltonfs_type = {.owner = THIS_MODULE,
-                                               .name = FS_NAME,
-                                               .mount = mount,
-                                               .kill_sb = kill_sb,
-                                               .fs_flags = 0};
+static struct file_system_type eltonfs_type = {
+    .owner = THIS_MODULE,
+    .name = FS_NAME,
+    .mount = mount,
+    .kill_sb = kill_sb,
+    .fs_flags = 0,
+};
 static struct super_operations eltonfs_s_op = {
     .alloc_inode = eltonfs_alloc_inode,
     .destroy_inode = eltonfs_destory_inode,
