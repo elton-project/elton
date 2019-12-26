@@ -182,7 +182,15 @@ static inline bool eltonfs_is_valid_arg_name_char(char c) {
 }
 static int eltonfs_parse_arg_name(char **cursor, char **arg,
                                   bool *found_value) {
-  char *start = *cursor;
+  char *start;
+
+  if (!cursor) {
+    // cursor is NULL.
+    *arg = NULL;
+    *found_value = false;
+    return 0;
+  }
+  start = *cursor;
 
   if (**cursor == '\0') {
     *arg = NULL;
