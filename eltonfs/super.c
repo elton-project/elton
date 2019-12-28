@@ -16,7 +16,7 @@
 #include <linux/statfs.h>
 
 static bool is_registered = 0;
-static struct elton_rpc_server server;
+struct elton_rpc_server server;
 static struct file_system_type eltonfs_type;
 static struct super_operations eltonfs_s_op;
 static struct address_space_operations eltonfs_aops;

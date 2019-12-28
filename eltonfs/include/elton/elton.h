@@ -24,6 +24,8 @@
   "/usr/bin:"                                                                  \
   "/usr/local/bin"
 
+extern struct elton_rpc_server server;
+
 struct eltonfs_config {
   // Flag for auto_tx mode  (default=true).
   // If this flag is true, transaction should start in following situations:
