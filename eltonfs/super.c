@@ -363,12 +363,14 @@ static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
 
 static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   int error = 0;
-  struct inode *inode;
+  struct inode *inode = NULL;
   struct dentry *root;
   struct iattr ia;
   struct eltonfs_info *info = NULL;
 
   info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
+  if (!info)
+    RETURN_IF(-ENOMEM);
   GOTO_IF(err, eltonfs_parse_opt(data, &info->config));
 
 #ifdef ELTONFS_STATISTIC
@@ -389,7 +391,8 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
 #endif
 
   inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
-  ASSERT_NOT_NULL(inode);
+  if (!inode)
+    GOTO_IF(err, -ENOMEM);
   // Set directory mode to 755;
   inode_lock(inode);
   ia.ia_valid = ATTR_MODE;
@@ -398,7 +401,8 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   inode_unlock(inode);
 
   root = d_make_root(inode);
-  ASSERT_NOT_NULL(root);
+  if (!root)
+    GOTO_IF(err, -ENOMEM);
   sb->s_root = root;
   DEBUG("Prepared the super block");
   return 0;
@@ -406,6 +410,9 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
 err:
   if (info)
     kfree(info);
+  if (inode)
+    iput(inode);
+  return error;
 }
 static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,
                                     const char *dev_name, void *data) {
