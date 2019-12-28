@@ -1,4 +1,5 @@
 #include <elton/assert.h>
+#include <elton/commit.h>
 #include <elton/elton.h>
 #include <elton/rpc/server.h>
 #include <elton/rpc/test.h>
@@ -367,6 +368,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   struct dentry *root;
   struct iattr ia;
   struct eltonfs_info *info = NULL;
+  char *cid = NULL;
 
   info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
   if (!info)
@@ -390,6 +392,10 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   sb->s_xattr = elton_xattr_handlers;
 #endif
 
+  GOTO_IF(err, get_commit_id_by_config(&info->config, &cid));
+  info->cid = (const char *)cid;
+  // todo: コミット取得
+
   inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
   if (!inode)
     GOTO_IF(err, -ENOMEM);
@@ -412,6 +418,8 @@ err:
     kfree(info);
   if (inode)
     iput(inode);
+  if (cid)
+    kfree(cid);
   return error;
 }
 static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,

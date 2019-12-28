@@ -44,6 +44,9 @@ struct eltonfs_config {
 struct eltonfs_info {
   struct eltonfs_config config;
 
+  // Current CommitID.
+  const char *cid;
+
 #ifdef ELTONFS_STATISTIC
   unsigned long mmap_size;
   rwlock_t mmap_size_lock;
