@@ -492,7 +492,9 @@ static int eltonfs_statfs(struct dentry *dentry, struct kstatfs *buf) {
 
 // Display the mount options in /proc/mounts.
 static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
-  // seq_puts(m, ",default");
+  struct eltonfs_info *info = (struct eltonfs_info *)root->d_sb->s_fs_info;
+  seq_puts(m, ",cid=");
+  seq_puts(m, info->cid);
   return 0;
 }
 
