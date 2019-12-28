@@ -40,6 +40,7 @@ build-deps:
 .PHONY: generate
 generate:
 	$(MAKE) -C api generate
+	$(MAKE) -C eltonfs generate
 
 .PHONY: build
 build: $(BUILD_FILES)

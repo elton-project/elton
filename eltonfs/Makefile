@@ -40,7 +40,11 @@ DOCKER_RUN = docker run --rm -it \
 	$(DOCKER_IMAGE)
 
 .PHONY: all
-all: build test
+all: generate build test
+
+.PHONY: generate
+generate:
+	$(MAKE) -C clustertest generate
 
 .PHONY: build-inside-container
 build-inside-container:
