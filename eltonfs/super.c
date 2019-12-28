@@ -366,9 +366,10 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   struct inode *inode;
   struct dentry *root;
   struct iattr ia;
+  struct eltonfs_info *info = NULL;
 
-  struct eltonfs_info *info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
-  RETURN_IF(eltonfs_parse_opt(data, &info->config));
+  info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
+  GOTO_IF(err, eltonfs_parse_opt(data, &info->config));
 
 #ifdef ELTONFS_STATISTIC
   rwlock_init(&info->mmap_size_lock);
@@ -401,6 +402,10 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   sb->s_root = root;
   DEBUG("Prepared the super block");
   return 0;
+
+err:
+  if (info)
+    kfree(info);
 }
 static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,
                                     const char *dev_name, void *data) {
