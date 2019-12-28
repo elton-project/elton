@@ -70,7 +70,7 @@ test: force_rmmod mount test_basic_op test_syscalls test_libc rmmod
 .PHONY: mount
 mount:
 	# Start eltond and prepare a volume before mounting.
-	ELTON_ROLES=controller,storage nohup eltond &>eltond.log &
+	ELTON_ROLES=controller,storage setsid --fork eltond &>eltond.log &
 	sleep 1
 	elton volume create foo
 	elton volume ls |grep foo
