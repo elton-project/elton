@@ -41,7 +41,7 @@ specs:
             type: remote-shell
             commands:
               # Run test cases.
-              - 'cd elton/eltonfs && make insmod'
+              - 'cd elton/eltonfs && make mount'
               - 'sleep 1'
           after:
             type: remote-shell

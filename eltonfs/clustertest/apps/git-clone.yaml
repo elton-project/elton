@@ -42,8 +42,9 @@ specs:
               # Install kernel module.
               - 'until apt install -y build-essential; do sleep 1; done'
               - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
-              - 'cd elton/eltonfs && make build'
-              - 'cd elton/eltonfs && make insmod'
+              - 'cd elton && make build'
+              - 'cd elton && make install'
+              - 'cd elton/eltonfs && make mount'
           main:
             type: remote-shell
             commands:

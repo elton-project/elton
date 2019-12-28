@@ -65,23 +65,15 @@ clean:
 	$(MAKE) -C $(KDIR) M=`pwd` clean
 
 .PHONY: test
-test: force_rmmod insmod test_basic_op test_syscalls test_libc rmmod
+test: force_rmmod mount test_basic_op test_syscalls test_libc rmmod
 
-.PHONY: insmod
-insmod:
-    # Increase log level to help kernel module debugging.
-	dmesg -n 7
-
-	# Start eltond and prepare a volume.
+.PHONY: mount
+mount:
+	# Start eltond and prepare a volume before mounting.
 	ELTON_ROLES=controller,storage nohup eltond &>eltond.log &
+	sleep 1
 	elton volume create foo
 	elton volume ls |grep foo
-
-	modinfo $(MODULE_NAME).ko
-	insmod $(MODULE_NAME).ko
-	# Check if the module is loaded.
-	grep $(MODULE_NAME) /proc/modules
-	# Check if the fs is mountable.
 	mount -t $(FS_NAME) -o vol=foo dummy /mnt
 
 .PHONY: test_basic_op

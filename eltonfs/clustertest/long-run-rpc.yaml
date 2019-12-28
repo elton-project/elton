@@ -41,7 +41,7 @@ specs:
           main:
             type: remote-shell
             commands:
-              - 'cd elton/eltonfs && make insmod'
+              - 'cd elton/eltonfs && make mount'
           after:
             type: remote-shell
             commands:
