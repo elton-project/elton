@@ -233,7 +233,7 @@ static int eltonfs_parse_arg_name(char **cursor, char **arg,
   }
   return 0;
 }
-static bool eltonfs_is_valid_arg_value(char c) {
+static inline bool eltonfs_is_valid_arg_value(char c) {
   return ('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || c == '/';
 }
 static int eltonfs_parse_arg_value(char **cursor, char **value) {
