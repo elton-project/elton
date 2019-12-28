@@ -68,12 +68,17 @@ insmod:
     # Increase log level to help kernel module debugging.
 	dmesg -n 7
 
+	# Start eltond and prepare a volume.
+	ELTON_ROLES=controller,storage nohup eltond &>eltond.log &
+	elton volume create foo
+	elton volume ls |grep foo
+
 	modinfo $(MODULE_NAME).ko
 	insmod $(MODULE_NAME).ko
 	# Check if the module is loaded.
 	grep $(MODULE_NAME) /proc/modules
 	# Check if the fs is mountable.
-	mount -t $(FS_NAME) dummy /mnt
+	mount -t $(FS_NAME) -o vol=foo dummy /mnt
 
 .PHONY: test_basic_op
 test_basic_op:
