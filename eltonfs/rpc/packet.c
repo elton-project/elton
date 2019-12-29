@@ -624,8 +624,8 @@ IMPL_DECODER_BODY(tree_info) {
 
   s->inodes = (struct radix_tree_root *)kmalloc(sizeof(*s->inodes), GFP_KERNEL);
   if (s->inodes == NULL)
+    // TODO: remove radix tree when an error occured.
     RETURN_IF(-ENOMEM);
-  // TODO: remove radix tree when an error occured.
 
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->u64(sd, 3, &root_ino));
