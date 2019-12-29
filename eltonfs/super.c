@@ -376,7 +376,7 @@ static struct fill_cid_args {
   bool finished;
 };
 
-static int _eltonfs_get_cid(void *_args) {
+static int _eltonfs_get_commit_info(void *_args) {
   int error = 0;
   char *cid;
   struct fill_cid_args *args = (struct fill_cid_args *)_args;
@@ -436,7 +436,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     };
     init_waitqueue_head(&wq);
     spin_lock_init(&lock);
-    task = kthread_run(_eltonfs_get_cid, &fcargs, "eltonfs-mount");
+    task = kthread_run(_eltonfs_get_commit_info, &fcargs, "eltonfs-mount");
     spin_lock(&lock);
     GOTO_IF(err, wait_event_interruptible_lock_irq(wq, fcargs.finished, lock));
     error = fcargs.error;
