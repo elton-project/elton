@@ -8,6 +8,7 @@
 #include <linux/dcache.h>
 #include <linux/fs.h>
 #include <linux/kernel.h>
+#include <linux/kthread.h>
 #include <linux/module.h>
 #include <linux/mount.h>
 #include <linux/net.h>
@@ -15,6 +16,7 @@
 #include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <linux/statfs.h>
+#include <linux/wait.h>
 
 static bool is_registered = 0;
 struct elton_rpc_server server;
@@ -362,6 +364,31 @@ static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
   return 0;
 }
 
+static struct fill_cid_args {
+  // Arguments
+  struct eltonfs_config *config;
+  char **cid;
+  struct wait_queue_head *wq;
+  struct spinlock *lock;
+
+  // Results
+  int error;
+  bool finished;
+};
+
+static int _eltonfs_get_cid(void *_args) {
+  int error = 0;
+  struct fill_cid_args *args = (struct fill_cid_args *)_args;
+  GOTO_IF(out, get_commit_id_by_config(args->config, args->cid));
+out:
+  spin_lock(args->lock);
+  args->error = error;
+  args->finished = true;
+  spin_unlock(args->lock);
+  wake_up(args->wq);
+  return 0;
+}
+
 static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   int error = 0;
   struct inode *inode = NULL;
@@ -392,8 +419,27 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   sb->s_xattr = elton_xattr_handlers;
 #endif
 
-  GOTO_IF(err, get_commit_id_by_config(&info->config, &cid));
-  info->cid = (const char *)cid;
+  DEBUG("Getting cid from mount option and controll servers ...");
+  {
+    struct task_struct *task;
+    struct wait_queue_head wq;
+    struct spinlock lock;
+    struct fill_cid_args fcargs = {
+        .config = &info->config,
+        .cid = &cid,
+        .wq = &wq,
+        .lock = &lock,
+    };
+    init_waitqueue_head(&wq);
+    spin_lock_init(&lock);
+    task = kthread_run(_eltonfs_get_cid, &fcargs, "eltonfs-mount");
+    spin_lock(&lock);
+    GOTO_IF(err, wait_event_interruptible_lock_irq(wq, fcargs.finished, lock));
+    error = fcargs.error;
+    info->cid = (const char *)cid;
+    spin_unlock(&lock);
+    GOTO_IF(err, error);
+  }
   // todo: コミット取得
 
   inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
