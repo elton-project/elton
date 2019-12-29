@@ -172,8 +172,13 @@ int dec_ts(struct xdr_decoder *dec, struct timestamp *ts) {
   int error;
   CHECK_DECODER_STATUS(dec);
   CHECK_READ_SIZE(dec, 8 * 2);
-  RETURN_IF(dec_u64(dec, &ts->sec));
-  RETURN_IF(dec_u64(dec, &ts->nsec));
+  if (ts) {
+    RETURN_IF(dec_u64(dec, &ts->sec));
+    RETURN_IF(dec_u64(dec, &ts->nsec));
+  } else {
+    RETURN_IF(dec_u64(dec, NULL));
+    RETURN_IF(dec_u64(dec, NULL));
+  }
   return 0;
 }
 
