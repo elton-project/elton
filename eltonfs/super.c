@@ -378,10 +378,13 @@ static struct fill_cid_args {
 
 static int _eltonfs_get_cid(void *_args) {
   int error = 0;
+  char *cid;
   struct fill_cid_args *args = (struct fill_cid_args *)_args;
-  GOTO_IF(out, get_commit_id_by_config(args->config, args->cid));
+  GOTO_IF(out, get_commit_id_by_config(args->config, &cid));
+
 out:
   spin_lock(args->lock);
+  *args->cid = cid;
   args->error = error;
   args->finished = true;
   spin_unlock(args->lock);
