@@ -540,7 +540,12 @@ static int eltonfs_statfs(struct dentry *dentry, struct kstatfs *buf) {
 static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
   struct eltonfs_info *info = (struct eltonfs_info *)root->d_sb->s_fs_info;
   seq_puts(m, ",cid=");
-  seq_puts(m, info->cid);
+  if (info->cid)
+    seq_puts(m, info->cid);
+  else {
+    WARN_ONCE(1, "cid is null");
+    seq_puts(m, "<null>");
+  }
   return 0;
 }
 
