@@ -380,7 +380,12 @@ static int _eltonfs_get_commit_info(void *_args) {
   int error = 0;
   char *cid = NULL;
   struct fill_cid_args *args = (struct fill_cid_args *)_args;
+
+  DEBUG("Getting cid from mount option and controll servers ...");
   GOTO_IF(out, get_commit_id_by_config(args->config, &cid));
+
+  DEBUG("Getting initial data from controll servers ...");
+  // todo: コミット取得
 
 out:
   spin_lock(args->lock);
@@ -423,7 +428,6 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   sb->s_xattr = elton_xattr_handlers;
 #endif
 
-  DEBUG("Getting cid from mount option and controll servers ...");
   {
     struct task_struct *task;
     struct wait_queue_head wq;
@@ -444,7 +448,6 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     spin_unlock(&lock);
     GOTO_IF(err, error);
   }
-  // todo: コミット取得
 
   inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
   if (!inode)
