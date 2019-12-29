@@ -868,7 +868,6 @@ IMPL_DECODER_BODY(eltonfs_inode_xdr) {
   RETURN_IF(sd->op->timestamp(sd, 8, &s->ctime));
   RETURN_IF(sd->op->u64(sd, 9, &s->major));
   RETURN_IF(sd->op->u64(sd, 10, &s->minor));
-  RETURN_IF(sd->op->close(sd));
 
   INIT_LIST_HEAD(&s->dir_entries._list_head);
   RETURN_IF(sd->op->map(sd, 11, mdec));
@@ -890,6 +889,7 @@ IMPL_DECODER_BODY(eltonfs_inode_xdr) {
     list_add_tail(&eino->_list_head, &s->dir_entries._list_head);
   }
   RETURN_IF(mdec->op->close(mdec));
+  RETURN_IF(sd->op->close(sd));
   return 0;
 }
 DEFINE_ENCDEC(eltonfs_inode_xdr, ELTONFS_INODE_ID);
