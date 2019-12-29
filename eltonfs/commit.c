@@ -80,3 +80,23 @@ int get_commit_id_by_config(struct eltonfs_config *config, char **cid) {
 
   // Unreachable
 }
+
+int get_commit_info(char *cid, struct commit_info **info) {
+  int error = 0;
+  struct elton_rpc_ns ns;
+  struct get_commit_info_request req = {.commit_id = cid};
+  struct get_commit_info_response *res;
+
+  RETURN_IF(server.ops->new_session(&server, &ns, NULL));
+  GOTO_IF(free_ns, ns.ops->send_struct(&ns, GET_COMMIT_INFO_REQUEST_ID, &req));
+  GOTO_IF(free_ns,
+          ns.ops->recv_struct(&ns, GET_COMMIT_INFO_RESPONSE_ID, (void **)&res));
+
+  BUG_ON(strcmp(res->commit_id, cid));
+  *info = res->info;
+  elton_rpc_free_decoded_data(res);
+
+free_ns:
+  WARN_IF(ns.ops->close(&ns));
+  return error;
+}

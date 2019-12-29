@@ -368,6 +368,7 @@ static struct fill_cid_args {
   // Arguments
   struct eltonfs_config *config;
   char **cid;
+  struct commit_info **info;
   struct wait_queue_head *wq;
   struct spinlock *lock;
 
@@ -379,13 +380,14 @@ static struct fill_cid_args {
 static int _eltonfs_get_commit_info(void *_args) {
   int error = 0;
   char *cid = NULL;
+  struct commit_info *info;
   struct fill_cid_args *args = (struct fill_cid_args *)_args;
 
   DEBUG("Getting cid from mount option and controll servers ...");
   GOTO_IF(out, get_commit_id_by_config(args->config, &cid));
 
   DEBUG("Getting initial data from controll servers ...");
-  // todo: コミット取得
+  GOTO_IF(out, get_commit_info(cid, &info));
 
 out:
   spin_lock(args->lock);
@@ -404,6 +406,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   struct iattr ia;
   struct eltonfs_info *info = NULL;
   char *cid = NULL;
+  struct commit_info *cinfo = NULL;
 
   info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
   if (!info)
@@ -435,6 +438,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     struct fill_cid_args fcargs = {
         .config = &info->config,
         .cid = &cid,
+        .info = &cinfo,
         .wq = &wq,
         .lock = &lock,
     };
@@ -445,6 +449,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     GOTO_IF(err, wait_event_interruptible_lock_irq(wq, fcargs.finished, lock));
     error = fcargs.error;
     info->cid = (const char *)cid;
+    info->cinfo = cinfo;
     spin_unlock(&lock);
     GOTO_IF(err, error);
   }
@@ -473,6 +478,8 @@ err:
     iput(inode);
   if (cid)
     kfree(cid);
+  if (cinfo)
+    kfree(cinfo);
   return error;
 }
 static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,

@@ -46,6 +46,8 @@ struct eltonfs_info {
 
   // Current CommitID.
   const char *cid;
+  // Current commit information.
+  struct commit_info *cinfo;
 
 #ifdef ELTONFS_STATISTIC
   unsigned long mmap_size;
