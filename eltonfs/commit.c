@@ -11,6 +11,7 @@ static inline int dup_string(char **to, const char *from) {
   if (!buff)
     RETURN_IF(-ENOMEM);
   strcpy(buff, from);
+  *to = buff;
   return 0;
 }
 
