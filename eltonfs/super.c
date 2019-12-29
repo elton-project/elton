@@ -364,7 +364,7 @@ static int eltonfs_parse_opt(char *opt, struct eltonfs_config *config) {
   return 0;
 }
 
-static struct fill_cid_args {
+struct fill_cid_args {
   // Arguments
   struct eltonfs_config *config;
   char **cid;
