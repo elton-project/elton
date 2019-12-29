@@ -401,6 +401,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   if (!info)
     RETURN_IF(-ENOMEM);
   GOTO_IF(err, eltonfs_parse_opt(data, &info->config));
+  info->cid = NULL;
 
 #ifdef ELTONFS_STATISTIC
   rwlock_init(&info->mmap_size_lock);
