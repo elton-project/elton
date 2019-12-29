@@ -193,6 +193,7 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 	if req.GetNext() != "" {
 		return status.Error(codes.InvalidArgument, "next parameter is not supported")
 	}
+	limit := req.GetLimit()
 
 	vid := req.GetId()
 	cid, err := v.cs.Latest(vid)
@@ -209,6 +210,7 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 		return status.Error(codes.Internal, err.Error())
 	}
 
+	count := uint64(0)
 	for cid.GetId().GetId() != "" {
 		select {
 		case <-srv.Context().Done():
@@ -220,6 +222,11 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send response: %w", err)
+			}
+			count++
+			if limit > 0 && count >= limit {
+				// Limit reached.
+				break
 			}
 		}
 
