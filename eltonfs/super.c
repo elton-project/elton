@@ -378,7 +378,7 @@ static struct fill_cid_args {
 
 static int _eltonfs_get_commit_info(void *_args) {
   int error = 0;
-  char *cid;
+  char *cid = NULL;
   struct fill_cid_args *args = (struct fill_cid_args *)_args;
   GOTO_IF(out, get_commit_id_by_config(args->config, &cid));
 
