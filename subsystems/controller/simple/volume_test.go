@@ -483,6 +483,42 @@ func TestLocalVolumeServer_ListCommits(t *testing.T) {
 			assert.Nil(t, res)
 		})
 	})
+	t.Run("should_work_of_limit_args", func(t *testing.T) {
+		utils.WithTestServer(&Server{}, func(ctx context.Context, dial func() *grpc.ClientConn) {
+			volume, commits := createCommits(t, dial, ctx, "test-volume", []*elton_v2.CommitRequest{
+				{
+					Info: &elton_v2.CommitInfo{
+						CreatedAt: ptypes.TimestampNow(),
+						Tree:      createEmptyTree(),
+					},
+				}, {
+					Info: &elton_v2.CommitInfo{
+						CreatedAt: ptypes.TimestampNow(),
+						Tree:      createEmptyTree(),
+					},
+				},
+			})
+
+			client := elton_v2.NewCommitServiceClient(dial())
+			stream, err := client.ListCommits(ctx, &elton_v2.ListCommitsRequest{
+				Id:    volume,
+				Limit: 1,
+			})
+			if !assert.NoError(t, err) {
+				return
+			}
+
+			latestCID := commits[len(commits)-1]
+			res, err := stream.Recv()
+			assert.NoError(t, err)
+			assert.NotNil(t, res)
+			assert.Equal(t, latestCID, res.Id)
+
+			res, err = stream.Recv()
+			assert.EqualError(t, err, io.EOF.Error())
+			assert.Nil(t, res)
+		})
+	})
 }
 
 func TestLocalVolumeServer_Commit(t *testing.T) {
