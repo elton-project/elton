@@ -226,7 +226,7 @@ func (v *localVolumeServer) ListCommits(req *ListCommitsRequest, srv CommitServi
 			count++
 			if limit > 0 && count >= limit {
 				// Limit reached.
-				break
+				return nil
 			}
 		}
 
