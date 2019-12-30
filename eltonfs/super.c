@@ -395,7 +395,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     GOTO_IF(err, -ENOMEM);
   }
   if (IS_ERR(inode))
-    GOTO_IF(err, inode);
+    GOTO_IF(err, (int)inode);
 
   root = d_make_root(inode);
   if (!root)
