@@ -122,10 +122,13 @@ struct eltonfs_inode {
 
 extern struct file_operations eltonfs_file_operations;
 extern struct inode_operations eltonfs_file_inode_operations;
+extern struct inode_operations eltonfs_dir_inode_operations;
 long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 long eltonfs_compat_ioctl(struct file *file, unsigned int cmd,
                           unsigned long arg);
 int elton_update_time(struct inode *inode, struct timespec64 *time, int flags);
+struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
+                                umode_t mode, dev_t dev);
 
 static inline struct inode *vfs_i(struct eltonfs_inode *inode) {
   if (inode == NULL) {
