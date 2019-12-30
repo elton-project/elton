@@ -390,15 +390,13 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     GOTO_IF(err, error);
   }
 
-  inode = eltonfs_get_inode(sb, NULL, S_IFDIR, 0);
-  if (!inode)
+  inode = vfs_i(eltonfs_iget(sb, info->cinfo->tree->root->eltonfs_ino));
+  if (!inode) {
+    WARN_ONCE(1, "root inode is null");
     GOTO_IF(err, -ENOMEM);
-  // Set directory mode to 755;
-  inode_lock(inode);
-  ia.ia_valid = ATTR_MODE;
-  ia.ia_mode = (inode->i_mode & S_IFMT) | 0755;
-  setattr_copy(inode, &ia);
-  inode_unlock(inode);
+  }
+  if (IS_ERR(inode))
+    GOTO_IF(err, inode);
 
   root = d_make_root(inode);
   if (!root)
