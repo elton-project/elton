@@ -13,7 +13,7 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
 
   inode = new_inode(sb);
   if (!inode)
-    return NULL;
+    return ERR_PTR(-ENOMEM);
 
   WARN_ONCE(i_xdr->eltonfs_ino != ino, "ino is not match");
   eltonfs_i(inode)->eltonfs_ino = ino;
