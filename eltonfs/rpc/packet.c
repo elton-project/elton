@@ -573,9 +573,6 @@ IMPL_DECODER_BODY(commit_info) {
   // Initialize error.
   s->left_parent_id = &s->__embeded_buffer;
   s->right_parent_id = &s->left_parent_id[data->left_length + 1];
-  s->tree = kzalloc(sizeof(*s->tree), GFP_NOFS);
-  if (!s->tree)
-    RETURN_IF(-ENOMEM);
 
   // Decode
   RETURN_IF(dec->dec_op->struct_(dec, sd));
@@ -585,7 +582,7 @@ IMPL_DECODER_BODY(commit_info) {
   RETURN_IF(sd->op->bytes(sd, 3, s->right_parent_id, &data->right_length));
   s->right_parent_id[data->right_length] = '\0';
   RETURN_IF(sd->op->external_decoder(sd, 5));
-  RETURN_IF(CALL_DECODER(tree_info, dec, s->tree));
+  RETURN_IF(CALL_DECODER(tree_info, dec, &s->tree));
   RETURN_IF(sd->op->close(sd));
   return 0;
 }
@@ -638,13 +635,9 @@ IMPL_DECODER_BODY(tree_info) {
   while (mdec->op->has_next_kv(mdec)) {
     u64 ino;
     struct eltonfs_inode_xdr *inode;
-    inode = (struct eltonfs_inode_xdr *)kmalloc(sizeof(*inode), GFP_KERNEL);
-    if (inode == NULL)
-      // TODO: release inodes when an error occured.
-      RETURN_IF(-ENOMEM);
 
     RETURN_IF(dec->dec_op->u64(dec, &ino));
-    RETURN_IF(CALL_DECODER(eltonfs_inode_xdr, dec, inode));
+    RETURN_IF(CALL_DECODER(eltonfs_inode_xdr, dec, &inode));
     RETURN_IF(mdec->op->decoded_kv(mdec));
     inode->eltonfs_ino = ino;
 
