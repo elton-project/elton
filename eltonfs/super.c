@@ -22,7 +22,6 @@ static bool is_registered = 0;
 struct elton_rpc_server server;
 static struct file_system_type eltonfs_type;
 static struct super_operations eltonfs_s_op;
-static struct address_space_operations eltonfs_aops;
 
 struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
                                 umode_t mode, dev_t dev) {
@@ -568,7 +567,7 @@ static struct super_operations eltonfs_s_op = {
     .drop_inode = generic_delete_inode,
     .show_options = eltonfs_show_options,
 };
-static struct address_space_operations eltonfs_aops = {
+struct address_space_operations eltonfs_aops = {
     .readpage = simple_readpage,
     .write_begin = simple_write_begin,
     .write_end = simple_write_end,

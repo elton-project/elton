@@ -14,6 +14,7 @@ elton-y += super.o
 elton-y += simple_xattr.o xattr.o
 elton-y += assert.o
 elton-y += commit.o
+elton-y += inode.o
 elton-y += dir.o
 elton-y += file.o
 elton-y += symlink.o

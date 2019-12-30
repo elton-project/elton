@@ -120,6 +120,7 @@ struct eltonfs_inode {
 #endif
 };
 
+extern struct address_space_operations eltonfs_aops;
 extern struct file_operations eltonfs_file_operations;
 extern struct inode_operations eltonfs_file_inode_operations;
 extern struct inode_operations eltonfs_dir_inode_operations;
@@ -130,6 +131,7 @@ long eltonfs_compat_ioctl(struct file *file, unsigned int cmd,
 int elton_update_time(struct inode *inode, struct timespec64 *time, int flags);
 struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
                                 umode_t mode, dev_t dev);
+struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino);
 
 static inline struct inode *vfs_i(struct eltonfs_inode *inode) {
   if (inode == NULL || IS_ERR(inode))
@@ -140,6 +142,12 @@ static inline struct eltonfs_inode *eltonfs_i(struct inode *inode) {
   if (inode == NULL || IS_ERR(inode))
     return ERR_CAST(inode);
   return container_of(inode, struct eltonfs_inode, vfs_inode);
+}
+
+static inline struct eltonfs_info *eltonfs_sb(struct super_block *sb) {
+  if (sb == NULL || IS_ERR(sb))
+    return ERR_CAST(sb);
+  return sb->s_fs_info;
 }
 
 void eltonfs_inode_init_once(struct eltonfs_inode *i);

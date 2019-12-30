@@ -49,9 +49,6 @@ static int eltonfs_mkdir(struct inode *dir, struct dentry *dentry,
   return 0;
 }
 
-// todo
-static struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino);
-
 static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
                                      struct dentry *dentry,
                                      unsigned int flags) {
