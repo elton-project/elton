@@ -17,6 +17,19 @@ struct timestamp {
     ts;                                                                        \
   })
 
+static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
+  struct timestamp out;
+  out.sec = ts.tv_sec;
+  out.nsec = ts.tv_nsec;
+  return out;
+}
+static inline struct timespec64 timestamp_to_timespec64(struct timestamp ts) {
+  struct timespec64 out;
+  out.tv_sec = ts.sec;
+  out.tv_nsec = ts.nsec;
+  return out;
+}
+
 struct tree_info;
 
 #define ELTON_RPC_SETUP1_ID 1

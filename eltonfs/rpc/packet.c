@@ -795,19 +795,6 @@ IMPL_DECODER_BODY(get_commit_info_response) {
 }
 DEFINE_DEC_ONLY(get_commit_info_response, GET_COMMIT_INFO_RESPONSE_ID);
 
-static inline struct timestamp timespec64_to_timestamp(struct timespec64 ts) {
-  struct timestamp out;
-  out.sec = ts.tv_sec;
-  out.nsec = ts.tv_nsec;
-  return out;
-}
-static inline struct timespec64 timestamp_to_timespec64(struct timestamp ts) {
-  struct timespec64 out;
-  out.tv_sec = ts.sec;
-  out.tv_nsec = ts.nsec;
-  return out;
-}
-
 DECODER_DATA(eltonfs_inode_xdr) { size_t id_length; };
 IMPL_ENCODER(eltonfs_inode_xdr) {
   int error;
