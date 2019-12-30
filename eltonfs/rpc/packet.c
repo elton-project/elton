@@ -646,6 +646,7 @@ IMPL_DECODER_BODY(tree_info) {
     RETURN_IF(dec->dec_op->u64(dec, &ino));
     RETURN_IF(CALL_DECODER(eltonfs_inode_xdr, dec, inode));
     RETURN_IF(mdec->op->decoded_kv(mdec));
+    inode->eltonfs_ino = ino;
 
     RETURN_IF(radix_tree_insert(s->inodes, ino, inode));
   }
