@@ -27,6 +27,7 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   inode->i_ctime;
   inode->i_rdev = MKDEV(i_xdr->major, i_xdr->minor);
 
+  // todo: change aops by file types.
   inode->i_mapping->a_ops = &eltonfs_aops;
   mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
   // TODO: inodeのデータを永続化に対応してから、evictableにする。
