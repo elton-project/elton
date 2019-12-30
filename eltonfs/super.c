@@ -23,7 +23,6 @@ struct elton_rpc_server server;
 static struct file_system_type eltonfs_type;
 static struct super_operations eltonfs_s_op;
 static struct address_space_operations eltonfs_aops;
-static struct inode_operations eltonfs_symlink_inode_operations;
 
 struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
                                 umode_t mode, dev_t dev) {
@@ -574,12 +573,6 @@ static struct address_space_operations eltonfs_aops = {
     .write_begin = simple_write_begin,
     .write_end = simple_write_end,
     .set_page_dirty = eltonfs_set_page_dirty,
-};
-static struct inode_operations eltonfs_symlink_inode_operations = {
-    .get_link = page_get_link,
-#ifdef ELTONFS_XATTRS
-    .listxattr = elton_list_xattr_vfs,
-#endif
 };
 
 module_init(fs_module_init);

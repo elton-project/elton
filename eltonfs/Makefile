@@ -16,6 +16,7 @@ elton-y += assert.o
 elton-y += commit.o
 elton-y += dir.o
 elton-y += file.o
+elton-y += symlink.o
 elton-y += xdr/default.o \
 	xdr/bin_encoding.o \
 	xdr/test.o
