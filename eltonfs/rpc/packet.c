@@ -573,7 +573,7 @@ IMPL_DECODER_BODY(commit_info) {
   struct tree_info tree;
   // Initialize error.
   s->left_parent_id = &s->__embeded_buffer;
-  s->right_parent_id = &s->left_parent_id[data->left_length + 2];
+  s->right_parent_id = &s->left_parent_id[data->left_length + 1];
 
   // Decode
   RETURN_IF(dec->dec_op->struct_(dec, sd));
