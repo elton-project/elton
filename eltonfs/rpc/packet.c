@@ -570,10 +570,12 @@ IMPL_DECODER_PREPARE(commit_info) {
 }
 IMPL_DECODER_BODY(commit_info) {
   int error;
-  struct tree_info tree;
   // Initialize error.
   s->left_parent_id = &s->__embeded_buffer;
   s->right_parent_id = &s->left_parent_id[data->left_length + 1];
+  s->tree = kzalloc(sizeof(*s->tree), GFP_NOFS);
+  if (!s->tree)
+    RETURN_IF(-ENOMEM);
 
   // Decode
   RETURN_IF(dec->dec_op->struct_(dec, sd));
@@ -583,7 +585,7 @@ IMPL_DECODER_BODY(commit_info) {
   RETURN_IF(sd->op->bytes(sd, 3, s->right_parent_id, &data->right_length));
   s->right_parent_id[data->right_length] = '\0';
   RETURN_IF(sd->op->external_decoder(sd, 5));
-  RETURN_IF(CALL_DECODER(tree_info, dec, &tree));
+  RETURN_IF(CALL_DECODER(tree_info, dec, s->tree));
   RETURN_IF(sd->op->close(sd));
   return 0;
 }
