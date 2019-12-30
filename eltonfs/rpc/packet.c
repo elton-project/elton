@@ -651,6 +651,8 @@ IMPL_DECODER_BODY(tree_info) {
   }
   RETURN_IF(mdec->op->close(mdec));
   RETURN_IF(sd->op->close(sd));
+  s->root = radix_tree_lookup(s->inodes, root_ino);
+  WARN_ONCE(!s->root, "not found root inode");
   return 0;
 }
 DEFINE_ENCDEC(tree_info, TREE_INFO_ID);
