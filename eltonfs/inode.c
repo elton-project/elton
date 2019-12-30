@@ -21,10 +21,9 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   inode->i_mode = i_xdr->mode;
   inode->i_uid.val = i_xdr->owner;
   inode->i_gid.val = i_xdr->group;
-  // todo: convert from timestamp to timespec64.
-  inode->i_atime;
-  inode->i_mtime;
-  inode->i_ctime;
+  inode->i_atime = timestamp_to_timespec64(i_xdr->atime);
+  inode->i_mtime = timestamp_to_timespec64(i_xdr->mtime);
+  inode->i_ctime = timestamp_to_timespec64(i_xdr->ctime);
   inode->i_rdev = MKDEV(i_xdr->major, i_xdr->minor);
 
   // todo: change aops by file types.
