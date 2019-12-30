@@ -49,16 +49,42 @@ static int eltonfs_mkdir(struct inode *dir, struct dentry *dentry,
   return 0;
 }
 
+// todo
+static struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino);
+
+static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
+                                     struct dentry *dentry,
+                                     unsigned int flags) {
+  const struct eltonfs_inode *dir = eltonfs_i(vfs_dir);
+  const char *name = dentry->d_name.name;
+  const size_t name_len = strlen(name);
+  struct eltonfs_dir_entry *entry;
+  struct inode *inode;
+
+  if (name_len > ELTONFS_NAME_LEN)
+    return ERR_PTR(-ENAMETOOLONG);
+
+  list_for_each_entry(entry, &dir->dir.dir_entries._list_head, _list_head) {
+    if (entry->name_len != name_len)
+      // Fast path
+      continue;
+    // Slow path
+    if (strncmp(entry->name, name, entry->name_len))
+      continue;
+
+    // Found
+    inode = vfs_i(eltonfs_iget(vfs_dir->i_sb, entry->ino));
+    if (IS_ERR(inode))
+      return ERR_CAST(inode);
+    return d_splice_alias(inode, dentry);
+  }
+  // Not found
+  return ERR_PTR(-ENOENT);
+}
+
 struct inode_operations eltonfs_dir_inode_operations = {
     .create = eltonfs_create,
-    // on-memory
-    // filesystemでは、保持しているファイルに対応するdentryは、必ず存在する。
-    // オンメモリファイルシステムでのlookupが呼び出されるタイミングは、存在しないファイル
-    // にアクセスしたときだけである。
-    // このため、simple_lookupは常にnegative dentryを返す。
-    //
-    // on-disk filesystemでは、lookup関数を自前実装する必要がある。
-    .lookup = simple_lookup,
+    .lookup = eltonfs_lookup,
     .link = simple_link,
     .unlink = simple_unlink,
     .symlink = eltonfs_symlink,
