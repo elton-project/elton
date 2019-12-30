@@ -132,15 +132,13 @@ struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
                                 umode_t mode, dev_t dev);
 
 static inline struct inode *vfs_i(struct eltonfs_inode *inode) {
-  if (inode == NULL) {
-    return NULL;
-  }
+  if (inode == NULL || IS_ERR(inode))
+    return ERR_CAST(inode);
   return &(inode->vfs_inode);
 }
 static inline struct eltonfs_inode *eltonfs_i(struct inode *inode) {
-  if (inode == NULL) {
-    return NULL;
-  }
+  if (inode == NULL || IS_ERR(inode))
+    return ERR_CAST(inode);
   return container_of(inode, struct eltonfs_inode, vfs_inode);
 }
 
