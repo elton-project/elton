@@ -328,6 +328,7 @@ static int _eltonfs_get_commit_info(void *_args) {
 out:
   spin_lock(args->lock);
   *args->cid = cid;
+  *args->info = info;
   args->error = error;
   args->finished = true;
   spin_unlock(args->lock);
