@@ -339,7 +339,6 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   int error = 0;
   struct inode *inode = NULL;
   struct dentry *root;
-  struct iattr ia;
   struct eltonfs_info *info = NULL;
   char *cid = NULL;
   struct commit_info *cinfo = NULL;
