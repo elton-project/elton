@@ -73,6 +73,12 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
     inode = vfs_i(eltonfs_iget(vfs_dir->i_sb, entry->ino));
     if (IS_ERR(inode))
       return ERR_CAST(inode);
+    if (!inode) {
+      WARN_ONCE(1, "a directory entry referring to a non-existent inode is "
+                   "found.  Internal tree is corrupted!");
+      // todo: change error code.
+      return ERR_PTR(-EINVAL);
+    }
     return d_splice_alias(inode, dentry);
   }
   // Not found
