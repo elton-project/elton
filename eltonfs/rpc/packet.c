@@ -579,7 +579,9 @@ IMPL_DECODER_BODY(commit_info) {
   RETURN_IF(dec->dec_op->struct_(dec, sd));
   RETURN_IF(sd->op->timestamp(sd, 1, &s->created_at));
   RETURN_IF(sd->op->bytes(sd, 2, s->left_parent_id, &data->left_length));
+  s->left_parent_id[data->left_length] = '\0';
   RETURN_IF(sd->op->bytes(sd, 3, s->right_parent_id, &data->right_length));
+  s->right_parent_id[data->right_length] = '\0';
   RETURN_IF(sd->op->external_decoder(sd, 5));
   RETURN_IF(CALL_DECODER(tree_info, dec, &tree));
   RETURN_IF(sd->op->close(sd));
