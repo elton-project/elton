@@ -251,6 +251,7 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
 #define CALL_ENCODER(type_name, enc, s)                                        \
   ({                                                                           \
     struct xdr_struct_encoder se2;                                             \
+    typecheck(struct type_name *, (s));                                        \
     type_name##_encode_with((enc), &se2, (s));                                 \
   })
 #define DECODER_DATA(type_name) struct __##type_name##_decoder_data
@@ -312,7 +313,10 @@ static inline int __DECODE(u64 struct_id, struct raw_packet *in, void **out,
       .decode = type_name##_decode,                                            \
   }
 #define CALL_DECODER(type_name, dec, out)                                      \
-  type_name##_decode_with((dec), (void **)(out))
+  ({                                                                           \
+    typecheck(struct type_name **, out);                                       \
+    type_name##_decode_with((dec), (void **)(out));                            \
+  })
 
 void free_raw_packet(struct raw_packet *packet) { vfree(packet); }
 
