@@ -214,6 +214,7 @@ static int _rpc_call_new_dir(struct elton_rpc_session *s,
   *empty_dir = empty_dir_tmpl;
   empty_dir->eltonfs_ino = ino;
   INIT_LIST_HEAD(&empty_dir->dir_entries._list_head);
+  radix_tree_insert(info->tree->inodes, empty_dir->eltonfs_ino, empty_dir);
   return 0;
 }
 static inline int
