@@ -1,6 +1,15 @@
 #include <elton/elton.h>
 #include <elton/xattr.h>
 
+static loff_t eltonfs_llseek(struct file *, loff_t, int);
+static ssize_t eltonfs_read(struct file *, char __user *, size_t, loff_t *);
+static ssize_t eltonfs_write(struct file *, const char __user *, size_t,
+                             loff_t *);
+static int eltonfs_iterate_shared(struct file *, struct dir_context *);
+long eltonfs_unlocked_ioctl(struct file *, unsigned int, unsigned long);
+long eltonfs_compat_ioctl(struct file *, unsigned int, unsigned long);
+static int eltonfs_fsync(struct file *, loff_t, loff_t, int datasync);
+
 static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
                          dev_t dev) {
   struct inode *inode = eltonfs_get_inode(dir->i_sb, dir, mode, dev);
@@ -87,15 +96,15 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
 
 // todo
 struct file_operations eltonfs_dir_operations = {
-    .llseek = NULL,
-    .read = NULL,
-    .write = NULL,
-    .iterate_shared = NULL,
-    .unlocked_ioctl = NULL,
+    .llseek = eltonfs_llseek,
+    .read = eltonfs_read,
+    .write = eltonfs_write,
+    .iterate_shared = eltonfs_iterate_shared,
+    .unlocked_ioctl = eltonfs_unlocked_ioctl,
 #ifdef CONFIG_COMPAT
-    .compat_ioctl = NULL,
+    .compat_ioctl = eltonfs_compat_ioctl,
 #endif
-    .fsync = NULL,
+    .fsync = eltonfs_fsync,
 };
 
 struct inode_operations eltonfs_dir_inode_operations = {
