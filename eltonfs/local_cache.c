@@ -22,7 +22,7 @@ static inline int eltonfs_create_dir(const char *pathname) {
 
   dentry = kern_path_create(AT_FDCWD, pathname, &path, LOOKUP_DIRECTORY);
   if (IS_ERR(dentry))
-    GOTO_IF(out, PTR_ERR(dentry));
+    RETURN_IF(PTR_ERR(dentry));
   GOTO_IF(out, vfs_mkdir(path.dentry->d_inode, dentry, 0700));
 
 out:
