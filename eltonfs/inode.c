@@ -5,6 +5,9 @@
 void eltonfs_inode_init_ops(struct inode *inode, dev_t dev) {
   // todo: change aops by file types.
   inode->i_mapping->a_ops = &eltonfs_aops;
+  mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
+  // TODO: inodeのデータを永続化に対応してから、evictableにする。
+  mapping_set_unevictable(inode->i_mapping);
 
   switch (inode->i_mode & S_IFMT) {
   default:
@@ -52,9 +55,6 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   inode->i_ctime = timestamp_to_timespec64(i_xdr->ctime);
   inode->i_rdev = MKDEV(i_xdr->major, i_xdr->minor);
 
-  mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
-  // TODO: inodeのデータを永続化に対応してから、evictableにする。
-  mapping_set_unevictable(inode->i_mapping);
   eltonfs_inode_init_ops(inode, inode->i_rdev);
   return eltonfs_i(inode);
 }

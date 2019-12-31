@@ -34,8 +34,6 @@ struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
 
   inode->i_ino = get_next_ino();
   inode_init_owner(inode, dir, mode);
-  mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
-  mapping_set_unevictable(inode->i_mapping);
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
   eltonfs_inode_init_ops(inode, dev);
   return inode;
