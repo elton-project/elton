@@ -1,6 +1,7 @@
 #include <elton/assert.h>
 #include <elton/commit.h>
 #include <elton/elton.h>
+#include <elton/local_cache.h>
 #include <elton/rpc/server.h>
 #include <elton/rpc/test.h>
 #include <elton/xattr.h>
@@ -343,6 +344,8 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   struct eltonfs_info *info = NULL;
   char *cid = NULL;
   struct commit_info *cinfo = NULL;
+
+  RETURN_IF(eltonfs_create_cache_dir());
 
   info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
   if (!info)
