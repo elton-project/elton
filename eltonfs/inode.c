@@ -35,6 +35,7 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   struct eltonfs_info *info = eltonfs_sb(sb);
   struct eltonfs_inode_xdr *i_xdr;
   struct inode *inode;
+  struct eltonfs_inode *ei;
 
   i_xdr = radix_tree_lookup(info->cinfo->tree->inodes, ino);
   if (!i_xdr)
@@ -43,9 +44,10 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   inode = new_inode(sb);
   if (!inode)
     return ERR_PTR(-ENOMEM);
+  ei = eltonfs_i(inode);
 
   WARN_ONCE(i_xdr->eltonfs_ino != ino, "ino is not match");
-  eltonfs_i(inode)->eltonfs_ino = ino;
+  ei->eltonfs_ino = ino;
   inode->i_ino = ino;
   inode->i_mode = i_xdr->mode;
   inode->i_uid.val = i_xdr->owner;
@@ -56,5 +58,24 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   inode->i_rdev = MKDEV(i_xdr->major, i_xdr->minor);
 
   eltonfs_inode_init_ops(inode, inode->i_rdev);
+
+  switch (inode->i_mode & S_IFMT) {
+  case S_IFREG:
+    // todo: duplicate string.
+    ei->file.object_id = i_xdr->object_id;
+    ei->file.local_cache_id = NULL;
+    ei->file.cache_inode = NULL;
+    break;
+  case S_IFDIR:
+    INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
+    // todo: duplicate dir entries list.
+    // i_xdr->dir_entries;
+    ei->dir.count = i_xdr->dir_entries_len;
+    break;
+  case S_IFLNK:
+    ei->symlink.object_id = i_xdr->object_id;
+    ei->symlink.redirect_to = NULL;
+    break;
+  }
   return eltonfs_i(inode);
 }
