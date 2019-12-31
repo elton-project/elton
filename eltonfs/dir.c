@@ -1,14 +1,33 @@
 #include <elton/elton.h>
 #include <elton/xattr.h>
 
-static loff_t eltonfs_llseek(struct file *, loff_t, int);
-static ssize_t eltonfs_read(struct file *, char __user *, size_t, loff_t *);
+static inline _eltonfs_real_file(struct file *file, const char *caller) {
+  if (!file->private_data) {
+    DEBUG("%s: private_data is null: file=%px", caller, file);
+    BUG();
+  }
+  return file->private_data;
+}
+#define REAL_FILE(file) _eltonfs_real_file((file), __func__)
+
+static loff_t eltonfs_llseek(struct file *, loff_t, int) { return -EISDIR; }
+static ssize_t eltonfs_read(struct file *, char __user *, size_t, loff_t *) {
+  return -EISDIR;
+}
 static ssize_t eltonfs_write(struct file *, const char __user *, size_t,
                              loff_t *);
 static int eltonfs_iterate_shared(struct file *, struct dir_context *);
+
 long eltonfs_unlocked_ioctl(struct file *, unsigned int, unsigned long);
 long eltonfs_compat_ioctl(struct file *, unsigned int, unsigned long);
-static int eltonfs_fsync(struct file *, loff_t, loff_t, int datasync);
+
+static int eltonfs_fsync(struct file *file, loff_t start, loff_t end,
+                         int datasync) {
+  struct file *real = REAL_FILE(file);
+  if (!real->f_op->fsync)
+    return -EINVAL;
+  return real->f_op->fsync(real, start, end, datasync);
+}
 
 static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
                          dev_t dev) {
