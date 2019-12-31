@@ -1,6 +1,7 @@
 #include <elton/assert.h>
 #include <elton/elton.h>
 #include <linux/cred.h>
+#include <linux/namei.h>
 
 #define REAL_PATH_MAX 120
 #define CACHE_ID_LENGTH 32
@@ -14,21 +15,28 @@
 // ローカルIDを持つオブジェクトを保存するディレクトリ
 #define LOCAL_OBJ_DIR PREFIX_LIB_DIR "/local-objects"
 
-static inline int eltonfs_create_dir(const char *path) {
-  // https://stackoverflow.com/a/41851045
-  struct file *dir;
-  dir = filp_open(path, O_DIRECTORY | O_CREAT, 0700);
-  if (IS_ERR(dir))
-    return PTR_ERR(dir);
-  return filp_close(dir, NULL);
+static inline int eltonfs_create_dir(const char *pathname) {
+  int error = 0;
+  struct dentry *dentry = NULL;
+  struct path path;
+
+  dentry = kern_path_create(AT_FDCWD, pathname, &path, LOOKUP_DIRECTORY);
+  if (IS_ERR(dentry))
+    GOTO_IF(out, PTR_ERR(dentry));
+  GOTO_IF(out, vfs_mkdir(path.dentry->d_inode, dentry, 0700));
+
+out:
+  if (dentry)
+    done_path_create(&path, dentry);
+  return error;
 }
 
 int eltonfs_create_cache_dir(void) {
   int error = 0;
-  RETURN_IF(eltonfs_create_dir(PREFIX_CACHE_DIR "/"));
-  RETURN_IF(eltonfs_create_dir(PREFIX_LIB_DIR "/"));
-  RETURN_IF(eltonfs_create_dir(REMOTE_OBJ_DIR "/"));
-  RETURN_IF(eltonfs_create_dir(LOCAL_OBJ_DIR "/"));
+  RETURN_IF(eltonfs_create_dir(PREFIX_CACHE_DIR));
+  RETURN_IF(eltonfs_create_dir(PREFIX_LIB_DIR));
+  RETURN_IF(eltonfs_create_dir(REMOTE_OBJ_DIR));
+  RETURN_IF(eltonfs_create_dir(LOCAL_OBJ_DIR));
   return 0;
 }
 
