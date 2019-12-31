@@ -152,6 +152,7 @@ static inline struct eltonfs_info *eltonfs_sb(struct super_block *sb) {
 }
 
 void eltonfs_inode_init_once(struct eltonfs_inode *i);
+void eltonfs_inode_init_ops(struct inode *inode, dev_t dev);
 
 // Iterate all directory entries in a eltonfs_inode.
 //

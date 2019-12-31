@@ -2,6 +2,32 @@
 #include <elton/rpc/struct.h>
 #include <linux/pagemap.h>
 
+void eltonfs_inode_init_ops(struct inode *inode, dev_t dev) {
+  // todo: change aops by file types.
+  inode->i_mapping->a_ops = &eltonfs_aops;
+
+  switch (inode->i_mode & S_IFMT) {
+  default:
+    init_special_inode(inode, inode->i_mode, dev);
+    break;
+  case S_IFREG:
+    inode->i_op = &eltonfs_file_inode_operations;
+    inode->i_fop = &eltonfs_file_operations;
+    break;
+  case S_IFDIR:
+    inode->i_op = &eltonfs_dir_inode_operations;
+    inode->i_fop = &eltonfs_dir_operations;
+
+    /* directory inodes start off with i_nlink == 2 (for "." entry) */
+    inc_nlink(inode);
+    break;
+  case S_IFLNK:
+    inode->i_op = &eltonfs_symlink_inode_operations;
+    inode_nohighmem(inode);
+    break;
+  }
+}
+
 struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   struct eltonfs_info *info = eltonfs_sb(sb);
   struct eltonfs_inode_xdr *i_xdr;
@@ -26,31 +52,9 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   inode->i_ctime = timestamp_to_timespec64(i_xdr->ctime);
   inode->i_rdev = MKDEV(i_xdr->major, i_xdr->minor);
 
-  // todo: change aops by file types.
-  inode->i_mapping->a_ops = &eltonfs_aops;
   mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
   // TODO: inodeのデータを永続化に対応してから、evictableにする。
   mapping_set_unevictable(inode->i_mapping);
-
-  switch (inode->i_mode & S_IFMT) {
-  default:
-    init_special_inode(inode, inode->i_mode, inode->i_rdev);
-    break;
-  case S_IFREG:
-    inode->i_op = &eltonfs_file_inode_operations;
-    inode->i_fop = &eltonfs_file_operations;
-    break;
-  case S_IFDIR:
-    inode->i_op = &eltonfs_dir_inode_operations;
-    inode->i_fop = &eltonfs_dir_operations;
-
-    /* directory inodes start off with i_nlink == 2 (for "." entry) */
-    inc_nlink(inode);
-    break;
-  case S_IFLNK:
-    inode->i_op = &eltonfs_symlink_inode_operations;
-    inode_nohighmem(inode);
-    break;
-  }
+  eltonfs_inode_init_ops(inode, inode->i_rdev);
   return eltonfs_i(inode);
 }

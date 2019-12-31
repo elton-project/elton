@@ -34,30 +34,10 @@ struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
 
   inode->i_ino = get_next_ino();
   inode_init_owner(inode, dir, mode);
-  inode->i_mapping->a_ops = &eltonfs_aops;
   mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
   mapping_set_unevictable(inode->i_mapping);
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
-  switch (mode & S_IFMT) {
-  default:
-    init_special_inode(inode, mode, dev);
-    break;
-  case S_IFREG:
-    inode->i_op = &eltonfs_file_inode_operations;
-    inode->i_fop = &eltonfs_file_operations;
-    break;
-  case S_IFDIR:
-    inode->i_op = &eltonfs_dir_inode_operations;
-    inode->i_fop = &eltonfs_dir_operations;
-
-    /* directory inodes start off with i_nlink == 2 (for "." entry) */
-    inc_nlink(inode);
-    break;
-  case S_IFLNK:
-    inode->i_op = &eltonfs_symlink_inode_operations;
-    inode_nohighmem(inode);
-    break;
-  }
+  eltonfs_inode_init_ops(inode, dev);
   return inode;
 }
 
