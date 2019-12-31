@@ -6,10 +6,13 @@
 #define CACHE_ID_LENGTH 32
 #define MAX_CONFLICT_TRIES 30
 
+#define PREFIX_CACHE_DIR "/var/cache/eltonfs"
+#define PREFIX_LIB_DIR "/var/lib/eltonfs"
+
 // リモートIDを持つオブジェクトを保存するディレクトリ
-#define REMOTE_OBJ_DIR "/var/cache/eltonfs/remote-objects"
+#define REMOTE_OBJ_DIR PREFIX_CACHE_DIR "/remote-objects"
 // ローカルIDを持つオブジェクトを保存するディレクトリ
-#define LOCAL_OBJ_DIR "/var/lib/eltonfs/local-objects"
+#define LOCAL_OBJ_DIR PREFIX_LIB_DIR "/local-objects"
 
 static inline int eltonfs_create_dir(const char *path) {
   // https://stackoverflow.com/a/41851045
@@ -22,6 +25,8 @@ static inline int eltonfs_create_dir(const char *path) {
 
 int eltonfs_create_cache_dir(void) {
   int error = 0;
+  RETURN_IF(eltonfs_create_dir(PREFIX_CACHE_DIR "/"));
+  RETURN_IF(eltonfs_create_dir(PREFIX_LIB_DIR "/"));
   RETURN_IF(eltonfs_create_dir(REMOTE_OBJ_DIR "/"));
   RETURN_IF(eltonfs_create_dir(LOCAL_OBJ_DIR "/"));
   return 0;
