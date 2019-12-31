@@ -125,9 +125,11 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
 // todo
 struct file_operations eltonfs_dir_operations = {
     .iterate_shared = eltonfs_iterate_shared,
-    .unlocked_ioctl = eltonfs_unlocked_ioctl,
+// todo
+// .unlocked_ioctl = eltonfs_unlocked_ioctl,
 #ifdef CONFIG_COMPAT
-    .compat_ioctl = eltonfs_compat_ioctl,
+// todo
+// .compat_ioctl = eltonfs_compat_ioctl,
 #endif
     .fsync = eltonfs_dir_fsync,
 };
