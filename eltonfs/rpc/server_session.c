@@ -254,8 +254,11 @@ static inline int _rpc_call_new_commit_info_with_some_files_and_dirs(
 
   RETURN_IF(_rpc_call_new_commit_info_with_empty_dir(s, out_info, base_cid));
   info = *out_info;
-  RETURN_IF(rpc_call_create_obj(s, oid, max_oid));
 
+  // --------------------------------
+  // Add new.txt to root.
+
+  RETURN_IF(rpc_call_create_obj(s, oid, max_oid));
   file = kzalloc(sizeof(*file), GFP_NOFS);
   file->eltonfs_ino = 2;
   file->object_id = oid;
