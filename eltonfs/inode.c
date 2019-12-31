@@ -42,7 +42,7 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
     break;
   case S_IFDIR:
     inode->i_op = &eltonfs_dir_inode_operations;
-    inode->i_fop = &simple_dir_operations;
+    inode->i_fop = &eltonfs_dir_operations;
 
     /* directory inodes start off with i_nlink == 2 (for "." entry) */
     inc_nlink(inode);
