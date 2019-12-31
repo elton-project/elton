@@ -11,6 +11,21 @@
 // ローカルIDを持つオブジェクトを保存するディレクトリ
 #define LOCAL_OBJ_DIR "/var/lib/eltonfs/local-objects"
 
+static inline int eltonfs_create_dir(const char *path) {
+  struct file *dir;
+  dir = filp_open(path, O_DIRECTORY | O_CREAT, 0700);
+  if (IS_ERR(dir))
+    return PTR_ERR(dir);
+  return filp_close(dir, NULL);
+}
+
+int eltonfs_create_cache_dir(void) {
+  int error = 0;
+  RETURN_IF(eltonfs_create_dir(REMOTE_OBJ_DIR "/"));
+  RETURN_IF(eltonfs_create_dir(LOCAL_OBJ_DIR "/"));
+  return 0;
+}
+
 static inline void iget(struct inode *inode) { atomic_inc(&inode->i_count); }
 
 static inline int eltonfs_cache_fpath_from_cid(char *fpath, size_t size,
