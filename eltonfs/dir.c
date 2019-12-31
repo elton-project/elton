@@ -85,6 +85,19 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
   return ERR_PTR(-ENOENT);
 }
 
+// todo
+struct file_operations eltonfs_dir_operations = {
+    .llseek = NULL,
+    .read = NULL,
+    .write = NULL,
+    .iterate_shared = NULL,
+    .unlocked_ioctl = NULL,
+#ifdef CONFIG_COMPAT
+    .compat_ioctl = NULL,
+#endif
+    .fsync = NULL,
+};
+
 struct inode_operations eltonfs_dir_inode_operations = {
     .create = eltonfs_create,
     .lookup = eltonfs_lookup,
