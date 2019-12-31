@@ -15,14 +15,19 @@
 // ローカルIDを持つオブジェクトを保存するディレクトリ
 #define LOCAL_OBJ_DIR PREFIX_LIB_DIR "/local-objects"
 
+// Create directory to specified path if it is not exist.
 static inline int eltonfs_create_dir(const char *pathname) {
   int error = 0;
   struct dentry *dentry = NULL;
   struct path path;
 
   dentry = kern_path_create(AT_FDCWD, pathname, &path, LOOKUP_DIRECTORY);
-  if (IS_ERR(dentry))
+  if (IS_ERR(dentry)) {
+    if (dentry == ERR_PTR(-EEXIST))
+      // Directory already exists.  This error should ignore.
+      return 0;
     RETURN_IF(PTR_ERR(dentry));
+  }
   GOTO_IF(out, vfs_mkdir(path.dentry->d_inode, dentry, 0700));
 
 out:
