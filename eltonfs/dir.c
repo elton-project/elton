@@ -2,7 +2,8 @@
 #include <elton/elton.h>
 #include <elton/xattr.h>
 
-static inline _eltonfs_real_file(struct file *file, const char *caller) {
+static inline struct file *_eltonfs_real_file(struct file *file,
+                                              const char *caller) {
   if (!file->private_data) {
     DEBUG("%s: private_data is null: file=%px", caller, file);
     BUG();
