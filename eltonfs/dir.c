@@ -1,3 +1,4 @@
+#include <elton/assert.h>
 #include <elton/elton.h>
 #include <elton/xattr.h>
 
