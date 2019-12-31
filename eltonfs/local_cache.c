@@ -12,6 +12,7 @@
 #define LOCAL_OBJ_DIR "/var/lib/eltonfs/local-objects"
 
 static inline int eltonfs_create_dir(const char *path) {
+  // https://stackoverflow.com/a/41851045
   struct file *dir;
   dir = filp_open(path, O_DIRECTORY | O_CREAT, 0700);
   if (IS_ERR(dir))
