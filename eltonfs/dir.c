@@ -17,12 +17,12 @@ static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
   struct eltonfs_dir_entry *entry;
 
   if (!dir_emit_dots(file, ctx))
-    return 1;
+    return 0;
 
   ELTONFS_FOR_EACH_DIRENT(ei, entry) {
     // todo: set type args.
     if (!dir_emit(ctx, entry->name, entry->name_len, entry->ino, 0))
-      return 1;
+      return 0;
   }
   return 0;
 }
