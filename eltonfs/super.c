@@ -345,6 +345,10 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   char *cid = NULL;
   struct commit_info *cinfo = NULL;
 
+#ifdef ELTONFS_DEBUG
+  DEBUG("%s: sb=%px, data=%px, silent=%d", __func__, sb, data, silent);
+#endif // ELTONFS_DEBUG
+
   RETURN_IF(eltonfs_create_cache_dir());
 
   info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
