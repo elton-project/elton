@@ -15,8 +15,8 @@ static int eltonfs_iterate_shared(struct file *, struct dir_context *);
 long eltonfs_unlocked_ioctl(struct file *, unsigned int, unsigned long);
 long eltonfs_compat_ioctl(struct file *, unsigned int, unsigned long);
 
-static int eltonfs_fsync(struct file *file, loff_t start, loff_t end,
-                         int datasync) {
+static int eltonfs_dir_fsync(struct file *file, loff_t start, loff_t end,
+                             int datasync) {
   // Directory is not associate to real file.
   return -ENOTSUPP;
 }
@@ -112,7 +112,7 @@ struct file_operations eltonfs_dir_operations = {
 #ifdef CONFIG_COMPAT
     .compat_ioctl = eltonfs_compat_ioctl,
 #endif
-    .fsync = eltonfs_fsync,
+    .fsync = eltonfs_dir_fsync,
 };
 
 struct inode_operations eltonfs_dir_inode_operations = {
