@@ -187,12 +187,10 @@ static int _rpc_call_create_commit(struct elton_rpc_session *s,
   elton_rpc_free_decoded_data(res);
   return 0;
 }
-static inline int
-_rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
-                                         struct commit_info **out_info,
-                                         const char *base_cid) {
+
+static int _rpc_call_new_dir(struct elton_rpc_session *s,
+                             struct commit_info *info, u64 ino) {
   const static struct eltonfs_inode_xdr empty_dir_tmpl = {
-      .eltonfs_ino = 1,
       .object_id = "",
       .mode = S_IFDIR | 0755,
       .owner = 1000,
@@ -200,36 +198,51 @@ _rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
       .atime = {.sec = 111, .nsec = 222},
       .mtime = {.sec = 11, .nsec = 22},
       .ctime = {.sec = 1, .nsec = 2},
-      // Fill above fields:
+      // Must fill following fields by manually:
+      //  * eltonfs_ino
       //  * dir_entries
       //  * dir_entries_len
   };
+  int error;
+  struct eltonfs_inode_xdr *empty_dir = kzalloc(sizeof(*empty_dir), GFP_NOFS);
+
+  DEBUG("building inode tree with empty dir");
+  if (!empty_dir)
+    RETURN_IF(-ENOMEM);
+
+  // init empty_dir.
+  *empty_dir = empty_dir_tmpl;
+  empty_dir->eltonfs_ino = ino;
+  INIT_LIST_HEAD(&empty_dir->dir_entries._list_head);
+  return 0;
+}
+static inline int
+_rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
+                                         struct commit_info **out_info,
+                                         const char *base_cid) {
   const static struct commit_info info_tmpl = {
       .created_at =
           {
               .sec = 1,
               .nsec = 2,
           },
-      // Fill above fields:
+      // Must fill following fields by manually:
       //  * left_parent_id
       //  * right_parent_id
       //  * tree
   };
-
-  struct eltonfs_inode_xdr *empty_dir = kzalloc(sizeof(*empty_dir), GFP_NOFS);
+  int error;
+  struct commit_info *info = kzalloc(sizeof(*info), GFP_NOFS);
   struct radix_tree_root *itree = kzalloc(sizeof(*itree), GFP_NOFS);
   struct tree_info *tree = kzalloc(sizeof(*tree), GFP_NOFS);
-  struct commit_info *info = kzalloc(sizeof(*info), GFP_NOFS);
 
-  DEBUG("building inode tree with empty dir");
-  // init empty_dir.
-  *empty_dir = empty_dir_tmpl;
-  INIT_LIST_HEAD(&empty_dir->dir_entries._list_head);
+  DEBUG("builded inode tree");
+  if (!info || !itree || !tree)
+    RETURN_IF(-ENOMEM);
+
   // init itree.
   INIT_RADIX_TREE(itree, GFP_NOFS);
-  radix_tree_insert(itree, empty_dir->eltonfs_ino, empty_dir);
   // init tree.
-  tree->root = empty_dir;
   tree->inodes = itree;
   // init info.
   *info = info_tmpl;
@@ -237,30 +250,25 @@ _rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
   info->right_parent_id = "";
   info->tree = tree;
 
-  DEBUG("builded inode tree");
+  RETURN_IF(_rpc_call_new_dir(s, info, 1));
+  tree->root = radix_tree_lookup(itree, 1);
   *out_info = info;
   return 0;
 }
-static inline int _rpc_call_new_commit_info_with_some_files_and_dirs(
-    struct elton_rpc_session *s, struct commit_info **out_info,
-    const char *base_cid) {
+static int _rpc_call_new_file(struct elton_rpc_session *s,
+                              struct commit_info *info, u64 ino) {
   int error = 0;
-  struct commit_info *info;
-  struct eltonfs_inode_xdr *file;
-  struct eltonfs_inode_xdr *root;
-  struct eltonfs_dir_entry *entry;
   const size_t max_oid = 64;
+  struct eltonfs_inode_xdr *file;
   char *oid = kzalloc(max_oid, GFP_NOFS);
-
-  RETURN_IF(_rpc_call_new_commit_info_with_empty_dir(s, out_info, base_cid));
-  info = *out_info;
-
-  // --------------------------------
-  // Add new.txt to root.
+  if (!oid)
+    RETURN_IF(-ENOMEM);
 
   RETURN_IF(rpc_call_create_obj(s, oid, max_oid));
   file = kzalloc(sizeof(*file), GFP_NOFS);
-  file->eltonfs_ino = 2;
+  if (!file)
+    RETURN_IF(-ENOMEM);
+  file->eltonfs_ino = ino;
   file->object_id = oid;
   file->mode = S_IFREG | 0644;
   file->owner = 1000;
@@ -270,23 +278,49 @@ static inline int _rpc_call_new_commit_info_with_some_files_and_dirs(
   file->ctime = TIMESTAMP(10, 20);
   INIT_LIST_HEAD(&file->dir_entries._list_head);
   radix_tree_insert(info->tree->inodes, file->eltonfs_ino, file);
+  return 0;
+}
+static int _rpc_call_add_file_to_dir(struct elton_rpc_session *s,
+                                     struct commit_info *info, u64 dir_ino,
+                                     u64 file_ino, const char *file_name) {
+  int error = 0;
+  struct eltonfs_dir_entry *entry;
+  struct eltonfs_inode_xdr *dir;
 
   entry = kzalloc(sizeof(*entry), GFP_NOFS);
-  entry->ino = 2;
-  strcpy(entry->name, "new.txt");
+  if (!entry)
+    RETURN_IF(-ENOMEM);
+  entry->ino = file_ino;
+  strcpy(entry->name, file_name);
   entry->name_len = strlen(entry->name);
 
-  root = radix_tree_lookup(info->tree->inodes, info->tree->root->eltonfs_ino);
-  list_add_tail(&entry->_list_head, &root->dir_entries._list_head);
-  root->dir_entries_len++;
+  dir = radix_tree_lookup(info->tree->inodes, dir_ino);
+  list_add_tail(&entry->_list_head, &dir->dir_entries._list_head);
+  dir->dir_entries_len++;
+  return 0;
+}
+static inline int _rpc_call_new_commit_info_with_some_files_and_dirs(
+    struct elton_rpc_session *s, struct commit_info **out_info,
+    const char *base_cid) {
+  int error = 0;
+  struct commit_info *info;
 
-  // --------------------------------
+  RETURN_IF(_rpc_call_new_commit_info_with_empty_dir(s, out_info, base_cid));
+  info = *out_info;
+
+  // Add new.txt to root.
+  RETURN_IF(_rpc_call_new_file(s, info, 2));
+  RETURN_IF(_rpc_call_add_file_to_dir(s, info, info->tree->root->eltonfs_ino, 2,
+                                      "new.txt"));
+
   // Add foo/ to root.
-  // todo: create dir
+  RETURN_IF(_rpc_call_new_dir(s, info, 3));
+  RETURN_IF(_rpc_call_add_file_to_dir(s, info, info->tree->root->eltonfs_ino, 3,
+                                      "foo"));
 
-  // --------------------------------
   // Add foo/bar.txt to root.
-  // todo: create file.
+  RETURN_IF(_rpc_call_new_file(s, info, 4));
+  RETURN_IF(_rpc_call_add_file_to_dir(s, info, 3, 4, "bar.txt"));
   return 0;
 }
 static int rpc_call_create_commit(struct elton_rpc_session *s) {
