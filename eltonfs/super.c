@@ -422,6 +422,7 @@ void eltonfs_inode_init_once(struct eltonfs_inode *i) {
   simple_xattrs_init(&i->xattrs);
 #endif
 
+  spin_lock_init(&i->lock);
   inode_init_once(vfs_i(i));
 }
 static void eltonfs_destory_inode(struct inode *inode) {
