@@ -241,10 +241,9 @@ _rpc_call_new_commit_info_with_empty_dir(struct elton_rpc_session *s,
   *out_info = info;
   return 0;
 }
-static inline int
-_rpc_call_new_commit_info_with_some_files(struct elton_rpc_session *s,
-                                          struct commit_info **out_info,
-                                          const char *base_cid) {
+static inline int _rpc_call_new_commit_info_with_some_files_and_dirs(
+    struct elton_rpc_session *s, struct commit_info **out_info,
+    const char *base_cid) {
   int error = 0;
   struct commit_info *info;
   struct eltonfs_inode_xdr *file;
@@ -301,7 +300,7 @@ static int rpc_call_create_commit(struct elton_rpc_session *s) {
   GOTO_IF(out, _rpc_call_create_commit(s, ns, info, cid, cid2, sizeof(cid2)));
   RETURN_IF(ns->ops->close(ns));
 
-  RETURN_IF(_rpc_call_new_commit_info_with_some_files(s, &info, cid2));
+  RETURN_IF(_rpc_call_new_commit_info_with_some_files_and_dirs(s, &info, cid2));
   RETURN_IF(s->server->ops->new_session(s->server, ns, NULL));
   GOTO_IF(out, _rpc_call_create_commit(s, ns, info, cid2, cid, sizeof(cid)));
 out:
