@@ -10,12 +10,6 @@ static inline _eltonfs_real_file(struct file *file, const char *caller) {
 }
 #define REAL_FILE(file) _eltonfs_real_file((file), __func__)
 
-static loff_t eltonfs_llseek(struct file *, loff_t, int) { return -EISDIR; }
-static ssize_t eltonfs_read(struct file *, char __user *, size_t, loff_t *) {
-  return -EISDIR;
-}
-static ssize_t eltonfs_write(struct file *, const char __user *, size_t,
-                             loff_t *);
 static int eltonfs_iterate_shared(struct file *, struct dir_context *);
 
 long eltonfs_unlocked_ioctl(struct file *, unsigned int, unsigned long);
@@ -115,9 +109,6 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
 
 // todo
 struct file_operations eltonfs_dir_operations = {
-    .llseek = eltonfs_llseek,
-    .read = eltonfs_read,
-    .write = eltonfs_write,
     .iterate_shared = eltonfs_iterate_shared,
     .unlocked_ioctl = eltonfs_unlocked_ioctl,
 #ifdef CONFIG_COMPAT
