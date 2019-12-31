@@ -13,13 +13,11 @@ static inline struct file *_eltonfs_real_file(struct file *file,
 #define REAL_FILE(file) _eltonfs_real_file((file), __func__)
 
 static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
-  int error;
   struct eltonfs_inode *ei = eltonfs_i(file->f_inode);
   struct eltonfs_dir_entry *entry;
 
-  error = dir_emit_dots(file, ctx);
-  if (error)
-    return error;
+  if (!dir_emit_dots(file, ctx))
+    return 1;
 
   ELTONFS_FOR_EACH_DIRENT(ei, entry) {
     // todo: set type args.
