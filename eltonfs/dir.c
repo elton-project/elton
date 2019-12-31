@@ -17,10 +17,8 @@ long eltonfs_compat_ioctl(struct file *, unsigned int, unsigned long);
 
 static int eltonfs_fsync(struct file *file, loff_t start, loff_t end,
                          int datasync) {
-  struct file *real = REAL_FILE(file);
-  if (!real->f_op->fsync)
-    return -EINVAL;
-  return real->f_op->fsync(real, start, end, datasync);
+  // Directory is not associate to real file.
+  return -ENOTSUPP;
 }
 
 static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
