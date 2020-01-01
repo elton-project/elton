@@ -7,3 +7,10 @@ struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
 int eltonfs_cache_obj_async(struct eltonfs_job *job, const char *oid,
                             struct super_block *sb);
 int eltonfs_cache_obj(const char *oid, struct super_block *sb);
+
+#define OBJ_CACHE_ACCESS_START(_super_block)                                   \
+  const struct cred *__old_cred = override_creds(eltonfs_sb(_super_block)->cred)
+#define OBJ_CACHE_ACCESS_START_FILE(_file)                                     \
+  OBJ_CACHE_ACCESS_START((_file)->f_inode->i_sb)
+
+#define OBJ_CACHE_ACCESS_END revert_creds(__old_cred)

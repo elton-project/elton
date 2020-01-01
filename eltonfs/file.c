@@ -7,7 +7,12 @@
 #include <elton/error.h>
 #include <elton/local_cache.h>
 #include <elton/xattr.h>
+#include <linux/cred.h>
 #include <linux/mount.h>
+
+static inline struct file *REAL_FILE(struct file *file) {
+  return (struct file *)file->private_data;
+}
 
 static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
 #ifdef ELTONFS_STATISTIC
@@ -74,8 +79,16 @@ static unsigned long eltonfs_get_unmapped_area(struct file *file,
   return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
 }
 
+ssize_t eltonfs_file_read(struct file *file, char __user *buff, size_t size,
+                          loff_t *offset) {
+  OBJ_CACHE_ACCESS_START_FILE(file);
+  ssize_t ret = vfs_read(REAL_FILE(file), buff, size, offset);
+  OBJ_CACHE_ACCESS_END;
+  return ret;
+}
+
 struct file_operations eltonfs_file_operations = {
-    .read_iter = generic_file_read_iter,
+    .read = eltonfs_file_read,
     .write_iter = generic_file_write_iter,
     .mmap = eltonfs_file_mmap,
     .open = eltonfs_file_open,
