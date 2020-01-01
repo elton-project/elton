@@ -232,6 +232,7 @@ void *_eltonfs_cache_obj_worker(void *_args) {
   struct elton_rpc_ns ns;
   struct get_object_request req = {.id = (char *)args->oid};
   struct get_object_response *res = NULL;
+  loff_t offset;
 
   old_cred = override_creds(args->cred);
 
@@ -248,8 +249,9 @@ void *_eltonfs_cache_obj_worker(void *_args) {
   WARN_ONCE(res->body->offset, "cache_obj: invalid offset: offset=%llu",
             res->body->offset);
   // todo: use WRITE_ALL() macro.
-  GOTO_IF(out,
-          vfs_write(real, res->body->contents, res->body->contents_length, 0));
+  offset = 0;
+  GOTO_IF(out, vfs_write(real, res->body->contents, res->body->contents_length,
+                         &offset));
 
 out:
   if (res)
