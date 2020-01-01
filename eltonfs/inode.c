@@ -71,12 +71,13 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
     ei->file.cache_inode = NULL;
     break;
   }
-  case S_IFDIR:
-    INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
-    // todo: duplicate dir entries list.
-    // i_xdr->dir_entries;
+  case S_IFDIR: {
+    int error = dup_dir_entries(&ei->dir.dir_entries, &i_xdr->dir_entries);
+    if (error)
+      return ERR_PTR(error);
     ei->dir.count = i_xdr->dir_entries_len;
     break;
+  }
   case S_IFLNK:
     ei->symlink.object_id = i_xdr->object_id;
     ei->symlink.redirect_to = NULL;
