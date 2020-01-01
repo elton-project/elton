@@ -198,6 +198,11 @@ struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
   if (inode->file.local_cache_id) {
     struct inode *real_inode =
         eltonfs_get_cache_inode(LOCAL_OBJ_DIR, inode->file.local_cache_id);
+    if (!real_inode) {
+      // Local object must exist.  But specified local object is not found.
+      WARN_ONCE(1, "local object not found.  local cache is broken");
+      return ERR_PTR(-ELTON_CACHE_LOST_LOCAL_OBJ);
+    }
     if (IS_ERR(real_inode))
       return ERR_CAST(real_inode);
     inode->file.cache_inode = real_inode;
