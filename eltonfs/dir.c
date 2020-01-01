@@ -1,3 +1,14 @@
+// Private Data of Directory File
+//
+// To iterate directory entries, file->private_data represents an index value
+// (unsigned long) instead of memory address.
+//
+// Opened:
+//     file->private_data should (void *)0.
+// iterate_shared() is called:
+//     file->private_data represents index of next directory entry.
+// Closed:
+//     Not defined.
 #include <elton/assert.h>
 #include <elton/elton.h>
 #include <elton/xattr.h>
@@ -12,18 +23,52 @@ static inline struct file *_eltonfs_real_file(struct file *file,
 }
 #define REAL_FILE(file) _eltonfs_real_file((file), __func__)
 
+static int eltonfs_dir_open(struct inode *inode, struct file *file) {
+  file->private_data = (void *)0;
+  return 0;
+}
+
 static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
   struct eltonfs_inode *ei = eltonfs_i(file->f_inode);
   struct eltonfs_dir_entry *entry;
+  unsigned long seek_index;
+  unsigned long index; // Index of next directory entry.
+  BUILD_BUG_ON(sizeof(void *) != sizeof(unsigned long));
 
-  if (!dir_emit_dots(file, ctx))
+  index = (long)file->private_data;
+  if (ei->dir.count < index)
+    // Reached to end of directory entries list.
     return 0;
 
-  ELTONFS_FOR_EACH_DIRENT(ei, entry) {
-    // todo: set type args.
-    if (!dir_emit(ctx, entry->name, entry->name_len, entry->ino, DT_UNKNOWN))
-      return 0;
+  if (index == 0) {
+    index = 1;
+    if (!dir_emit_dot(file, ctx))
+      goto out;
   }
+  if (index == 1) {
+    index = 2;
+    if (!dir_emit_dot(file, ctx))
+      goto out;
+  }
+
+  seek_index = 2;
+  ELTONFS_FOR_EACH_DIRENT(ei, entry) {
+    if (seek_index < index) {
+      seek_index++;
+      continue;
+    }
+    seek_index++;
+    index++;
+    if (!dir_emit(ctx, entry->name, entry->name_len, entry->ino, DT_UNKNOWN))
+      goto out;
+  }
+
+out:
+  file->private_data = (void *)index;
+  return 0;
+}
+
+static int eltonfs_dir_release(struct inode *inode, struct file *file) {
   return 0;
 }
 
@@ -122,6 +167,8 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
 
 // todo
 struct file_operations eltonfs_dir_operations = {
+    .open = eltonfs_dir_open,
+    .release = eltonfs_dir_release,
     .iterate_shared = eltonfs_iterate_shared,
 // todo
 // .unlocked_ioctl = eltonfs_unlocked_ioctl,
