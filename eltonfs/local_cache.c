@@ -220,7 +220,8 @@ struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
   return ERR_PTR(-ENOENT);
 
 try_open:
-  WARN_ONCE(!inode->file.cache_inode, "cache-inode is null");
+  WARN_ONCE(!inode->file.cache_inode,
+            "cache_inode is null: file=%px, inode=%px", file, inode);
   return open_with_fake_path(&file->f_path, file->f_flags,
                              inode->file.cache_inode, current_cred());
 }
