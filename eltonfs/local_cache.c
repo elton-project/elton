@@ -205,7 +205,7 @@ struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
   }
   if (inode->file.object_id) {
     struct inode *real_inode =
-        eltonfs_get_cache_inode(LOCAL_OBJ_DIR, inode->file.local_cache_id);
+        eltonfs_get_cache_inode(REMOTE_OBJ_DIR, inode->file.local_cache_id);
     if (real_inode == ERR_PTR(-ELTON_CACHE_MISS))
       // Should download from remote.
       return NULL;
