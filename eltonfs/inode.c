@@ -1,5 +1,6 @@
 #include <elton/elton.h>
 #include <elton/rpc/struct.h>
+#include <elton/utils.h>
 #include <linux/pagemap.h>
 
 void eltonfs_inode_init_ops(struct inode *inode, dev_t dev) {
@@ -60,12 +61,16 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   eltonfs_inode_init_ops(inode, inode->i_rdev);
 
   switch (inode->i_mode & S_IFMT) {
-  case S_IFREG:
-    // todo: duplicate string.
-    ei->file.object_id = i_xdr->object_id;
+  case S_IFREG: {
+    char *oid;
+    int error = dup_string(&oid, i_xdr->object_id);
+    if (error)
+      return ERR_PTR(error);
+    ei->file.object_id = oid;
     ei->file.local_cache_id = NULL;
     ei->file.cache_inode = NULL;
     break;
+  }
   case S_IFDIR:
     INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
     // todo: duplicate dir entries list.
