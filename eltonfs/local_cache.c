@@ -241,7 +241,7 @@ void *_eltonfs_cache_obj_worker(void *_args) {
 
   eltonfs_cache_fpath_from_cid(real_path, REAL_PATH_MAX, REMOTE_OBJ_DIR,
                                args->oid);
-  real = filp_open(real_path, O_CREAT | O_EXCL, 0600);
+  real = filp_open(real_path, O_CREAT | O_EXCL | O_WRONLY, 0600);
   if (IS_ERR(real))
     GOTO_IF(out, PTR_ERR(real));
 
