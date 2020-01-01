@@ -54,7 +54,7 @@ int elton_rpc_dequeue(struct elton_rpc_queue *q, struct raw_packet **out) {
   int error = 0;
   struct elton_rpc_queue_entry *entry = NULL;
 
-  spin_lock(&q->lock);
+  spin_lock_irq(&q->lock);
   // Wait until entry is enqueued.  If queue is not empty, this function returns
   // immediately.
   GOTO_IF(error_unlock, wait_event_interruptible_lock_irq(
@@ -63,13 +63,13 @@ int elton_rpc_dequeue(struct elton_rpc_queue *q, struct raw_packet **out) {
   BUG_ON(list_empty(&q->queue));
   entry = list_first_entry(&q->queue, struct elton_rpc_queue_entry, list_head);
   list_del(&entry->list_head);
-  spin_unlock(&q->lock);
+  spin_unlock_irq(&q->lock);
 
   *out = entry->raw;
   queue_entry_free(entry);
   return 0;
 
 error_unlock:
-  spin_unlock(&q->lock);
+  spin_unlock_irq(&q->lock);
   return error;
 }

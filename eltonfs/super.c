@@ -370,12 +370,12 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     init_waitqueue_head(&wq);
     spin_lock_init(&lock);
     task = kthread_run(_eltonfs_get_commit_info, &fcargs, "eltonfs-mount");
-    spin_lock(&lock);
+    spin_lock_irq(&lock);
     GOTO_IF(err, wait_event_interruptible_lock_irq(wq, fcargs.finished, lock));
     error = fcargs.error;
     info->cid = (const char *)cid;
     info->cinfo = cinfo;
-    spin_unlock(&lock);
+    spin_unlock_irq(&lock);
     GOTO_IF(err, error);
   }
 
