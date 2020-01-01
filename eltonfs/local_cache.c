@@ -251,6 +251,7 @@ void *_eltonfs_cache_obj_worker(void *_args) {
   GOTO_IF(out, server.ops->new_session(&server, &ns, NULL));
   GOTO_IF(out, ns.ops->send_struct(&ns, GET_OBJECT_REQUEST_ID, &req));
   GOTO_IF(out, ns.ops->recv_struct(&ns, GET_OBJECT_RESPONSE_ID, (void **)&res));
+  GOTO_IF(out, ns.ops->close(&ns));
 
   eltonfs_cache_fpath_from_cid(real_path, REAL_PATH_MAX, REMOTE_OBJ_DIR,
                                args->oid);
