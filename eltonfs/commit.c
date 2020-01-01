@@ -2,18 +2,7 @@
 #include <elton/elton.h>
 #include <elton/rpc/server.h>
 #include <elton/rpc/struct.h>
-
-// Duplicate NULL terminated string.
-static inline int dup_string(char **to, const char *from) {
-  int error = 0;
-  size_t len = strlen(from);
-  char *buff = kmalloc(len + 1, GFP_NOFS);
-  if (!buff)
-    RETURN_IF(-ENOMEM);
-  strcpy(buff, from);
-  *to = buff;
-  return 0;
-}
+#include <elton/utils.h>
 
 static int get_commit_id_by_vid(const char *vid, char **cid) {
   int error = 0;
