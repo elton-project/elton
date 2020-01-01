@@ -14,6 +14,8 @@ static inline __maybe_unused int dup_string(char **to, const char *from) {
   return 0;
 }
 
+// Initialize "to" list and copies list contents.
+// All entries are shallow copied.
 static inline __maybe_unused int
 dup_dir_entries(struct eltonfs_dir_entry *to,
                 const struct eltonfs_dir_entry *from) {
