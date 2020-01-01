@@ -33,4 +33,6 @@
 // encoder/decoder.
 #define ELTON_XDR_TOO_MANY_ELEMENTS 2010
 
+#define ELTON_CACHE_MISS 3001
+
 #endif // _ELTON_ERROR_H

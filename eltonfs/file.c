@@ -4,6 +4,7 @@
 // file closed.
 #include <elton/assert.h>
 #include <elton/elton.h>
+#include <elton/error.h>
 #include <elton/local_cache.h>
 #include <elton/xattr.h>
 #include <linux/mount.h>
@@ -29,7 +30,7 @@ static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
   return generic_file_mmap(file, vma);
 }
 
-static int eltonfs_file_open(struct inode *inode, struct file *file) {
+static int _eltonfs_file_open(struct inode *inode, struct file *file) {
   struct file *real;
   real = eltonfs_open_real_file(eltonfs_i(inode), file);
   if (real && IS_ERR(real))
@@ -39,10 +40,24 @@ static int eltonfs_file_open(struct inode *inode, struct file *file) {
     file->private_data = file;
     return 0;
   }
+  return -ELTON_CACHE_MISS;
+}
+static int eltonfs_file_open(struct inode *inode, struct file *file) {
+  int error;
 
-  // todo: download data from remote.
-  return -ENOENT;
-  // return 0;
+  if (!(inode->i_mode & S_IFREG))
+    return -EINVAL;
+
+  error = _eltonfs_file_open(inode, file);
+  if (error != -ELTON_CACHE_MISS)
+    // Fast path (cache hit).
+    return error;
+
+  // Slow path (cache miss).
+  error = eltonfs_cache_obj(eltonfs_i(inode)->file.object_id, inode->i_sb);
+  if (error)
+    return error;
+  return _eltonfs_file_open(inode, file);
 }
 
 static int eltonfs_file_release(struct inode *inode, struct file *file) {
