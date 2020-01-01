@@ -48,6 +48,9 @@ struct eltonfs_info {
   const char *cid;
   // Current commit information.
   struct commit_info *cinfo;
+  // Credentials of mount time.
+  // Should release by put_cred() when unmounting.
+  const struct cred *cred;
 
 #ifdef ELTONFS_STATISTIC
   unsigned long mmap_size;

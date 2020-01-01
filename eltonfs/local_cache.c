@@ -1,5 +1,7 @@
 #include <elton/assert.h>
 #include <elton/elton.h>
+#include <elton/local_cache.h>
+#include <elton/rpc/server.h>
 #include <linux/cred.h>
 #include <linux/namei.h>
 
@@ -215,4 +217,67 @@ struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
     // New file.
     return eltonfs_create_real_file(inode, file);
   return ERR_PTR(-ENOENT);
+}
+
+struct _eltonfs_cache_obj_args {
+  const char *oid;
+  const struct cred *cred;
+};
+void *_eltonfs_cache_obj_worker(void *_args) {
+  int error = 0;
+  const struct _eltonfs_cache_obj_args *args = _args;
+  char real_path[REAL_PATH_MAX];
+  struct file *real = NULL;
+  const struct cred *old_cred;
+  struct elton_rpc_ns ns;
+  struct get_object_request req = {.id = (char *)args->oid};
+  struct get_object_response *res = NULL;
+
+  old_cred = override_creds(args->cred);
+
+  GOTO_IF(out, server.ops->new_session(&server, &ns, NULL));
+  GOTO_IF(out, ns.ops->send_struct(&ns, GET_OBJECT_REQUEST_ID, &req));
+  GOTO_IF(out, ns.ops->recv_struct(&ns, GET_OBJECT_RESPONSE_ID, (void **)&res));
+
+  eltonfs_cache_fpath_from_cid(real_path, REAL_PATH_MAX, REMOTE_OBJ_DIR,
+                               args->oid);
+  real = filp_open(real_path, O_CREAT | O_EXCL, 0600);
+  if (IS_ERR(real))
+    GOTO_IF(out, PTR_ERR(real));
+
+  WARN_ONCE(res->body->offset, "cache_obj: invalid offset: offset=%llu",
+            res->body->offset);
+  // todo: use WRITE_ALL() macro.
+  GOTO_IF(out,
+          vfs_write(real, res->body->contents, res->body->contents_length, 0));
+
+out:
+  if (res)
+    elton_rpc_free_decoded_data(res);
+  if (real && !IS_ERR(real))
+    filp_close(real, NULL);
+  revert_creds(old_cred);
+  kfree(args);
+  return ERR_PTR(error);
+}
+int eltonfs_cache_obj_async(struct eltonfs_job *job, const char *oid,
+                            struct super_block *sb) {
+  struct _eltonfs_cache_obj_args *args = kmalloc(sizeof(*args), GFP_NOFS);
+  if (!args)
+    return -ENOMEM;
+  args->oid = oid;
+  args->cred = ((struct eltonfs_info *)sb->s_fs_info)->cred;
+  return eltonfs_job_run(job, _eltonfs_cache_obj_worker, args, "get-obj");
+}
+int eltonfs_cache_obj(const char *oid, struct super_block *sb) {
+  int error;
+  struct eltonfs_job job;
+  void *output;
+  error = eltonfs_cache_obj_async(&job, oid, sb);
+  if (error)
+    return error;
+  output = eltonfs_job_wait(&job);
+  if (IS_ERR(output))
+    return PTR_ERR(output);
+  return 0;
 }

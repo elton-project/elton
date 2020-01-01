@@ -334,6 +334,10 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     RETURN_IF(-ENOMEM);
   GOTO_IF(err, eltonfs_parse_opt(data, &info->config));
   info->cid = NULL;
+  info->cred = get_current_cred();
+  if (!info->cred)
+    RETURN_IF(-ENOMEM);
+    // todo: release cred.
 
 #ifdef ELTONFS_STATISTIC
   rwlock_init(&info->mmap_size_lock);
@@ -406,7 +410,8 @@ static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,
   return mount_nodev(fs_type, flags, data, eltonfs_fill_super);
 }
 static void kill_sb(struct super_block *sb) {
-  // todo
+  // todo: impl
+  // todo: release cred
 }
 
 struct inode *eltonfs_alloc_inode(struct super_block *sb) {
