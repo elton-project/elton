@@ -1,5 +1,6 @@
 #include <elton/assert.h>
 #include <elton/elton.h>
+#include <elton/error.h>
 #include <elton/local_cache.h>
 #include <elton/rpc/server.h>
 #include <linux/cred.h>
@@ -192,33 +193,35 @@ struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
     BUG();
   }
 
-  if (inode->file.cache_inode) {
-    iget(inode->file.cache_inode);
-    return open_with_fake_path(&file->f_path, file->f_flags,
-                               inode->file.cache_inode, current_cred());
-  }
+  if (inode->file.cache_inode)
+    goto try_open;
   if (inode->file.local_cache_id) {
-    struct file *real_file = NULL;
     struct inode *real_inode =
         eltonfs_get_cache_inode(LOCAL_OBJ_DIR, inode->file.local_cache_id);
     if (IS_ERR(real_inode))
       return ERR_CAST(real_inode);
     inode->file.cache_inode = real_inode;
-
-    iget(real_inode);
-    real_file = open_with_fake_path(&file->f_path, file->f_flags, real_inode,
-                                    current_cred());
-    if (IS_ERR(real_file))
-      iput(real_inode);
-    return real_file;
+    goto try_open;
   }
-  if (inode->file.object_id)
-    // Should download from remote.
-    return NULL;
+  if (inode->file.object_id) {
+    struct inode *real_inode =
+        eltonfs_get_cache_inode(LOCAL_OBJ_DIR, inode->file.local_cache_id);
+    if (real_inode == ERR_PTR(-ELTON_CACHE_MISS))
+      // Should download from remote.
+      return NULL;
+    if (IS_ERR(real_inode))
+      return ERR_CAST(real_inode);
+    inode->file.cache_inode = real_inode;
+    goto try_open;
+  }
   if (file->f_flags & O_CREAT)
     // New file.
     return eltonfs_create_real_file(inode, file);
   return ERR_PTR(-ENOENT);
+
+try_open:
+  return open_with_fake_path(&file->f_path, file->f_flags,
+                             inode->file.cache_inode, current_cred());
 }
 
 struct _eltonfs_cache_obj_args {
