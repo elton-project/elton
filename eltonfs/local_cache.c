@@ -201,6 +201,8 @@ struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
     struct file *real_file = NULL;
     struct inode *real_inode =
         eltonfs_get_cache_inode(LOCAL_OBJ_DIR, inode->file.local_cache_id);
+    if (IS_ERR(real_inode))
+      return ERR_CAST(real_inode);
     inode->file.cache_inode = real_inode;
 
     iget(real_inode);
