@@ -1,5 +1,10 @@
+// Private Data of Regular File
+//
+// file->private_data points a file of local cache.  Should close it if parent
+// file closed.
 #include <elton/assert.h>
 #include <elton/elton.h>
+#include <elton/local_cache.h>
 #include <elton/xattr.h>
 #include <linux/mount.h>
 
@@ -24,6 +29,28 @@ static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
   return generic_file_mmap(file, vma);
 }
 
+static int eltonfs_file_open(struct inode *inode, struct file *file) {
+  struct file *real;
+  real = eltonfs_open_real_file(eltonfs_i(inode), file);
+  if (real && IS_ERR(real))
+    return PTR_ERR(real);
+  if (real) {
+    // Found local cache.
+    file->private_data = file;
+    return 0;
+  }
+
+  // todo: download data from remote.
+  return -ENOENT;
+  // return 0;
+}
+
+static int eltonfs_file_release(struct inode *inode, struct file *file) {
+  if (file->private_data)
+    return filp_close(file->private_data, NULL);
+  return 0;
+}
+
 static unsigned long eltonfs_get_unmapped_area(struct file *file,
                                                unsigned long addr,
                                                unsigned long len,
@@ -36,6 +63,8 @@ struct file_operations eltonfs_file_operations = {
     .read_iter = generic_file_read_iter,
     .write_iter = generic_file_write_iter,
     .mmap = eltonfs_file_mmap,
+    .open = eltonfs_file_open,
+    .release = eltonfs_file_release,
     .fsync = noop_fsync,
     .splice_read = generic_file_splice_read,
     .splice_write = iter_file_splice_write,
