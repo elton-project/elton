@@ -78,10 +78,16 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
     ei->dir.count = i_xdr->dir_entries_len;
     break;
   }
-  case S_IFLNK:
-    ei->symlink.object_id = i_xdr->object_id;
+  case S_IFLNK: {
+    int error;
+    char *oid;
+    error = dup_string(&oid, i_xdr->object_id);
+    if (error)
+      return ERR_PTR(error);
+    ei->symlink.object_id = oid;
     ei->symlink.redirect_to = NULL;
     break;
+  }
   }
   return eltonfs_i(inode);
 }
