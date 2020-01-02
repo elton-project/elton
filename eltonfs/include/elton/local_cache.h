@@ -15,8 +15,8 @@
 // ローカルIDを持つオブジェクトを保存するディレクトリ
 #define LOCAL_OBJ_DIR PREFIX_LIB_DIR "/local-objects"
 
-int eltonfs_generate_id(const char *base_dir, char fpath[REAL_PATH_MAX],
-                        char id[CACHE_ID_LENGTH], struct inode **inode);
+int eltonfs_generate_cache_id(const char *base_dir, char fpath[REAL_PATH_MAX],
+                              char id[CACHE_ID_LENGTH], struct inode **inode);
 int eltonfs_create_cache_dir(void);
 struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
                                     struct file *file);

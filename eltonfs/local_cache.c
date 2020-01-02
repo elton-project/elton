@@ -56,8 +56,8 @@ static inline int eltonfs_cache_id_from_int(char *cache_id, size_t size, u64 a,
 }
 
 // Generate a unique ID.
-int eltonfs_generate_id(const char *base_dir, char fpath[REAL_PATH_MAX],
-                        char id[CACHE_ID_LENGTH], struct inode **inode) {
+int eltonfs_generate_cache_id(const char *base_dir, char fpath[REAL_PATH_MAX],
+                              char id[CACHE_ID_LENGTH], struct inode **inode) {
   // seq: Approximative sequential number.
   u64 seq;
   u16 tries;
@@ -109,7 +109,7 @@ static struct file *eltonfs_create_real_file(struct eltonfs_inode *inode,
   unsigned int flags;
   struct file *out = NULL;
 
-  error = eltonfs_generate_id(LOCAL_OBJ_DIR, fpath, id, &real_inode);
+  error = eltonfs_generate_cache_id(LOCAL_OBJ_DIR, fpath, id, &real_inode);
   if (error)
     goto err;
 
