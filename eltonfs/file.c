@@ -91,6 +91,7 @@ ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
   OBJ_CACHE_ACCESS_START_FILE(file);
   size_t ret = vfs_write(REAL_FILE(file), buff, size, offset);
   OBJ_CACHE_ACCESS_END;
+  // todo: update size.
   return ret;
 }
 
