@@ -144,13 +144,18 @@ static int eltonfs_dir_fsync(struct file *file, loff_t start, loff_t end,
 
 static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
                          dev_t dev) {
+  int error;
   struct inode *inode = eltonfs_create_inode(dir->i_sb, dir, mode, dev);
   if (!inode) {
     return -ENOSPC;
   }
+
+  error = eltonfs_dir_entries_add(dir, dentry->d_name.name, inode->i_ino);
+  if (error)
+    return error;
+
   d_instantiate(dentry, inode);
   dget(dentry);
-  dir->i_mtime = dir->i_ctime = current_time(dir);
   return 0;
 }
 
