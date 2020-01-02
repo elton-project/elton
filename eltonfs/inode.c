@@ -87,7 +87,7 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   struct inode *inode;
   struct eltonfs_inode *ei;
 
-  i_xdr = radix_tree_lookup(info->cinfo->tree->inodes, ino);
+  i_xdr = radix_tree_lookup(info->inodes_ei, ino);
   if (!i_xdr)
     return NULL;
 
