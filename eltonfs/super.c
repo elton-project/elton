@@ -312,8 +312,10 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   DEBUG("%s: sb=%px, data=%px, silent=%d", __func__, sb, data, silent);
 #endif // ELTONFS_DEBUG
 
+  DEBUG("Creating cache directories");
   RETURN_IF(eltonfs_create_cache_dir());
 
+  DEBUG("Initializing eltonfs_info");
   info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
   if (!info)
     RETURN_IF(-ENOMEM);
@@ -329,6 +331,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   info->mmap_size = 0;
 #endif
 
+  DEBUG("Getting commit information");
   {
     struct task_struct *task;
     struct wait_queue_head wq;
