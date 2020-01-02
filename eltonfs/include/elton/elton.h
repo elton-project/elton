@@ -46,11 +46,27 @@ struct eltonfs_info {
 
   // Current CommitID.
   const char *cid;
-  // Current commit information.
+  // Current commit information  (MUST NOT USE)
+  // MUST only use to keep pointer to commit info.  If unmounting or changed
+  // commit, we should release memory by elton_rpc_free_decoded_data() and
+  // inodes_ei should replace with other tree.  The inode tree
+  // (cinfo->tree->inodes) and entries are modified by eltonfs.
   struct commit_info *cinfo;
   // Credentials of mount time.
   // Should release by put_cred() when unmounting.
   const struct cred *cred;
+
+  // Inode tree (lookup by eltonfs_ino).
+  // Alias of cinfo->tree->inodes.
+  //
+  // Key: eltonfs_ino
+  // Value: struct eltonfs_inode_xdr *
+  struct radix_tree_root *inodes_ei;
+  // Inode tree (lookup by vfs_ino).
+  //
+  // Key: vfs_ino
+  // Value: struct eltonfs_inode_xdr *
+  struct radix_tree_root *inodes_vfs;
 
 #ifdef ELTONFS_STATISTIC
   unsigned long mmap_size;
