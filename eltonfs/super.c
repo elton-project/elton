@@ -396,7 +396,7 @@ err:
   if (cid)
     kfree(cid);
   if (cinfo)
-    kfree(cinfo);
+    elton_rpc_free_decoded_data(cinfo);
   return error;
 }
 static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,
