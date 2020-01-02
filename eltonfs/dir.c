@@ -44,26 +44,26 @@ _eltonfs_dir_entries_lookup_entry(struct inode *vfs_dir, const char *name) {
 
 // Lookup an entry by name from dir.
 // It returns vfs_ino or 0.
-static u64 eltonfs_dir_entries_lookup(struct inode *vfs_dir, const char *name) {
+static u64 eltonfs_dir_entries_lookup(struct inode *dir, const char *name) {
   struct eltonfs_dir_entry *entry =
-      _eltonfs_dir_entries_lookup_entry(vfs_dir, name);
+      _eltonfs_dir_entries_lookup_entry(dir, name);
   if (unlikely(!entry))
     return 0;
   return entry->ino;
 }
 // Delete an entry from dir.
-static int eltonfs_dir_entries_delete(struct inode *vfs_dir, const char *name) {
+static int eltonfs_dir_entries_delete(struct inode *dir, const char *name) {
   struct eltonfs_dir_entry *entry =
-      _eltonfs_dir_entries_lookup_entry(vfs_dir, name);
+      _eltonfs_dir_entries_lookup_entry(dir, name);
   if (unlikely(!entry))
     return -ENOENT;
 
   list_del(&entry->_list_head);
   kfree(entry);
-  eltonfs_i(vfs_dir)->dir.count--;
+  eltonfs_i(dir)->dir.count--;
 }
 // Add an entry with specified name and vfs_ino.
-static int eltonfs_dir_entries_add(struct inode *vfs_dir, const char *name,
+static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
                                    u64 vfs_ino) {
   struct eltonfs_dir_entry *entry;
   size_t len;
@@ -77,7 +77,7 @@ static int eltonfs_dir_entries_add(struct inode *vfs_dir, const char *name,
   entry->ino = vfs_ino;
   memcpy(entry->name, name, len);
   entry->name_len = len;
-  list_add(&entry->_list_head, &eltonfs_i(vfs_dir)->dir.dir_entries._list_head);
+  list_add(&entry->_list_head, &eltonfs_i(dir)->dir.dir_entries._list_head);
   return 0;
 }
 
