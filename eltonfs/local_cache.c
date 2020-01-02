@@ -6,17 +6,7 @@
 #include <linux/cred.h>
 #include <linux/namei.h>
 
-#define REAL_PATH_MAX 120
-#define CACHE_ID_LENGTH 32
 #define MAX_CONFLICT_TRIES 30
-
-#define PREFIX_CACHE_DIR "/var/cache/eltonfs"
-#define PREFIX_LIB_DIR "/var/lib/eltonfs"
-
-// リモートIDを持つオブジェクトを保存するディレクトリ
-#define REMOTE_OBJ_DIR PREFIX_CACHE_DIR "/remote-objects"
-// ローカルIDを持つオブジェクトを保存するディレクトリ
-#define LOCAL_OBJ_DIR PREFIX_LIB_DIR "/local-objects"
 
 // Create directory to specified path if it is not exist.
 static inline int eltonfs_create_dir(const char *pathname) {
@@ -66,8 +56,8 @@ static inline int eltonfs_cache_id_from_int(char *cache_id, size_t size, u64 a,
 }
 
 // Generate a unique ID.
-static int eltonfs_generate_id(const char *base_dir, char fpath[REAL_PATH_MAX],
-                               char id[CACHE_ID_LENGTH], struct inode **inode) {
+int eltonfs_generate_id(const char *base_dir, char fpath[REAL_PATH_MAX],
+                        char id[CACHE_ID_LENGTH], struct inode **inode) {
   // seq: Approximative sequential number.
   u64 seq;
   u16 tries;
