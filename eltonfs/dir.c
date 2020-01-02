@@ -78,6 +78,7 @@ static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
   memcpy(entry->name, name, len);
   entry->name_len = len;
   list_add(&entry->_list_head, &eltonfs_i(dir)->dir.dir_entries._list_head);
+  eltonfs_i(dir)->dir.count++;
   return 0;
 }
 
