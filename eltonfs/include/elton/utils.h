@@ -87,6 +87,15 @@ static inline __maybe_unused int dup_string(char **to, const char *from) {
   *to = buff;
   return 0;
 }
+// Duplicate NULL terminated string and return it.
+// If "from" is NULL, dup_string_direct returns NULL.
+static inline __maybe_unused char *dup_string_direct(const char *from) {
+  char *to;
+  int error = dup_string(&to, from);
+  if (error)
+    return ERR_PTR(error);
+  return to;
+}
 
 // Initialize "to" list and copies list contents.
 // All entries are shallow copied.
