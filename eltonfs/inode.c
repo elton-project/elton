@@ -141,6 +141,21 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   return eltonfs_i(inode);
 }
 
+// Generate new vfs_ino.
+u64 eltonfs_get_next_ino(struct super_block *sb) {
+  struct eltonfs_info *info = eltonfs_sb(sb);
+  u64 ino;
+retry:
+  ino = ++info->last_local_ino;
+  if (unlikely(ino < ELTONFS_LOCAL_INO_MIN)) {
+    info->last_local_ino = ELTONFS_LOCAL_INO_MIN;
+    goto retry;
+  }
+  if (unlikely(radix_tree_lookup(info->inodes_vfs, ino)))
+    goto retry;
+  return ino;
+}
+
 // Create inode under specified directory.
 // The content of created inode is only stored only local storage until commit
 // operation is executed.
@@ -153,7 +168,7 @@ struct inode *eltonfs_create_inode(struct super_block *sb,
     return inode;
   }
 
-  inode->i_ino = get_next_ino();
+  inode->i_ino = eltonfs_get_next_ino(sb);
   inode_init_owner(inode, dir, mode);
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
   eltonfs_inode_init_ops(inode, dev);

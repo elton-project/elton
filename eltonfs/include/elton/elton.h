@@ -67,6 +67,11 @@ struct eltonfs_info {
   // Key: vfs_ino
   // Value: struct eltonfs_inode_xdr *
   struct radix_tree_root *inodes_vfs;
+  // Last used local VFS ino.
+  // If you need new vfs_ino, use eltonfs_get_next_ino() instead of directly
+  // access it.
+  u64 last_local_ino;
+  // todo: add lock
 
 #ifdef ELTONFS_STATISTIC
   unsigned long mmap_size;
