@@ -163,7 +163,8 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
     return d_splice_alias(inode, dentry);
   }
   // Not found
-  return ERR_PTR(-ENOENT);
+  d_add(dentry, NULL);
+  return dentry;
 }
 
 // todo
