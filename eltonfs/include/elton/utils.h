@@ -68,10 +68,19 @@ eltonfs_job_run_sync(void *(*fn)(void *input), void *input, const char *name) {
 }
 
 // Duplicate NULL terminated string.
+// If "from" is NULL, dup_string stores NULL.
 static inline __maybe_unused int dup_string(char **to, const char *from) {
   int error = 0;
-  size_t len = strlen(from);
-  char *buff = kmalloc(len + 1, GFP_NOFS);
+  size_t len;
+  char *buff;
+
+  if (!from) {
+    *to = NULL;
+    return 0;
+  }
+
+  len = strlen(from);
+  buff = kmalloc(len + 1, GFP_NOFS);
   if (!buff)
     RETURN_IF(-ENOMEM);
   strcpy(buff, from);
