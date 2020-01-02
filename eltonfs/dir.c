@@ -61,6 +61,7 @@ static int eltonfs_dir_entries_delete(struct inode *dir, const char *name) {
   list_del(&entry->_list_head);
   kfree(entry);
   eltonfs_i(dir)->dir.count--;
+  dir->i_mtime = dir->i_ctime = current_time(dir);
 }
 // Add an entry with specified name and vfs_ino.
 static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
@@ -79,6 +80,7 @@ static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
   entry->name_len = len;
   list_add(&entry->_list_head, &eltonfs_i(dir)->dir.dir_entries._list_head);
   eltonfs_i(dir)->dir.count++;
+  dir->i_mtime = dir->i_ctime = current_time(dir);
   return 0;
 }
 
