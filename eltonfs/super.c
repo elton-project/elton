@@ -39,6 +39,7 @@ struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
   inode_init_owner(inode, dir, mode);
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
   eltonfs_inode_init_ops(inode, dev);
+  // todo: init eltonfs internal fields.
   return inode;
 }
 
