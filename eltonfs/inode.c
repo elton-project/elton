@@ -1,7 +1,53 @@
+// Inode Number Flavors
+// ====================
+//
+// vfs_ino:
+//     Inode number used in the Linux VFS.  It is commonly called "ino".  This
+//     number must unique per super block.  We can access it from indoe->i_ino.
+// eltonfs_ino:
+//     Inode number used in the Eltonfs.  This number must unique per eltonfs
+//     volume.  We can access it from eltonfs_i(inode)->eltonfs_ino.  It is
+//     assigned by elton controllers.
+//
+//
+//
+// VFS Inode Number Assignation Rules
+// ==================================
+//
+// The rule to be applied differ depending on inode status.  See the table and
+// rule descriptions below.
+//
+//                                  | RuleA    RuleB    RuleC    RuleD
+//     -----------------------------+---------------------------------
+//     Is eltonfs_ino assigned?     |   N        Y        N        Y
+//     Is local_cache_id assigned?  |   N        N        Y        Y
+//
+// RuleA:
+//     This situation occurs when creating new file or directory.  Generate any
+//     number between ELTONFS_LOCAL_INO_MIN and ELTONFS_LOCAL_INO_MAX, assign it
+//     to the inode.  Make sure duplication checking of vfs_ino.
+// RuleB:
+//     This situation occurs when accessing an committed files.  Assign
+//     eltonfs_ino to vfs_ino.
+// RuleC:
+//     This situation will occurs when accessing an not-committed files.  This
+//     inode assigned vfs_ino according to the RuleA before it is evicted.
+//     Should use previous vfs_ino assigned by RuleA.
+// RuleD:
+//     If created some commits without unmount, some inodes are assigned two
+//     different ino (eltonfs_ino and vfs_ino).  So those are fall into a
+//     inconsistent state.  We have to solve with following tricks until
+//     unmount.
+//     * lookup() (called from getdents) should emit with vfs_ino.
+//     * iget() should search and build an inode with vfs_ino if search key are
+//       within LOCAL_INO range.
 #include <elton/elton.h>
 #include <elton/rpc/struct.h>
 #include <elton/utils.h>
 #include <linux/pagemap.h>
+
+#define ELTONFS_LOCAL_INO_MIN (U64_MAX ^ (u64)U32_MAX)
+#define ELTONFS_LOCAL_INO_MAX U64_MAX
 
 // Initialize inode->i_op and inode->i_fop and inode->i_mapping.
 // Should set inode->i_mode before call it.
