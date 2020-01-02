@@ -133,8 +133,9 @@ long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 long eltonfs_compat_ioctl(struct file *file, unsigned int cmd,
                           unsigned long arg);
 int elton_update_time(struct inode *inode, struct timespec64 *time, int flags);
-struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
-                                umode_t mode, dev_t dev);
+struct inode *eltonfs_create_inode(struct super_block *sb,
+                                   const struct inode *dir, umode_t mode,
+                                   dev_t dev);
 struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino);
 
 static inline struct inode *vfs_i(struct eltonfs_inode *inode) {

@@ -83,7 +83,7 @@ static int eltonfs_dir_fsync(struct file *file, loff_t start, loff_t end,
 
 static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
                          dev_t dev) {
-  struct inode *inode = eltonfs_get_inode(dir->i_sb, dir, mode, dev);
+  struct inode *inode = eltonfs_create_inode(dir->i_sb, dir, mode, dev);
   if (!inode) {
     return -ENOSPC;
   }
@@ -103,7 +103,7 @@ static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
   struct inode *inode;
   int len, error;
 
-  inode = eltonfs_get_inode(dir->i_sb, dir, S_IFLNK | S_IRWXUGO, 0);
+  inode = eltonfs_create_inode(dir->i_sb, dir, S_IFLNK | S_IRWXUGO, 0);
   if (!inode) {
     return -ENOSPC;
   }

@@ -98,8 +98,9 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
 // Create inode under specified directory.
 // The content of created inode is only stored only local storage until commit
 // operation is executed.
-struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
-                                umode_t mode, dev_t dev) {
+struct inode *eltonfs_create_inode(struct super_block *sb,
+                                   const struct inode *dir, umode_t mode,
+                                   dev_t dev) {
   struct inode *inode;
   inode = new_inode(sb);
   if (!inode) {
