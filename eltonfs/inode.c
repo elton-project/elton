@@ -79,6 +79,48 @@ void eltonfs_inode_init_ops(struct inode *inode, dev_t dev) {
     break;
   }
 }
+// Initialize eltonfs internal data.
+void eltonfs_inode_init_internal(struct inode *inode) {
+  struct eltonfs_inode *ei = eltonfs_i(inode);
+  ei->eltonfs_ino = 0;
+  spin_lock_init(&ei->lock);
+  simple_xattrs_init(&ei->xattrs);
+
+  switch (inode->i_mode & S_IFMT) {
+  case S_IFREG:
+    ei->file.object_id = NULL;
+    ei->file.local_cache_id = NULL;
+    ei->file.cache_inode = NULL;
+    break;
+  case S_IFDIR:
+    INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
+    ei->dir.count = 0;
+    break;
+  case S_IFLNK:
+    ei->symlink.object_id = NULL;
+    ei->symlink.redirect_to = NULL;
+    break;
+  }
+}
+void eltonfs_inode_init_regular(struct inode *inode, const char *object_id,
+                                const char *local_cache_id) {
+  struct eltonfs_inode *ei = eltonfs_i(inode);
+  ei->file.object_id = dup_string_direct(object_id);
+  ei->file.local_cache_id = dup_string_direct(local_cache_id);
+  ei->file.cache_inode = NULL;
+  // todo: error check
+}
+void eltonfs_inode_init_dir(struct inode *inode) {
+  struct eltonfs_inode *ei = eltonfs_i(inode);
+  INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
+  ei->dir.count = 0;
+}
+void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id) {
+  struct eltonfs_inode *ei = eltonfs_i(inode);
+  ei->symlink.object_id = dup_string_direct(object_id);
+  ei->symlink.redirect_to = NULL;
+  // todo: error check
+}
 
 // Get inode from backend tree by eltonfs_ino.
 struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
@@ -108,35 +150,24 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   inode->i_rdev = MKDEV(i_xdr->major, i_xdr->minor);
 
   eltonfs_inode_init_ops(inode, inode->i_rdev);
+  eltonfs_inode_init_internal(inode);
 
   switch (inode->i_mode & S_IFMT) {
-  case S_IFREG: {
-    char *oid;
-    int error = dup_string(&oid, i_xdr->object_id);
-    if (error)
-      return ERR_PTR(error);
-    ei->file.object_id = oid;
-    ei->file.local_cache_id = NULL;
-    ei->file.cache_inode = NULL;
+  case S_IFREG:
+    eltonfs_inode_init_regular(inode, i_xdr->object_id, NULL);
     break;
-  }
   case S_IFDIR: {
-    int error = dup_dir_entries(&ei->dir.dir_entries, &i_xdr->dir_entries);
+    int error;
+    eltonfs_inode_init_dir(inode);
+    error = dup_dir_entries(&ei->dir.dir_entries, &i_xdr->dir_entries);
     if (error)
       return ERR_PTR(error);
     ei->dir.count = i_xdr->dir_entries_len;
     break;
   }
-  case S_IFLNK: {
-    int error;
-    char *oid;
-    error = dup_string(&oid, i_xdr->object_id);
-    if (error)
-      return ERR_PTR(error);
-    ei->symlink.object_id = oid;
-    ei->symlink.redirect_to = NULL;
+  case S_IFLNK:
+    eltonfs_inode_init_symlink(inode, i_xdr->object_id);
     break;
-  }
   }
   return eltonfs_i(inode);
 }
