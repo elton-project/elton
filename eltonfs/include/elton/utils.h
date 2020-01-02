@@ -1,3 +1,6 @@
+#ifndef _ELTON_UTILS_H
+#define _ELTON_UTILS_H
+
 #include <elton/assert.h>
 #include <elton/elton.h>
 #include <linux/kthread.h>
@@ -115,3 +118,5 @@ dup_dir_entries(struct eltonfs_dir_entry *to,
   }
   return 0;
 }
+
+#endif // _ELTON_UTILS_H
