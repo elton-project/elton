@@ -42,6 +42,7 @@
 //     * iget() should search and build an inode with vfs_ino if search key are
 //       within LOCAL_INO range.
 #include <elton/elton.h>
+#include <elton/local_cache.h>
 #include <elton/rpc/struct.h>
 #include <elton/utils.h>
 #include <linux/pagemap.h>
@@ -109,6 +110,16 @@ void eltonfs_inode_init_regular(struct inode *inode, const char *object_id,
   ei->file.local_cache_id = dup_string_direct(local_cache_id);
   ei->file.cache_inode = NULL;
   // todo: error check
+}
+int eltonfs_inode_init_regular_with_new_cache(struct inode *inode) {
+  int error;
+  char fpath[REAL_PATH_MAX];
+  char id[CACHE_ID_LENGTH];
+  struct inode *real_inode;
+  RETURN_IF(eltonfs_generate_cache_id(REMOTE_OBJ_DIR, fpath, id, &real_inode));
+  eltonfs_inode_init_regular(inode, NULL, id);
+  eltonfs_i(inode)->file.cache_inode = real_inode;
+  return 0;
 }
 void eltonfs_inode_init_dir(struct inode *inode) {
   struct eltonfs_inode *ei = eltonfs_i(inode);

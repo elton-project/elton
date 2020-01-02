@@ -154,9 +154,7 @@ static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
 
   switch (mode & S_IFMT) {
   case S_IFREG:
-    eltonfs_inode_init_regular(inode, NULL, NULL);
-    // todo: generate id.
-    eltonfs_i(inode)->file.local_cache_id = NULL; // todo: set id.
+    eltonfs_inode_init_regular_with_new_cache(inode);
     break;
   case S_IFDIR:
     eltonfs_inode_init_dir(inode);
