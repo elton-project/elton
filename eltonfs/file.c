@@ -86,10 +86,17 @@ ssize_t eltonfs_file_read(struct file *file, char __user *buff, size_t size,
   OBJ_CACHE_ACCESS_END;
   return ret;
 }
+ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
+                           size_t size, loff_t *offset) {
+  OBJ_CACHE_ACCESS_START_FILE(file);
+  size_t ret = vfs_write(REAL_FILE(file), buff, size, offset);
+  OBJ_CACHE_ACCESS_END;
+  return ret;
+}
 
 struct file_operations eltonfs_file_operations = {
     .read = eltonfs_file_read,
-    .write_iter = generic_file_write_iter,
+    .write = eltonfs_file_write,
     .mmap = eltonfs_file_mmap,
     .open = eltonfs_file_open,
     .release = eltonfs_file_release,
