@@ -24,6 +24,9 @@ struct elton_rpc_server server;
 static struct file_system_type eltonfs_type;
 static struct super_operations eltonfs_s_op;
 
+// Create inode under specified directory.
+// The content of created inode is only stored only local storage until commit
+// operation is executed.
 struct inode *eltonfs_get_inode(struct super_block *sb, const struct inode *dir,
                                 umode_t mode, dev_t dev) {
   struct inode *inode;

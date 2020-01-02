@@ -3,6 +3,8 @@
 #include <elton/utils.h>
 #include <linux/pagemap.h>
 
+// Initialize inode->i_op and inode->i_fop and inode->i_mapping.
+// Should set inode->i_mode before call it.
 void eltonfs_inode_init_ops(struct inode *inode, dev_t dev) {
   // todo: change aops by file types.
   inode->i_mapping->a_ops = &eltonfs_aops;
@@ -32,6 +34,7 @@ void eltonfs_inode_init_ops(struct inode *inode, dev_t dev) {
   }
 }
 
+// Get inode from backend tree by eltonfs_ino.
 struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   struct eltonfs_info *info = eltonfs_sb(sb);
   struct eltonfs_inode_xdr *i_xdr;
