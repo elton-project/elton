@@ -203,6 +203,6 @@ struct inode *eltonfs_create_inode(struct super_block *sb,
   inode_init_owner(inode, dir, mode);
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
   eltonfs_inode_init_ops(inode, dev);
-  // todo: init eltonfs internal fields.
+  eltonfs_inode_init_internal(inode);
   return inode;
 }
