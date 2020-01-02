@@ -198,25 +198,10 @@ static int eltonfs_mkdir(struct inode *dir, struct dentry *dentry,
 static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
                                      struct dentry *dentry,
                                      unsigned int flags) {
-  const struct eltonfs_inode *dir = eltonfs_i(vfs_dir);
-  const char *name = dentry->d_name.name;
-  const size_t name_len = strlen(name);
-  struct eltonfs_dir_entry *entry;
-  struct inode *inode;
-
-  if (name_len > ELTONFS_NAME_LEN)
-    return ERR_PTR(-ENAMETOOLONG);
-
-  list_for_each_entry(entry, &dir->dir.dir_entries._list_head, _list_head) {
-    if (entry->name_len != name_len)
-      // Fast path
-      continue;
-    // Slow path
-    if (strncmp(entry->name, name, entry->name_len))
-      continue;
-
+  u64 ino = eltonfs_dir_entries_lookup(vfs_dir, dentry->d_name.name);
+  if (likely(ino)) {
     // Found
-    inode = vfs_i(eltonfs_iget(vfs_dir->i_sb, entry->ino));
+    struct inode *inode = vfs_i(eltonfs_iget(vfs_dir->i_sb, ino));
     if (IS_ERR(inode))
       return ERR_CAST(inode);
     if (!inode) {
