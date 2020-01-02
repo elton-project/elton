@@ -355,6 +355,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     error = fcargs.error;
     info->cid = (const char *)cid;
     info->cinfo = cinfo;
+    info->inodes_ei = cinfo->tree->inodes;
     spin_unlock_irq(&lock);
     GOTO_IF(err, error);
   }
