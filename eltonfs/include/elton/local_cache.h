@@ -1,3 +1,6 @@
+#ifndef _ELTON_LOCAL_CACHE_H
+#define _ELTON_LOCAL_CACHE_H
+
 #include <elton/elton.h>
 #include <elton/utils.h>
 
@@ -14,3 +17,5 @@ int eltonfs_cache_obj(const char *oid, struct super_block *sb);
   OBJ_CACHE_ACCESS_START((_file)->f_inode->i_sb)
 
 #define OBJ_CACHE_ACCESS_END revert_creds(__old_cred)
+
+#endif // _ELTON_LOCAL_CACHE_H
