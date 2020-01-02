@@ -316,7 +316,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   RETURN_IF(eltonfs_create_cache_dir());
 
   DEBUG("Initializing eltonfs_info");
-  info = kmalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
+  info = kzalloc(sizeof(struct eltonfs_info), GFP_KERNEL);
   if (!info)
     RETURN_IF(-ENOMEM);
   GOTO_IF(err, eltonfs_parse_opt(data, &info->config));
@@ -324,7 +324,11 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   info->cred = get_current_cred();
   if (!info->cred)
     RETURN_IF(-ENOMEM);
-    // todo: release cred.
+  // todo: release cred if error occurred.
+  info->inodes_vfs = kmalloc(sizeof(*info->inodes_vfs), GFP_KERNEL);
+  if (!info->inodes_vfs)
+    RETURN_IF(-ENOMEM);
+  INIT_RADIX_TREE(info->inodes_vfs, GFP_NOFS);
 
 #ifdef ELTONFS_STATISTIC
   rwlock_init(&info->mmap_size_lock);
@@ -383,6 +387,8 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   return 0;
 
 err:
+  if (info->inodes_vfs)
+    kfree(info->inodes_vfs);
   if (info)
     kfree(info);
   if (inode)
