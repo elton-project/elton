@@ -329,18 +329,6 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   info->mmap_size = 0;
 #endif
 
-  DEBUG("Preparing for super block ...");
-  sb->s_blocksize_bits = PAGE_SHIFT;
-  sb->s_blocksize = PAGE_SIZE;
-  sb->s_maxbytes = MAX_LFS_FILESIZE;
-  sb->s_type = &eltonfs_type;
-  sb->s_op = &eltonfs_s_op;
-  sb->s_time_gran = 1;
-  sb->s_fs_info = info;
-#ifdef ELTONFS_XATTRS
-  sb->s_xattr = elton_xattr_handlers;
-#endif
-
   {
     struct task_struct *task;
     struct wait_queue_head wq;
@@ -363,6 +351,18 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     spin_unlock_irq(&lock);
     GOTO_IF(err, error);
   }
+
+  DEBUG("Preparing for super block ...");
+  sb->s_blocksize_bits = PAGE_SHIFT;
+  sb->s_blocksize = PAGE_SIZE;
+  sb->s_maxbytes = MAX_LFS_FILESIZE;
+  sb->s_type = &eltonfs_type;
+  sb->s_op = &eltonfs_s_op;
+  sb->s_time_gran = 1;
+  sb->s_fs_info = info;
+#ifdef ELTONFS_XATTRS
+  sb->s_xattr = elton_xattr_handlers;
+#endif
 
   inode = vfs_i(eltonfs_iget(sb, info->cinfo->tree->root->eltonfs_ino));
   if (!inode) {
