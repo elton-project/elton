@@ -11,6 +11,7 @@
 //     Not defined.
 #include <elton/assert.h>
 #include <elton/elton.h>
+#include <elton/utils.h>
 #include <elton/xattr.h>
 
 static inline struct file *_eltonfs_real_file(struct file *file,
@@ -142,12 +143,24 @@ static int eltonfs_dir_fsync(struct file *file, loff_t start, loff_t end,
   return -ENOTSUPP;
 }
 
+// Create regular/directory/device file into dir.
 static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
                          dev_t dev) {
   int error;
   struct inode *inode = eltonfs_create_inode(dir->i_sb, dir, mode, dev);
   if (!inode) {
     return -ENOSPC;
+  }
+
+  switch (mode & S_IFMT) {
+  case S_IFREG:
+    eltonfs_inode_init_regular(inode, NULL, NULL);
+    // todo: generate id.
+    eltonfs_i(inode)->file.local_cache_id = NULL; // todo: set id.
+    break;
+  case S_IFDIR:
+    eltonfs_inode_init_dir(inode);
+    break;
   }
 
   error = eltonfs_dir_entries_add(dir, dentry->d_name.name, inode->i_ino);
@@ -167,18 +180,21 @@ static int eltonfs_create(struct inode *dir, struct dentry *dentry,
 static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
                            const char *symname) {
   struct inode *inode;
-  int len, error;
+  char *p;
 
   inode = eltonfs_create_inode(dir->i_sb, dir, S_IFLNK | S_IRWXUGO, 0);
   if (!inode) {
     return -ENOSPC;
   }
-  len = strlen(symname) + 1;
-  // TODO: allocate physical pages.
-  error = page_symlink(inode, symname, len);
-  if (error) {
+
+  eltonfs_inode_init_symlink(inode, NULL);
+  eltonfs_i(inode)->symlink.redirect_to = p = dup_string_direct(symname);
+  if (IS_ERR(p)) {
+    eltonfs_i(inode)->symlink.redirect_to = NULL;
     iput(inode);
+    return PTR_ERR(p);
   }
+
   d_instantiate(dentry, inode);
   dget(dentry);
   dir->i_mtime = dir->i_ctime = current_time(dir);

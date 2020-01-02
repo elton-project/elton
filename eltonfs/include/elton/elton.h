@@ -178,6 +178,10 @@ static inline struct eltonfs_info *eltonfs_sb(struct super_block *sb) {
 
 void eltonfs_inode_init_once(struct eltonfs_inode *i);
 void eltonfs_inode_init_ops(struct inode *inode, dev_t dev);
+void eltonfs_inode_init_regular(struct inode *inode, const char *object_id,
+                                const char *local_cache_id);
+void eltonfs_inode_init_dir(struct inode *inode);
+void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id);
 
 // Iterate all directory entries in a eltonfs_inode.
 //
