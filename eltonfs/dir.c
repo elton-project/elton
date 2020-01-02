@@ -23,6 +23,64 @@ static inline struct file *_eltonfs_real_file(struct file *file,
 }
 #define REAL_FILE(file) _eltonfs_real_file((file), __func__)
 
+static inline struct eltonfs_dir_entry *
+_eltonfs_dir_entries_lookup_entry(struct inode *vfs_dir, const char *name) {
+  const struct eltonfs_inode *dir = eltonfs_i(vfs_dir);
+  const size_t name_len = strlen(name);
+  struct eltonfs_dir_entry *entry;
+
+  list_for_each_entry(entry, &dir->dir.dir_entries._list_head, _list_head) {
+    if (likely(entry->name_len != name_len))
+      // Fast path
+      continue;
+    // Slow path
+    if (likely(strncmp(entry->name, name, entry->name_len)))
+      continue;
+    return entry;
+  }
+  // Not found
+  return NULL;
+}
+
+// Lookup an entry by name from dir.
+// It returns vfs_ino or 0.
+static u64 eltonfs_dir_entries_lookup(struct inode *vfs_dir, const char *name) {
+  struct eltonfs_dir_entry *entry =
+      _eltonfs_dir_entries_lookup_entry(vfs_dir, name);
+  if (unlikely(!entry))
+    return 0;
+  return entry->ino;
+}
+// Delete an entry from dir.
+static int eltonfs_dir_entries_delete(struct inode *vfs_dir, const char *name) {
+  struct eltonfs_dir_entry *entry =
+      _eltonfs_dir_entries_lookup_entry(vfs_dir, name);
+  if (unlikely(!entry))
+    return -ENOENT;
+
+  list_del(&entry->_list_head);
+  kfree(entry);
+  eltonfs_i(vfs_dir)->dir.count--;
+}
+// Add an entry with specified name and vfs_ino.
+static int eltonfs_dir_entries_add(struct inode *vfs_dir, const char *name,
+                                   u64 vfs_ino) {
+  struct eltonfs_dir_entry *entry;
+  size_t len;
+  len = strlen(name);
+  if (unlikely(len > ELTONFS_NAME_LEN))
+    return -ENAMETOOLONG;
+
+  entry = kmalloc(sizeof(*entry), GFP_NOFS);
+  if (unlikely(!entry))
+    return -ENOMEM;
+  entry->ino = vfs_ino;
+  memcpy(entry->name, name, len);
+  entry->name_len = len;
+  list_add(&entry->_list_head, &eltonfs_i(vfs_dir)->dir.dir_entries._list_head);
+  return 0;
+}
+
 static int eltonfs_dir_open(struct inode *inode, struct file *file) {
   file->private_data = (void *)0;
   return 0;
