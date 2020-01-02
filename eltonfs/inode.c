@@ -188,6 +188,11 @@ retry:
 }
 
 // Create inode under specified directory.
+//
+// WARNING: The caller is responsible for initializing type specified fields.
+//          MUST initialize it by eltonfs_inode_init_regular/dir/symlink() and
+//          set appropriate values.
+//
 // The content of created inode is only stored only local storage until commit
 // operation is executed.
 struct inode *eltonfs_create_inode(struct super_block *sb,
