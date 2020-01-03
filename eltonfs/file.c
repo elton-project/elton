@@ -15,6 +15,9 @@
 static inline struct file *REAL_FILE(struct file *file) {
   return (struct file *)file->private_data;
 }
+static inline void UPDATE_SIZE(struct file *file) {
+  i_size_write(file->f_inode, i_size_read(REAL_FILE(file)->f_inode));
+}
 
 static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
   struct file *real = REAL_FILE(file);
@@ -81,14 +84,16 @@ static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
 static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
                                   size_t size, loff_t *offset) {
   OBJ_CACHE_ACCESS_START_FILE(file);
-  size_t ret = vfs_write(REAL_FILE(file), buff, size, offset);
+  ssize_t ret = vfs_write(REAL_FILE(file), buff, size, offset);
+  UPDATE_SIZE(file);
   OBJ_CACHE_ACCESS_END;
-  // todo: update size.
   return ret;
 }
 static loff_t eltonfs_file_llseek(struct file *file, loff_t offset,
                                   int whence) {
-  return vfs_llseek(REAL_FILE(file), offset, whence);
+  size_t ret = vfs_llseek(REAL_FILE(file), offset, whence);
+  UPDATE_SIZE(file);
+  return ret;
 }
 static int eltonfs_file_fsync(struct file *file, loff_t start, loff_t end,
                               int datasync) {
@@ -105,17 +110,23 @@ static ssize_t eltonfs_file_splice_read(struct file *in, loff_t *ppos,
 static ssize_t eltonfs_file_splice_write(struct pipe_inode_info *pipe,
                                          struct file *out, loff_t *ppos,
                                          size_t len, unsigned int flags) {
+  ssize_t ret;
   struct file *real = REAL_FILE(out);
   if (!real->f_op->splice_write)
     return -ENOTSUPP;
-  return real->f_op->splice_write(pipe, real, ppos, len, flags);
+  ret = real->f_op->splice_write(pipe, real, ppos, len, flags);
+  UPDATE_SIZE(out);
+  return ret;
 }
 static long eltonfs_file_fallocate(struct file *file, int mode, loff_t offset,
                                    loff_t len) {
+  long ret;
   struct file *real = REAL_FILE(file);
   if (!real->f_op->fallocate)
     return -ENOTSUPP;
-  return real->f_op->fallocate(real, mode, offset, len);
+  ret = real->f_op->fallocate(real, mode, offset, len);
+  UPDATE_SIZE(file);
+  return ret;
 }
 
 int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
