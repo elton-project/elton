@@ -109,6 +109,13 @@ static ssize_t eltonfs_file_splice_write(struct pipe_inode_info *pipe,
     return -ENOTSUPP;
   return real->f_op->splice_write(pipe, real, ppos, len, flags);
 }
+static long eltonfs_file_fallocate(struct file *file, int mode, loff_t offset,
+                                   loff_t len) {
+  struct file *real = REAL_FILE(file);
+  if (!real->f_op->fallocate)
+    return -ENOTSUPP;
+  return real->f_op->fallocate(real, mode, offset, len);
+}
 
 int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
   struct inode *inode = d_inode(dentry);
@@ -147,6 +154,7 @@ struct file_operations eltonfs_file_operations = {
     .splice_write = eltonfs_file_splice_write,
     .llseek = eltonfs_file_llseek,
     .get_unmapped_area = eltonfs_get_unmapped_area,
+    .fallocate = eltonfs_file_fallocate,
     .unlocked_ioctl = eltonfs_ioctl,
 #ifdef CONFIG_COMPAT
     // for 32bit application.  See
