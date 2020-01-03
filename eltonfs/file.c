@@ -20,6 +20,7 @@ static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
   struct file *real = REAL_FILE(file);
   if (!real->f_op->mmap)
     return -ENOTSUPP;
+  vma->vm_file = real;
   return real->f_op->mmap(real, vma);
 }
 
