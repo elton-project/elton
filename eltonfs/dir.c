@@ -249,6 +249,18 @@ int eltonfs_unlink(struct inode *dir, struct dentry *dentry) {
   return 0;
 }
 
+int eltonfs_rmdir(struct inode *dir, struct dentry *dentry) {
+  struct inode *child = d_inode(dentry);
+  if ((child->i_mode & S_IFDIR) && eltonfs_i(child)->dir.count)
+    // Directory is not empty.
+    return -ENOTEMPTY;
+
+  drop_nlink(child);
+  eltonfs_unlink(dir, dentry);
+  drop_nlink(dir);
+  return 0;
+}
+
 // todo
 struct file_operations eltonfs_dir_operations = {
     .open = eltonfs_dir_open,
@@ -270,7 +282,7 @@ struct inode_operations eltonfs_dir_inode_operations = {
     .unlink = eltonfs_unlink,
     .symlink = eltonfs_symlink,
     .mkdir = eltonfs_mkdir,
-    .rmdir = simple_rmdir,
+    .rmdir = eltonfs_rmdir,
     .mknod = eltonfs_mknod,
     .rename = simple_rename,
 #ifdef ELTONFS_XATTRS
