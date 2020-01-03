@@ -82,6 +82,10 @@ static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
   // todo: update size.
   return ret;
 }
+static loff_t eltonfs_file_llseek(struct file *file, loff_t offset,
+                                  int whence) {
+  return vfs_llseek(REAL_FILE(file), offset, whence);
+}
 
 int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
   struct inode *inode = d_inode(dentry);
@@ -118,7 +122,7 @@ struct file_operations eltonfs_file_operations = {
     .fsync = noop_fsync,
     .splice_read = generic_file_splice_read,
     .splice_write = iter_file_splice_write,
-    .llseek = generic_file_llseek,
+    .llseek = eltonfs_file_llseek,
     .get_unmapped_area = eltonfs_get_unmapped_area,
     .unlocked_ioctl = eltonfs_ioctl,
 #ifdef CONFIG_COMPAT
