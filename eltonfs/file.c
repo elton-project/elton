@@ -64,7 +64,10 @@ static unsigned long eltonfs_get_unmapped_area(struct file *file,
                                                unsigned long len,
                                                unsigned long pgoff,
                                                unsigned long flags) {
-  return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
+  struct file *real = REAL_FILE(file);
+  if (!real->f_op->get_unmapped_area)
+    return -ENOTSUPP;
+  return real->f_op->get_unmapped_area(real, addr, len, pgoff, flags);
 }
 
 static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
