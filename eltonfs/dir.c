@@ -85,6 +85,28 @@ static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
   dir->i_mtime = dir->i_ctime = current_time(dir);
   return 0;
 }
+// Replace a directory entry.
+// The destination file does not have to exist.
+static int eltonfs_dir_entries_replace(struct inode *old_dir,
+                                       const char *old_name,
+                                       struct inode *new_dir,
+                                       const char *new_name) {
+  struct eltonfs_dir_entry *old_entry =
+      _eltonfs_dir_entries_lookup_entry(old_dir, old_name);
+  struct eltonfs_dir_entry *new_entry =
+      _eltonfs_dir_entries_lookup_entry(new_dir, new_name);
+
+  if (new_entry) {
+    list_del(&new_entry->_list_head); // Disconnect from new_dir.
+    kfree(new_entry);
+  }
+  list_del(&old_entry->_list_head); // Disconnect from old_dir.
+  strcpy(old_entry->name, new_name);
+  old_entry->name_len = strlen(new_name);
+  list_add(&old_entry->_list_head,
+           &eltonfs_i(new_dir)->dir.dir_entries._list_head);
+  return 0;
+}
 static int eltonfs_dir_entries_is_empty(struct inode *dir) {
   return list_empty(&eltonfs_i(dir)->dir.dir_entries._list_head);
 }
@@ -265,6 +287,42 @@ int eltonfs_rmdir(struct inode *dir, struct dentry *dentry) {
   return 0;
 }
 
+int eltonfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+                   struct inode *new_dir, struct dentry *new_dentry,
+                   unsigned int flags) {
+  struct inode *old = d_inode(old_dentry);
+  struct inode *new = d_inode(new_dentry);
+
+  if (flags & ~RENAME_NOREPLACE)
+    return -EINVAL;
+  // NOTE: The VFS already checks for existence, so for eltonfs the
+  // RENAME_NOREPLACE implementation is not needed.
+
+  if (d_really_is_positive(new_dentry)) {
+    // Already exists a file to destination.  Should remove dest file before
+    // move a file.
+    if (d_is_dir(new_dentry)) {
+      if (!eltonfs_dir_entries_is_empty(new))
+        return -ENOTEMPTY;
+    }
+
+    eltonfs_dir_entries_replace(old_dir, old_dentry->d_name.name, new_dir,
+                                new_dentry->d_name.name);
+    drop_nlink(old_dir);
+    drop_nlink(new);
+  } else {
+    // Move a file.
+    eltonfs_dir_entries_replace(old_dir, old_dentry->d_name.name, new_dir,
+                                new_dentry->d_name.name);
+    drop_nlink(old_dir);
+    inc_nlink(new_dir);
+  }
+
+  old_dir->i_ctime = old_dir->i_mtime = new_dir->i_ctime = new_dir->i_mtime =
+      old->i_ctime = current_time(old_dir);
+  return 0;
+}
+
 // todo
 struct file_operations eltonfs_dir_operations = {
     .open = eltonfs_dir_open,
@@ -288,7 +346,7 @@ struct inode_operations eltonfs_dir_inode_operations = {
     .mkdir = eltonfs_mkdir,
     .rmdir = eltonfs_rmdir,
     .mknod = eltonfs_mknod,
-    .rename = simple_rename,
+    .rename = eltonfs_rename,
 #ifdef ELTONFS_XATTRS
     .listxattr = elton_list_xattr_vfs,
 #endif
