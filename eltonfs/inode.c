@@ -116,7 +116,7 @@ int eltonfs_inode_init_regular_with_new_cache(struct inode *inode) {
   char fpath[REAL_PATH_MAX];
   char id[CACHE_ID_LENGTH];
   struct inode *real_inode;
-  RETURN_IF(eltonfs_generate_cache_id(REMOTE_OBJ_DIR, fpath, id, &real_inode));
+  RETURN_IF(eltonfs_generate_cache_id(LOCAL_OBJ_DIR, fpath, id, &real_inode));
   eltonfs_inode_init_regular(inode, NULL, id);
   eltonfs_i(inode)->file.cache_inode = real_inode;
   return 0;
