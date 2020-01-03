@@ -237,6 +237,18 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
   return dentry;
 }
 
+int eltonfs_unlink(struct inode *dir, struct dentry *dentry) {
+  int error;
+  struct inode *inode = d_inode(dentry);
+
+  error = eltonfs_dir_entries_delete(dir, dentry->d_name.name);
+  if (error)
+    return error;
+  drop_nlink(inode);
+  dput(dentry);
+  return 0;
+}
+
 // todo
 struct file_operations eltonfs_dir_operations = {
     .open = eltonfs_dir_open,
@@ -255,7 +267,7 @@ struct inode_operations eltonfs_dir_inode_operations = {
     .create = eltonfs_create,
     .lookup = eltonfs_lookup,
     .link = simple_link,
-    .unlink = simple_unlink,
+    .unlink = eltonfs_unlink,
     .symlink = eltonfs_symlink,
     .mkdir = eltonfs_mkdir,
     .rmdir = simple_rmdir,
