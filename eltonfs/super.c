@@ -394,7 +394,7 @@ static struct dentry *eltonfs_mount(struct file_system_type *fs_type, int flags,
                                     const char *dev_name, void *data) {
   return mount_nodev(fs_type, flags, data, eltonfs_fill_super);
 }
-static void kill_sb(struct super_block *sb) {
+static void eltonfs_kill_sb(struct super_block *sb) {
   // todo: impl
   // todo: release cred
 }
@@ -531,7 +531,7 @@ static struct file_system_type eltonfs_type = {
     .owner = THIS_MODULE,
     .name = FS_NAME,
     .mount = eltonfs_mount,
-    .kill_sb = kill_sb,
+    .kill_sb = eltonfs_kill_sb,
     .fs_flags = 0,
 };
 static struct super_operations eltonfs_s_op = {
