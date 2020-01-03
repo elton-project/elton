@@ -17,7 +17,10 @@ static inline struct file *REAL_FILE(struct file *file) {
 }
 
 static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
-  return generic_file_mmap(file, vma);
+  struct file *real = REAL_FILE(file);
+  if (!real->f_op->mmap)
+    return -ENOTSUPP;
+  return real->f_op->mmap(real, vma);
 }
 
 static int _eltonfs_file_open(struct inode *inode, struct file *file) {
