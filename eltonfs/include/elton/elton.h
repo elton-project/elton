@@ -72,11 +72,6 @@ struct eltonfs_info {
   // access it.
   u64 last_local_ino;
   // todo: add lock
-
-#ifdef ELTONFS_STATISTIC
-  unsigned long mmap_size;
-  rwlock_t mmap_size_lock;
-#endif
 };
 
 struct eltonfs_dir_entry {

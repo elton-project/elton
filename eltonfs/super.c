@@ -320,11 +320,6 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
     RETURN_IF(-ENOMEM);
   INIT_RADIX_TREE(info->inodes_vfs, GFP_NOFS);
 
-#ifdef ELTONFS_STATISTIC
-  rwlock_init(&info->mmap_size_lock);
-  info->mmap_size = 0;
-#endif
-
   DEBUG("Getting commit information");
   {
     struct task_struct *task;

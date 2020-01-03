@@ -17,23 +17,6 @@ static inline struct file *REAL_FILE(struct file *file) {
 }
 
 static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
-#ifdef ELTONFS_STATISTIC
-  struct eltonfs_info *info = file->f_path.mnt->mnt_sb->s_fs_info;
-  unsigned long size = vma->vm_end - vma->vm_start;
-  int need_logging = 0;
-
-  write_lock(&info->mmap_size_lock);
-  if (info->mmap_size < size) {
-    info->mmap_size = size;
-    need_logging = 1;
-  }
-  write_unlock(&info->mmap_size_lock);
-
-  if (need_logging)
-    DEBUG("mmap size: file=%s, size=%ld", file->f_path.dentry->d_name.name,
-          size);
-#endif
-
   return generic_file_mmap(file, vma);
 }
 
