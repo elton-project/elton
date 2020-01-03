@@ -12,10 +12,8 @@
 #include <linux/kthread.h>
 #include <linux/module.h>
 #include <linux/mount.h>
-#include <linux/net.h>
 #include <linux/pagemap.h>
 #include <linux/seq_file.h>
-#include <linux/slab.h>
 #include <linux/statfs.h>
 #include <linux/wait.h>
 
@@ -36,14 +34,6 @@ int elton_update_time(struct inode *inode, struct timespec64 *time, int flags) {
   if (flags & S_MTIME)
     inode->i_mtime = *time;
   spin_unlock(&inode->i_lock);
-  return 0;
-}
-
-static int eltonfs_set_page_dirty(struct page *page) {
-  if (PageDirty(page)) {
-    return 0;
-  }
-  SetPageDirty(page);
   return 0;
 }
 
@@ -551,12 +541,7 @@ static struct super_operations eltonfs_s_op = {
     .drop_inode = generic_delete_inode,
     .show_options = eltonfs_show_options,
 };
-struct address_space_operations eltonfs_aops = {
-    .readpage = simple_readpage,
-    .write_begin = simple_write_begin,
-    .write_end = simple_write_end,
-    .set_page_dirty = eltonfs_set_page_dirty,
-};
+struct address_space_operations eltonfs_aops = {};
 
 module_init(fs_module_init);
 module_exit(fs_module_exit);
