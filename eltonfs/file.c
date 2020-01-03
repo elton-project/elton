@@ -8,7 +8,9 @@
 #include <elton/local_cache.h>
 #include <elton/xattr.h>
 #include <linux/cred.h>
+#include <linux/mm.h>
 #include <linux/mount.h>
+#include <linux/namei.h>
 
 static inline struct file *REAL_FILE(struct file *file) {
   return (struct file *)file->private_data;
@@ -95,6 +97,32 @@ ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
   return ret;
 }
 
+int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
+  struct inode *inode = d_inode(dentry);
+  int error;
+
+  error = setattr_prepare(dentry, iattr);
+  if (error)
+    return error;
+
+  if (iattr->ia_valid & ATTR_SIZE) {
+    struct path path;
+    eltonfs_get_cache_path(dentry->d_inode, &path);
+    vfs_truncate(&path, iattr->ia_size);
+    path_put(&path);
+    truncate_setsize(inode, iattr->ia_size);
+  }
+  setattr_copy(inode, iattr);
+  mark_inode_dirty(inode);
+  return 0;
+}
+int eltonfs_file_getattr(const struct path *path, struct kstat *stat,
+                         u32 request_mask, unsigned int query_flags) {
+  struct inode *inode = d_inode(path->dentry);
+  generic_fillattr(inode, stat);
+  return 0;
+}
+
 struct file_operations eltonfs_file_operations = {
     .read = eltonfs_file_read,
     .write = eltonfs_file_write,
@@ -115,8 +143,8 @@ struct file_operations eltonfs_file_operations = {
 };
 
 struct inode_operations eltonfs_file_inode_operations = {
-    .setattr = simple_setattr,
-    .getattr = simple_getattr,
+    .setattr = eltonfs_file_setattr,
+    .getattr = eltonfs_file_getattr,
 #ifdef ELTONFS_XATTRS
     .listxattr = elton_list_xattr_vfs,
 #endif

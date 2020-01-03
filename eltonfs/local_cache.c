@@ -45,6 +45,12 @@ static inline int eltonfs_cache_fpath_from_cid(char *fpath, size_t size,
                                                const char *cid) {
   return snprintf(fpath, size, "%s/%s", base_dir, cid);
 }
+inline int eltonfs_cache_path_from_cid(struct path *path, const char *base_dir,
+                                       const char *cid) {
+  char fpath[REAL_PATH_MAX];
+  eltonfs_cache_fpath_from_cid(fpath, REAL_PATH_MAX, base_dir, cid);
+  return kern_path(fpath, 0, path);
+}
 static inline int eltonfs_cache_fpath_from_int(char *fpath, size_t size,
                                                const char *base_dir, u64 a,
                                                u16 b) {
@@ -144,6 +150,23 @@ err:
   if (out && !IS_ERR(out))
     filp_close(out, NULL);
   return ERR_PTR(error);
+}
+
+int eltonfs_get_cache_path(struct inode *inode, struct path *path) {
+  if (!(inode->i_mode & S_IFREG)) {
+    DEBUG("get fpath with unexpected file type: inode=%px, path=%px", inode,
+          path);
+    BUG();
+  }
+  if (eltonfs_i(inode)->file.object_id)
+    return eltonfs_cache_path_from_cid(path, REMOTE_OBJ_DIR,
+                                       eltonfs_i(inode)->file.object_id);
+  if (eltonfs_i(inode)->file.local_cache_id)
+    return eltonfs_cache_path_from_cid(path, LOCAL_OBJ_DIR,
+                                       eltonfs_i(inode)->file.local_cache_id);
+  DEBUG("object_id or cache_id is not assigned: inode=%px, path=%px", inode,
+        path);
+  BUG();
 }
 
 // Returns an inode associated to cid.
