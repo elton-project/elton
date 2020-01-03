@@ -86,6 +86,10 @@ static loff_t eltonfs_file_llseek(struct file *file, loff_t offset,
                                   int whence) {
   return vfs_llseek(REAL_FILE(file), offset, whence);
 }
+static int eltonfs_file_fsync(struct file *file, loff_t start, loff_t end,
+                              int datasync) {
+  return vfs_fsync_range(REAL_FILE(file), start, end, datasync);
+}
 
 int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
   struct inode *inode = d_inode(dentry);
@@ -119,7 +123,7 @@ struct file_operations eltonfs_file_operations = {
     .mmap = eltonfs_file_mmap,
     .open = eltonfs_file_open,
     .release = eltonfs_file_release,
-    .fsync = noop_fsync,
+    .fsync = eltonfs_file_fsync,
     .splice_read = generic_file_splice_read,
     .splice_write = iter_file_splice_write,
     .llseek = eltonfs_file_llseek,
