@@ -85,6 +85,9 @@ static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
   dir->i_mtime = dir->i_ctime = current_time(dir);
   return 0;
 }
+static int eltonfs_dir_entries_is_empty(struct inode *dir) {
+  return list_empty(&eltonfs_i(dir)->dir.dir_entries._list_head);
+}
 
 static int eltonfs_dir_open(struct inode *inode, struct file *file) {
   file->private_data = (void *)0;
@@ -252,7 +255,7 @@ int eltonfs_unlink(struct inode *dir, struct dentry *dentry) {
 
 int eltonfs_rmdir(struct inode *dir, struct dentry *dentry) {
   struct inode *child = d_inode(dentry);
-  if ((child->i_mode & S_IFDIR) && eltonfs_i(child)->dir.count)
+  if ((child->i_mode & S_IFDIR) && !eltonfs_dir_entries_is_empty(child))
     // Directory is not empty.
     return -ENOTEMPTY;
 
