@@ -67,15 +67,15 @@ static unsigned long eltonfs_get_unmapped_area(struct file *file,
   return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
 }
 
-ssize_t eltonfs_file_read(struct file *file, char __user *buff, size_t size,
-                          loff_t *offset) {
+static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
+                                 size_t size, loff_t *offset) {
   OBJ_CACHE_ACCESS_START_FILE(file);
   ssize_t ret = vfs_read(REAL_FILE(file), buff, size, offset);
   OBJ_CACHE_ACCESS_END;
   return ret;
 }
-ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
-                           size_t size, loff_t *offset) {
+static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
+                                  size_t size, loff_t *offset) {
   OBJ_CACHE_ACCESS_START_FILE(file);
   size_t ret = vfs_write(REAL_FILE(file), buff, size, offset);
   OBJ_CACHE_ACCESS_END;
