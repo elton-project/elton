@@ -20,11 +20,17 @@ static inline void UPDATE_SIZE(struct file *file) {
 }
 
 static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
+  int ret;
   struct file *real = REAL_FILE(file);
+  OBJ_CACHE_ACCESS_START_FILE(file);
   if (!real->f_op->mmap)
-    return -ENOTSUPP;
-  vma->vm_file = real;
-  return real->f_op->mmap(real, vma);
+    ret = -ENOTSUPP;
+  else {
+    vma->vm_file = real;
+    ret = real->f_op->mmap(real, vma);
+  }
+  OBJ_CACHE_ACCESS_END;
+  return ret;
 }
 
 static int _eltonfs_file_open(struct inode *inode, struct file *file) {
@@ -41,26 +47,36 @@ static int _eltonfs_file_open(struct inode *inode, struct file *file) {
 }
 static int eltonfs_file_open(struct inode *inode, struct file *file) {
   int error;
-
-  if (!(inode->i_mode & S_IFREG))
-    return -EINVAL;
+  OBJ_CACHE_ACCESS_START(inode->i_sb);
+  if (!(inode->i_mode & S_IFREG)) {
+    error = -EINVAL;
+    goto out;
+  }
 
   error = _eltonfs_file_open(inode, file);
   if (error != -ELTON_CACHE_MISS)
     // Fast path (cache hit).
-    return error;
+    goto out;
 
   // Slow path (cache miss).
   error = eltonfs_cache_obj(eltonfs_i(inode)->file.object_id, inode->i_sb);
   if (error)
-    return error;
-  return _eltonfs_file_open(inode, file);
+    goto out;
+  error = _eltonfs_file_open(inode, file);
+
+out:
+  OBJ_CACHE_ACCESS_END;
+  return error;
 }
 
 static int eltonfs_file_release(struct inode *inode, struct file *file) {
-  if (file->private_data)
-    return filp_close(file->private_data, NULL);
-  return 0;
+  int error = 0;
+  if (file->private_data) {
+    OBJ_CACHE_ACCESS_START(inode->i_sb);
+    error = filp_close(file->private_data, NULL);
+    OBJ_CACHE_ACCESS_END;
+  }
+  return error;
 }
 
 static unsigned long eltonfs_get_unmapped_area(struct file *file,
@@ -68,10 +84,15 @@ static unsigned long eltonfs_get_unmapped_area(struct file *file,
                                                unsigned long len,
                                                unsigned long pgoff,
                                                unsigned long flags) {
+  int ret;
   struct file *real = REAL_FILE(file);
+  OBJ_CACHE_ACCESS_START_FILE(file);
   if (!real->f_op->get_unmapped_area)
-    return -ENOTSUPP;
-  return real->f_op->get_unmapped_area(real, addr, len, pgoff, flags);
+    ret = -ENOTSUPP;
+  else
+    ret = real->f_op->get_unmapped_area(real, addr, len, pgoff, flags);
+  OBJ_CACHE_ACCESS_END;
+  return ret;
 }
 
 static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
@@ -91,41 +112,60 @@ static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
 }
 static loff_t eltonfs_file_llseek(struct file *file, loff_t offset,
                                   int whence) {
+  OBJ_CACHE_ACCESS_START_FILE(file);
   size_t ret = vfs_llseek(REAL_FILE(file), offset, whence);
   UPDATE_SIZE(file);
+  OBJ_CACHE_ACCESS_END;
   return ret;
 }
 static int eltonfs_file_fsync(struct file *file, loff_t start, loff_t end,
                               int datasync) {
-  return vfs_fsync_range(REAL_FILE(file), start, end, datasync);
+  int ret;
+  OBJ_CACHE_ACCESS_START_FILE(file);
+  ret = vfs_fsync_range(REAL_FILE(file), start, end, datasync);
+  OBJ_CACHE_ACCESS_END;
+  return ret;
 }
 static ssize_t eltonfs_file_splice_read(struct file *in, loff_t *ppos,
                                         struct pipe_inode_info *pipe,
                                         size_t len, unsigned int flags) {
+  int ret;
   struct file *real = REAL_FILE(in);
+  OBJ_CACHE_ACCESS_START_FILE(in);
   if (!real->f_op->splice_read)
-    return -ENOTSUPP;
-  return real->f_op->splice_read(real, ppos, pipe, len, flags);
+    ret = -ENOTSUPP;
+  else
+    ret = real->f_op->splice_read(real, ppos, pipe, len, flags);
+  OBJ_CACHE_ACCESS_END;
+  return ret;
 }
 static ssize_t eltonfs_file_splice_write(struct pipe_inode_info *pipe,
                                          struct file *out, loff_t *ppos,
                                          size_t len, unsigned int flags) {
   ssize_t ret;
   struct file *real = REAL_FILE(out);
+  OBJ_CACHE_ACCESS_START_FILE(out);
   if (!real->f_op->splice_write)
-    return -ENOTSUPP;
-  ret = real->f_op->splice_write(pipe, real, ppos, len, flags);
-  UPDATE_SIZE(out);
+    ret = -ENOTSUPP;
+  else {
+    ret = real->f_op->splice_write(pipe, real, ppos, len, flags);
+    UPDATE_SIZE(out);
+  }
+  OBJ_CACHE_ACCESS_END;
   return ret;
 }
 static long eltonfs_file_fallocate(struct file *file, int mode, loff_t offset,
                                    loff_t len) {
   long ret;
   struct file *real = REAL_FILE(file);
+  OBJ_CACHE_ACCESS_START_FILE(file);
   if (!real->f_op->fallocate)
-    return -ENOTSUPP;
-  ret = real->f_op->fallocate(real, mode, offset, len);
-  UPDATE_SIZE(file);
+    ret = -ENOTSUPP;
+  else {
+    ret = real->f_op->fallocate(real, mode, offset, len);
+    UPDATE_SIZE(file);
+  }
+  OBJ_CACHE_ACCESS_END;
   return ret;
 }
 
