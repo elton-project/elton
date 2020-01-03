@@ -109,7 +109,7 @@ static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
   }
   if (index == 1) {
     index = 2;
-    if (!dir_emit_dot(file, ctx))
+    if (!dir_emit_dotdot(file, ctx))
       goto out;
   }
 
