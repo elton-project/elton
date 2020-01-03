@@ -177,6 +177,7 @@ static int eltonfs_create(struct inode *dir, struct dentry *dentry,
 
 static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
                            const char *symname) {
+  int error;
   struct inode *inode;
   char *p;
 
@@ -192,6 +193,10 @@ static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
     iput(inode);
     return PTR_ERR(p);
   }
+
+  error = eltonfs_dir_entries_add(dir, dentry->d_name.name, inode->i_ino);
+  if (error)
+    return error;
 
   d_instantiate(dentry, inode);
   dget(dentry);
