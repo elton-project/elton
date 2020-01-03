@@ -93,6 +93,22 @@ static int eltonfs_file_fsync(struct file *file, loff_t start, loff_t end,
                               int datasync) {
   return vfs_fsync_range(REAL_FILE(file), start, end, datasync);
 }
+static ssize_t eltonfs_file_splice_read(struct file *in, loff_t *ppos,
+                                        struct pipe_inode_info *pipe,
+                                        size_t len, unsigned int flags) {
+  struct file *real = REAL_FILE(in);
+  if (!real->f_op->splice_read)
+    return -ENOTSUPP;
+  return real->f_op->splice_read(real, ppos, pipe, len, flags);
+}
+static ssize_t eltonfs_file_splice_write(struct pipe_inode_info *pipe,
+                                         struct file *out, loff_t *ppos,
+                                         size_t len, unsigned int flags) {
+  struct file *real = REAL_FILE(out);
+  if (!real->f_op->splice_write)
+    return -ENOTSUPP;
+  return real->f_op->splice_write(pipe, real, ppos, len, flags);
+}
 
 int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
   struct inode *inode = d_inode(dentry);
@@ -127,8 +143,8 @@ struct file_operations eltonfs_file_operations = {
     .open = eltonfs_file_open,
     .release = eltonfs_file_release,
     .fsync = eltonfs_file_fsync,
-    .splice_read = generic_file_splice_read,
-    .splice_write = iter_file_splice_write,
+    .splice_read = eltonfs_file_splice_read,
+    .splice_write = eltonfs_file_splice_write,
     .llseek = eltonfs_file_llseek,
     .get_unmapped_area = eltonfs_get_unmapped_area,
     .unlocked_ioctl = eltonfs_ioctl,
