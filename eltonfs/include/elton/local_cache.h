@@ -19,6 +19,7 @@ int eltonfs_get_cache_path(struct inode *inode, struct path *path);
 int eltonfs_generate_cache_id(const char *base_dir, char fpath[REAL_PATH_MAX],
                               char id[CACHE_ID_LENGTH], struct inode **inode);
 int eltonfs_create_cache_dir(void);
+struct dentry *eltonfs_get_real_dentry(struct eltonfs_inode *inode);
 struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
                                     struct file *file);
 int eltonfs_cache_obj_async(struct eltonfs_job *job, const char *oid,

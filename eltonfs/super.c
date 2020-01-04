@@ -21,6 +21,7 @@ static bool is_registered = 0;
 struct elton_rpc_server server;
 static struct file_system_type eltonfs_type;
 static struct super_operations eltonfs_s_op;
+struct dentry_operations eltonfs_dops;
 
 int elton_update_time(struct inode *inode, struct timespec64 *time, int flags) {
   spin_lock(&inode->i_lock);
@@ -351,6 +352,7 @@ static int eltonfs_fill_super(struct super_block *sb, void *data, int silent) {
   sb->s_maxbytes = MAX_LFS_FILESIZE;
   sb->s_type = &eltonfs_type;
   sb->s_op = &eltonfs_s_op;
+  sb->s_d_op = &eltonfs_dops;
   sb->s_time_gran = 1;
   sb->s_fs_info = info;
 #ifdef ELTONFS_XATTRS
@@ -468,6 +470,19 @@ static int eltonfs_show_options(struct seq_file *m, struct dentry *root) {
   return 0;
 }
 
+static struct dentry *eltonfs_d_real(struct dentry *dentry,
+                                     const struct inode *inode) {
+  if (inode && d_inode(dentry) == inode)
+    // It is an eltonfs dentry.
+    return dentry;
+
+  if (!d_is_reg(dentry)) {
+    WARN_ONCE(1, "real dentry not found");
+    return dentry;
+  }
+  return eltonfs_get_real_dentry(eltonfs_i(d_inode(dentry)));
+}
+
 #ifdef ELTONFS_UNIT_TEST
 void test_super(void);
 #endif // ELTONFS_UNIT_TEST
@@ -537,6 +552,9 @@ static struct super_operations eltonfs_s_op = {
     .show_options = eltonfs_show_options,
 };
 struct address_space_operations eltonfs_aops = {};
+struct dentry_operations eltonfs_dops = {
+    .d_real = eltonfs_d_real,
+};
 
 module_init(fs_module_init);
 module_exit(fs_module_exit);

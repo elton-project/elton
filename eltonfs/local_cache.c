@@ -169,16 +169,41 @@ int eltonfs_get_cache_path(struct inode *inode, struct path *path) {
   BUG();
 }
 
+static inline struct file *eltonfs_get_cache_file(const char *base_dir,
+                                                  const char *cid) {
+
+  char fpath[REAL_PATH_MAX];
+  eltonfs_cache_fpath_from_cid(fpath, REAL_PATH_MAX, base_dir, cid);
+  return filp_open(fpath, O_RDONLY | O_NOATIME, 0);
+}
+static inline struct dentry *eltonfs_get_cache_dentry(const char *base_dir,
+                                                      const char *cid) {
+  int error;
+  struct dentry *out;
+  struct file *file = eltonfs_get_cache_file(base_dir, cid);
+  if (file == ERR_PTR(-ENOENT))
+    // Not found
+    return NULL;
+  if (IS_ERR(file))
+    return ERR_CAST(file);
+
+  out = dget(file_dentry(file));
+
+  error = filp_close(file, NULL);
+  if (error) {
+    dput(out);
+    return ERR_PTR(error);
+  }
+  return out;
+}
 // Returns an inode associated to cid.
 static inline struct inode *eltonfs_get_cache_inode(const char *base_dir,
                                                     const char *cid) {
   int error = 0;
-  char fpath[REAL_PATH_MAX];
   struct file *real_file = NULL;
   struct inode *real_inode = NULL;
 
-  eltonfs_cache_fpath_from_cid(fpath, REAL_PATH_MAX, base_dir, cid);
-  real_file = filp_open(fpath, O_RDONLY | O_NOATIME, 0);
+  real_file = eltonfs_get_cache_file(base_dir, cid);
   if (real_file == ERR_PTR(-ENOENT))
     // Not found
     return NULL;
@@ -196,6 +221,29 @@ static inline struct inode *eltonfs_get_cache_inode(const char *base_dir,
   return real_inode;
 }
 
+struct dentry *eltonfs_get_real_dentry(struct eltonfs_inode *inode) {
+  struct dentry *real;
+  if (inode->file.local_cache_id) {
+    real = eltonfs_get_cache_dentry(LOCAL_OBJ_DIR, inode->file.local_cache_id);
+    if (!real) {
+      WARN_ONCE(1, "local object not found");
+      return ERR_PTR(-ELTON_CACHE_LOST_LOCAL_OBJ);
+    }
+    return real;
+  }
+  if (inode->file.object_id) {
+    real = eltonfs_get_cache_dentry(REMOTE_OBJ_DIR, inode->file.object_id);
+    if (!real) {
+      // Cache miss.
+      // todo: download from remote.
+      WARN_ONCE(1, "get_real_dentry: cache miss");
+    }
+    return real;
+  }
+
+  ERR("no id assigned: inode=%px", inode);
+  BUG();
+}
 // Open local cache file that related to the inode.
 struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
                                     struct file *file) {
