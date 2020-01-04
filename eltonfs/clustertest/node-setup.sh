@@ -102,6 +102,19 @@ make install
 popd
 
 
+# Install SystemTAP from source
+apt install libdw-dev gettext
+git clone --depth=1 git://sourceware.org/git/systemtap.git
+pushd systemtap
+./configure
+make -j`nproc`
+# Workaround for installation failure.
+touch /root/systemtap/doc/SystemTap_Tapset_Reference/tapsets.pdf
+make install
+popd
+wget https://sourceware.org/systemtap/examples/general/whythefail.stp
+
+
 # Install golang debugger
 go get -u github.com/go-delve/delve/cmd/dlv
 ln -s ~/go/bin/dlv /usr/local/bin/
