@@ -18,11 +18,10 @@ static inline struct file *REAL_FILE(struct file *file) {
 static inline void UPDATE_SIZE(struct file *file) {
   i_size_write(file->f_inode, i_size_read(REAL_FILE(file)->f_inode));
 }
-static inline void UPDATE_POS(struct file *file) {
-  struct file *real = REAL_FILE(file);
-  if (file->f_pos != real->f_pos) {
-    file->f_pos = real->f_pos;
-    file->f_version = 0;
+static inline void UPDATE_POS(struct file *from, struct file *to) {
+  if (to->f_pos != from->f_pos) {
+    to->f_pos = from->f_pos;
+    to->f_version = 0;
   }
 }
 
@@ -49,7 +48,7 @@ static int _eltonfs_file_open(struct inode *inode, struct file *file) {
     // Found local cache.
     file->private_data = real;
     UPDATE_SIZE(file);
-    UPDATE_POS(file);
+    UPDATE_POS(real, file);
     return 0;
   }
   return -ELTON_CACHE_MISS;
@@ -108,7 +107,6 @@ static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
                                  size_t size, loff_t *pos) {
   OBJ_CACHE_ACCESS_START_FILE(file);
   ssize_t ret = vfs_read(REAL_FILE(file), buff, size, pos);
-  UPDATE_POS(file);
   OBJ_CACHE_ACCESS_END;
   return ret;
 }
@@ -117,16 +115,18 @@ static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
   OBJ_CACHE_ACCESS_START_FILE(file);
   ssize_t ret = vfs_write(REAL_FILE(file), buff, size, pos);
   UPDATE_SIZE(file);
-  UPDATE_POS(file);
   OBJ_CACHE_ACCESS_END;
   return ret;
 }
 static loff_t eltonfs_file_llseek(struct file *file, loff_t offset,
                                   int whence) {
   OBJ_CACHE_ACCESS_START_FILE(file);
-  size_t ret = vfs_llseek(REAL_FILE(file), offset, whence);
+  size_t ret;
+  struct file *real = REAL_FILE(file);
+  UPDATE_POS(file, real);
+  ret = vfs_llseek(real, offset, whence);
   UPDATE_SIZE(file);
-  UPDATE_POS(file);
+  UPDATE_POS(real, file);
   OBJ_CACHE_ACCESS_END;
   return ret;
 }
@@ -146,10 +146,8 @@ static ssize_t eltonfs_file_splice_read(struct file *in, loff_t *ppos,
   OBJ_CACHE_ACCESS_START_FILE(in);
   if (!real->f_op->splice_read)
     ret = -ENOTSUPP;
-  else {
+  else
     ret = real->f_op->splice_read(real, ppos, pipe, len, flags);
-    UPDATE_POS(in);
-  }
   OBJ_CACHE_ACCESS_END;
   return ret;
 }
@@ -164,7 +162,6 @@ static ssize_t eltonfs_file_splice_write(struct pipe_inode_info *pipe,
   else {
     ret = real->f_op->splice_write(pipe, real, ppos, len, flags);
     UPDATE_SIZE(out);
-    UPDATE_POS(out);
   }
   OBJ_CACHE_ACCESS_END;
   return ret;
