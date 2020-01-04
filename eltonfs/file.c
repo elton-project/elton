@@ -95,23 +95,6 @@ static int eltonfs_file_release(struct inode *inode, struct file *file) {
   return error;
 }
 
-static unsigned long eltonfs_get_unmapped_area(struct file *file,
-                                               unsigned long addr,
-                                               unsigned long len,
-                                               unsigned long pgoff,
-                                               unsigned long flags) {
-  int ret;
-  struct file *real = REAL_FILE(file);
-  OBJ_CACHE_ACCESS_START_FILE(file);
-  if (!real->f_op->get_unmapped_area)
-    // Use default handler.
-    ret = current->mm->get_unmapped_area(real, addr, len, pgoff, flags);
-  else
-    ret = real->f_op->get_unmapped_area(real, addr, len, pgoff, flags);
-  OBJ_CACHE_ACCESS_END;
-  return ret;
-}
-
 static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
                                  size_t size, loff_t *pos) {
   OBJ_CACHE_ACCESS_START_FILE(file);
@@ -226,7 +209,6 @@ struct file_operations eltonfs_file_operations = {
     .splice_read = eltonfs_file_splice_read,
     .splice_write = eltonfs_file_splice_write,
     .llseek = eltonfs_file_llseek,
-    .get_unmapped_area = eltonfs_get_unmapped_area,
     .fallocate = eltonfs_file_fallocate,
     .unlocked_ioctl = eltonfs_ioctl,
 #ifdef CONFIG_COMPAT
