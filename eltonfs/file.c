@@ -96,7 +96,8 @@ static unsigned long eltonfs_get_unmapped_area(struct file *file,
   struct file *real = REAL_FILE(file);
   OBJ_CACHE_ACCESS_START_FILE(file);
   if (!real->f_op->get_unmapped_area)
-    ret = -ENOTSUPP;
+    // Use default handler.
+    ret = current->mm->get_unmapped_area(real, addr, len, pgoff, flags);
   else
     ret = real->f_op->get_unmapped_area(real, addr, len, pgoff, flags);
   OBJ_CACHE_ACCESS_END;
