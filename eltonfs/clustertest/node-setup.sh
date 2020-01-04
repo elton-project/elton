@@ -76,6 +76,11 @@ install_go
 apt_install libaio-dev libnuma-dev libacl1-dev
 
 
+# Setup git.
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
+
 # Clone latest elton source code.
 # This directory used to manually debugging.
 git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git elton-base
