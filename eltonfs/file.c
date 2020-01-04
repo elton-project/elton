@@ -32,8 +32,16 @@ static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
   if (!real->f_op->mmap)
     ret = -ENOTSUPP;
   else {
-    vma->vm_file = real;
+    vma->vm_file = get_file(real);
     ret = real->f_op->mmap(real, vma);
+    if (ret)
+      // An error occurred.  Callee (mmap_region) will drop the original file
+      // during error handling.  This handler should drop the real file.
+      fput(real);
+    else
+      // Finished without error.  Callee (mmap_region) will drop real file. This
+      // handler should drop the original file.
+      fput(file);
   }
   OBJ_CACHE_ACCESS_END;
   return ret;
