@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
 
   LOG_INFO("writing bytes to mmaped area");
   p = map = mmap(NULL, map_size, PROT_WRITE, MAP_SHARED, fd, 0);
+  printf("map=%p, errno=%d\n", map, errno);
   ASSERT(map != MAP_FAILED, "mmap failed");
   for (i = 0; i < DATA_LENGTH; i++)
     p[i] = i;
@@ -40,6 +41,7 @@ int main(int argc, char **argv) {
 
   LOG_INFO("reading bytes from mmaped area");
   p = map = mmap(NULL, map_size, PROT_READ, MAP_SHARED, fd, 0);
+  printf("map=%p, errno=%d\n", map, errno);
   ASSERT(map != MAP_FAILED, "mmap failed");
   for (i = 0; i < DATA_LENGTH; i++)
     ASSERT(p[i] == i, "incorrect data");
