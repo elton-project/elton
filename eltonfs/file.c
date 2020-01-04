@@ -48,6 +48,8 @@ static int _eltonfs_file_open(struct inode *inode, struct file *file) {
   if (real) {
     // Found local cache.
     file->private_data = real;
+    UPDATE_SIZE(file);
+    UPDATE_POS(file);
     return 0;
   }
   return -ELTON_CACHE_MISS;
