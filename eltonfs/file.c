@@ -105,17 +105,17 @@ static unsigned long eltonfs_get_unmapped_area(struct file *file,
 }
 
 static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
-                                 size_t size, loff_t *offset) {
+                                 size_t size, loff_t *pos) {
   OBJ_CACHE_ACCESS_START_FILE(file);
-  ssize_t ret = vfs_read(REAL_FILE(file), buff, size, offset);
+  ssize_t ret = vfs_read(REAL_FILE(file), buff, size, pos);
   UPDATE_POS(file);
   OBJ_CACHE_ACCESS_END;
   return ret;
 }
 static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
-                                  size_t size, loff_t *offset) {
+                                  size_t size, loff_t *pos) {
   OBJ_CACHE_ACCESS_START_FILE(file);
-  ssize_t ret = vfs_write(REAL_FILE(file), buff, size, offset);
+  ssize_t ret = vfs_write(REAL_FILE(file), buff, size, pos);
   UPDATE_SIZE(file);
   UPDATE_POS(file);
   OBJ_CACHE_ACCESS_END;
