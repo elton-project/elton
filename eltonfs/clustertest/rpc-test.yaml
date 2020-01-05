@@ -10,7 +10,7 @@ specs:
       account:
         user: clustertest@pve
         password: waiphaefiRaiph5ing7o
-      fingerprint: 2C:CF:88:33:C6:56:2C:76:21:56:07:AB:02:E5:4F:1B:41:A3:CB:F1:49:6F:D9:CE:05:73:EE:33:89:08:3C:29
+      fingerprint: A6:BC:29:6C:9F:10:1C:6B:D2:90:65:A7:58:4A:15:F4:CB:86:89:10:B9:C6:8E:2E:20:1E:E0:08:CA:E1:6C:82
     address_pools:
       - start_address: 10.10.1.1
         end_address: 10.10.1.255
