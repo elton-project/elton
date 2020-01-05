@@ -15,10 +15,13 @@
 static inline struct file *REAL_FILE(struct file *file) {
   return (struct file *)file->private_data;
 }
+static inline void UPDATE_SIZE_INODE(struct inode *inode) {
+  struct inode *real = eltonfs_i(inode)->file.cache_inode;
+  i_size_write(inode, i_size_read(real));
+  WRITE_ONCE(inode->i_blocks, READ_ONCE(real->i_blocks));
+}
 static inline void UPDATE_SIZE(struct file *file) {
-  i_size_write(file->f_inode, i_size_read(REAL_FILE(file)->f_inode));
-  WRITE_ONCE(file->f_inode->i_blocks,
-             READ_ONCE(REAL_FILE(file)->f_inode->i_blocks));
+  UPDATE_SIZE_INODE(file->f_inode);
 }
 static inline void UPDATE_POS(struct file *from, struct file *to) {
   if (to->f_pos != from->f_pos) {
@@ -44,6 +47,7 @@ static inline int maybe_load_file(struct inode *inode) {
   if (IS_ERR(real))
     return PTR_ERR(real);
   ei->file.cache_inode = real;
+  UPDATE_SIZE_INODE(inode);
   return 0;
 }
 
