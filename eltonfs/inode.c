@@ -132,7 +132,9 @@ void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id,
   ei->symlink.object_id = dup_string_direct(object_id);
   ei->symlink.redirect_to = dup_string_direct(redirect_to);
   if (redirect_to) {
-    i_size_write(inode, strlen(redirect_to));
+    size_t len = strlen(redirect_to);
+    i_size_write(inode, len);
+    WRITE_ONCE(inode->i_blocks, len / i_blocksize(inode));
   }
   // todo: error check
 }

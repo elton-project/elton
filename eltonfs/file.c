@@ -17,6 +17,8 @@ static inline struct file *REAL_FILE(struct file *file) {
 }
 static inline void UPDATE_SIZE(struct file *file) {
   i_size_write(file->f_inode, i_size_read(REAL_FILE(file)->f_inode));
+  WRITE_ONCE(file->f_inode->i_blocks,
+             READ_ONCE(REAL_FILE(file)->f_inode->i_blocks));
 }
 static inline void UPDATE_POS(struct file *from, struct file *to) {
   if (to->f_pos != from->f_pos) {

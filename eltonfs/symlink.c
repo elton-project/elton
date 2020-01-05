@@ -2,6 +2,11 @@
 #include <elton/local_cache.h>
 #include <elton/xattr.h>
 
+static inline void UPDATE_SIZE(struct inode *inode, size_t len) {
+  i_size_write(inode, len);
+  WRITE_ONCE(inode->i_blocks, len / i_blocksize(inode));
+}
+
 // Try to load symlink data from remote.
 static inline int maybe_load_symlink(struct inode *inode) {
   int error = 0;
@@ -21,7 +26,7 @@ static inline int maybe_load_symlink(struct inode *inode) {
   if (IS_ERR(p))
     return PTR_ERR(p);
   ei->symlink.redirect_to = p;
-  i_size_write(inode, strlen(p));
+  UPDATE_SIZE(inode, strlen(p));
   return 0;
 }
 
