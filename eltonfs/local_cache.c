@@ -357,3 +357,36 @@ int eltonfs_cache_obj(const char *oid, struct super_block *sb) {
     return PTR_ERR(output);
   return 0;
 }
+
+const char *eltonfs_read_obj(const char *oid, struct super_block *sb) {
+  int error = 0;
+  struct file *file = NULL;
+  loff_t size;
+  char *buff;
+  ssize_t actual_size;
+
+  file = eltonfs_get_cache_file(REMOTE_OBJ_DIR, oid);
+  if (file == ERR_PTR(-ENOENT))
+    // Not found
+    return NULL;
+  if (IS_ERR(file))
+    return ERR_CAST(file);
+
+  size = vfs_llseek(file, 0, SEEK_END);
+  vfs_llseek(file, 0, SEEK_SET);
+
+  buff = kmalloc(size + 1, GFP_NOFS);
+  if (!buff)
+    return ERR_PTR(-ENOMEM);
+
+  actual_size = vfs_read(file, buff, size, 0);
+  if (WARN_ON_ONCE(actual_size != size))
+    // todo: read all from file.
+    return ERR_PTR(-EINVAL);
+  buff[actual_size] = '\0';
+
+  error = filp_close(file, NULL);
+  if (error)
+    return ERR_PTR(error);
+  return buff;
+}
