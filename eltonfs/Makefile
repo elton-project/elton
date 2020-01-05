@@ -97,7 +97,7 @@ test_basic_op:
 	echo foo >/mnt/a
 	grep foo /mnt/a
 	rm /mnt/a
-	mount |grep /mnt |fgrep ' type $(MODULE_NAME) (rw,relatime)'
+	mount |grep /mnt |grep ' type $(MODULE_NAME) (rw,relatime,.*)$$'
 
 .PHONY: test_syscalls
 test_syscalls:
