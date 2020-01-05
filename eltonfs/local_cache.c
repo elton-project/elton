@@ -4,6 +4,7 @@
 #include <elton/local_cache.h>
 #include <elton/rpc/server.h>
 #include <linux/cred.h>
+#include <linux/fs.h>
 #include <linux/namei.h>
 
 #define MAX_CONFLICT_TRIES 30
@@ -389,4 +390,8 @@ const char *eltonfs_read_obj(const char *oid, struct super_block *sb) {
   if (error)
     return ERR_PTR(error);
   return buff;
+}
+
+struct inode *eltonfs_get_obj_inode(const char *oid, struct super_block *sb) {
+  return eltonfs_get_cache_inode(REMOTE_OBJ_DIR, oid);
 }

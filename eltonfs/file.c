@@ -27,6 +27,26 @@ static inline void UPDATE_POS(struct file *from, struct file *to) {
   }
 }
 
+static inline int maybe_load_file(struct inode *inode) {
+  int error;
+  struct inode *real;
+  struct eltonfs_inode *ei = eltonfs_i(inode);
+  if (likely(ei->file.cache_inode))
+    return 0;
+  BUG_ON(ei->file.local_cache_id); // This file created by local.  So cache_id
+                                   // should not NULL.
+  BUG_ON(!ei->file.object_id);     // cid and oid is NULL.  What is this inode!?
+
+  error = eltonfs_cache_obj(ei->file.object_id, inode->i_sb);
+  if (error)
+    return error;
+  real = eltonfs_get_obj_inode(ei->file.object_id, inode->i_sb);
+  if (IS_ERR(real))
+    return PTR_ERR(real);
+  ei->file.cache_inode = real;
+  return 0;
+}
+
 static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
   int ret;
   struct file *real = REAL_FILE(file);
@@ -197,6 +217,9 @@ int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
 int eltonfs_file_getattr(const struct path *path, struct kstat *stat,
                          u32 request_mask, unsigned int query_flags) {
   struct inode *inode = d_inode(path->dentry);
+  int error = maybe_load_file(inode);
+  if (error)
+    return error;
   generic_fillattr(inode, stat);
   return 0;
 }
