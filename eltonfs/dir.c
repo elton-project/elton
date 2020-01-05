@@ -205,7 +205,6 @@ static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
                            const char *symname) {
   int error;
   struct inode *inode;
-  char *p;
 
   inode = eltonfs_create_inode(dir->i_sb, dir, S_IFLNK | S_IRWXUGO, 0);
   if (!inode) {
