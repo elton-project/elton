@@ -72,7 +72,7 @@ clean:
 	$(MAKE) -C $(KDIR) M=`pwd` clean
 
 .PHONY: test
-test: force_rmmod mount test_basic_op test_syscalls test_libc rmmod
+test: test_basic_op test_syscalls test_libc
 
 .PHONY: mount
 mount:
