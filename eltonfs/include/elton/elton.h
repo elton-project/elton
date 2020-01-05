@@ -139,7 +139,6 @@ struct eltonfs_inode {
 #endif
 };
 
-extern struct address_space_operations eltonfs_aops;
 extern struct file_operations eltonfs_file_operations;
 extern struct inode_operations eltonfs_file_inode_operations;
 extern struct file_operations eltonfs_dir_operations;

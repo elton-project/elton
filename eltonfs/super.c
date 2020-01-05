@@ -551,7 +551,6 @@ static struct super_operations eltonfs_s_op = {
     .drop_inode = generic_delete_inode,
     .show_options = eltonfs_show_options,
 };
-struct address_space_operations eltonfs_aops = {};
 struct dentry_operations eltonfs_dops = {
     .d_real = eltonfs_d_real,
 };

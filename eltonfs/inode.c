@@ -54,7 +54,7 @@
 // Should set inode->i_mode before call it.
 void eltonfs_inode_init_ops(struct inode *inode, dev_t dev) {
   // todo: change aops by file types.
-  inode->i_mapping->a_ops = &eltonfs_aops;
+  inode->i_mapping->a_ops = &empty_aops;
   mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
   // TODO: inodeのデータを永続化に対応してから、evictableにする。
   mapping_set_unevictable(inode->i_mapping);
