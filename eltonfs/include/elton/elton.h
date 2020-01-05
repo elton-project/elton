@@ -139,11 +139,11 @@ struct eltonfs_inode {
 #endif
 };
 
-extern struct file_operations eltonfs_file_operations;
-extern struct inode_operations eltonfs_file_inode_operations;
-extern struct file_operations eltonfs_dir_operations;
-extern struct inode_operations eltonfs_dir_inode_operations;
-extern struct inode_operations eltonfs_symlink_inode_operations;
+extern const struct file_operations eltonfs_file_operations;
+extern const struct inode_operations eltonfs_file_inode_operations;
+extern const struct file_operations eltonfs_dir_operations;
+extern const struct inode_operations eltonfs_dir_inode_operations;
+extern const struct inode_operations eltonfs_symlink_inode_operations;
 long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 long eltonfs_compat_ioctl(struct file *file, unsigned int cmd,
                           unsigned long arg);

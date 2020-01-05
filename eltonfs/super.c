@@ -20,8 +20,8 @@
 static bool is_registered = 0;
 struct elton_rpc_server server;
 static struct file_system_type eltonfs_type;
-static struct super_operations eltonfs_s_op;
-struct dentry_operations eltonfs_dops;
+const static struct super_operations eltonfs_s_op;
+static const struct dentry_operations eltonfs_dops;
 
 int elton_update_time(struct inode *inode, struct timespec64 *time, int flags) {
   spin_lock(&inode->i_lock);
@@ -544,14 +544,14 @@ static struct file_system_type eltonfs_type = {
     .kill_sb = eltonfs_kill_sb,
     .fs_flags = 0,
 };
-static struct super_operations eltonfs_s_op = {
+static const struct super_operations eltonfs_s_op = {
     .alloc_inode = eltonfs_alloc_inode,
     .destroy_inode = eltonfs_destory_inode,
     .statfs = eltonfs_statfs,
     .drop_inode = generic_delete_inode,
     .show_options = eltonfs_show_options,
 };
-struct dentry_operations eltonfs_dops = {
+static const struct dentry_operations eltonfs_dops = {
     .d_real = eltonfs_d_real,
 };
 

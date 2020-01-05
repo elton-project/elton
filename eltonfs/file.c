@@ -199,7 +199,7 @@ int eltonfs_file_getattr(const struct path *path, struct kstat *stat,
   return 0;
 }
 
-struct file_operations eltonfs_file_operations = {
+const struct file_operations eltonfs_file_operations = {
     .read = eltonfs_file_read,
     .write = eltonfs_file_write,
     .mmap = eltonfs_file_mmap,
@@ -218,7 +218,7 @@ struct file_operations eltonfs_file_operations = {
 #endif
 };
 
-struct inode_operations eltonfs_file_inode_operations = {
+const struct inode_operations eltonfs_file_inode_operations = {
     .setattr = eltonfs_file_setattr,
     .getattr = eltonfs_file_getattr,
 #ifdef ELTONFS_XATTRS

@@ -338,7 +338,7 @@ int eltonfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 }
 
 // todo
-struct file_operations eltonfs_dir_operations = {
+const struct file_operations eltonfs_dir_operations = {
     .open = eltonfs_dir_open,
     .release = eltonfs_dir_release,
     .iterate_shared = eltonfs_iterate_shared,
@@ -351,7 +351,7 @@ struct file_operations eltonfs_dir_operations = {
     .fsync = eltonfs_dir_fsync,
 };
 
-struct inode_operations eltonfs_dir_inode_operations = {
+const struct inode_operations eltonfs_dir_inode_operations = {
     .create = eltonfs_create,
     .lookup = eltonfs_lookup,
     .link = eltonfs_link,
