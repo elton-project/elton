@@ -31,7 +31,7 @@ STORAGE_OPT = 'discard=on,ssd=on,cache=unsafe'
 # Additional disk size allocated to the setup node (in megabytes).
 ADDITIONAL_DISK_SIZE = '+20G'
 # Number of CPU cores allocated to the setup node.
-VCPUS = 8
+VCPUS = 4
 # URL to latest cloud image of the Ubuntu 19.04.
 UBUNTU_IMAGE_URL = 'https://cloud-images.ubuntu.com/releases/disco/release/ubuntu-19.04-server-cloudimg-amd64.img'
 # Path to temporary file location.
