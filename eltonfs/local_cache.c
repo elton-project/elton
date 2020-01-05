@@ -248,7 +248,7 @@ struct dentry *eltonfs_get_real_dentry(struct eltonfs_inode *inode) {
 struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
                                     struct file *file) {
   // todo: acquire lock
-  if (!(inode->vfs_inode.i_mode & S_IFREG)) {
+  if (unlikely(!S_ISREG(inode->vfs_inode.i_mode))) {
     DEBUG("open real file with unexpected file type: inode=%px, file=%px",
           inode, file);
     BUG();
