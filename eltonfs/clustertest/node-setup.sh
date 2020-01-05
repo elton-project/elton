@@ -103,7 +103,7 @@ popd
 
 
 # Install SystemTAP from source
-apt install libdw-dev gettext
+apt_install libdw-dev gettext
 git clone --depth=1 git://sourceware.org/git/systemtap.git
 pushd systemtap
 ./configure
