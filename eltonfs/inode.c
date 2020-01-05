@@ -126,10 +126,14 @@ void eltonfs_inode_init_dir(struct inode *inode) {
   INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
   ei->dir.count = 0;
 }
-void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id) {
+void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id,
+                                const char *redirect_to) {
   struct eltonfs_inode *ei = eltonfs_i(inode);
   ei->symlink.object_id = dup_string_direct(object_id);
-  ei->symlink.redirect_to = NULL;
+  ei->symlink.redirect_to = dup_string_direct(redirect_to);
+  if (redirect_to) {
+    i_size_write(inode, strlen(redirect_to));
+  }
   // todo: error check
 }
 
@@ -177,7 +181,7 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
     break;
   }
   case S_IFLNK:
-    eltonfs_inode_init_symlink(inode, i_xdr->object_id);
+    eltonfs_inode_init_symlink(inode, i_xdr->object_id, NULL);
     break;
   }
   return eltonfs_i(inode);

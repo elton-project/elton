@@ -212,13 +212,7 @@ static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
     return -ENOSPC;
   }
 
-  eltonfs_inode_init_symlink(inode, NULL);
-  eltonfs_i(inode)->symlink.redirect_to = p = dup_string_direct(symname);
-  if (IS_ERR(p)) {
-    eltonfs_i(inode)->symlink.redirect_to = NULL;
-    iput(inode);
-    return PTR_ERR(p);
-  }
+  eltonfs_inode_init_symlink(inode, NULL, symname);
 
   error = eltonfs_dir_entries_add(dir, dentry->d_name.name, inode->i_ino);
   if (error)

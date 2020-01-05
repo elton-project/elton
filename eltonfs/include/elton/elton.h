@@ -176,7 +176,8 @@ void eltonfs_inode_init_regular(struct inode *inode, const char *object_id,
                                 const char *local_cache_id);
 int eltonfs_inode_init_regular_with_new_cache(struct inode *inode);
 void eltonfs_inode_init_dir(struct inode *inode);
-void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id);
+void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id,
+                                const char *redirect_to);
 
 // Iterate all directory entries in a eltonfs_inode.
 //
