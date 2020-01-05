@@ -443,8 +443,8 @@ class TemplateDistributor(typing.NamedTuple):
         return f'clustertest.based_on={self.template.vmid}/{self.disk_image.vmid}'
 
 
-base = VM('elton-pve1', 9000)
-out = VM('elton-pve1', 9100)
+base = VM('elton-pve3', 9000)
+out = VM('elton-pve3', 9100)
 pool = Pool('clustertest')
 builder = TemplateBuilder(base=base, script_name=pathlib.Path(SETUP_SCRIPT_FILE),
                           output=out, pool=pool, template_name='template-ubuntu-19.04-ltp')
