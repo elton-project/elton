@@ -20,6 +20,7 @@ elton-y += dir.o
 elton-y += file.o
 elton-y += symlink.o
 elton-y += local_cache.o
+elton-y += ioctl.o
 elton-y += xdr/default.o \
 	xdr/bin_encoding.o \
 	xdr/test.o
