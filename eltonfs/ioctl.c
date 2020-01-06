@@ -1,4 +1,5 @@
 #include <elton/elton.h>
+#include <linux/uaccess.h>
 
 long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
   struct inode *inode = file_inode(file);
