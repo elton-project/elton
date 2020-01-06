@@ -6,12 +6,14 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/golang/protobuf v1.3.2
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/pkg/errors v0.8.1
 	github.com/sonatard/werror v0.0.0-20190306034820-b331e8d3de8f
 	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.4.0
+	github.com/tchap/zapext v0.0.0-20180117141735-e61c0c882339
 	github.com/yuuki0xff/goapptrace v0.3.0-beta
 	github.com/yuuki0xff/pathlib v0.0.0-20190822095704-97a55a3e168a
 	go.etcd.io/bbolt v1.3.3

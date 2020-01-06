@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"github.com/tchap/zapext/zapsyslog"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"log"
+	"log/syslog"
 	"os"
 	"os/signal"
 	"sync"
@@ -28,14 +31,21 @@ func handleSignals(cancel context.CancelFunc, ctx context.Context, wg *sync.Wait
 	cancel()
 }
 
-func Main() int {
-	// Setup logger.
-	logger, err := zap.NewDevelopment()
+func setupLogger() {
+	writer, err := syslog.New(syslog.LOG_ERR|syslog.LOG_LOCAL0, "eltond")
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to initialize zap logger", err.Error())
-		return 1
+		log.Fatal("failed to setup syslog: %w", err)
 	}
+
+	// Initialize Zap.
+	encoder := zapcore.NewJSONEncoder(zap.NewDevelopmentEncoderConfig())
+	core := zapsyslog.NewCore(zapcore.ErrorLevel, encoder, writer)
+	logger := zap.New(core, zap.Development(), zap.AddStacktrace(zapcore.ErrorLevel))
 	zap.ReplaceGlobals(logger)
+}
+
+func Main() int {
+	setupLogger()
 
 	// Start signal handler.
 	wg := sync.WaitGroup{}
