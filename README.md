@@ -21,7 +21,7 @@ Elton is a distributed file system for accelerate data sharing through the WAN.
 - git
 
 その他の依存しているツールやライブラリは、`make build-deps`でインストールできる。
-ビルド環境は、AMD64のDebian busterを想定。
+ビルド環境はAMD64のDebian busterか、Ubuntu 19.04を想定。
 
 
 ### Build
