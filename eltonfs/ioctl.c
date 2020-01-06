@@ -3,14 +3,13 @@
 
 long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
   struct inode *inode = file_inode(file);
-  unsigned int flags;
 
   switch (cmd) {
   case ELTONFS_IOC_COMMIT:
     // todo
   case FS_IOC_GETFLAGS: {
+    unsigned int flags = 0;
     // TODO: 拡張属性に対応する。
-    flags = 0;
     return put_user(flags, (int __user *)arg);
   }
   case FS_IOC_GETVERSION:
