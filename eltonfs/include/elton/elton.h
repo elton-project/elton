@@ -193,4 +193,7 @@ struct inode *eltonfs_get_obj_inode(const char *oid, struct super_block *sb);
     list_for_each_entry((entry), &(eltonfs_inode)->dir.dir_entries._list_head, \
                         _list_head)
 
+#define ELTONFS_IOCTL_MAGIC 0x183
+#define ELTONFS_IOC_COMMIT _IO(ELTONFS_IOCTL_MAGIC, 1)
+
 #endif // _ELTON_ELTON_H

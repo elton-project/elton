@@ -6,6 +6,8 @@ long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
   unsigned int flags;
 
   switch (cmd) {
+  case ELTONFS_IOC_COMMIT:
+    // todo
   case FS_IOC_GETFLAGS: {
     // TODO: 拡張属性に対応する。
     flags = 0;
