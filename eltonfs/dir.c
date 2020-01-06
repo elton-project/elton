@@ -160,9 +160,6 @@ static int eltonfs_dir_release(struct inode *inode, struct file *file) {
   return 0;
 }
 
-long eltonfs_unlocked_ioctl(struct file *, unsigned int, unsigned long);
-long eltonfs_compat_ioctl(struct file *, unsigned int, unsigned long);
-
 static int eltonfs_dir_fsync(struct file *file, loff_t start, loff_t end,
                              int datasync) {
   // Directory is not associate to real file.
@@ -335,11 +332,9 @@ const struct file_operations eltonfs_dir_operations = {
     .open = eltonfs_dir_open,
     .release = eltonfs_dir_release,
     .iterate_shared = eltonfs_iterate_shared,
-// todo
-// .unlocked_ioctl = eltonfs_unlocked_ioctl,
+    .unlocked_ioctl = eltonfs_ioctl,
 #ifdef CONFIG_COMPAT
-// todo
-// .compat_ioctl = eltonfs_compat_ioctl,
+    .compat_ioctl = eltonfs_compat_ioctl,
 #endif
     .fsync = eltonfs_dir_fsync,
 };
