@@ -336,8 +336,7 @@ void *_eltonfs_cache_obj_worker(void *_args) {
             res->body->offset);
   // todo: use WRITE_ALL() macro.
   offset = 0;
-  GOTO_IF(out, vfs_write(real, res->body->contents, res->body->contents_length,
-                         &offset));
+  vfs_write(real, res->body->contents, res->body->contents_length, &offset);
 
 out:
   if (res)
