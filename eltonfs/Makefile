@@ -75,10 +75,16 @@ clean:
 test: test_basic_op test_syscalls test_libc
 
 .PHONY: mount
-mount:
+mount: mount-umh mount-kmod
+
+.PHONY: mount-umh
+mount-umh:
 	# Start eltond and prepare a volume before mounting.
 	ELTON_ROLES=controller,storage setsid --fork eltond </dev/null >eltond.log 2>&1 &
 	sleep 1
+
+.PHONY: mount-kmod
+mount-kmod:
 	elton volume create foo
 	elton volume ls |grep foo
 	# WORKAROUND: To prevent fail eltonfsrpc calls during mounting, load kernel module and setup UMH.
