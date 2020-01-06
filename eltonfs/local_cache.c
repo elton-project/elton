@@ -308,18 +308,29 @@ void *_eltonfs_cache_obj_worker(void *_args) {
   struct get_object_response *res = NULL;
   loff_t offset;
 
+  eltonfs_cache_fpath_from_cid(real_path, REAL_PATH_MAX, REMOTE_OBJ_DIR,
+                               args->oid);
+
   old_cred = override_creds(args->cred);
+  real = filp_open(real_path, O_RDONLY | O_NOATIME, 0);
+  if (!IS_ERR(real)) {
+    // Cache file already exists.
+    error = 0;
+    goto out;
+  }
+  real = 0;
 
   GOTO_IF(out, server.ops->new_session(&server, &ns, NULL));
   GOTO_IF(out, ns.ops->send_struct(&ns, GET_OBJECT_REQUEST_ID, &req));
   GOTO_IF(out, ns.ops->recv_struct(&ns, GET_OBJECT_RESPONSE_ID, (void **)&res));
   GOTO_IF(out, ns.ops->close(&ns));
 
-  eltonfs_cache_fpath_from_cid(real_path, REAL_PATH_MAX, REMOTE_OBJ_DIR,
-                               args->oid);
   real = filp_open(real_path, O_CREAT | O_EXCL | O_WRONLY, 0600);
-  if (IS_ERR(real))
-    GOTO_IF(out, PTR_ERR(real));
+  if (IS_ERR(real)) {
+    error = PTR_ERR(real);
+    real = 0;
+    GOTO_IF(out, error);
+  }
 
   WARN_ONCE(res->body->offset, "cache_obj: invalid offset: offset=%llu",
             res->body->offset);
@@ -331,7 +342,11 @@ void *_eltonfs_cache_obj_worker(void *_args) {
 out:
   if (res)
     elton_rpc_free_decoded_data(res);
-  if (real && !IS_ERR(real))
+  if (real && error) {
+    struct inode *dir = real->f_path.dentry->d_parent->d_inode;
+    vfs_unlink(dir, real->f_path.dentry, NULL);
+  }
+  if (real)
     filp_close(real, NULL);
   revert_creds(old_cred);
   kfree(args);
