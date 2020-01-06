@@ -13,7 +13,7 @@ long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
   case FS_IOC_GETVERSION:
     return put_user(inode->i_generation, (int __user *)arg);
   }
-  return -ENOSYS; // Not implemented
+  return -ENOTTY; // Not implemented
 }
 
 #ifdef CONFIG_COMPAT
@@ -26,8 +26,6 @@ long eltonfs_compat_ioctl(struct file *file, unsigned int cmd,
   case FS_IOC32_GETVERSION:
     cmd = FS_IOC_GETVERSION;
     break;
-  default:
-    return -ENOSYS;
   }
   return eltonfs_ioctl(file, cmd, arg);
 }
