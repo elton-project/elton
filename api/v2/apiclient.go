@@ -27,7 +27,7 @@ func init() {
 func readFileOrDefault(file string, defaultData string) string {
 	if _, err := os.Stat(file); err != nil {
 		if os.IsNotExist(err) {
-			log.Printf("%s: not found.  Using default settings")
+			log.Printf("%s: not found.  Using default settings", file)
 			return defaultData
 		}
 		log.Fatal(xerrors.Errorf("%s: %w", file, err))
