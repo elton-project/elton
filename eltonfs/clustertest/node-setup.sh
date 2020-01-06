@@ -62,6 +62,7 @@ apt update
 apt upgrade -y
 
 apt_install qemu-guest-agent
+apt_install numactl
 # Install and configure the kernel debug utilities.
 # Disable writeback to prevent data lost when kernel panics.
 apt_install kdump-tools crash gdb
