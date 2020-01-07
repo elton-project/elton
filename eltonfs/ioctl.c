@@ -50,6 +50,10 @@ long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
   struct super_block *sb = inode->i_sb;
 
   switch (cmd) {
+  case ELTONFS_IOC_BEGIN:
+  case ELTONFS_IOC_ROLLBACK:
+    // todo
+    break;
   case ELTONFS_IOC_COMMIT:
     return eltonfs_ioctl_commit(sb);
   case FS_IOC_GETFLAGS: {
