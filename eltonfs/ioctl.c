@@ -1,14 +1,48 @@
+#include <elton/commit.h>
 #include <elton/elton.h>
+#include <elton/rpc/server.h>
+#include <elton/rpc/struct.h>
 #include <linux/uaccess.h>
 
 long eltonfs_ioctl_commit(struct super_block *sb) {
+  struct inode *root = sb->s_root->d_inode;
+  struct tree_info *new_tree = NULL;
+  const char *new_cid = NULL;
+  const char *old_cid = NULL;
+  struct commit_info *old_cinfo = NULL;
+  struct commit_info *new_cinfo = NULL;
+
   // todo: block write access.
-  // todo: build new tree from vfs_inode.
-  // todo: send tree.
-  // todo: wait response.
+  new_tree = eltonfs_build_tree(root);
+  if (IS_ERR(new_tree)) {
+    return PTR_ERR(new_tree);
+  }
+
+  new_cid = eltonfs_call_commit(sb, new_tree);
+  if (IS_ERR(new_cid)) {
+    // todo: free new_tree
+    return PTR_ERR(new_cid);
+  }
+  new_cinfo = eltonfs_get_commit(new_cid);
+  if (IS_ERR(new_cid)) {
+    // todo: free new tree
+    return PTR_ERR(new_cinfo);
+  }
+
   // todo: block all access.
-  // todo: change commit.
+  // Change to latest commit.
+  old_cid = eltonfs_sb(sb)->cid;
+  old_cinfo = eltonfs_sb(sb)->cinfo;
+  eltonfs_sb(sb)->cid = new_cid;
+  eltonfs_sb(sb)->cinfo = new_cinfo;
+  eltonfs_sb(sb)->inodes_ei = new_cinfo->tree->inodes;
+
+  eltonfs_apply_tree(root, new_cinfo->tree);
   // todo: unblock all access.
+
+  kfree(old_cid);
+  // todo: free old_cinfo
+  return 0;
 }
 
 long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {

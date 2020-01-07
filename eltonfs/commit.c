@@ -89,3 +89,9 @@ free_ns:
   WARN_IF(ns.ops->close(&ns));
   return error;
 }
+
+// todo
+struct tree_info *eltonfs_build_tree(struct inode *root);
+char *eltonfs_call_commit(struct super_block *sb, struct tree_info *tree);
+struct commit_info *eltonfs_get_commit(const char *cid);
+void eltonfs_apply_tree(struct inode *inode, struct tree_info *tree);
