@@ -12,8 +12,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
+
+var lastCheckedInoLock sync.Mutex
+var lastCheckedIno uint64 = 1
 
 func importFn(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
@@ -166,17 +170,19 @@ func putFile(ctx context.Context, c elton_v2.StorageServiceClient, tree *elton_v
 	return nil
 }
 func assignInode(tree *elton_v2.Tree, file *elton_v2.File) uint64 {
-	ino := uint64(1)
-	for ; ; ino++ {
-		_, ok := tree.Inodes[ino]
+	lastCheckedInoLock.Lock()
+	defer lastCheckedInoLock.Unlock()
+	for {
+		_, ok := tree.Inodes[lastCheckedIno]
 		if !ok {
 			break
 		}
 		// This ino is already used.
 		// todo: check ino range
+		lastCheckedIno++
 	}
-	tree.Inodes[ino] = file
-	return ino
+	tree.Inodes[lastCheckedIno] = file
+	return lastCheckedIno
 }
 func mustConvertTimestmap(timespec unix.Timespec) *tspb.Timestamp {
 	ts, err := ptypes.TimestampProto(time.Unix(timespec.Unix()))
