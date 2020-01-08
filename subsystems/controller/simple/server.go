@@ -8,6 +8,7 @@ import (
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
 	"io/ioutil"
+	"math"
 	"net"
 	"os"
 	"strconv"
@@ -52,7 +53,10 @@ func (s *Server) Serve(ctx context.Context) error {
 	handler, dbClose := NewController(s.DatabaseAddr)
 	defer dbClose()
 
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		// Increase receivable packet size.
+		grpc.MaxRecvMsgSize(math.MaxInt32),
+	)
 	elton_v2.RegisterMetaServiceServer(srv, handler)
 	elton_v2.RegisterNodeServiceServer(srv, handler)
 	elton_v2.RegisterVolumeServiceServer(srv, handler)

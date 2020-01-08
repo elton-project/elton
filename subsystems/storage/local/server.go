@@ -7,6 +7,7 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems"
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/utils"
 	"google.golang.org/grpc"
+	"math"
 	"net"
 	"os"
 	"strconv"
@@ -56,7 +57,10 @@ func (s *LocalStorage) Serve(ctx context.Context) error {
 	handler := &StorageService{
 		Repo: NewRepository(pathlib.New(s.CacheDir), &UniqueKeyGen{}, DefaultMaxObjectSize),
 	}
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		// Increase receivable packet size.
+		grpc.MaxRecvMsgSize(math.MaxInt32),
+	)
 	elton_v2.RegisterStorageServiceServer(srv, handler)
 
 	return utils.GrpcServeWithCtx(srv, ctx, s.listener)
