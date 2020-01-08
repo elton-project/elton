@@ -147,7 +147,7 @@ func newTreeBuilder(sc elton_v2.StorageServiceClient, tree *elton_v2.Tree) *tree
 		ino:  1,
 	}
 }
-func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in chan<- string, workers int) (<-chan putResult, error) {
+func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan string, workers int) (<-chan putResult, error) {
 	dirIno, err := searchFile(b.tree, base)
 	if err != nil {
 		return nil, xerrors.Errorf("base dir: %w", err)
