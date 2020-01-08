@@ -144,6 +144,9 @@ func putFile(ctx context.Context, tree *elton_v2.Tree, dir *elton_v2.File, name 
 		return xerrors.Errorf("create object: %w", err)
 	}
 
+	if dir.Entries == nil {
+		dir.Entries = map[string]uint64{}
+	}
 	dir.Entries[name] = assignInode(tree, &elton_v2.File{
 		ContentRef: &elton_v2.FileContentRef{
 			Key: res.GetKey(),
