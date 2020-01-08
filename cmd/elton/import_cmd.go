@@ -248,7 +248,7 @@ func (p *treePutter) processRequest(req putRequest) error {
 	case unix.S_IFDIR:
 		entries, err := ioutil.ReadDir(req.path)
 		if err != nil {
-			xerrors.Errorf("ReadDir(%s): %w", req.path, err)
+			return xerrors.Errorf("ReadDir(%s): %w", req.path, err)
 		}
 		p.entryCh <- &fileEntry{
 			path:    req.path,
