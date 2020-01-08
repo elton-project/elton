@@ -346,10 +346,14 @@ func (p *treePutter) processEntry(entry *fileEntry) error {
 
 	if entry.entries != nil {
 		// Add directory contents.
+		p.wg.Add(1)
 		go func() {
+			defer p.wg.Done()
 			for _, ent := range entry.entries {
-				path.Join(entry.path, ent.Name())
-				// todo: enqueue it
+				p.reqCh <- putRequest{
+					path: path.Join(entry.path, ent.Name()),
+					dir:  file,
+				}
 			}
 		}()
 	}
