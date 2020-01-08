@@ -164,7 +164,11 @@ func putFile(ctx context.Context, tree *elton_v2.Tree, dir *elton_v2.File, name 
 }
 func assignInode(tree *elton_v2.Tree, file *elton_v2.File) uint64 {
 	ino := uint64(1) << 63
-	for _, ok := tree.Inodes[ino]; ok; ino-- {
+	for ; ; ino-- {
+		_, ok := tree.Inodes[ino]
+		if !ok {
+			break
+		}
 		// This ino is already used.
 	}
 	tree.Inodes[ino] = file
