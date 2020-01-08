@@ -2,6 +2,7 @@ package localStorage
 
 import (
 	"encoding/hex"
+	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems/idgen"
 	"math/rand"
 	"sync"
 )
@@ -9,6 +10,25 @@ import (
 // KeyGenerator generates the object key.
 type KeyGenerator interface {
 	Generate() Key
+}
+
+// TimeKeyGen generates unique ID by the SonyFlake algorithm.
+type UniqueKeyGen struct {
+	init sync.Once
+	gen  idgen.Generator
+}
+
+func (u *UniqueKeyGen) Generate() Key {
+	u.init.Do(func() {
+		u.gen = idgen.NewSonyFlake()
+	})
+	id, err := u.gen.NextStringID()
+	if err != nil {
+		panic(err)
+	}
+	return Key{
+		ID: id,
+	}
 }
 
 // RandomKeyGen generates the object key by random.

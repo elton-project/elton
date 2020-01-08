@@ -54,7 +54,7 @@ func (s *LocalStorage) SetListener(l net.Listener) {
 }
 func (s *LocalStorage) Serve(ctx context.Context) error {
 	handler := &StorageService{
-		Repo: NewRepository(pathlib.New(s.CacheDir), nil, DefaultMaxObjectSize),
+		Repo: NewRepository(pathlib.New(s.CacheDir), &UniqueKeyGen{}, DefaultMaxObjectSize),
 	}
 	srv := grpc.NewServer()
 	elton_v2.RegisterStorageServiceServer(srv, handler)
