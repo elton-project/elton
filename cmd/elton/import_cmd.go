@@ -165,7 +165,7 @@ type fileEntry struct {
 	dir  *elton_v2.File
 	name string
 	stat *unix.Stat_t
-	r    io.Reader
+	r    io.ReadCloser
 }
 type putResult struct {
 	error
@@ -206,7 +206,9 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, w
 	return out
 }
 
-func (b *treeBuilder) putFile(ctx context.Context, dir *elton_v2.File, name string, stat *unix.Stat_t, r io.Reader) error {
+func (b *treeBuilder) putFile(ctx context.Context, dir *elton_v2.File, name string, stat *unix.Stat_t, r io.ReadCloser) error {
+	defer r.Close()
+
 	var ftype elton_v2.FileType
 	switch stat.Mode & unix.S_IFMT {
 	case unix.S_IFREG:
