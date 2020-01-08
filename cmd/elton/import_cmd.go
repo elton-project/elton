@@ -85,6 +85,8 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 		}
 	}
 
+	// todo: remove unreachable inodes.
+
 	_, err = c.Commit(ctx, &elton_v2.CommitRequest{
 		Info: &elton_v2.CommitInfo{
 			CreatedAt:    ptypes.TimestampNow(),
