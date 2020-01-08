@@ -367,7 +367,7 @@ func (p *treePutter) processEntry(entry *fileEntry) error {
 	}
 	dir.Entries[name] = p.assignInode(file)
 
-	if entry.entries != nil {
+	if ftype == elton_v2.FileType_Directory {
 		// Add directory contents.
 		// p.reqWg counter already added by processRequest().  Should not add it here.
 		p.wg.Add(1)
