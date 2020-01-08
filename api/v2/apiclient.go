@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"time"
@@ -55,7 +56,9 @@ type _conn_VolumeServiceClient struct {
 
 func dial(address string) (*grpc.ClientConn, error) {
 	ctx, _ := context.WithTimeout(context.Background(), DefaultAPITimeout)
-	conn, err := grpc.DialContext(ctx, address, grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, address, grpc.WithInsecure(), grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(math.MaxInt32),
+	))
 	if err != nil {
 		return nil, err
 	}
