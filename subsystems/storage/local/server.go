@@ -14,7 +14,7 @@ import (
 )
 
 const DefaultCacheDir = "/var/tmp/elton-local-storage"
-const DefaultMaxObjectSize = 10 << 20 // 10MiB
+const DefaultMaxObjectSize = 1 << 30 // 1GiB
 
 func NewLocalStorageServer() subsystems.Server {
 	return &LocalStorage{
