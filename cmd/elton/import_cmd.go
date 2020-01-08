@@ -190,7 +190,7 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, w
 		go func() {
 			defer wg.Done()
 			for entry := range in {
-				err := b.putFile(ctx, entry.dir, entry.name, entry.stat, entry.r)
+				err := b.putFile(ctx, entry)
 				out <- putResult{
 					error: err,
 					Entry: entry,
@@ -206,7 +206,12 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, w
 	return out
 }
 
-func (b *treeBuilder) putFile(ctx context.Context, dir *elton_v2.File, name string, stat *unix.Stat_t, r io.ReadCloser) error {
+func (b *treeBuilder) putFile(ctx context.Context, entry *fileEntry) error {
+	dir := entry.dir
+	name := entry.name
+	stat := entry.stat
+	r := entry.r
+
 	defer r.Close()
 
 	var ftype elton_v2.FileType
