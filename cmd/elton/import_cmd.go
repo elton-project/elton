@@ -136,6 +136,8 @@ type treeBuilder struct {
 type treePutter struct {
 	*treeBuilder
 	ctx      context.Context
+	// Queue for import requests.
+	// If you want to send, MUST add reqWg counter before sending it.
 	reqCh    chan putRequest
 	entryCh  chan *fileEntry
 	resultCh chan putResult
@@ -143,7 +145,7 @@ type treePutter struct {
 	wg sync.WaitGroup
 	// Wait for entryCh senders.
 	entryWg sync.WaitGroup
-	// Wait for putRequest senders.
+	// Wait for putRequest senders and requests.
 	reqWg sync.WaitGroup
 }
 type putRequest struct {
@@ -199,6 +201,8 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 		defer p.wg.Done()
 		defer p.reqWg.Done()
 		for filePath := range in {
+			// Adding request to queue.
+			p.reqWg.Add(1)
 			p.reqCh <- putRequest{
 				path: filePath,
 				dir:  dir,
@@ -213,13 +217,13 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 			defer p.entryWg.Done()
 			for req := range p.reqCh {
 				// processRequest may be send putRequests and fileEntry.
-				p.reqWg.Add(1)
 				if err := p.processRequest(req); err != nil {
 					err = xerrors.Errorf("request(%s): %w", req.path, err)
 					p.resultCh <- putResult{
 						error: err,
 					}
 				}
+				// Done a request.
 				p.reqWg.Done()
 			}
 		}()
@@ -375,6 +379,8 @@ func (p *treePutter) processEntry(entry *fileEntry) error {
 			defer p.wg.Done()
 			defer p.reqWg.Done()
 			for _, ent := range entry.entries {
+				// Adding request to queue.
+				p.reqWg.Add(1)
 				p.reqCh <- putRequest{
 					path: path.Join(entry.path, ent.Name()),
 					dir:  file,
