@@ -130,6 +130,20 @@ type treeBuilder struct {
 	tree *elton_v2.Tree
 	ino  uint64
 }
+
+// Context of putting files or directories to the tree.
+type treePutter struct {
+	*treeBuilder
+	ctx      context.Context
+	reqCh    chan putRequest
+	entryCh  chan *fileEntry
+	resultCh chan putResult
+	wg       sync.WaitGroup
+}
+type putRequest struct {
+	path string
+	dir  *elton_v2.File
+}
 type fileEntry struct {
 	path string
 	dir  *elton_v2.File
@@ -165,87 +179,104 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 	if dir.FileType != elton_v2.FileType_Directory {
 		return nil, xerrors.Errorf("not a directory: ino=%d", dirIno)
 	}
-	return b.putFilesAsync(ctx, dir, in, workers)
-}
 
-func (b *treeBuilder) putFilesAsync(ctx context.Context, base *elton_v2.File, in <-chan string, workers int) (<-chan putResult, error) {
-	fentries := make(chan *fileEntry, 10)
-	results := make(chan putResult, 128)
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	p := &treePutter{
+		treeBuilder: b,
+		ctx:         ctx,
+		reqCh:       make(chan putRequest, 10),
+		entryCh:     make(chan *fileEntry, 128),
+		resultCh:    make(chan putResult, 10),
+	}
+	p.wg.Add(1)
 	go func() {
-		defer wg.Done()
-		defer close(fentries)
-		for file := range in {
-			if err := b.putFileAsync(ctx, fentries, base, file); err != nil {
-				results <- putResult{
-					error: err,
-				}
+		defer p.wg.Done()
+		for filePath := range in {
+			p.reqCh <- putRequest{
+				path: filePath,
+				dir:  dir,
 			}
 		}
 	}()
+	p.wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer p.wg.Done()
+			for req := range p.reqCh {
+				if err := p.processRequest(req); err != nil {
+					err = xerrors.Errorf("request(%s): %w", req.path, err)
+					p.resultCh <- putResult{
+						error: err,
+					}
+				}
+			}
+		}()
+	}
+	p.wg.Add(1)
 	go func() {
-		defer wg.Done()
-		for result := range b.PutFileEntriesAsync(ctx, fentries, workers) {
-			results <- result
+		defer p.wg.Done()
+		for entry := range p.entryCh {
+			err := p.processEntry(entry)
+			if err != nil {
+				err = xerrors.Errorf("entry(%s): %w", entry.path, err)
+			}
+			p.resultCh <- putResult{
+				error: err,
+				Entry: entry,
+			}
 		}
+		close(p.entryCh)
 	}()
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	return results, nil
+	return p.resultCh, nil
 }
 
-func (b *treeBuilder) putFileAsync(ctx context.Context, out chan<- *fileEntry, dir *elton_v2.File, file string) error {
+func (p *treePutter) processRequest(req putRequest) error {
 	select {
-	case <-ctx.Done():
-		return ctx.Err()
+	case <-p.ctx.Done():
+		return p.ctx.Err()
 	default:
 	}
 
-	fname := filepath.Base(file)
+	fname := filepath.Base(req.path)
 	if !isValidFileName(fname) {
-		return xerrors.Errorf("invalid file name: %s", file)
+		return xerrors.Errorf("invalid path name: %s", req.path)
 	}
 	stat := &unix.Stat_t{}
-	if err := unix.Stat(file, stat); err != nil {
-		return xerrors.Errorf("stat(%s): %w", file, err)
+	if err := unix.Stat(req.path, stat); err != nil {
+		return xerrors.Errorf("stat(%s): %w", req.path, err)
 	}
 	switch stat.Mode & unix.S_IFMT {
 	case unix.S_IFDIR:
-		entries, err := ioutil.ReadDir(file)
+		entries, err := ioutil.ReadDir(req.path)
 		if err != nil {
-			xerrors.Errorf("ReadDir(%s): %w", file, err)
+			xerrors.Errorf("ReadDir(%s): %w", req.path, err)
 		}
-		out <- &fileEntry{
-			path:    file,
-			dir:     dir,
+		p.entryCh <- &fileEntry{
+			path:    req.path,
+			dir:     req.dir,
 			name:    fname,
 			stat:    stat,
 			entries: entries,
 		}
 	case unix.S_IFREG:
-		reader, err := os.Open(file)
+		reader, err := os.Open(req.path)
 		if err != nil {
 			return err
 		}
-		out <- &fileEntry{
-			path: file,
-			dir:  dir,
+		p.entryCh <- &fileEntry{
+			path: req.path,
+			dir:  req.dir,
 			name: fname,
 			stat: stat,
 			r:    reader,
 		}
 	case unix.S_IFLNK:
-		dest, err := os.Readlink(file)
+		dest, err := os.Readlink(req.path)
 		if err != nil {
 			return err
 		}
-		out <- &fileEntry{
-			path: file,
-			dir:  dir,
+		p.entryCh <- &fileEntry{
+			path: req.path,
+			dir:  req.dir,
 			name: fname,
 			stat: stat,
 			r:    ioutil.NopCloser(strings.NewReader(dest)),
@@ -253,32 +284,7 @@ func (b *treeBuilder) putFileAsync(ctx context.Context, out chan<- *fileEntry, d
 	}
 	return nil
 }
-func (b *treeBuilder) PutFileEntriesAsync(ctx context.Context, in <-chan *fileEntry, workers int) <-chan putResult {
-	out := make(chan putResult, 128)
-	// Start workers.
-	wg := sync.WaitGroup{}
-	wg.Add(workers)
-	for i := 0; i < workers; i++ {
-		go func() {
-			defer wg.Done()
-			for entry := range in {
-				err := b.putFileEntry(ctx, entry)
-				out <- putResult{
-					error: err,
-					Entry: entry,
-				}
-			}
-		}()
-	}
-	// Close out when all workers are finished.
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-	return out
-}
-
-func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error {
+func (p *treePutter) processEntry(entry *fileEntry) error {
 	dir := entry.dir
 	name := entry.name
 	stat := entry.stat
@@ -307,7 +313,7 @@ func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error 
 			return xerrors.Errorf("read file: %w", err)
 		}
 
-		res, err := b.sc.CreateObject(ctx, &elton_v2.CreateObjectRequest{
+		res, err := p.sc.CreateObject(p.ctx, &elton_v2.CreateObjectRequest{
 			Body: &elton_v2.ObjectBody{
 				Contents: body,
 			},
@@ -320,8 +326,8 @@ func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error 
 		}
 	}
 
-	b.lock.Lock()
-	defer b.lock.Unlock()
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if dir.Entries == nil {
 		dir.Entries = map[string]uint64{}
 	}
@@ -336,7 +342,7 @@ func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error 
 		Ctime:      mustConvertTimestmap(stat.Ctim),
 		Entries:    nil,
 	}
-	dir.Entries[name] = b.assignInode(file)
+	dir.Entries[name] = p.assignInode(file)
 
 	if entry.entries != nil {
 		// Add directory contents.
