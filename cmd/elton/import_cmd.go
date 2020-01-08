@@ -136,6 +136,10 @@ type fileEntry struct {
 	stat *unix.Stat_t
 	r    io.Reader
 }
+type putResult struct {
+	error
+	Entry *fileEntry
+}
 
 func newTreeBuilder(sc elton_v2.StorageServiceClient, tree *elton_v2.Tree) *treeBuilder {
 	return &treeBuilder{
@@ -146,8 +150,8 @@ func newTreeBuilder(sc elton_v2.StorageServiceClient, tree *elton_v2.Tree) *tree
 	}
 }
 
-func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, workers int) <-chan error {
-	out := make(chan error, 128)
+func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, workers int) <-chan putResult {
+	out := make(chan putResult, 128)
 	// Start workers.
 	wg := sync.WaitGroup{}
 	wg.Add(workers)
@@ -155,7 +159,11 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, w
 		go func() {
 			defer wg.Done()
 			for entry := range in {
-				out <- b.putFile(ctx, entry.dir, entry.name, entry.stat, entry.r)
+				err := b.putFile(ctx, entry.dir, entry.name, entry.stat, entry.r)
+				out <- putResult{
+					error: err,
+					Entry: entry,
+				}
 			}
 		}()
 	}
