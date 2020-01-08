@@ -16,9 +16,6 @@ import (
 	"time"
 )
 
-var lastCheckedInoLock sync.Mutex
-var lastCheckedIno uint64 = 1
-
 func importFn(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return xerrors.Errorf("invalid args")
@@ -63,6 +60,7 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 	}
 
 	tree := res.GetInfo().GetTree()
+	builder := newTreeBuilder(sc, tree)
 	dirIno, err := searchFile(tree, base)
 	if err != nil {
 		return xerrors.Errorf("base dir: %w", err)
@@ -89,7 +87,7 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 			return err
 		}
 
-		if err := putFile(ctx, sc, tree, dir, fname, stat, reader); err != nil {
+		if err := builder.putFile(ctx, dir, fname, stat, reader); err != nil {
 			return xerrors.Errorf("putFile(%s): %w", file, err)
 		}
 		if err := reader.Close(); err != nil {
@@ -125,7 +123,24 @@ func isValidFileName(file string) bool {
 		return true
 	}
 }
-func putFile(ctx context.Context, c elton_v2.StorageServiceClient, tree *elton_v2.Tree, dir *elton_v2.File, name string, stat *unix.Stat_t, r io.Reader) error {
+
+type treeBuilder struct {
+	lock sync.Mutex
+	sc   elton_v2.StorageServiceClient
+	tree *elton_v2.Tree
+	ino  uint64
+}
+
+func newTreeBuilder(sc elton_v2.StorageServiceClient, tree *elton_v2.Tree) *treeBuilder {
+	return &treeBuilder{
+		lock: sync.Mutex{},
+		sc:   sc,
+		tree: tree,
+		ino:  1,
+	}
+}
+
+func (b *treeBuilder) putFile(ctx context.Context, dir *elton_v2.File, name string, stat *unix.Stat_t, r io.Reader) error {
 	var ftype elton_v2.FileType
 	switch stat.Mode & unix.S_IFMT {
 	case unix.S_IFREG:
@@ -142,7 +157,7 @@ func putFile(ctx context.Context, c elton_v2.StorageServiceClient, tree *elton_v
 		return xerrors.Errorf("read file: %w", err)
 	}
 
-	res, err := c.CreateObject(ctx, &elton_v2.CreateObjectRequest{
+	res, err := b.sc.CreateObject(ctx, &elton_v2.CreateObjectRequest{
 		Body: &elton_v2.ObjectBody{
 			Contents: body,
 		},
@@ -154,7 +169,7 @@ func putFile(ctx context.Context, c elton_v2.StorageServiceClient, tree *elton_v
 	if dir.Entries == nil {
 		dir.Entries = map[string]uint64{}
 	}
-	dir.Entries[name] = assignInode(tree, &elton_v2.File{
+	dir.Entries[name] = b.assignInode(&elton_v2.File{
 		ContentRef: &elton_v2.FileContentRef{
 			Key: res.GetKey(),
 		},
@@ -169,20 +184,18 @@ func putFile(ctx context.Context, c elton_v2.StorageServiceClient, tree *elton_v
 	})
 	return nil
 }
-func assignInode(tree *elton_v2.Tree, file *elton_v2.File) uint64 {
-	lastCheckedInoLock.Lock()
-	defer lastCheckedInoLock.Unlock()
+func (b *treeBuilder) assignInode(file *elton_v2.File) uint64 {
 	for {
-		_, ok := tree.Inodes[lastCheckedIno]
+		_, ok := b.tree.Inodes[b.ino]
 		if !ok {
 			break
 		}
 		// This ino is already used.
 		// todo: check ino range
-		lastCheckedIno++
+		b.ino++
 	}
-	tree.Inodes[lastCheckedIno] = file
-	return lastCheckedIno
+	b.tree.Inodes[b.ino] = file
+	return b.ino
 }
 func mustConvertTimestmap(timespec unix.Timespec) *tspb.Timestamp {
 	ts, err := ptypes.TimestampProto(time.Unix(timespec.Unix()))
