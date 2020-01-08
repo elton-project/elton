@@ -45,12 +45,17 @@ var historyInspectCmd = &cobra.Command{
 	Short: "Show commit info or file info",
 	RunE:  historyInspectFn,
 }
+var importCmd = &cobra.Command{
+	Use:   "import CID BASE_DIR [FILES...]",
+	Short: "Import files to specified directory",
+	RunE:  importFn,
+}
 
 func init() {
 	volumeCmd.AddCommand(volumeLsCmd, volumeCreateCmd)
 	debugCmd.AddCommand(debugDumpObjCmd)
 	historyCmd.AddCommand(historyLsCmd, historyInspectCmd)
-	rootCmd.AddCommand(volumeCmd, debugCmd, historyCmd)
+	rootCmd.AddCommand(volumeCmd, debugCmd, historyCmd, importCmd)
 }
 func main() {
 	os.Exit(Main())
