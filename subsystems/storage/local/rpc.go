@@ -19,9 +19,8 @@ func (s *StorageService) CreateObject(ctx context.Context, req *elton_v2.CreateO
 
 	body := req.GetBody().GetContents()
 	key, err := s.Repo.Create(body, Info{})
-
 	if err != nil {
-		return nil, status.Errorf(codes.AlreadyExists, "%s already exists", key.ID)
+		return nil, status.Errorf(codes.Internal, "failed to create object: %s", err.Error())
 	}
 
 	res := &elton_v2.CreateObjectResponse{
