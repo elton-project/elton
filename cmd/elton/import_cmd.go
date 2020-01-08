@@ -104,7 +104,7 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 		Id: cid.GetId(),
 	})
 	if err != nil {
-		xerrors.Errorf("commit: %w", err)
+		return xerrors.Errorf("commit: %w", err)
 	}
 	return nil
 }
