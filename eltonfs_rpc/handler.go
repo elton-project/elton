@@ -82,10 +82,11 @@ func handleGetCommitInfoRequest(ns ClientNS) {
 		req := rawReq.(*GetCommitInfoRequest)
 
 		// Get commit info from meta node.
-		c, err := elton_v2.ApiClient{}.CommitService()
+		c, err := elton_v2.CommitService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
+		defer elton_v2.Close(c)
 		res, err := c.GetCommit(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
@@ -100,10 +101,11 @@ func handleGetObjectRequest(ns ClientNS) {
 		req := rawReq.(*GetObjectRequest)
 
 		// Get object from storage.
-		c, err := elton_v2.ApiClient{}.StorageService()
+		c, err := elton_v2.StorageService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
+		defer elton_v2.Close(c)
 		res, err := c.GetObject(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
@@ -118,10 +120,11 @@ func handleCreateObject(ns ClientNS) {
 		req := rawReq.(*CreateObjectRequest)
 
 		// Send create object request.
-		c, err := elton_v2.ApiClient{}.StorageService()
+		c, err := elton_v2.StorageService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
+		defer elton_v2.Close(c)
 		res, err := c.CreateObject(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
@@ -135,10 +138,11 @@ func handleCreateCommitRequest(ns ClientNS) {
 		req := rawReq.(*CreateCommitRequest)
 
 		// Send commit request.
-		c, err := elton_v2.ApiClient{}.CommitService()
+		c, err := elton_v2.CommitService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
+		defer elton_v2.Close(c)
 		res, err := c.Commit(context.Background(), req.ToGRPC())
 		if err != nil {
 			return nil, xerrors.Errorf("call api: %w", err)
@@ -152,10 +156,11 @@ func handleNotifyLatestCommitRequest(ns ClientNS) {
 	rpcHandlerHelper(ns, &NotifyLatestCommitRequest{}, func(rawReq interface{}) (i interface{}, err error) {
 		req := rawReq.(*NotifyLatestCommitRequest)
 
-		c, err := elton_v2.ApiClient{}.CommitService()
+		c, err := elton_v2.CommitService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
+		defer elton_v2.Close(c)
 		receiver, err := c.ListCommits(context.Background(), &elton_v2.ListCommitsRequest{
 			Id:    req.VolumeID.ToGRC(),
 			Limit: 1,
@@ -179,10 +184,11 @@ func handleGetVolumeIDRequest(ns ClientNS) {
 	rpcHandlerHelper(ns, &GetVolumeIDRequest{}, func(rawReq interface{}) (i interface{}, err error) {
 		req := rawReq.(*GetVolumeIDRequest)
 
-		c, err := elton_v2.ApiClient{}.VolumeService()
+		c, err := elton_v2.VolumeService()
 		if err != nil {
 			return nil, xerrors.Errorf("api client: %w", err)
 		}
+		defer elton_v2.Close(c)
 		res, err := c.InspectVolume(context.Background(), &elton_v2.InspectVolumeRequest{
 			Name: req.VolumeName,
 		})

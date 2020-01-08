@@ -18,10 +18,11 @@ func volumeCreateFn(cmd *cobra.Command, args []string) error {
 }
 
 func _volumeCreateFn(ctx context.Context, names []string) error {
-	c, err := elton_v2.ApiClient{}.VolumeService()
+	c, err := elton_v2.VolumeService()
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
 	}
+	defer elton_v2.Close(c)
 
 	for _, name := range names {
 		// Create a volume with specified name.

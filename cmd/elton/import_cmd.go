@@ -40,10 +40,11 @@ func importFn(cmd *cobra.Command, args []string) error {
 }
 
 func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files []string) error {
-	c, err := elton_v2.ApiClient{}.CommitService()
+	c, err := elton_v2.CommitService()
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
 	}
+	defer elton_v2.Close(c)
 
 	res, err := c.GetCommit(ctx, &elton_v2.GetCommitRequest{
 		Id: cid,
@@ -132,10 +133,12 @@ func putFile(ctx context.Context, tree *elton_v2.Tree, dir *elton_v2.File, name 
 		return xerrors.Errorf("read file: %w", err)
 	}
 
-	c, err := elton_v2.ApiClient{}.StorageService()
+	// todo: use conn cache
+	c, err := elton_v2.StorageService()
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
 	}
+	defer elton_v2.Close(c)
 
 	res, err := c.CreateObject(ctx, &elton_v2.CreateObjectRequest{
 		Body: &elton_v2.ObjectBody{

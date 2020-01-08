@@ -34,10 +34,11 @@ func historyInspectFn(cmd *cobra.Command, args []string) error {
 }
 
 func _historyInspectFn(ctx context.Context, cid *elton_v2.CommitID, files []string) error {
-	c, err := elton_v2.ApiClient{}.CommitService()
+	c, err := elton_v2.CommitService()
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
 	}
+	defer elton_v2.Close(c)
 
 	res, err := c.GetCommit(ctx, &elton_v2.GetCommitRequest{
 		Id: cid,

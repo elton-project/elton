@@ -5,6 +5,7 @@ import (
 	"gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/subsystems"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -39,31 +40,57 @@ func readFileOrDefault(file string, defaultData string) string {
 	return string(data)
 }
 
-type ApiClient struct{}
+type _conn_commitServiceClient struct {
+	io.Closer
+	CommitServiceClient
+}
+type _conn_StorageServiceClient struct {
+	io.Closer
+	StorageServiceClient
+}
+type _conn_VolumeServiceClient struct {
+	io.Closer
+	VolumeServiceClient
+}
 
-func (ApiClient) dial(address string) (*grpc.ClientConn, error) {
+func dial(address string) (*grpc.ClientConn, error) {
 	ctx, _ := context.WithTimeout(context.Background(), DefaultAPITimeout)
-	return grpc.DialContext(ctx, address, grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, address, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
 }
-func (ApiClient) CommitService() (CommitServiceClient, error) {
-	cc, err := ApiClient{}.dial(controllerURI)
+func Close(closer interface{}) error {
+	return closer.(io.Closer).Close()
+}
+func CommitService() (CommitServiceClient, error) {
+	cc, err := dial(controllerURI)
 	if err != nil {
 		return nil, xerrors.Errorf("dial: %w", err)
 	}
-	return NewCommitServiceClient(cc), nil
+	return &_conn_commitServiceClient{
+		Closer:              cc,
+		CommitServiceClient: NewCommitServiceClient(cc),
+	}, nil
 }
-func (ApiClient) StorageService() (StorageServiceClient, error) {
-	cc, err := ApiClient{}.dial(storageURI)
+func StorageService() (StorageServiceClient, error) {
+	cc, err := dial(storageURI)
 	if err != nil {
 		return nil, xerrors.Errorf("dial: %w", err)
 	}
-	return NewStorageServiceClient(cc), nil
+	return &_conn_StorageServiceClient{
+		Closer:               cc,
+		StorageServiceClient: NewStorageServiceClient(cc),
+	}, nil
 }
-
-func (ApiClient) VolumeService() (VolumeServiceClient, error) {
-	cc, err := ApiClient{}.dial(controllerURI)
+func VolumeService() (VolumeServiceClient, error) {
+	cc, err := dial(controllerURI)
 	if err != nil {
 		return nil, xerrors.Errorf("dial: %w", err)
 	}
-	return NewVolumeServiceClient(cc), nil
+	return &_conn_VolumeServiceClient{
+		Closer:              cc,
+		VolumeServiceClient: NewVolumeServiceClient(cc),
+	}, nil
 }

@@ -26,10 +26,11 @@ func historyLsFn(cmd *cobra.Command, args []string) error {
 }
 func _historyLsFn(ctx context.Context, volumeName string) error {
 	// Get volume ID.
-	cv, err := elton_v2.ApiClient{}.VolumeService()
+	cv, err := elton_v2.VolumeService()
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
 	}
+	defer elton_v2.Close(cv)
 	vRes, err := cv.InspectVolume(ctx, &elton_v2.InspectVolumeRequest{
 		Name: volumeName,
 	})
@@ -39,7 +40,8 @@ func _historyLsFn(ctx context.Context, volumeName string) error {
 	volID := vRes.GetId()
 
 	// Get commit list.
-	cc, err := elton_v2.ApiClient{}.CommitService()
+	cc, err := elton_v2.CommitService()
+	defer elton_v2.Close(cc)
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
 	}

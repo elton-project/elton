@@ -17,10 +17,11 @@ func volumeLsFn(cmd *cobra.Command, args []string) error {
 	return nil
 }
 func _volumeLsFn() error {
-	c, err := elton_v2.ApiClient{}.VolumeService()
+	c, err := elton_v2.VolumeService()
 	if err != nil {
 		return xerrors.Errorf("api client: %w", err)
 	}
+	defer elton_v2.Close(c)
 
 	// Call api and store results to names slice.
 	var names []string
