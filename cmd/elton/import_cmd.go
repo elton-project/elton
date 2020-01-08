@@ -78,6 +78,7 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 			case filesCh <- file:
 			}
 		}
+		close(filesCh)
 		return nil
 	})
 	eg.Go(func() error {
