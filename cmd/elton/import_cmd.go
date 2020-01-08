@@ -236,6 +236,7 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 				Entry: entry,
 			}
 		}
+		close(p.resultCh)
 	}()
 	go func() {
 		p.reqWg.Wait()
