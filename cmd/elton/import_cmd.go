@@ -62,69 +62,36 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 
 	tree := res.GetInfo().GetTree()
 	builder := newTreeBuilder(sc, tree)
-	dirIno, err := searchFile(tree, base)
+	filesCh := make(chan string, 10)
+	results, err := builder.PutFilesAsync(ctx, base, filesCh, 8)
 	if err != nil {
-		return xerrors.Errorf("base dir: %w", err)
+		return xerrors.Errorf("PutFiles: %w", err)
 	}
-	dir, ok := tree.Inodes[dirIno]
-	if !ok {
-		return xerrors.Errorf("base dir: not found inode: ino=%d", dirIno)
-	}
-	if dir.FileType != elton_v2.FileType_Directory {
-		return xerrors.Errorf("not a directory: ino=%d", dirIno)
-	}
-
-	fentries := make(chan *fileEntry, 10)
 	eg := errgroup.Group{}
 	eg.Go(func() error {
 		for _, file := range files {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			default:
-			}
-
-			fname := filepath.Base(file)
-			if !isValidFileName(fname) {
-				return xerrors.Errorf("invalid file name: %s", file)
-			}
-			stat := &unix.Stat_t{}
-			if err := unix.Stat(file, stat); err != nil {
-				return xerrors.Errorf("stat(%s): %w", file, err)
-			}
-			reader, err := os.Open(file)
-			if err != nil {
-				return err
-			}
-
-			fentries <- &fileEntry{
-				dir:  dir,
-				name: fname,
-				stat: stat,
-				r:    reader,
+			case filesCh <- file:
 			}
 		}
 		return nil
 	})
 	eg.Go(func() error {
 		failed := false
-		results := builder.PutFileEntriesAsync(ctx, fentries, 4)
 		for result := range results {
-			if result.error == nil {
-				continue
+			if result.error != nil {
+				showError(result.error)
+				failed = true
 			}
-			err := xerrors.Errorf("PutFiles(%s): %w", result.Entry.name, result.error)
-			showError(err)
-			failed = true
 		}
 		if failed {
-			return xerrors.Errorf("failed to PutFiles()")
+			return xerrors.Errorf("some tasks are failed")
 		}
 		return nil
 	})
-	if err := eg.Wait(); err != nil {
-		return err
-	}
+	eg.Wait()
 
 	// todo: remove unreachable inodes.
 
@@ -180,7 +147,76 @@ func newTreeBuilder(sc elton_v2.StorageServiceClient, tree *elton_v2.Tree) *tree
 		ino:  1,
 	}
 }
+func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in chan<- string, workers int) (<-chan putResult, error) {
+	dirIno, err := searchFile(b.tree, base)
+	if err != nil {
+		return nil, xerrors.Errorf("base dir: %w", err)
+	}
+	dir, ok := b.tree.Inodes[dirIno]
+	if !ok {
+		return nil, xerrors.Errorf("base dir: not found inode: ino=%d", dirIno)
+	}
+	if dir.FileType != elton_v2.FileType_Directory {
+		return nil, xerrors.Errorf("not a directory: ino=%d", dirIno)
+	}
 
+	fentries := make(chan *fileEntry, 10)
+	results := make(chan putResult, 128)
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		defer close(fentries)
+		for file := range in {
+			if err := b.putFileAsync(ctx, fentries, dir, file); err != nil {
+				results <- putResult{
+					error: err,
+				}
+			}
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for result := range b.PutFileEntriesAsync(ctx, fentries, workers) {
+			results <- result
+		}
+	}()
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	return results, nil
+}
+
+func (b *treeBuilder) putFileAsync(ctx context.Context, out chan<- *fileEntry, dir *elton_v2.File, file string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	fname := filepath.Base(file)
+	if !isValidFileName(fname) {
+		return xerrors.Errorf("invalid file name: %s", file)
+	}
+	stat := &unix.Stat_t{}
+	if err := unix.Stat(file, stat); err != nil {
+		return xerrors.Errorf("stat(%s): %w", file, err)
+	}
+	reader, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+
+	out <- &fileEntry{
+		dir:  dir,
+		name: fname,
+		stat: stat,
+		r:    reader,
+	}
+	return nil
+}
 func (b *treeBuilder) PutFileEntriesAsync(ctx context.Context, in <-chan *fileEntry, workers int) <-chan putResult {
 	out := make(chan putResult, 128)
 	// Start workers.
