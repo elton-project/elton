@@ -108,7 +108,7 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 	})
 	eg.Go(func() error {
 		failed := false
-		results := builder.PutFilesAsync(ctx, fentries, 4)
+		results := builder.PutFileEntriesAsync(ctx, fentries, 4)
 		for result := range results {
 			if result.error == nil {
 				continue
@@ -181,7 +181,7 @@ func newTreeBuilder(sc elton_v2.StorageServiceClient, tree *elton_v2.Tree) *tree
 	}
 }
 
-func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, workers int) <-chan putResult {
+func (b *treeBuilder) PutFileEntriesAsync(ctx context.Context, in <-chan *fileEntry, workers int) <-chan putResult {
 	out := make(chan putResult, 128)
 	// Start workers.
 	wg := sync.WaitGroup{}
@@ -190,7 +190,7 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, w
 		go func() {
 			defer wg.Done()
 			for entry := range in {
-				err := b.putFile(ctx, entry)
+				err := b.putFileEntry(ctx, entry)
 				out <- putResult{
 					error: err,
 					Entry: entry,
@@ -206,7 +206,7 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, in <-chan *fileEntry, w
 	return out
 }
 
-func (b *treeBuilder) putFile(ctx context.Context, entry *fileEntry) error {
+func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error {
 	dir := entry.dir
 	name := entry.name
 	stat := entry.stat
