@@ -224,7 +224,7 @@ func LoadObjectV1(rs io.ReadSeeker, offset, size uint64, limit ObjectLimitV1) (*
 	return r, nil
 }
 func (r *ObjectV1) Save(w io.Writer) error {
-	if r.Info == nil || r.Body == nil {
+	if r.Info == nil {
 		return xerrors.New("illegal argument on ObjectV1.Save()")
 	}
 	if uint64(len(r.Body)) > r.MaxBodySize {
