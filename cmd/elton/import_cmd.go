@@ -234,6 +234,8 @@ func (b *treeBuilder) putFile(ctx context.Context, dir *elton_v2.File, name stri
 		return xerrors.Errorf("create object: %w", err)
 	}
 
+	b.lock.Lock()
+	defer b.lock.Unlock()
 	if dir.Entries == nil {
 		dir.Entries = map[string]uint64{}
 	}
