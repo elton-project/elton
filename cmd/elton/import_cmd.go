@@ -138,7 +138,10 @@ type treePutter struct {
 	reqCh    chan putRequest
 	entryCh  chan *fileEntry
 	resultCh chan putResult
-	wg       sync.WaitGroup
+	// Wait for all goroutines of putter.
+	wg sync.WaitGroup
+	// Wait for putRequest senders.
+	reqWg sync.WaitGroup
 }
 type putRequest struct {
 	path string
@@ -183,13 +186,15 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 	p := &treePutter{
 		treeBuilder: b,
 		ctx:         ctx,
-		reqCh:       make(chan putRequest, 10),
+		reqCh:       make(chan putRequest),
 		entryCh:     make(chan *fileEntry, 128),
 		resultCh:    make(chan putResult, 10),
 	}
 	p.wg.Add(1)
+	p.reqWg.Add(1)
 	go func() {
 		defer p.wg.Done()
+		defer p.reqWg.Done()
 		for filePath := range in {
 			p.reqCh <- putRequest{
 				path: filePath,
@@ -202,12 +207,15 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 		go func() {
 			defer p.wg.Done()
 			for req := range p.reqCh {
+				// processRequest may be send putRequests.
+				p.reqWg.Add(1)
 				if err := p.processRequest(req); err != nil {
 					err = xerrors.Errorf("request(%s): %w", req.path, err)
 					p.resultCh <- putResult{
 						error: err,
 					}
 				}
+				p.reqWg.Done()
 			}
 		}()
 	}
@@ -225,6 +233,10 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 			}
 		}
 		close(p.entryCh)
+	}()
+	go func() {
+		p.reqWg.Wait()
+		close(p.reqCh)
 	}()
 	return p.resultCh, nil
 }
@@ -250,6 +262,8 @@ func (p *treePutter) processRequest(req putRequest) error {
 		if err != nil {
 			return xerrors.Errorf("ReadDir(%s): %w", req.path, err)
 		}
+		// Should add reqWg to prevent closing the reqCh unexpected timing.
+		p.reqWg.Add(1)
 		p.entryCh <- &fileEntry{
 			path:    req.path,
 			dir:     req.dir,
@@ -346,9 +360,11 @@ func (p *treePutter) processEntry(entry *fileEntry) error {
 
 	if entry.entries != nil {
 		// Add directory contents.
+		// p.reqWg counter already added by processRequest().  Should not add it here.
 		p.wg.Add(1)
 		go func() {
 			defer p.wg.Done()
+			defer p.reqWg.Done()
 			for _, ent := range entry.entries {
 				p.reqCh <- putRequest{
 					path: path.Join(entry.path, ent.Name()),
