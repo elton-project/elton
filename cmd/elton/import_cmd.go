@@ -6,6 +6,7 @@ import (
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/spf13/cobra"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/sys/unix"
 	"golang.org/x/xerrors"
 	"io"
@@ -73,26 +74,56 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 		return xerrors.Errorf("not a directory: ino=%d", dirIno)
 	}
 
-	for _, file := range files {
-		fname := filepath.Base(file)
-		if !isValidFileName(fname) {
-			return xerrors.Errorf("invalid file name: %s", file)
-		}
-		stat := &unix.Stat_t{}
-		if err := unix.Stat(file, stat); err != nil {
-			return xerrors.Errorf("stat(%s): %w", file, err)
-		}
-		reader, err := os.Open(file)
-		if err != nil {
-			return err
-		}
+	fentries := make(chan *fileEntry, 10)
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		for _, file := range files {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
 
-		if err := builder.putFile(ctx, dir, fname, stat, reader); err != nil {
-			return xerrors.Errorf("putFile(%s): %w", file, err)
+			fname := filepath.Base(file)
+			if !isValidFileName(fname) {
+				return xerrors.Errorf("invalid file name: %s", file)
+			}
+			stat := &unix.Stat_t{}
+			if err := unix.Stat(file, stat); err != nil {
+				return xerrors.Errorf("stat(%s): %w", file, err)
+			}
+			reader, err := os.Open(file)
+			if err != nil {
+				return err
+			}
+
+			fentries <- &fileEntry{
+				dir:  dir,
+				name: fname,
+				stat: stat,
+				r:    reader,
+			}
 		}
-		if err := reader.Close(); err != nil {
-			return err
+		return nil
+	})
+	eg.Go(func() error {
+		failed := false
+		results := builder.PutFilesAsync(ctx, fentries, 4)
+		for result := range results {
+			if result.error == nil {
+				continue
+			}
+			err := xerrors.Errorf("PutFiles(%s): %w", result.Entry.name, result.error)
+			showError(err)
+			failed = true
 		}
+		if failed {
+			return xerrors.Errorf("failed to PutFiles()")
+		}
+		return nil
+	})
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
 	// todo: remove unreachable inodes.
