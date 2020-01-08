@@ -45,6 +45,11 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 		return xerrors.Errorf("api client: %w", err)
 	}
 	defer elton_v2.Close(c)
+	sc, err := elton_v2.StorageService()
+	if err != nil {
+		return xerrors.Errorf("api client: %w", err)
+	}
+	defer elton_v2.Close(c)
 
 	res, err := c.GetCommit(ctx, &elton_v2.GetCommitRequest{
 		Id: cid,
@@ -80,7 +85,7 @@ func _importFn(ctx context.Context, cid *elton_v2.CommitID, base string, files [
 			return err
 		}
 
-		if err := putFile(ctx, tree, dir, fname, stat, reader); err != nil {
+		if err := putFile(ctx, sc, tree, dir, fname, stat, reader); err != nil {
 			return xerrors.Errorf("putFile(%s): %w", file, err)
 		}
 		if err := reader.Close(); err != nil {
@@ -116,7 +121,7 @@ func isValidFileName(file string) bool {
 		return true
 	}
 }
-func putFile(ctx context.Context, tree *elton_v2.Tree, dir *elton_v2.File, name string, stat *unix.Stat_t, r io.Reader) error {
+func putFile(ctx context.Context, c elton_v2.StorageServiceClient, tree *elton_v2.Tree, dir *elton_v2.File, name string, stat *unix.Stat_t, r io.Reader) error {
 	var ftype elton_v2.FileType
 	switch stat.Mode & unix.S_IFMT {
 	case unix.S_IFREG:
@@ -132,13 +137,6 @@ func putFile(ctx context.Context, tree *elton_v2.Tree, dir *elton_v2.File, name 
 	if err != nil {
 		return xerrors.Errorf("read file: %w", err)
 	}
-
-	// todo: use conn cache
-	c, err := elton_v2.StorageService()
-	if err != nil {
-		return xerrors.Errorf("api client: %w", err)
-	}
-	defer elton_v2.Close(c)
 
 	res, err := c.CreateObject(ctx, &elton_v2.CreateObjectRequest{
 		Body: &elton_v2.ObjectBody{
