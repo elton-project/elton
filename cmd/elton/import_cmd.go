@@ -12,7 +12,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -129,10 +131,14 @@ type treeBuilder struct {
 	ino  uint64
 }
 type fileEntry struct {
+	path string
 	dir  *elton_v2.File
 	name string
 	stat *unix.Stat_t
-	r    io.ReadCloser
+	// Content reader (regular file only)
+	r io.ReadCloser
+	// Contents of dir (directory only)
+	entries []os.FileInfo
 }
 type putResult struct {
 	error
@@ -159,7 +165,10 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 	if dir.FileType != elton_v2.FileType_Directory {
 		return nil, xerrors.Errorf("not a directory: ino=%d", dirIno)
 	}
+	return b.putFilesAsync(ctx, dir, in, workers)
+}
 
+func (b *treeBuilder) putFilesAsync(ctx context.Context, base *elton_v2.File, in <-chan string, workers int) (<-chan putResult, error) {
 	fentries := make(chan *fileEntry, 10)
 	results := make(chan putResult, 128)
 	wg := sync.WaitGroup{}
@@ -168,7 +177,7 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 		defer wg.Done()
 		defer close(fentries)
 		for file := range in {
-			if err := b.putFileAsync(ctx, fentries, dir, file); err != nil {
+			if err := b.putFileAsync(ctx, fentries, base, file); err != nil {
 				results <- putResult{
 					error: err,
 				}
@@ -204,16 +213,43 @@ func (b *treeBuilder) putFileAsync(ctx context.Context, out chan<- *fileEntry, d
 	if err := unix.Stat(file, stat); err != nil {
 		return xerrors.Errorf("stat(%s): %w", file, err)
 	}
-	reader, err := os.Open(file)
-	if err != nil {
-		return err
-	}
-
-	out <- &fileEntry{
-		dir:  dir,
-		name: fname,
-		stat: stat,
-		r:    reader,
+	switch stat.Mode & unix.S_IFMT {
+	case unix.S_IFDIR:
+		entries, err := ioutil.ReadDir(file)
+		if err != nil {
+			xerrors.Errorf("ReadDir(%s): %w", file, err)
+		}
+		out <- &fileEntry{
+			path:    file,
+			dir:     dir,
+			name:    fname,
+			stat:    stat,
+			entries: entries,
+		}
+	case unix.S_IFREG:
+		reader, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		out <- &fileEntry{
+			path: file,
+			dir:  dir,
+			name: fname,
+			stat: stat,
+			r:    reader,
+		}
+	case unix.S_IFLNK:
+		dest, err := os.Readlink(file)
+		if err != nil {
+			return err
+		}
+		out <- &fileEntry{
+			path: file,
+			dir:  dir,
+			name: fname,
+			stat: stat,
+			r:    ioutil.NopCloser(strings.NewReader(dest)),
+		}
 	}
 	return nil
 }
@@ -246,9 +282,10 @@ func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error 
 	dir := entry.dir
 	name := entry.name
 	stat := entry.stat
-	r := entry.r
 
-	defer r.Close()
+	if entry.r != nil {
+		defer entry.r.Close()
+	}
 
 	var ftype elton_v2.FileType
 	switch stat.Mode & unix.S_IFMT {
@@ -256,23 +293,31 @@ func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error 
 		ftype = elton_v2.FileType_Regular
 	case unix.S_IFLNK:
 		ftype = elton_v2.FileType_SymbolicLink
+	case unix.S_IFDIR:
+		ftype = elton_v2.FileType_Directory
 	default:
 		return xerrors.Errorf("unsupported file type")
 	}
 
-	// todo: may be crash if file is large.
-	body, err := ioutil.ReadAll(r)
-	if err != nil {
-		return xerrors.Errorf("read file: %w", err)
-	}
+	var ref *elton_v2.FileContentRef
+	if entry.r != nil {
+		// todo: may be crash if file is large.
+		body, err := ioutil.ReadAll(entry.r)
+		if err != nil {
+			return xerrors.Errorf("read file: %w", err)
+		}
 
-	res, err := b.sc.CreateObject(ctx, &elton_v2.CreateObjectRequest{
-		Body: &elton_v2.ObjectBody{
-			Contents: body,
-		},
-	})
-	if err != nil {
-		return xerrors.Errorf("create object: %w", err)
+		res, err := b.sc.CreateObject(ctx, &elton_v2.CreateObjectRequest{
+			Body: &elton_v2.ObjectBody{
+				Contents: body,
+			},
+		})
+		if err != nil {
+			return xerrors.Errorf("create object: %w", err)
+		}
+		ref = &elton_v2.FileContentRef{
+			Key: res.GetKey(),
+		}
 	}
 
 	b.lock.Lock()
@@ -280,19 +325,28 @@ func (b *treeBuilder) putFileEntry(ctx context.Context, entry *fileEntry) error 
 	if dir.Entries == nil {
 		dir.Entries = map[string]uint64{}
 	}
-	dir.Entries[name] = b.assignInode(&elton_v2.File{
-		ContentRef: &elton_v2.FileContentRef{
-			Key: res.GetKey(),
-		},
-		FileType: ftype,
-		Mode:     stat.Mode & ^uint32(unix.S_IFMT),
-		Owner:    stat.Uid,
-		Group:    stat.Gid,
-		Atime:    mustConvertTimestmap(stat.Atim),
-		Mtime:    mustConvertTimestmap(stat.Mtim),
-		Ctime:    mustConvertTimestmap(stat.Ctim),
-		Entries:  nil,
-	})
+	file := &elton_v2.File{
+		ContentRef: ref,
+		FileType:   ftype,
+		Mode:       stat.Mode & ^uint32(unix.S_IFMT),
+		Owner:      stat.Uid,
+		Group:      stat.Gid,
+		Atime:      mustConvertTimestmap(stat.Atim),
+		Mtime:      mustConvertTimestmap(stat.Mtim),
+		Ctime:      mustConvertTimestmap(stat.Ctim),
+		Entries:    nil,
+	}
+	dir.Entries[name] = b.assignInode(file)
+
+	if entry.entries != nil {
+		// Add directory contents.
+		go func() {
+			for _, ent := range entry.entries {
+				path.Join(entry.path, ent.Name())
+				// todo: enqueue it
+			}
+		}()
+	}
 	return nil
 }
 func (b *treeBuilder) assignInode(file *elton_v2.File) uint64 {
