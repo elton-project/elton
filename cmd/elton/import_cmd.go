@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/golang/protobuf/ptypes"
+	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/spf13/cobra"
 	elton_v2 "gitlab.t-lab.cs.teu.ac.jp/yuuki/elton/api/v2"
 	"golang.org/x/sys/unix"
@@ -11,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func importFn(cmd *cobra.Command, args []string) error {
@@ -155,9 +157,9 @@ func putFile(ctx context.Context, tree *elton_v2.Tree, dir *elton_v2.File, name 
 		Mode:     stat.Mode & ^uint32(unix.S_IFMT),
 		Owner:    stat.Uid,
 		Group:    stat.Gid,
-		Atime:    nil,
-		Mtime:    nil,
-		Ctime:    nil,
+		Atime:    mustConvertTimestmap(stat.Atim),
+		Mtime:    mustConvertTimestmap(stat.Mtim),
+		Ctime:    mustConvertTimestmap(stat.Ctim),
 		Entries:  nil,
 	})
 	return nil
@@ -174,4 +176,11 @@ func assignInode(tree *elton_v2.Tree, file *elton_v2.File) uint64 {
 	}
 	tree.Inodes[ino] = file
 	return ino
+}
+func mustConvertTimestmap(timespec unix.Timespec) *tspb.Timestamp {
+	ts, err := ptypes.TimestampProto(time.Unix(timespec.Unix()))
+	if err != nil {
+		panic(err)
+	}
+	return ts
 }
