@@ -140,6 +140,8 @@ type treePutter struct {
 	resultCh chan putResult
 	// Wait for all goroutines of putter.
 	wg sync.WaitGroup
+	// Wait for entryCh senders.
+	entryWg sync.WaitGroup
 	// Wait for putRequest senders.
 	reqWg sync.WaitGroup
 }
@@ -203,11 +205,13 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 		}
 	}()
 	p.wg.Add(workers)
+	p.entryWg.Add(workers)
 	for i := 0; i < workers; i++ {
 		go func() {
 			defer p.wg.Done()
+			defer p.entryWg.Done()
 			for req := range p.reqCh {
-				// processRequest may be send putRequests.
+				// processRequest may be send putRequests and fileEntry.
 				p.reqWg.Add(1)
 				if err := p.processRequest(req); err != nil {
 					err = xerrors.Errorf("request(%s): %w", req.path, err)
@@ -232,11 +236,14 @@ func (b *treeBuilder) PutFilesAsync(ctx context.Context, base string, in <-chan 
 				Entry: entry,
 			}
 		}
-		close(p.entryCh)
 	}()
 	go func() {
 		p.reqWg.Wait()
 		close(p.reqCh)
+	}()
+	go func() {
+		p.entryWg.Wait()
+		close(p.entryCh)
 	}()
 	return p.resultCh, nil
 }
