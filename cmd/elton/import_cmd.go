@@ -135,7 +135,7 @@ type treeBuilder struct {
 // Context of putting files or directories to the tree.
 type treePutter struct {
 	*treeBuilder
-	ctx      context.Context
+	ctx context.Context
 	// Queue for import requests.
 	// If you want to send, MUST add reqWg counter before sending it.
 	reqCh    chan putRequest
