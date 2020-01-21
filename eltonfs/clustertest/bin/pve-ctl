@@ -2,7 +2,6 @@
 # pve-ctl - non-interactive Proxmox VE API clients for help operation of elton test infrastructures.
 #
 # Usage:
-#   pve-ctl rebuild_all             - Rebuild test environment from scratch.
 #   pve-ctl remove_vms              - Stop and remove all VMs.
 #   pve-ctl ssh_to_vm <NODE> <VMID> - Connect to the VM using SSH.
 
@@ -206,77 +205,6 @@ convert_to_template() {
   local vmid=$1
 
   remote pvesh create "nodes/$node/qemu/$vmid/template"
-}
-
-run_setup_script() {
-  local node=elton-pve1
-  local vmid=$1
-
-  remote pvesh set "/nodes/${node}/qemu/${vmid}/config" \
-    --ipconfig0 "gw=${GATEWAY},ip=${SETUP_NODE}/${SETUP_NODE_NETMASK}" \
-    --agent enabled=0 \
-    --memory "$MEMORY_SIZE" \
-    --sockets 1 \
-    --cores "$VCPUS" \
-    --vcpus "$VCPUS"
-  # Run the setup script.
-  remote pvesh create "/nodes/${node}/qemu/${vmid}/status/start"
-  wait_node_to_up "$node" "$vmid"
-  ssh_to_vm "$node" "$vmid" bash <"$SETUP_SCRIPT_FILE"
-  ssh_to_vm "$node" "$vmid" poweroff ||
-    echo 'WARNING: Ignored an error that occured in poweroff.'
-  wait_node_to_down "$node" "$vmid"
-  # Enable qemu agent.
-  remote pvesh set "/nodes/${node}/qemu/${vmid}/config" \
-    --agent enabled=1,fstrim_cloned_disks=1
-}
-
-copy_template_to_all_nodes() {
-  # Template ID
-  local node=elton-pve1
-  local vm_tmpl=$1
-  local disk_tmpl=$2
-  local shared_image=/mnt/pve/nas/vm_image.qcow2
-
-  # Copy disk image from local storage to shared storage.
-  remote cp -a /mnt/ssd/images/$disk_tmpl/base-$disk_tmpl-disk-0.qcow2 $shared_image
-
-  # Clone VM template to all nodes.
-  tmpl_name=$(get_vm_name "$node" "$disk_tmpl")
-  desc="This VM cloned from original template"
-  storage=ssd
-  for t in $(list_nodes); do
-    next=$(remote pvesh get /cluster/nextid)
-    remote pvesh create "/nodes/elton-pve1/qemu/$vm_tmpl/clone" \
-      --newid "$next" \
-      --name "$tmpl_name-$t" \
-      --description "$desc" \
-      --pool clustertest \
-      --full 1 \
-      --storage "$storage"
-    remote pvesh set "/nodes/elton-pve1/qemu/$next/config" --ide0 none || :
-    remote pvesh create "/nodes/elton-pve1/qemu/$next/template"
-    if [[ elton-pve1 != "$t" ]]; then
-      remote pvesh create "/nodes/elton-pve1/qemu/$next/migrate" \
-        --target "$t"
-    fi
-    remote_on "$t" qm importdisk "$next" "$shared_image" "$storage" --format qcow2
-    remote pvesh set "/nodes/$t/qemu/$next/config" --scsi0 "$storage:$next/vm-$next-disk-0.qcow2,discard=on,ssd=on,cache=unsafe" || :
-    remote pvesh set "/nodes/$t/qemu/$next/config" --ide0 "$storage:cloudinit" || :
-  done
-}
-
-# Rebuild test environment from scratch.
-# Existing VMs and templates are forcibly removed unless the protected flag is set.
-rebuild_all() {
-  remove_all
-
-  remove_vm elton-pve1 9100
-  clone_template elton-pve1 9000 9100 "template-ubuntu-19.04-ltp" "The VM template for running LTP test cases."
-  set_storage 9100
-  run_setup_script 9100
-  convert_to_template 9100
-  copy_template_to_all_nodes 9100
 }
 
 # Remove all VMs unless the protected flag is set.
