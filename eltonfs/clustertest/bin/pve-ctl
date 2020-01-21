@@ -26,12 +26,8 @@ SELF_DIR=$(dirname "$SELF")
 : "${UBUNTU_IMAGE_PATH:=/var/tmp/ubuntu-19.04.img}"
 # Name of main storage.
 : "${STORAGE:=ssd}"
-# Memory size allocated to the setup node (in megabytes).
-: "${MEMORY_SIZE:=4096}"
 # Additional disk size allocated to the setup node (in megabytes).
 : "${ADDITIONAL_DISK_SIZE:=5G}"
-# Number of CPU cores allocated to the setup node.
-: "${VCPUS:=8}"
 
 remote() {
   # 空白やエスケープが必要な引数を持つコマンドを、ssh経由で正しく実行するための処置。
