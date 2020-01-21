@@ -11,7 +11,7 @@ SELF=$(readlink -f "$0")
 # Absolute path to the directory containing pve-ctl command.
 SELF_DIR=$(dirname "$SELF")
 # IP address or domain name of the Proxmox VE master node.
-: "${API_NODE:=192.168.189.40}"
+: "${API_NODE:=elton-pve.internal.t-lab.cs.teu.ac.jp}"
 # Gateway address
 : "${GATEWAY:=192.168.189.1}"
 # IP address used on the setup node.
