@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Rebuild template and clone it to all nodes.
+
 import os
 import pathlib
 import time
