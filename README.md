@@ -1,39 +1,37 @@
 # Elton
-Elton is a distributed file system for accelerate data sharing through the WAN.
+Elton is a distributed transactional file system to improve read performance.
 
+## Instllation
+```bash
+$ git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton
+$ cd elton
+$ make build
+$ sudo make install
+```
 
-## What's Elton?
-
-パブリッククラウド・プライベートクラウド間(疎結合マルチクラスタ間)を連携し，
-ネットワークトラフィックを抑えながら効率よくデータ共有をしようプロジェクト．
-現在はDockerをターゲットにしたファイルシステムインタフェースとCDN向けのHTTPインタフェースを提供しようと頑張ってる．
-
-
-## Requirements
-
-- Ubuntu 19.04 (Disco Dingo)
-
+## Usage
+```bash
+$ modprobe elton && sleep 2
+$ elton volume create foo
+$ mount -t elton -o vol=foo dummy /mnt
+```
 
 ## Development
+開発環境は下記の環境を想定する。
 
-- Golang 1.13
+- Ubuntu 19.04 (Disco Dingo)
+- Go 1.13
+- gcc
 - make
 - git
-
-その他の依存しているツールやライブラリは、`make build-deps`でインストールできる。
-ビルド環境はAMD64のDebian busterか、Ubuntu 19.04を想定。
-
-
-### Build
-
-```bash
-$ make
-```
-
-### Test
+- clang-format
+- docker
+- protobuf-compiler (protoc)
+- protobuf-compiler-grpc
+- protoc-gen-go
 
 ```bash
+$ make generate fmt
+$ make -j8 build
 $ make test
-```
-
-### Run
+``` 
