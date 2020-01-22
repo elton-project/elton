@@ -24,11 +24,13 @@ message GetMetaResponse {
   Property body = 2;
 }
 message SetMetaRequest {
+  reserved 3;
   PropertyID key = 1;
   Property body = 2;
   bool mustCreate = 4;
 }
 message SetMetaResponse {
+  reserved 3;
   // Requested key.
   PropertyID key = 1;
   // Old property value.  If property created, it is null.

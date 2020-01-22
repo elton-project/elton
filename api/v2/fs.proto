@@ -129,6 +129,7 @@ message GetCommitResponse {
   CommitInfo info = 2;
 }
 message CommitRequest {
+  reserved 1, 2, 4;
   CommitInfo info = 3;
   VolumeID id = 5;
 }

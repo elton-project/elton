@@ -53,6 +53,7 @@ message CommitID {
 }
 // TODO: rename
 message CommitInfo {
+  reserved 3;
   google.protobuf.Timestamp createdAt = 1;
   // 親コミットのID
   // 通常のコミットはleftのみを指定する。
@@ -65,6 +66,7 @@ message CommitInfo {
 
 // Tree keeps encoded data of directory tree structure in the commit.
 message Tree {
+  reserved 1, 2;
   uint64 root_ino = 3;
   map<uint64, File> inodes = 4;
 }
