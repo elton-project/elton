@@ -5,10 +5,10 @@
             "includePath": [
                 "${workspaceFolder}/eltonfs/include",
                 "/usr/include",
-                "/usr/src/linux-headers-5.4.0-1-amd64/include",
-                "/usr/src/linux-headers-5.4.0-1-amd64/arch/x86/include/generated",
-                "/usr/src/linux-headers-5.4.0-1-common/include",
-                "/usr/src/linux-headers-5.4.0-1-common/arch/x86/include"
+                "/usr/src/linux-headers-5.4.0-3-amd64/include",
+                "/usr/src/linux-headers-5.4.0-3-amd64/arch/x86/include/generated",
+                "/usr/src/linux-headers-5.4.0-3-common/include",
+                "/usr/src/linux-headers-5.4.0-3-common/arch/x86/include"
             ],
             "defines": [
                 "__KERNEL__",
