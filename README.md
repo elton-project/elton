@@ -1,4 +1,9 @@
 # Elton
+![](https://img.shields.io/github/license/elton-project/elton)
+![](https://tokei.rs/b1/github/elton-project/elton?category=code)
+![](https://img.shields.io/github/commit-activity/m/elton-project/elton)
+![](https://img.shields.io/github/v/tag/elton-project/elton)
+
 Elton is a distributed transactional file system to improve read performance.
 
 ## Instllation
