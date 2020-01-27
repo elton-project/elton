@@ -36,4 +36,11 @@
 #define ELTON_CACHE_MISS 3001
 #define ELTON_CACHE_LOST_LOCAL_OBJ 3002
 
+// Max defined errno to using eltonfs.
+#define ELTON_MAX_ERRNO 3002
+
+static __always_unused void __eltonfs_errno_assert(void) {
+  BUILD_BUG_ON(ELTON_MAX_ERRNO <= MAX_ERRNO);
+}
+
 #endif // _ELTON_ERROR_H
