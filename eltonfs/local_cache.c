@@ -63,6 +63,7 @@ static inline int eltonfs_cache_id_from_int(char *cache_id, size_t size, u64 a,
 }
 
 // Generate a unique ID.
+// Callee should acquire root credential before call it.
 int eltonfs_generate_cache_id(const char *base_dir, char fpath[REAL_PATH_MAX],
                               char id[CACHE_ID_LENGTH], struct inode **inode) {
   // seq: Approximative sequential number.
@@ -106,7 +107,7 @@ int eltonfs_generate_cache_id(const char *base_dir, char fpath[REAL_PATH_MAX],
 
 // Create local cache file that related to the inode.
 // Specified inode MUST NOT associate to cache id or local cache id before this
-// function is called.
+// function is called.  Callee should acquire root credential before call it.
 static struct file *eltonfs_create_real_file(struct eltonfs_inode *inode,
                                              struct file *file) {
   int error;
@@ -177,6 +178,8 @@ static inline struct file *eltonfs_get_cache_file(const char *base_dir,
   eltonfs_cache_fpath_from_cid(fpath, REAL_PATH_MAX, base_dir, cid);
   return filp_open(fpath, O_RDONLY | O_NOATIME, 0);
 }
+// Get a dentry associated to cid.
+// Callee should acquire root credential before call it.
 static inline struct dentry *eltonfs_get_cache_dentry(const char *base_dir,
                                                       const char *cid) {
   int error;
@@ -197,7 +200,8 @@ static inline struct dentry *eltonfs_get_cache_dentry(const char *base_dir,
   }
   return out;
 }
-// Returns an inode associated to cid.
+// Get an inode associated to cid.
+// Callee should acquire root credential before call it.
 static inline struct inode *eltonfs_get_cache_inode(const char *base_dir,
                                                     const char *cid) {
   int error = 0;
@@ -222,7 +226,7 @@ static inline struct inode *eltonfs_get_cache_inode(const char *base_dir,
   return real_inode;
 }
 
-struct dentry *eltonfs_get_real_dentry(struct eltonfs_inode *inode) {
+struct dentry *_eltonfs_get_real_dentry(struct eltonfs_inode *inode) {
   struct dentry *real;
   if (inode->file.local_cache_id) {
     real = eltonfs_get_cache_dentry(LOCAL_OBJ_DIR, inode->file.local_cache_id);
@@ -245,9 +249,15 @@ struct dentry *eltonfs_get_real_dentry(struct eltonfs_inode *inode) {
   ERR("no id assigned: inode=%px", inode);
   BUG();
 }
-// Open local cache file that related to the inode.
-struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
-                                    struct file *file) {
+struct dentry *eltonfs_get_real_dentry(struct eltonfs_inode *inode) {
+  OBJ_CACHE_ACCESS_START(inode->vfs_inode.i_sb);
+  struct dentry *out = _eltonfs_get_real_dentry(inode);
+  OBJ_CACHE_ACCESS_END;
+  return out;
+}
+
+struct file *_eltonfs_open_real_file(struct eltonfs_inode *inode,
+                                     struct file *file) {
   // todo: acquire lock
   if (unlikely(!S_ISREG(inode->vfs_inode.i_mode))) {
     DEBUG("open real file with unexpected file type: inode=%px, file=%px",
@@ -291,6 +301,14 @@ try_open:
             "cache_inode is null: file=%px, inode=%px", file, inode);
   return open_with_fake_path(&file->f_path, file->f_flags,
                              inode->file.cache_inode, current_cred());
+}
+// Open local cache file that related to the inode.
+struct file *eltonfs_open_real_file(struct eltonfs_inode *inode,
+                                    struct file *file) {
+  OBJ_CACHE_ACCESS_START(inode->vfs_inode.i_sb);
+  struct file *out = _eltonfs_open_real_file(inode, file);
+  OBJ_CACHE_ACCESS_END;
+  return out;
 }
 
 struct _eltonfs_cache_obj_args {
@@ -407,5 +425,8 @@ const char *eltonfs_read_obj(const char *oid, struct super_block *sb) {
 }
 
 struct inode *eltonfs_get_obj_inode(const char *oid, struct super_block *sb) {
-  return eltonfs_get_cache_inode(REMOTE_OBJ_DIR, oid);
+  OBJ_CACHE_ACCESS_START(sb);
+  struct inode *out = eltonfs_get_cache_inode(REMOTE_OBJ_DIR, oid);
+  OBJ_CACHE_ACCESS_END;
+  return out;
 }
