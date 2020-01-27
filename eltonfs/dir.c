@@ -171,9 +171,8 @@ static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
                          dev_t dev) {
   int error;
   struct inode *inode = eltonfs_create_inode(dir->i_sb, dir, mode, dev);
-  if (!inode) {
+  if (!inode)
     return -ENOSPC;
-  }
 
   switch (mode & S_IFMT) {
   case S_IFREG:
@@ -186,7 +185,7 @@ static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
 
   error = eltonfs_dir_entries_add(dir, dentry->d_name.name, inode->i_ino);
   if (error)
-    return error;
+    RETURN_EXTERNAL(error);
 
   d_instantiate(dentry, inode);
   dget(dentry);
@@ -195,7 +194,7 @@ static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
 
 static int eltonfs_create(struct inode *dir, struct dentry *dentry,
                           umode_t mode, bool excl) {
-  return eltonfs_mknod(dir, dentry, mode | S_IFREG, 0);
+  RETURN_EXTERNAL(eltonfs_mknod(dir, dentry, mode | S_IFREG, 0));
 }
 
 static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
@@ -204,15 +203,14 @@ static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
   struct inode *inode;
 
   inode = eltonfs_create_inode(dir->i_sb, dir, S_IFLNK | S_IRWXUGO, 0);
-  if (!inode) {
+  if (!inode)
     return -ENOSPC;
-  }
 
   eltonfs_inode_init_symlink(inode, NULL, symname);
 
   error = eltonfs_dir_entries_add(dir, dentry->d_name.name, inode->i_ino);
   if (error)
-    return error;
+    RETURN_EXTERNAL(error);
 
   d_instantiate(dentry, inode);
   dget(dentry);
@@ -223,9 +221,8 @@ static int eltonfs_symlink(struct inode *dir, struct dentry *dentry,
 static int eltonfs_mkdir(struct inode *dir, struct dentry *dentry,
                          umode_t mode) {
   int error = eltonfs_mknod(dir, dentry, mode | S_IFDIR, 0);
-  if (error) {
-    return error;
-  }
+  if (error)
+    RETURN_EXTERNAL(error);
   inc_nlink(dir);
   return 0;
 }
@@ -273,7 +270,7 @@ int eltonfs_unlink(struct inode *dir, struct dentry *dentry) {
 
   error = eltonfs_dir_entries_delete(dir, dentry->d_name.name);
   if (error)
-    return error;
+    RETURN_EXTERNAL(error);
   drop_nlink(inode);
   dput(dentry);
   return 0;

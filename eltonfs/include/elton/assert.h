@@ -43,6 +43,7 @@
 #define _ELTON_ASSERT_H
 
 #include <elton/elton.h>
+#include <elton/error.h>
 #include <elton/logging.h>
 #include <linux/bug.h>
 
@@ -105,6 +106,28 @@ extern volatile bool __assertion_failed;
     CHECK_ERROR(__error);                                                      \
     if (!error)                                                                \
       error = __error;                                                         \
+  } while (0)
+// Eltonの外部に数値を返す場合に使用する。
+// もしeltonfs用のエラーコードを返そうとしていたら、warningを出力する。
+#define RETURN_EXTERNAL(expr)                                                  \
+  do {                                                                         \
+    typeof(expr) error = (expr);                                               \
+    WARN_ONCE(IS_ELTON_ERR(error),                                             \
+              "RETURN_EXTERNAL: return eltonfs errno (%lld) to external "      \
+              "system at %s:%d/%s()",                                          \
+              (long long int)error, __FILE__, __LINE__, __func__);             \
+    return error;                                                              \
+  } while (0)
+// Eltonの外部にポインタを返す場合に使用する。
+// もしeltonfs用のエラーコードを返そうとしていたら、warningを出力する。
+#define RETURN_EXTERNAL_PTR(expr)                                              \
+  do {                                                                         \
+    typeof(expr) ptr = (expr);                                                 \
+    WARN_ONCE(IS_ERR(ptr) && IS_ELTON_ERR(PTR_ERR(ptr)),                       \
+              "RETURN_EXTERNAL_PTR: return eltonfs errno (%lld) to external "  \
+              "system at %s:%d/%s()",                                          \
+              (long long int)error, __FILE__, __LINE__, __func__);             \
+    return ptr;                                                                \
   } while (0)
 // ポインタがNULLの場合、WARNINGを表示してtrueを返す。
 // それ以外の場合は、falseを返す。

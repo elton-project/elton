@@ -34,7 +34,7 @@ static const char *eltonfs_get_link(struct dentry *dentry, struct inode *inode,
                                     struct delayed_call *done) {
   int error = maybe_load_symlink(inode);
   if (error)
-    return ERR_PTR(error);
+    RETURN_EXTERNAL_PTR(ERR_PTR(error));
   return eltonfs_i(inode)->symlink.redirect_to;
 }
 
@@ -43,7 +43,7 @@ static int eltonfs_symlink_getattr(const struct path *path, struct kstat *stat,
   struct inode *inode = d_inode(path->dentry);
   int error = maybe_load_symlink(inode);
   if (error)
-    return error;
+    RETURN_EXTERNAL(error);
   generic_fillattr(inode, stat);
   return 0;
 }

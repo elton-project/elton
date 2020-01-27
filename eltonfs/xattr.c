@@ -1,11 +1,12 @@
 #ifdef ELTONFS_XATTRS
 
+#include <elton/assert.h>
 #include <elton/elton.h>
 #include <elton/xattr.h>
 
 ssize_t elton_list_xattr_vfs(struct dentry *dentry, char *buffer,
                              size_t buffer_size) {
-  return elton_list_xattr(d_inode(dentry), buffer, buffer_size);
+  RETURN_EXTERNAL(elton_list_xattr(d_inode(dentry), buffer, buffer_size));
 }
 ssize_t elton_list_xattr(struct inode *inode, char *buffer,
                          size_t buffer_size) {

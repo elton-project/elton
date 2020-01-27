@@ -1,3 +1,4 @@
+#include <elton/assert.h>
 #include <elton/commit.h>
 #include <elton/elton.h>
 #include <elton/rpc/server.h>
@@ -45,7 +46,7 @@ long eltonfs_ioctl_commit(struct super_block *sb) {
   return 0;
 }
 
-long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
+long _eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
   struct inode *inode = file_inode(file);
   struct super_block *sb = inode->i_sb;
 
@@ -65,6 +66,10 @@ long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
     return put_user(inode->i_generation, (int __user *)arg);
   }
   return -ENOTTY; // Not implemented
+}
+long eltonfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
+  long ret = _eltonfs_ioctl(file, cmd, arg);
+  RETURN_EXTERNAL(ret);
 }
 
 #ifdef CONFIG_COMPAT

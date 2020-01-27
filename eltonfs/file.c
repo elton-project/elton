@@ -70,7 +70,7 @@ static int eltonfs_file_mmap(struct file *file, struct vm_area_struct *vma) {
       fput(file);
   }
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 
 static int _eltonfs_file_open(struct inode *inode, struct file *file) {
@@ -108,7 +108,7 @@ static int eltonfs_file_open(struct inode *inode, struct file *file) {
 
 out:
   OBJ_CACHE_ACCESS_END;
-  return error;
+  RETURN_EXTERNAL(error);
 }
 
 static int eltonfs_file_release(struct inode *inode, struct file *file) {
@@ -118,7 +118,7 @@ static int eltonfs_file_release(struct inode *inode, struct file *file) {
     error = filp_close(file->private_data, NULL);
     OBJ_CACHE_ACCESS_END;
   }
-  return error;
+  RETURN_EXTERNAL(error);
 }
 
 static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
@@ -126,7 +126,7 @@ static ssize_t eltonfs_file_read(struct file *file, char __user *buff,
   OBJ_CACHE_ACCESS_START_FILE(file);
   ssize_t ret = vfs_read(REAL_FILE(file), buff, size, pos);
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
                                   size_t size, loff_t *pos) {
@@ -134,7 +134,7 @@ static ssize_t eltonfs_file_write(struct file *file, const char __user *buff,
   ssize_t ret = vfs_write(REAL_FILE(file), buff, size, pos);
   UPDATE_SIZE(file);
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 static loff_t eltonfs_file_llseek(struct file *file, loff_t offset,
                                   int whence) {
@@ -146,7 +146,7 @@ static loff_t eltonfs_file_llseek(struct file *file, loff_t offset,
   UPDATE_SIZE(file);
   UPDATE_POS(real, file);
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 static int eltonfs_file_fsync(struct file *file, loff_t start, loff_t end,
                               int datasync) {
@@ -154,7 +154,7 @@ static int eltonfs_file_fsync(struct file *file, loff_t start, loff_t end,
   OBJ_CACHE_ACCESS_START_FILE(file);
   ret = vfs_fsync_range(REAL_FILE(file), start, end, datasync);
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 static ssize_t eltonfs_file_splice_read(struct file *in, loff_t *ppos,
                                         struct pipe_inode_info *pipe,
@@ -167,7 +167,7 @@ static ssize_t eltonfs_file_splice_read(struct file *in, loff_t *ppos,
   else
     ret = real->f_op->splice_read(real, ppos, pipe, len, flags);
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 static ssize_t eltonfs_file_splice_write(struct pipe_inode_info *pipe,
                                          struct file *out, loff_t *ppos,
@@ -182,7 +182,7 @@ static ssize_t eltonfs_file_splice_write(struct pipe_inode_info *pipe,
     UPDATE_SIZE(out);
   }
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 static long eltonfs_file_fallocate(struct file *file, int mode, loff_t offset,
                                    loff_t len) {
@@ -196,7 +196,7 @@ static long eltonfs_file_fallocate(struct file *file, int mode, loff_t offset,
     UPDATE_SIZE(file);
   }
   OBJ_CACHE_ACCESS_END;
-  return ret;
+  RETURN_EXTERNAL(ret);
 }
 
 int eltonfs_file_setattr(struct dentry *dentry, struct iattr *iattr) {
@@ -223,7 +223,7 @@ int eltonfs_file_getattr(const struct path *path, struct kstat *stat,
   struct inode *inode = d_inode(path->dentry);
   int error = maybe_load_file(inode);
   if (error)
-    return error;
+    RETURN_EXTERNAL(error);
   generic_fillattr(inode, stat);
   return 0;
 }
