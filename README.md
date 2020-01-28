@@ -8,7 +8,7 @@ Elton is a distributed transactional file system to improve read performance.
 
 ## Instllation
 ```bash
-$ git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton
+$ git clone --depth=1 https://github.com/elton-project/elton.git
 $ cd elton
 $ make build
 $ sudo make install
