@@ -247,7 +247,7 @@ static struct dentry *eltonfs_lookup(struct inode *vfs_dir,
   }
   // Not found
   d_add(dentry, NULL);
-  return dentry;
+  return NULL;
 }
 
 int eltonfs_link(struct dentry *old_dentry, struct inode *new_dir,
