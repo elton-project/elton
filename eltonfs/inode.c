@@ -94,7 +94,7 @@ void eltonfs_inode_init_internal(struct inode *inode) {
     ei->file.cache_inode = NULL;
     break;
   case S_IFDIR:
-    INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
+    INIT_LIST_HEAD(&ei->dir.dir_entries);
     ei->dir.count = 0;
     break;
   case S_IFLNK:
@@ -123,7 +123,7 @@ int eltonfs_inode_init_regular_with_new_cache(struct inode *inode) {
 }
 void eltonfs_inode_init_dir(struct inode *inode) {
   struct eltonfs_inode *ei = eltonfs_i(inode);
-  INIT_LIST_HEAD(&ei->dir.dir_entries._list_head);
+  INIT_LIST_HEAD(&ei->dir.dir_entries);
   ei->dir.count = 0;
 }
 void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id,
@@ -176,7 +176,8 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
   case S_IFDIR: {
     int error;
     eltonfs_inode_init_dir(inode);
-    error = dup_dir_entries(&ei->dir.dir_entries, &i_xdr->dir_entries);
+    error =
+        dup_dir_entries(&ei->dir.dir_entries, &i_xdr->dir_entries._list_head);
     if (error)
       return ERR_PTR(error);
     ei->dir.count = i_xdr->dir_entries_len;

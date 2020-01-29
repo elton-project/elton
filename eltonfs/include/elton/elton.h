@@ -107,8 +107,9 @@ struct eltonfs_inode {
 
     struct {
       // List of entries contained in this directory.
+      // Type of elements: struct eltonfs_dir_entry *
       // TODO: store directory entries to persistent storage.
-      struct eltonfs_dir_entry dir_entries;
+      struct list_head dir_entries;
       // Number of dir entries.
       u64 count;
     } dir;
@@ -179,8 +180,7 @@ struct inode *eltonfs_get_obj_inode(const char *oid, struct super_block *sb);
     ERR("try to iterate directory entries of non-directory inode");            \
     BUG();                                                                     \
   } else                                                                       \
-    list_for_each_entry((entry), &(eltonfs_inode)->dir.dir_entries._list_head, \
-                        _list_head)
+    list_for_each_entry((entry), &(eltonfs_inode)->dir.dir_entries, _list_head)
 
 // ioctl commands
 #define ELTONFS_IOCTL_MAGIC 183

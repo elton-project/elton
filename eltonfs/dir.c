@@ -30,7 +30,7 @@ _eltonfs_dir_entries_lookup_entry(struct inode *vfs_dir, const char *name) {
   const size_t name_len = strlen(name);
   struct eltonfs_dir_entry *entry;
 
-  list_for_each_entry(entry, &dir->dir.dir_entries._list_head, _list_head) {
+  list_for_each_entry(entry, &dir->dir.dir_entries, _list_head) {
     if (likely(entry->name_len != name_len))
       // Fast path
       continue;
@@ -80,7 +80,7 @@ static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
   entry->ino = vfs_ino;
   memcpy(entry->name, name, len);
   entry->name_len = len;
-  list_add(&entry->_list_head, &eltonfs_i(dir)->dir.dir_entries._list_head);
+  list_add(&entry->_list_head, &eltonfs_i(dir)->dir.dir_entries);
   eltonfs_i(dir)->dir.count++;
   dir->i_mtime = dir->i_ctime = current_time(dir);
   return 0;
@@ -103,12 +103,11 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
   list_del(&old_entry->_list_head); // Disconnect from old_dir.
   strcpy(old_entry->name, new_name);
   old_entry->name_len = strlen(new_name);
-  list_add(&old_entry->_list_head,
-           &eltonfs_i(new_dir)->dir.dir_entries._list_head);
+  list_add(&old_entry->_list_head, &eltonfs_i(new_dir)->dir.dir_entries);
   return 0;
 }
 static int eltonfs_dir_entries_is_empty(struct inode *dir) {
-  return list_empty(&eltonfs_i(dir)->dir.dir_entries._list_head);
+  return list_empty(&eltonfs_i(dir)->dir.dir_entries);
 }
 
 static int eltonfs_dir_open(struct inode *inode, struct file *file) {
