@@ -91,6 +91,7 @@ struct eltonfs_inode {
   // Inode number for internal use.
   u64 eltonfs_ino;
 
+  // This spinlock should use when reading or updating of file specified fields.
   spinlock_t lock;
   union {
     struct {
@@ -171,6 +172,7 @@ void eltonfs_inode_init_symlink(struct inode *inode, const char *object_id,
 struct inode *eltonfs_get_obj_inode(const char *oid, struct super_block *sb);
 
 // Iterate all directory entries in a eltonfs_inode.
+// Should acquire lock of the directory before calling it.
 //
 // Arguments:
 //   eltonfs_inode: Inode of directory.

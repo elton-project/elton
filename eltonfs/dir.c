@@ -46,43 +46,65 @@ _eltonfs_dir_entries_lookup_entry(struct inode *vfs_dir, const char *name) {
 // Lookup an entry by name from dir.
 // It returns vfs_ino or 0.
 static u64 eltonfs_dir_entries_lookup(struct inode *dir, const char *name) {
-  struct eltonfs_dir_entry *entry =
-      _eltonfs_dir_entries_lookup_entry(dir, name);
+  struct eltonfs_dir_entry *entry;
+  u64 ino;
+
+  spin_lock(&eltonfs_i(dir)->lock);
+  entry = _eltonfs_dir_entries_lookup_entry(dir, name);
   if (unlikely(!entry))
-    return 0;
-  return entry->ino;
+    ino = 0;
+  else
+    ino = entry->ino;
+  spin_unlock(&eltonfs_i(dir)->lock);
+  return ino;
 }
 // Delete an entry from dir.
 static int eltonfs_dir_entries_delete(struct inode *dir, const char *name) {
-  struct eltonfs_dir_entry *entry =
-      _eltonfs_dir_entries_lookup_entry(dir, name);
-  if (unlikely(!entry))
-    return -ENOENT;
+  struct eltonfs_dir_entry *entry;
+  int error = 0;
+
+  spin_lock(&eltonfs_i(dir)->lock);
+  entry = _eltonfs_dir_entries_lookup_entry(dir, name);
+  if (unlikely(!entry)) {
+    error = -ENOENT;
+    goto out;
+  }
 
   list_del(&entry->_list_head);
   kfree(entry);
   eltonfs_i(dir)->dir.count--;
   dir->i_mtime = dir->i_ctime = current_time(dir);
-  return 0;
+
+out:
+  spin_unlock(&eltonfs_i(dir)->lock);
+  return error;
 }
 // Add an entry with specified name and vfs_ino.
 static int eltonfs_dir_entries_add(struct inode *dir, const char *name,
                                    u64 vfs_ino) {
+  int error = 0;
   struct eltonfs_dir_entry *entry;
   size_t len;
   len = strlen(name);
   if (unlikely(len > ELTONFS_NAME_LEN))
     return -ENAMETOOLONG;
 
+  spin_lock(&eltonfs_i(dir)->lock);
+
   entry = kmalloc(sizeof(*entry), GFP_NOFS);
-  if (unlikely(!entry))
-    return -ENOMEM;
+  if (unlikely(!entry)) {
+    error = -ENOMEM;
+    goto out;
+  }
   entry->ino = vfs_ino;
   memcpy(entry->name, name, len);
   entry->name_len = len;
   list_add(&entry->_list_head, &eltonfs_i(dir)->dir.dir_entries);
   eltonfs_i(dir)->dir.count++;
   dir->i_mtime = dir->i_ctime = current_time(dir);
+
+out:
+  spin_unlock(&eltonfs_i(dir)->lock);
   return 0;
 }
 // Replace a directory entry.
@@ -91,10 +113,22 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
                                        const char *old_name,
                                        struct inode *new_dir,
                                        const char *new_name) {
-  struct eltonfs_dir_entry *old_entry =
-      _eltonfs_dir_entries_lookup_entry(old_dir, old_name);
-  struct eltonfs_dir_entry *new_entry =
-      _eltonfs_dir_entries_lookup_entry(new_dir, new_name);
+  struct eltonfs_dir_entry *old_entry, *new_entry;
+  struct eltonfs_inode *i_low, *i_high;
+
+  // Lock acquiring order is decided by address.
+  if (old_dir < new_dir) {
+    i_low = eltonfs_i(old_dir);
+    i_high = eltonfs_i(new_dir);
+  } else {
+    i_low = eltonfs_i(new_dir);
+    i_high = eltonfs_i(old_dir);
+  }
+  spin_lock(&i_low->lock);
+  spin_lock(&i_high->lock);
+
+  old_entry = _eltonfs_dir_entries_lookup_entry(old_dir, old_name);
+  new_entry = _eltonfs_dir_entries_lookup_entry(new_dir, new_name);
 
   if (new_entry) {
     list_del(&new_entry->_list_head); // Disconnect from new_dir.
@@ -104,10 +138,17 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
   strcpy(old_entry->name, new_name);
   old_entry->name_len = strlen(new_name);
   list_add(&old_entry->_list_head, &eltonfs_i(new_dir)->dir.dir_entries);
+
+  spin_unlock(&i_high->lock);
+  spin_unlock(&i_low->lock);
   return 0;
 }
 static int eltonfs_dir_entries_is_empty(struct inode *dir) {
-  return list_empty(&eltonfs_i(dir)->dir.dir_entries);
+  int ret;
+  spin_lock(&eltonfs_i(dir)->lock);
+  ret = list_empty(&eltonfs_i(dir)->dir.dir_entries);
+  spin_unlock(&eltonfs_i(dir)->lock);
+  return ret;
 }
 
 static int eltonfs_dir_open(struct inode *inode, struct file *file) {
@@ -122,10 +163,11 @@ static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
   unsigned long index; // Index of next directory entry.
   BUILD_BUG_ON(sizeof(void *) != sizeof(unsigned long));
 
+  spin_lock(&ei->lock);
   index = (long)file->private_data;
   if (ei->dir.count < index)
     // Reached to end of directory entries list.
-    return 0;
+    goto out_without_updating_index;
 
   if (index == 0) {
     index = 1;
@@ -152,6 +194,8 @@ static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
 
 out:
   file->private_data = (void *)index;
+out_without_updating_index:
+  spin_unlock(&ei->lock);
   return 0;
 }
 
