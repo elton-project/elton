@@ -66,7 +66,8 @@ apt_install numactl
 # Install and configure the kernel debug utilities.
 # Disable writeback to prevent data lost when kernel panics.
 apt_install kdump-tools crash gdb
-sed -i '/^#MAKEDUMP_ARGS/ i MAKEDUMP_ARGS=\"-c\"' /etc/default/kdump-tools
+# Use default settings.
+# sed -i '/^#MAKEDUMP_ARGS/ i MAKEDUMP_ARGS=\"-c\"' /etc/default/kdump-tools
 setup_crash
 install_kernel_debug_symbols
 sed -i 's/defaults/sync,noatime,nodiratime/' /etc/fstab
