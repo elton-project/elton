@@ -209,6 +209,9 @@ convert_to_template() {
 stop_all() {
   for node in $(list_nodes); do
     for vmid in $(list_vms "$node"); do
+      if is_protected "$node" "$vmid" || is_template "$node" "$vmid"; then
+        continue
+      fi
       stop_vm "$node" "$vmid"
     done
   done
