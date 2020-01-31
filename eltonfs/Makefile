@@ -88,9 +88,6 @@ mount-umh:
 mount-kmod:
 	elton volume create foo
 	elton volume ls |grep foo
-	# WORKAROUND: To prevent fail eltonfsrpc calls during mounting, load kernel module and setup UMH.
-	modprobe elton
-	sleep 2
 	mount -t $(FS_NAME) -o vol=foo dummy /mnt
 
 .PHONY: test_basic_op
