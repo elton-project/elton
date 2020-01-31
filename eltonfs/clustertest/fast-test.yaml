@@ -32,13 +32,10 @@ specs:
             type: remote-shell
             commands:
               # Install kernel module.
-              - 'until apt install -y build-essential; do sleep 1; done'
               - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
               - 'cd elton && make build'
               - 'cd elton && make install'
               - 'cd elton/eltonfs && make mount'
-              # Install required packages to build test cases.
-              - 'until apt install -y libattr1-dev; do sleep 1; done'
           main:
             type: remote-shell
             commands:
