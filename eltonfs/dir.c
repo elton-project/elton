@@ -174,19 +174,19 @@ static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
 
   spin_lock(&ei->lock);
   index = (long)file->private_data;
-  if (ei->dir.count < index)
+  if (ei->dir.count + 2 < index)
     // Reached to end of directory entries list.
     goto out_without_updating_index;
 
   if (index == 0) {
-    index = 1;
     if (!dir_emit_dot(file, ctx))
       goto out;
+    index = 1;
   }
   if (index == 1) {
-    index = 2;
     if (!dir_emit_dotdot(file, ctx))
       goto out;
+    index = 2;
   }
 
   seek_index = 2;
@@ -195,10 +195,10 @@ static int eltonfs_iterate_shared(struct file *file, struct dir_context *ctx) {
       seek_index++;
       continue;
     }
-    seek_index++;
-    index++;
     if (!dir_emit(ctx, entry->name, entry->name_len, entry->ino, DT_UNKNOWN))
       goto out;
+    seek_index++;
+    index++;
   }
 
 out:
