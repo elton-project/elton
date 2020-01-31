@@ -2,6 +2,7 @@
 # pve-ctl - non-interactive Proxmox VE API clients for help operation of elton test infrastructures.
 #
 # Usage:
+#   pve-ctl stop_all                - Stop all VMs.
 #   pve-ctl rebuild_all             - Rebuild test environment from scratch.
 #   pve-ctl remove_vms              - Stop and remove all VMs.
 #   pve-ctl ssh_to_vm <NODE> <VMID> - Connect to the VM using SSH.
@@ -202,6 +203,15 @@ convert_to_template() {
   local vmid=$1
 
   remote pvesh create "nodes/$node/qemu/$vmid/template"
+}
+
+# Stop all VMs.
+stop_all() {
+  for node in $(list_nodes); do
+    for vmid in $(list_vms "$node"); do
+      stop_vm "$node" "$vmid"
+    done
+  done
 }
 
 rebuild_all() {
