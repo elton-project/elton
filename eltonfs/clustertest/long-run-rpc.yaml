@@ -27,16 +27,16 @@ specs:
       node:
         template: template-ubuntu-19.04-ltp
         pool: clustertest
-        nodes: 18
-        processors: 4
-        memory_size: 2048
-        storage_size: 10
+        nodes: 50
+        processors: 2
+        memory_size: 1024
+        storage_size: 3
         scripts:
           before:
             type: remote-shell
             commands:
               - 'git clone --depth=1 https://gitlab.t-lab.cs.teu.ac.jp/yuuki/elton.git'
-              - 'cd elton && make -j4 build'
+              - 'cd elton && make build'
               - 'cd elton && make install'
           main:
             type: remote-shell
