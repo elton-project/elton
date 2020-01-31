@@ -137,12 +137,15 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
 
   if (new_entry) {
     list_del(&new_entry->_list_head); // Disconnect from new_dir.
+    eltonfs_i(new_dir)->dir.count--;
     kfree(new_entry);
   }
   list_del(&old_entry->_list_head); // Disconnect from old_dir.
+  eltonfs_i(old_dir)->dir.count--;
   strcpy(old_entry->name, new_name);
   old_entry->name_len = strlen(new_name);
   list_add(&old_entry->_list_head, &eltonfs_i(new_dir)->dir.dir_entries);
+  eltonfs_i(new_dir)->dir.count++;
 
   if (i_high)
     spin_unlock(&i_high->lock);
