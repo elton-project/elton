@@ -120,12 +120,17 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
   if (old_dir < new_dir) {
     i_low = eltonfs_i(old_dir);
     i_high = eltonfs_i(new_dir);
+  } else if (old_dir == new_dir) {
+    // old_dir and new_dir is a same directory.
+    i_low = eltonfs_i(old_dir);
+    i_high = NULL;
   } else {
     i_low = eltonfs_i(new_dir);
     i_high = eltonfs_i(old_dir);
   }
   spin_lock(&i_low->lock);
-  spin_lock(&i_high->lock);
+  if (i_high)
+    spin_lock(&i_high->lock);
 
   old_entry = _eltonfs_dir_entries_lookup_entry(old_dir, old_name);
   new_entry = _eltonfs_dir_entries_lookup_entry(new_dir, new_name);
@@ -139,7 +144,8 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
   old_entry->name_len = strlen(new_name);
   list_add(&old_entry->_list_head, &eltonfs_i(new_dir)->dir.dir_entries);
 
-  spin_unlock(&i_high->lock);
+  if (i_high)
+    spin_unlock(&i_high->lock);
   spin_unlock(&i_low->lock);
   return 0;
 }
