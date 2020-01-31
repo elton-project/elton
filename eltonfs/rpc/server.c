@@ -100,9 +100,6 @@ static int rpc_master_worker(void *_srv) {
     mutex_lock(&s->task_lock);
     s->task = task;
     mutex_unlock(&s->task_lock);
-
-    // Register new session.
-    ADD_SESSION(s);
     continue;
 
   error_kthread:
