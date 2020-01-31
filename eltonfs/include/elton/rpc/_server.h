@@ -76,6 +76,7 @@ int rpc_sock_write_raw_packet(struct socket *sock, struct raw_packet *raw);
     spin_lock(&(session)->server->ss_table_lock);                              \
     hash_add((session)->server->ss_table, &(session)->_hash, (session)->sid);  \
     spin_unlock(&(session)->server->ss_table_lock);                            \
+    wake_up_all(&(session)->server->conn_wq);                                  \
   } while (0)
 // Delete session from server.
 // MUST NOT call when acquired the session->server->ss_table_lock.

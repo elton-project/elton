@@ -33,6 +33,9 @@ struct elton_rpc_server {
   // For start_umh thread.  It starts new process.
   struct subprocess_info *umh_info;
   struct mutex umh_info_lock;
+  // WaitQueue for waiting to establish the eltonfs RPC connection.
+  // If the least one connection is established, all tasks will wake up.
+  struct wait_queue_head conn_wq;
   // Hash table for sessions.  Please do not put many sessions to prevent
   // performance degradation.  We supposes that number of sessions is 1 to 3.
   //

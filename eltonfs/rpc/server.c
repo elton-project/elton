@@ -181,20 +181,31 @@ static int rpc_start_umh(struct elton_rpc_server *s) {
   return 0;
 }
 
+static inline struct elton_rpc_session *
+get_session(struct elton_rpc_server *srv) {
+  struct elton_rpc_session *s = NULL;
+  FOR_EACH_SESSIONS(srv, s, break);
+  return s;
+}
 static int rpc_new_session(struct elton_rpc_server *srv,
                            struct elton_rpc_ns *ns,
                            void (*free)(struct elton_rpc_ns *)) {
   int error;
-  struct elton_rpc_session *s = NULL;
+  struct elton_rpc_session *s;
   u64 nsid;
   bool found;
 
   // Select a session.
-  FOR_EACH_SESSIONS(srv, s, break);
-  if (s == NULL)
+  s = get_session(srv);
+retry:
+  if (s == NULL) {
     // Session not found.  Elton needs at least one session to create nested
     // session.
-    RETURN_IF(-EINVAL);
+    INFO("Waiting to establish the connection between eltonfs and "
+         "eltonfs-helper...");
+    RETURN_IF(wait_event_interruptible(srv->conn_wq, (s = get_session(srv))));
+    goto retry;
+  }
 
   // Find the unused nsid.
   do {
@@ -234,6 +245,7 @@ int elton_rpc_server_init(struct elton_rpc_server *server, char *socket_path) {
   mutex_init(&server->task_lock);
   server->umh_info = NULL;
   mutex_init(&server->umh_info_lock);
+  init_waitqueue_head(&server->conn_wq);
   hash_init(server->ss_table);
   spin_lock_init(&server->ss_table_lock);
   hash_init(server->nss_table);
