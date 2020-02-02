@@ -117,16 +117,13 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
   struct eltonfs_inode *i_low, *i_high;
 
   // Lock acquiring order is decided by address.
-  if (old_dir < new_dir) {
-    i_low = eltonfs_i(old_dir);
-    i_high = eltonfs_i(new_dir);
-  } else if (old_dir == new_dir) {
+  if (old_dir == new_dir) {
     // old_dir and new_dir is a same directory.
     i_low = eltonfs_i(old_dir);
     i_high = NULL;
   } else {
-    i_low = eltonfs_i(new_dir);
-    i_high = eltonfs_i(old_dir);
+    i_low = eltonfs_i(min(old_dir, new_dir));
+    i_high = eltonfs_i(max(old_dir, new_dir));
   }
   spin_lock(&i_low->lock);
   if (i_high)
