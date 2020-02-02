@@ -16,7 +16,6 @@ $ sudo make install
 
 ## Usage
 ```bash
-$ modprobe elton && sleep 2
 $ elton volume create foo
 $ mount -t elton -o vol=foo dummy /mnt
 ```
