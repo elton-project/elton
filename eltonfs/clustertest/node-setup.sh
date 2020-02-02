@@ -40,7 +40,7 @@ EOF
 }
 install_go() {
     cd /usr/local/lib/
-    wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
+    wget https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
     tar xf go*.linux-amd64.tar.gz
     cd /usr/local/bin/
     ln -s ../lib/go/bin/* /usr/local/bin/
