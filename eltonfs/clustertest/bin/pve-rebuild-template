@@ -35,7 +35,7 @@ ADDITIONAL_DISK_SIZE = '+20G'
 # Number of CPU cores allocated to the setup node.
 VCPUS = 4
 # URL to latest cloud image of the Ubuntu 19.04.
-UBUNTU_IMAGE_URL = 'https://cloud-images.ubuntu.com/releases/disco/release/ubuntu-19.04-server-cloudimg-amd64.img'
+UBUNTU_IMAGE_URL = 'https://cloud-images.ubuntu.com/releases/19.10/release/ubuntu-19.10-server-cloudimg-amd64.img'
 # Path to temporary file location.
 UBUNTU_IMAGE_PATH = '/var/tmp/ubuntu-19.04.qcow2'
 #

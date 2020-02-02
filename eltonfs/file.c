@@ -8,6 +8,7 @@
 #include <elton/local_cache.h>
 #include <elton/xattr.h>
 #include <linux/cred.h>
+#include <linux/file.h>
 #include <linux/mm.h>
 #include <linux/mount.h>
 #include <linux/namei.h>

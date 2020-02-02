@@ -1,4 +1,4 @@
-FROM ubuntu:19.04
+FROM ubuntu:19.10
 RUN apt update
 RUN apt install -y build-essential git linux-headers-generic
-ENV KERNEL='5.0.0-*-generic'
+ENV KERNEL='5.3.0-*-generic'

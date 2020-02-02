@@ -23,7 +23,7 @@ $ mount -t elton -o vol=foo dummy /mnt
 ## Development
 開発環境は下記の環境を想定する。
 
-- Ubuntu 19.04 (Disco Dingo)
+- Ubuntu 19.10 (Eoan Ermine)
 - Go 1.13
 - gcc
 - make

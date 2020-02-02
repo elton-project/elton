@@ -1,7 +1,9 @@
 # kernel modules
 .*.ko.cmd
 .*.o.cmd
+.*.mod.cmd
 *.ko
+*.mod
 *.mod.c
 *.mod.o
 *.o
