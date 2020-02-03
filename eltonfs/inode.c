@@ -45,6 +45,7 @@
 #include <elton/local_cache.h>
 #include <elton/rpc/struct.h>
 #include <elton/utils.h>
+#include <linux/cred.h>
 #include <linux/pagemap.h>
 
 #define ELTONFS_LOCAL_INO_MIN (U64_MAX ^ (u64)U32_MAX)
@@ -116,9 +117,14 @@ int eltonfs_inode_init_regular_with_new_cache(struct inode *inode) {
   char fpath[REAL_PATH_MAX];
   char id[CACHE_ID_LENGTH];
   struct inode *real_inode;
-  RETURN_IF(eltonfs_generate_cache_id(LOCAL_OBJ_DIR, fpath, id, &real_inode));
+
+  OBJ_CACHE_ACCESS_START(inode->i_sb);
+  GOTO_IF(out,
+          eltonfs_generate_cache_id(LOCAL_OBJ_DIR, fpath, id, &real_inode));
   eltonfs_inode_init_regular(inode, NULL, id);
   eltonfs_i(inode)->file.cache_inode = real_inode;
+out:
+  OBJ_CACHE_ACCESS_END;
   return 0;
 }
 void eltonfs_inode_init_dir(struct inode *inode) {
