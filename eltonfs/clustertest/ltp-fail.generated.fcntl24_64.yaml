@@ -29,7 +29,7 @@ specs:
         ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDaUKxnmDKRVwCZE7UoZWbhOD2Lrnm61Z+fCuphdqsX9502Fk4L1yoETRg/SEOxkY2gmYtyU+9o5EDfXxFEVmMD0DpoWiXFvvyXz+tFT6lHPRMs7jI5dnWoVD1Vq03EKm6OgPNd9TF4qFK/vLi0L3vsSoRP9C6oQQfXt/VwMPbKPqLXp2yOq9RZPGShIH8D9osGE1iF00SNllxNENmFHUxW/gpux8u8mGR0IFJ5o7F2+oZiLgosdyiVQR7lPgSNJv8WE7+XBo8Pbih8cmElR9D+SMoEip3/cOLOncR3laX6MCfwyw0yNOEL3vXPEY2OEUExg68Cb/n+DTSnnNsmVa31 yuuki@gate-worker
     vms:
       fcntl24-64:
-        template: template-ubuntu-19.04-ltp
+        template: template-ubuntu-19.10-ltp
         pool: clustertest
         nodes: 1
         processors: 2

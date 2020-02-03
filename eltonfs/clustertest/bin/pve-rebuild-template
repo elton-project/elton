@@ -454,7 +454,7 @@ base = VM('elton-pve3', 9000)
 out = VM('elton-pve3', 9100)
 pool = Pool('clustertest')
 builder = TemplateBuilder(base=base, script_name=pathlib.Path(SETUP_SCRIPT_FILE),
-                          output=out, pool=pool, template_name='template-ubuntu-19.04-ltp')
+                          output=out, pool=pool, template_name='template-ubuntu-19.10-ltp')
 dist = TemplateDistributor(template=base, disk_image=out, pool=pool)
 
 try:
