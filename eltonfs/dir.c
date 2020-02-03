@@ -152,7 +152,7 @@ static int eltonfs_dir_entries_replace(struct inode *old_dir,
 static int eltonfs_dir_entries_is_empty(struct inode *dir) {
   int ret;
   spin_lock(&eltonfs_i(dir)->lock);
-  ret = list_empty(&eltonfs_i(dir)->dir.dir_entries);
+  ret = !eltonfs_i(dir)->dir.count;
   spin_unlock(&eltonfs_i(dir)->lock);
   return ret;
 }
