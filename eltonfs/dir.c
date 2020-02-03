@@ -360,14 +360,11 @@ int eltonfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 
     eltonfs_dir_entries_replace(old_dir, old_dentry->d_name.name, new_dir,
                                 new_dentry->d_name.name);
-    drop_nlink(old_dir);
     drop_nlink(new);
   } else {
     // Move a file.
     eltonfs_dir_entries_replace(old_dir, old_dentry->d_name.name, new_dir,
                                 new_dentry->d_name.name);
-    drop_nlink(old_dir);
-    inc_nlink(new_dir);
   }
 
   old_dir->i_ctime = old_dir->i_mtime = new_dir->i_ctime = new_dir->i_mtime =
