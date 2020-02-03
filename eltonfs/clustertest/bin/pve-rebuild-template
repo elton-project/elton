@@ -40,6 +40,8 @@ UBUNTU_IMAGE_URL = 'https://cloud-images.ubuntu.com/releases/19.10/release/ubunt
 UBUNTU_IMAGE_PATH = '/var/tmp/ubuntu-19.04.qcow2'
 #
 SHARED_IMAGE = '/mnt/pve/nas/vm_image.qcow2'
+# Maximum running tasks at the same time.
+MAX_TASKS = 30
 
 p = proxmoxer.ProxmoxAPI(
     'elton-pve.internal.t-lab.cs.teu.ac.jp',
@@ -366,6 +368,9 @@ class TemplateDistributor(typing.NamedTuple):
                     tasks.append(vm.remove())
                 else:
                     tasks.append(vm.stop())
+                if MAX_TASKS < len(tasks):
+                    # To prevent occur lock timeout error, limit number of running tasks.
+                    break
 
             if len(tasks) == 0:
                 # All VMs are deleted.
