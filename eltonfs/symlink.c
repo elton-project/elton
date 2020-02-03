@@ -1,3 +1,25 @@
+// Symbolic Link
+// =============
+//
+// The symbolic links on eltonfs are classified to two types like regular
+// files.
+//
+// Committed symlinks:
+//     Committed symlinks should have an object_id. The content of the
+//     associated object is the destination path.
+//
+// Local symlinks:
+//     Local symlinks should set the "redirect_to" field and should not have
+//     object_id. The redirect path of symbolic links only kept in memory. To
+//     prevent lost data, these inodes MUST be non-evictable.
+//
+//
+// Destination Caching
+// ===================
+//
+// To reduce costs about solve a symbolic link, cache the link destination on
+// the "redirect_to" field. Please attend to it used two purposes that
+// destination caching and keeping non-committed data.
 #include <elton/elton.h>
 #include <elton/local_cache.h>
 #include <elton/xattr.h>

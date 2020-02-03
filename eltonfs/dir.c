@@ -1,4 +1,15 @@
+// Directory
+// =========
+//
+// The directories on eltonfs are virtualized and volatile. In the current
+// implementation, saving a directory tree to local storage is not supported.
+// When the eltonfs is unmounted, all changes discard immediately. If you want
+// to save changes, you should commit it before unmount.
+//
+//
+//
 // Private Data of Directory File
+// ==============================
 //
 // To iterate directory entries, file->private_data represents an index value
 // (unsigned long) instead of memory address.

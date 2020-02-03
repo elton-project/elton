@@ -1,4 +1,36 @@
+// Regular File
+// ============
+//
+// The regular files on eltonfs classified to two types.
+//
+// Committed files:
+//     Committed files have an object_id and should not have local_id. If any
+//     changes are applied, should change to local file type by deprive an
+//     object_id and assign a local_id.
+//
+// Local files:
+//     Local files have a local_id and should not have object_id. Those are only
+//     saved local storage and are not shared with other nodes. Please attend
+//     the risk that those files may lose by node/storage failure. If committed,
+//     should change to commited file type.
+//
+//
+//
+// Backend Inode Caching
+// =====================
+//
+// Regular files are associated with files on the backend file system. The
+// content is saved on the backend file system. See "local_cache.c" for details
+// about the caching system.
+//
+// When trying to open a regular file, eltonfs lookups a backend file using
+// additional lookup costs. To reduce lookup costs, eltonfs caches a backend
+// inode to the "cache_inode" field per eltonfs_inode.
+//
+//
+//
 // Private Data of Regular File
+// ============================
 //
 // file->private_data points a file of local cache.  Should close it if parent
 // file closed.
