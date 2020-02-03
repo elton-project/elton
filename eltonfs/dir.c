@@ -225,7 +225,9 @@ static int eltonfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
 
   switch (mode & S_IFMT) {
   case S_IFREG:
-    eltonfs_inode_init_regular_with_new_cache(inode);
+    error = eltonfs_inode_init_regular_with_new_cache(inode);
+    if (error)
+      RETURN_EXTERNAL(error);
     break;
   case S_IFDIR:
     eltonfs_inode_init_dir(inode);
