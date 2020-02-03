@@ -863,6 +863,7 @@ IMPL_DECODER_BODY(eltonfs_inode_xdr) {
 
   INIT_LIST_HEAD(&s->dir_entries._list_head);
   RETURN_IF(sd->op->map(sd, 11, mdec));
+  s->dir_entries_len = 0;
   while (mdec->op->has_next_kv(mdec)) {
     size_t len;
     struct eltonfs_dir_entry *eino;
@@ -879,6 +880,7 @@ IMPL_DECODER_BODY(eltonfs_inode_xdr) {
     RETURN_IF(mdec->op->decoded_kv(mdec));
 
     list_add_tail(&eino->_list_head, &s->dir_entries._list_head);
+    s->dir_entries_len++;
   }
   RETURN_IF(mdec->op->close(mdec));
   RETURN_IF(sd->op->close(sd));
