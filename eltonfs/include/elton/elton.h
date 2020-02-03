@@ -71,7 +71,7 @@ struct eltonfs_info {
   // If you need new vfs_ino, use eltonfs_get_next_ino() instead of directly
   // access it.
   u64 last_local_ino;
-  // todo: add lock
+  spinlock_t last_local_ino_lock;
 };
 
 struct eltonfs_dir_entry {

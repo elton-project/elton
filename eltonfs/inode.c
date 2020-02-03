@@ -200,6 +200,8 @@ struct eltonfs_inode *eltonfs_iget(struct super_block *sb, u64 ino) {
 u64 eltonfs_get_next_ino(struct super_block *sb) {
   struct eltonfs_info *info = eltonfs_sb(sb);
   u64 ino;
+
+  spin_lock(&info->last_local_ino_lock);
 retry:
   ino = ++info->last_local_ino;
   if (unlikely(ino < ELTONFS_LOCAL_INO_MIN)) {
@@ -208,6 +210,7 @@ retry:
   }
   if (unlikely(radix_tree_lookup(info->inodes_vfs, ino)))
     goto retry;
+  spin_unlock(&info->last_local_ino_lock);
   return ino;
 }
 
